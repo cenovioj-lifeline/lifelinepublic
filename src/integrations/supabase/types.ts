@@ -212,10 +212,13 @@ export type Database = {
           created_at: string
           election_id: string
           id: string
+          media_ids: string[] | null
           notes: string | null
           percentage: number | null
+          superlative_category: string | null
           updated_at: string
           vote_count: number | null
+          winner_name: string | null
           winner_profile_id: string | null
         }
         Insert: {
@@ -223,10 +226,13 @@ export type Database = {
           created_at?: string
           election_id: string
           id?: string
+          media_ids?: string[] | null
           notes?: string | null
           percentage?: number | null
+          superlative_category?: string | null
           updated_at?: string
           vote_count?: number | null
+          winner_name?: string | null
           winner_profile_id?: string | null
         }
         Update: {
@@ -234,10 +240,13 @@ export type Database = {
           created_at?: string
           election_id?: string
           id?: string
+          media_ids?: string[] | null
           notes?: string | null
           percentage?: number | null
+          superlative_category?: string | null
           updated_at?: string
           vote_count?: number | null
+          winner_name?: string | null
           winner_profile_id?: string | null
         }
         Relationships: [

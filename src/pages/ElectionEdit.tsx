@@ -24,14 +24,20 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, Plus, Trash2 } from "lucide-react";
+import { MediaPicker } from "@/components/MediaPicker";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 
 type ElectionResult = {
   id?: string;
   category: string;
-  winner_profile_id: string;
+  superlative_category: string;
+  winner_profile_id?: string;
+  winner_name?: string;
   vote_count?: number;
   percentage?: number;
   notes?: string;
+  media_ids?: string[];
 };
 
 type ElectionForm = {
@@ -139,11 +145,14 @@ export default function ElectionEdit() {
     if (electionResults) {
       setResults(electionResults.map(r => ({
         id: r.id,
-        category: r.category,
-        winner_profile_id: r.winner_profile_id || "",
+        category: r.category || "",
+        superlative_category: r.superlative_category || "",
+        winner_profile_id: r.winner_profile_id || undefined,
+        winner_name: r.winner_name || undefined,
         vote_count: r.vote_count || undefined,
         percentage: r.percentage || undefined,
         notes: r.notes || "",
+        media_ids: r.media_ids || [],
       })));
     }
   }, [electionResults]);
@@ -190,14 +199,17 @@ export default function ElectionEdit() {
         // Insert new results
         if (results.length > 0) {
           const resultsPayload = results
-            .filter(r => r.category && r.winner_profile_id)
+            .filter(r => r.category && r.superlative_category && (r.winner_profile_id || r.winner_name))
             .map(r => ({
               election_id: electionId,
               category: r.category,
+              superlative_category: r.superlative_category,
               winner_profile_id: r.winner_profile_id || null,
+              winner_name: r.winner_name || null,
               vote_count: r.vote_count || null,
               percentage: r.percentage || null,
               notes: r.notes || null,
+              media_ids: r.media_ids || [],
             }));
           
           if (resultsPayload.length > 0) {
@@ -242,10 +254,13 @@ export default function ElectionEdit() {
   const addResult = () => {
     setResults([...results, {
       category: "",
-      winner_profile_id: "",
+      superlative_category: "",
+      winner_profile_id: undefined,
+      winner_name: undefined,
       vote_count: undefined,
       percentage: undefined,
       notes: "",
+      media_ids: [],
     }]);
   };
 
@@ -466,34 +481,122 @@ export default function ElectionEdit() {
             ) : (
               results.map((result, index) => (
                 <div key={index} className="p-4 border rounded-lg space-y-4">
-                  <div className="flex items-start justify-between">
+                  <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 grid gap-4 md:grid-cols-2">
                       <div>
-                        <label className="text-sm font-medium">Category</label>
+                        <label className="text-sm font-medium">Category *</label>
                         <Input
                           value={result.category}
                           onChange={(e) => updateResult(index, "category", e.target.value)}
-                          placeholder="e.g., Most Likely to Succeed"
+                          placeholder="e.g., Most Likely to..."
                         />
                       </div>
                       <div>
-                        <label className="text-sm font-medium">Winner</label>
-                        <Select
-                          value={result.winner_profile_id}
-                          onValueChange={(value) => updateResult(index, "winner_profile_id", value)}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select winner" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {profiles?.map((p) => (
-                              <SelectItem key={p.id} value={p.id}>
-                                {p.display_name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <label className="text-sm font-medium">Superlative Category *</label>
+                        <Input
+                          value={result.superlative_category}
+                          onChange={(e) => updateResult(index, "superlative_category", e.target.value)}
+                          placeholder="e.g., Most Likely to Succeed"
+                        />
                       </div>
+                      
+                      <div className="md:col-span-2 space-y-3">
+                        <Label>Winner Type</Label>
+                        <RadioGroup
+                          value={result.winner_profile_id ? "profile" : "custom"}
+                          onValueChange={(value) => {
+                            if (value === "profile") {
+                              updateResult(index, "winner_name", undefined);
+                            } else {
+                              updateResult(index, "winner_profile_id", undefined);
+                            }
+                          }}
+                          className="flex gap-4"
+                        >
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="profile" id={`profile-${index}`} />
+                            <Label htmlFor={`profile-${index}`} className="font-normal">Link to Profile</Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="custom" id={`custom-${index}`} />
+                            <Label htmlFor={`custom-${index}`} className="font-normal">Custom Name</Label>
+                          </div>
+                        </RadioGroup>
+                      </div>
+
+                      {result.winner_profile_id !== undefined ? (
+                        <div className="md:col-span-2">
+                          <label className="text-sm font-medium">Winner (Profile) *</label>
+                          <Select
+                            value={result.winner_profile_id || ""}
+                            onValueChange={(value) => updateResult(index, "winner_profile_id", value)}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select winner" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {profiles?.map((p) => (
+                                <SelectItem key={p.id} value={p.id}>
+                                  {p.display_name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      ) : (
+                        <div className="md:col-span-2">
+                          <label className="text-sm font-medium">Winner (Custom Name) *</label>
+                          <Input
+                            value={result.winner_name || ""}
+                            onChange={(e) => updateResult(index, "winner_name", e.target.value)}
+                            placeholder="Enter winner's name"
+                          />
+                        </div>
+                      )}
+
+                      <div className="md:col-span-2">
+                        <label className="text-sm font-medium">Images (Optional)</label>
+                        <div className="space-y-2">
+                          {(result.media_ids || []).map((mediaId, mediaIndex) => (
+                            <div key={mediaIndex} className="flex gap-2">
+                              <MediaPicker
+                                value={mediaId}
+                                onValueChange={(value) => {
+                                  const newMediaIds = [...(result.media_ids || [])];
+                                  newMediaIds[mediaIndex] = value;
+                                  updateResult(index, "media_ids", newMediaIds);
+                                }}
+                                placeholder="Select image"
+                                allowNone={false}
+                              />
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => {
+                                  const newMediaIds = (result.media_ids || []).filter((_, i) => i !== mediaIndex);
+                                  updateResult(index, "media_ids", newMediaIds);
+                                }}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          ))}
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              const newMediaIds = [...(result.media_ids || []), ""];
+                              updateResult(index, "media_ids", newMediaIds);
+                            }}
+                          >
+                            <Plus className="h-4 w-4 mr-2" />
+                            Add Image
+                          </Button>
+                        </div>
+                      </div>
+
                       <div>
                         <label className="text-sm font-medium">Vote Count (Optional)</label>
                         <Input
