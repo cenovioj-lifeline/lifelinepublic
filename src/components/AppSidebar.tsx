@@ -31,7 +31,7 @@ export function AppSidebar() {
   const getNavCls = ({ isActive }: { isActive: boolean }) =>
     isActive
       ? "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground"
-      : "hover:bg-muted";
+      : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground";
 
   return (
     <Sidebar className="w-60" collapsible="icon">
@@ -59,7 +59,7 @@ export function AppSidebar() {
       <SidebarFooter>
         <Button
           variant="ghost"
-          className="w-full justify-start"
+          className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
           onClick={signOut}
         >
           <LogOut className="h-4 w-4" />
