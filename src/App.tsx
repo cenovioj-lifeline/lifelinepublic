@@ -8,6 +8,13 @@ import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
 import { AdminLayout } from "./components/AdminLayout";
+import Collections from "./pages/Collections";
+import CollectionEdit from "./pages/CollectionEdit";
+import Lifelines from "./pages/Lifelines";
+import Profiles from "./pages/Profiles";
+import Elections from "./pages/Elections";
+import Tags from "./pages/Tags";
+import Media from "./pages/Media";
 
 const queryClient = new QueryClient();
 
@@ -26,6 +33,76 @@ const App = () => (
                 <ProtectedRoute>
                   <AdminLayout>
                     <Dashboard />
+                  </AdminLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/collections"
+              element={
+                <ProtectedRoute>
+                  <AdminLayout>
+                    <Collections />
+                  </AdminLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/collections/:id"
+              element={
+                <ProtectedRoute>
+                  <AdminLayout>
+                    <CollectionEdit />
+                  </AdminLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/lifelines"
+              element={
+                <ProtectedRoute>
+                  <AdminLayout>
+                    <Lifelines />
+                  </AdminLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/profiles"
+              element={
+                <ProtectedRoute>
+                  <AdminLayout>
+                    <Profiles />
+                  </AdminLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/elections"
+              element={
+                <ProtectedRoute>
+                  <AdminLayout>
+                    <Elections />
+                  </AdminLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/tags"
+              element={
+                <ProtectedRoute>
+                  <AdminLayout>
+                    <Tags />
+                  </AdminLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/media"
+              element={
+                <ProtectedRoute>
+                  <AdminLayout>
+                    <Media />
                   </AdminLayout>
                 </ProtectedRoute>
               }
