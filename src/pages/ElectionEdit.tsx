@@ -254,14 +254,17 @@ export default function ElectionEdit() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Collection (Optional)</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select 
+                    onValueChange={(value) => field.onChange(value === "none" ? "" : value)} 
+                    value={field.value || "none"}
+                  >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select a collection" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="">None</SelectItem>
+                      <SelectItem value="none">None</SelectItem>
                       {collections?.map((c) => (
                         <SelectItem key={c.id} value={c.id}>
                           {c.title}
