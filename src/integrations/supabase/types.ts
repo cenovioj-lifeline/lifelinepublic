@@ -377,6 +377,41 @@ export type Database = {
           },
         ]
       }
+      entry_votes: {
+        Row: {
+          entry_id: string
+          id: string
+          user_id: string
+          user_order: number | null
+          user_score: number | null
+          voted_at: string
+        }
+        Insert: {
+          entry_id: string
+          id?: string
+          user_id: string
+          user_order?: number | null
+          user_score?: number | null
+          voted_at?: string
+        }
+        Update: {
+          entry_id?: string
+          id?: string
+          user_id?: string
+          user_order?: number | null
+          user_score?: number | null
+          voted_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "entry_votes_entry_id_fkey"
+            columns: ["entry_id"]
+            isOneToOne: false
+            referencedRelation: "entries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lifeline_tags: {
         Row: {
           lifeline_id: string
@@ -813,6 +848,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      calculate_entry_average_score: {
+        Args: { entry_uuid: string }
+        Returns: number
+      }
+      get_entry_vote_count: {
+        Args: { entry_uuid: string }
+        Returns: number
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["user_role"]
