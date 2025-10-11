@@ -22,8 +22,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Trash2 } from "lucide-react";
 import { ImageUpload } from "@/components/ImageUpload";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 type ProfileForm = {
   display_name: string;
@@ -70,7 +71,11 @@ export default function ProfileEdit() {
         .from("profiles")
         .select(`
           *,
-          avatar:media_assets!avatar_image_id(id, url)
+          avatar:media_assets!avatar_image_id(id, url),
+          profile_lifelines(
+            lifeline_id,
+            lifeline:lifelines(id, title, slug)
+          )
         `)
         .eq("id", id)
         .maybeSingle();
@@ -145,6 +150,31 @@ export default function ProfileEdit() {
   const onSubmit = (data: ProfileForm) => {
     saveMutation.mutate(data);
   };
+
+  const removeLifelineMutation = useMutation({
+    mutationFn: async (lifelineId: string) => {
+      const { error } = await supabase
+        .from("profile_lifelines")
+        .delete()
+        .eq("profile_id", id)
+        .eq("lifeline_id", lifelineId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["profile", id] });
+      toast({
+        title: "Success",
+        description: "Lifeline link removed",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
 
   const generateSlug = () => {
     const name = form.getValues("display_name");
@@ -378,6 +408,37 @@ export default function ProfileEdit() {
           </div>
         </form>
       </Form>
+
+      {!isNew && profile?.profile_lifelines && profile.profile_lifelines.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Linked Lifelines</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {profile.profile_lifelines.map((pl: any) => (
+                <div
+                  key={pl.lifeline_id}
+                  className="flex items-center justify-between p-3 bg-muted rounded-lg"
+                >
+                  <div>
+                    <p className="font-medium">{pl.lifeline?.title}</p>
+                    <p className="text-sm text-muted-foreground">{pl.lifeline?.slug}</p>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => removeLifelineMutation.mutate(pl.lifeline_id)}
+                    disabled={removeLifelineMutation.isPending}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

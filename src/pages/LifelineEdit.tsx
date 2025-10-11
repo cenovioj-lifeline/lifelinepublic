@@ -33,11 +33,12 @@ type LifelineForm = {
   conclusion: string;
   subject_name: string;
   visibility: "public" | "private" | "unlisted";
-  lifeline_type: "profile" | "event" | "list";
+  lifeline_type: "person" | "list" | "voting";
   status: "draft" | "published";
   collection_id: string;
   profile_id: string;
   cover_image_id: string;
+  linked_profile_ids: string[];
 };
 
 export default function LifelineEdit() {
@@ -56,11 +57,12 @@ export default function LifelineEdit() {
       conclusion: "",
       subject_name: "",
       visibility: "public",
-      lifeline_type: "profile",
+      lifeline_type: "person",
       status: "draft",
       collection_id: "",
       profile_id: "",
       cover_image_id: "",
+      linked_profile_ids: [],
     },
   });
 
@@ -70,7 +72,10 @@ export default function LifelineEdit() {
       if (isNew) return null;
       const { data, error } = await supabase
         .from("lifelines")
-        .select("*")
+        .select(`
+          *,
+          profile_lifelines(profile_id)
+        `)
         .eq("id", id)
         .maybeSingle();
       if (error) throw error;
@@ -105,6 +110,7 @@ export default function LifelineEdit() {
 
   useEffect(() => {
     if (lifeline) {
+      const linkedProfileIds = lifeline.profile_lifelines?.map((pl: any) => pl.profile_id) || [];
       form.reset({
         title: lifeline.title,
         slug: lifeline.slug,
@@ -118,6 +124,7 @@ export default function LifelineEdit() {
         collection_id: lifeline.collection_id || "",
         profile_id: lifeline.profile_id || "",
         cover_image_id: lifeline.cover_image_id || "",
+        linked_profile_ids: linkedProfileIds,
       });
     }
   }, [lifeline, form]);
@@ -139,15 +146,43 @@ export default function LifelineEdit() {
         cover_image_id: data.cover_image_id || null,
       };
       
+      let lifelineId = id;
       if (isNew) {
-        const { error } = await supabase.from("lifelines").insert(payload);
+        const { data: newLifeline, error } = await supabase
+          .from("lifelines")
+          .insert(payload)
+          .select()
+          .single();
         if (error) throw error;
+        lifelineId = newLifeline.id;
       } else {
         const { error } = await supabase
           .from("lifelines")
           .update(payload)
           .eq("id", id);
         if (error) throw error;
+      }
+
+      // Update profile_lifelines junction table
+      if (lifelineId) {
+        // Delete existing relationships
+        await supabase
+          .from("profile_lifelines")
+          .delete()
+          .eq("lifeline_id", lifelineId);
+
+        // Insert new relationships
+        if (data.linked_profile_ids.length > 0) {
+          const relationships = data.linked_profile_ids.map(profileId => ({
+            lifeline_id: lifelineId,
+            profile_id: profileId,
+            relationship_type: "related",
+          }));
+          const { error } = await supabase
+            .from("profile_lifelines")
+            .insert(relationships);
+          if (error) throw error;
+        }
       }
     },
     onSuccess: () => {
@@ -259,9 +294,9 @@ export default function LifelineEdit() {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="profile">Profile</SelectItem>
-                      <SelectItem value="event">Event</SelectItem>
+                      <SelectItem value="person">Person</SelectItem>
                       <SelectItem value="list">List</SelectItem>
+                      <SelectItem value="voting">Voting</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -399,6 +434,57 @@ export default function LifelineEdit() {
                   <FormControl>
                     <Input {...field} placeholder="Brief subtitle" />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="linked_profile_ids"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Linked Profiles (Multi-select)</FormLabel>
+                  <Select 
+                    onValueChange={(value) => {
+                      const current = field.value || [];
+                      if (!current.includes(value)) {
+                        field.onChange([...current, value]);
+                      }
+                    }} 
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Add profiles" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent className="bg-background">
+                      {profiles?.filter(p => !field.value?.includes(p.id)).map((p) => (
+                        <SelectItem key={p.id} value={p.id}>
+                          {p.display_name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {field.value?.map((profileId) => {
+                      const profile = profiles?.find(p => p.id === profileId);
+                      return profile ? (
+                        <div key={profileId} className="flex items-center gap-2 bg-secondary text-secondary-foreground px-3 py-1 rounded-md">
+                          <span className="text-sm">{profile.display_name}</span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              field.onChange(field.value.filter((id: string) => id !== profileId));
+                            }}
+                            className="text-muted-foreground hover:text-foreground"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ) : null;
+                    })}
+                  </div>
                   <FormMessage />
                 </FormItem>
               )}
