@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -22,7 +22,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ArrowLeft } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ArrowLeft, Plus, Trash2 } from "lucide-react";
+
+type ElectionResult = {
+  id?: string;
+  category: string;
+  winner_profile_id: string;
+  vote_count?: number;
+  percentage?: number;
+  notes?: string;
+};
 
 type ElectionForm = {
   title: string;
@@ -41,6 +51,7 @@ export default function ElectionEdit() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const isNew = id === "new";
+  const [results, setResults] = useState<ElectionResult[]>([]);
 
   const form = useForm<ElectionForm>({
     defaultValues: {
@@ -82,6 +93,33 @@ export default function ElectionEdit() {
     },
   });
 
+  const { data: profiles } = useQuery({
+    queryKey: ["profiles"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, display_name")
+        .order("display_name");
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: electionResults } = useQuery({
+    queryKey: ["election-results", id],
+    queryFn: async () => {
+      if (isNew) return [];
+      const { data, error } = await supabase
+        .from("election_results")
+        .select("*")
+        .eq("election_id", id)
+        .order("category");
+      if (error) throw error;
+      return data;
+    },
+    enabled: !isNew,
+  });
+
   useEffect(() => {
     if (election) {
       form.reset({
@@ -97,6 +135,19 @@ export default function ElectionEdit() {
     }
   }, [election, form]);
 
+  useEffect(() => {
+    if (electionResults) {
+      setResults(electionResults.map(r => ({
+        id: r.id,
+        category: r.category,
+        winner_profile_id: r.winner_profile_id || "",
+        vote_count: r.vote_count || undefined,
+        percentage: r.percentage || undefined,
+        notes: r.notes || "",
+      })));
+    }
+  }, [electionResults]);
+
   const saveMutation = useMutation({
     mutationFn: async (data: ElectionForm) => {
       const payload = {
@@ -110,15 +161,52 @@ export default function ElectionEdit() {
         collection_id: data.collection_id || null,
       };
       
+      let electionId = id;
+      
       if (isNew) {
-        const { error } = await supabase.from("mock_elections").insert(payload);
+        const { data: newElection, error } = await supabase
+          .from("mock_elections")
+          .insert(payload)
+          .select()
+          .single();
         if (error) throw error;
+        electionId = newElection.id;
       } else {
         const { error } = await supabase
           .from("mock_elections")
           .update(payload)
           .eq("id", id);
         if (error) throw error;
+      }
+
+      // Save election results
+      if (!isNew && electionId) {
+        // Delete existing results
+        await supabase
+          .from("election_results")
+          .delete()
+          .eq("election_id", electionId);
+
+        // Insert new results
+        if (results.length > 0) {
+          const resultsPayload = results
+            .filter(r => r.category && r.winner_profile_id)
+            .map(r => ({
+              election_id: electionId,
+              category: r.category,
+              winner_profile_id: r.winner_profile_id || null,
+              vote_count: r.vote_count || null,
+              percentage: r.percentage || null,
+              notes: r.notes || null,
+            }));
+          
+          if (resultsPayload.length > 0) {
+            const { error } = await supabase
+              .from("election_results")
+              .insert(resultsPayload);
+            if (error) throw error;
+          }
+        }
       }
     },
     onSuccess: () => {
@@ -149,6 +237,26 @@ export default function ElectionEdit() {
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/(^-|-$)/g, "");
     form.setValue("slug", slug);
+  };
+
+  const addResult = () => {
+    setResults([...results, {
+      category: "",
+      winner_profile_id: "",
+      vote_count: undefined,
+      percentage: undefined,
+      notes: "",
+    }]);
+  };
+
+  const removeResult = (index: number) => {
+    setResults(results.filter((_, i) => i !== index));
+  };
+
+  const updateResult = (index: number, field: keyof ElectionResult, value: any) => {
+    const updated = [...results];
+    updated[index] = { ...updated[index], [field]: value };
+    setResults(updated);
   };
 
   return (
@@ -338,6 +446,99 @@ export default function ElectionEdit() {
           </div>
         </form>
       </Form>
+
+      {!isNew && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle>Election Results</CardTitle>
+              <Button type="button" size="sm" onClick={addResult}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Result
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {results.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                No results added yet. Add winners for different categories (e.g., "Most Likely to Succeed").
+              </p>
+            ) : (
+              results.map((result, index) => (
+                <div key={index} className="p-4 border rounded-lg space-y-4">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1 grid gap-4 md:grid-cols-2">
+                      <div>
+                        <label className="text-sm font-medium">Category</label>
+                        <Input
+                          value={result.category}
+                          onChange={(e) => updateResult(index, "category", e.target.value)}
+                          placeholder="e.g., Most Likely to Succeed"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium">Winner</label>
+                        <Select
+                          value={result.winner_profile_id}
+                          onValueChange={(value) => updateResult(index, "winner_profile_id", value)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select winner" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {profiles?.map((p) => (
+                              <SelectItem key={p.id} value={p.id}>
+                                {p.display_name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium">Vote Count (Optional)</label>
+                        <Input
+                          type="number"
+                          value={result.vote_count || ""}
+                          onChange={(e) => updateResult(index, "vote_count", e.target.value ? parseInt(e.target.value) : undefined)}
+                          placeholder="123"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium">Percentage (Optional)</label>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          value={result.percentage || ""}
+                          onChange={(e) => updateResult(index, "percentage", e.target.value ? parseFloat(e.target.value) : undefined)}
+                          placeholder="45.67"
+                        />
+                      </div>
+                      <div className="md:col-span-2">
+                        <label className="text-sm font-medium">Notes (Optional)</label>
+                        <Textarea
+                          value={result.notes || ""}
+                          onChange={(e) => updateResult(index, "notes", e.target.value)}
+                          placeholder="Additional notes about this result"
+                          rows={2}
+                        />
+                      </div>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => removeResult(index)}
+                      className="ml-2"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))
+            )}
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

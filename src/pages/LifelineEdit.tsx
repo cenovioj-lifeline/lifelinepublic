@@ -36,7 +36,6 @@ type LifelineForm = {
   lifeline_type: "person" | "list" | "voting";
   status: "draft" | "published";
   collection_id: string;
-  profile_id: string;
   cover_image_id: string;
   linked_profile_ids: string[];
 };
@@ -60,7 +59,6 @@ export default function LifelineEdit() {
       lifeline_type: "person",
       status: "draft",
       collection_id: "",
-      profile_id: "",
       cover_image_id: "",
       linked_profile_ids: [],
     },
@@ -122,7 +120,6 @@ export default function LifelineEdit() {
         lifeline_type: lifeline.lifeline_type,
         status: lifeline.status,
         collection_id: lifeline.collection_id || "",
-        profile_id: lifeline.profile_id || "",
         cover_image_id: lifeline.cover_image_id || "",
         linked_profile_ids: linkedProfileIds,
       });
@@ -142,7 +139,6 @@ export default function LifelineEdit() {
         lifeline_type: data.lifeline_type,
         status: data.status,
         collection_id: data.collection_id || null,
-        profile_id: data.profile_id || null,
         cover_image_id: data.cover_image_id || null,
       };
       
@@ -342,35 +338,6 @@ export default function LifelineEdit() {
                       <SelectItem value="public">Public</SelectItem>
                       <SelectItem value="private">Private</SelectItem>
                       <SelectItem value="unlisted">Unlisted</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="profile_id"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Profile (Optional)</FormLabel>
-                  <Select 
-                    onValueChange={(value) => field.onChange(value === "none" ? "" : value)} 
-                    value={field.value || "none"}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a profile" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent className="bg-background">
-                      <SelectItem value="none">None</SelectItem>
-                      {profiles?.map((p) => (
-                        <SelectItem key={p.id} value={p.id}>
-                          {p.display_name}
-                        </SelectItem>
-                      ))}
                     </SelectContent>
                   </Select>
                   <FormMessage />

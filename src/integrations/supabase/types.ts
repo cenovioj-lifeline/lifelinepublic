@@ -206,6 +206,57 @@ export type Database = {
           },
         ]
       }
+      election_results: {
+        Row: {
+          category: string
+          created_at: string
+          election_id: string
+          id: string
+          notes: string | null
+          percentage: number | null
+          updated_at: string
+          vote_count: number | null
+          winner_profile_id: string | null
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          election_id: string
+          id?: string
+          notes?: string | null
+          percentage?: number | null
+          updated_at?: string
+          vote_count?: number | null
+          winner_profile_id?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          election_id?: string
+          id?: string
+          notes?: string | null
+          percentage?: number | null
+          updated_at?: string
+          vote_count?: number | null
+          winner_profile_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "election_results_election_id_fkey"
+            columns: ["election_id"]
+            isOneToOne: false
+            referencedRelation: "mock_elections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "election_results_winner_profile_id_fkey"
+            columns: ["winner_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       entries: {
         Row: {
           age_at_event: number | null
