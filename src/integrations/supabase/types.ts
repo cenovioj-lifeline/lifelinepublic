@@ -260,47 +260,66 @@ export type Database = {
       entries: {
         Row: {
           age_at_event: number | null
+          collection_id: string | null
           created_at: string
           details: string | null
           id: string
           lifeline_id: string
+          media_suggestion: string | null
           occurred_on: string | null
           order_index: number
+          related_lifelines: string | null
           score: number | null
           sentiment: Database["public"]["Enums"]["sentiment_type"] | null
           summary: string | null
+          tags: string | null
           title: string
           updated_at: string
         }
         Insert: {
           age_at_event?: number | null
+          collection_id?: string | null
           created_at?: string
           details?: string | null
           id?: string
           lifeline_id: string
+          media_suggestion?: string | null
           occurred_on?: string | null
           order_index?: number
+          related_lifelines?: string | null
           score?: number | null
           sentiment?: Database["public"]["Enums"]["sentiment_type"] | null
           summary?: string | null
+          tags?: string | null
           title: string
           updated_at?: string
         }
         Update: {
           age_at_event?: number | null
+          collection_id?: string | null
           created_at?: string
           details?: string | null
           id?: string
           lifeline_id?: string
+          media_suggestion?: string | null
           occurred_on?: string | null
           order_index?: number
+          related_lifelines?: string | null
           score?: number | null
           sentiment?: Database["public"]["Enums"]["sentiment_type"] | null
           summary?: string | null
+          tags?: string | null
           title?: string
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "entries_collection_id_fkey"
+            columns: ["collection_id"]
+            isOneToOne: false
+            referencedRelation: "collections"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "entries_lifeline_id_fkey"
             columns: ["lifeline_id"]

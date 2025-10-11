@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -22,8 +22,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Plus } from "lucide-react";
 import { MediaPicker } from "@/components/MediaPicker";
+import { EntryCard } from "@/components/EntryCard";
+import { EntryForm } from "@/components/EntryForm";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 
 type LifelineForm = {
   title: string;
@@ -46,6 +60,9 @@ export default function LifelineEdit() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const isNew = id === "new";
+  const [showEntryForm, setShowEntryForm] = useState(false);
+  const [editingEntry, setEditingEntry] = useState<any>(null);
+  const [deletingEntryId, setDeletingEntryId] = useState<string | null>(null);
 
   const form = useForm<LifelineForm>({
     defaultValues: {
@@ -104,6 +121,24 @@ export default function LifelineEdit() {
       if (error) throw error;
       return data;
     },
+  });
+
+  const { data: entries } = useQuery({
+    queryKey: ["entries", id],
+    queryFn: async () => {
+      if (isNew) return [];
+      const { data, error } = await supabase
+        .from("entries")
+        .select("*")
+        .eq("lifeline_id", id)
+        .order(
+          lifeline?.lifeline_type === "list" ? "order_index" : "occurred_on",
+          { ascending: lifeline?.lifeline_type === "list" }
+        );
+      if (error) throw error;
+      return data;
+    },
+    enabled: !isNew,
   });
 
   useEffect(() => {
@@ -209,6 +244,79 @@ export default function LifelineEdit() {
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/(^-|-$)/g, "");
     form.setValue("slug", slug);
+  };
+
+  const saveEntryMutation = useMutation({
+    mutationFn: async (entryData: any) => {
+      const payload = {
+        ...entryData,
+        lifeline_id: id,
+        collection_id: lifeline?.collection_id || null,
+      };
+
+      if (editingEntry) {
+        const { error } = await supabase
+          .from("entries")
+          .update(payload)
+          .eq("id", editingEntry.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from("entries").insert(payload);
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["entries", id] });
+      toast({
+        title: "Success",
+        description: `Entry ${editingEntry ? "updated" : "created"} successfully`,
+      });
+      setShowEntryForm(false);
+      setEditingEntry(null);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deleteEntryMutation = useMutation({
+    mutationFn: async (entryId: string) => {
+      const { error } = await supabase.from("entries").delete().eq("id", entryId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["entries", id] });
+      toast({
+        title: "Success",
+        description: "Entry deleted successfully",
+      });
+      setDeletingEntryId(null);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleEntrySubmit = (data: any) => {
+    saveEntryMutation.mutate(data);
+  };
+
+  const handleEntryEdit = (entry: any) => {
+    setEditingEntry(entry);
+    setShowEntryForm(true);
+  };
+
+  const handleEntryCancel = () => {
+    setShowEntryForm(false);
+    setEditingEntry(null);
   };
 
   return (
@@ -508,6 +616,84 @@ export default function LifelineEdit() {
           </div>
         </form>
       </Form>
+
+      {!isNew && (
+        <>
+          <Separator className="my-8" />
+
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-bold tracking-tight">Lifeline Entries</h2>
+                <p className="text-muted-foreground">
+                  {entries?.length || 0} {entries?.length === 1 ? "Entry" : "Entries"}
+                </p>
+              </div>
+              <Button onClick={() => setShowEntryForm(!showEntryForm)}>
+                <Plus className="mr-2 h-4 w-4" />
+                {showEntryForm ? "Hide Form" : "New Entry"}
+              </Button>
+            </div>
+
+            {showEntryForm && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>{editingEntry ? "Edit Entry" : "New Entry"}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <EntryForm
+                    lifelineType={lifeline?.lifeline_type || "person"}
+                    defaultValues={editingEntry || undefined}
+                    onSubmit={handleEntrySubmit}
+                    onCancel={handleEntryCancel}
+                    isSubmitting={saveEntryMutation.isPending}
+                    isEditing={!!editingEntry}
+                  />
+                </CardContent>
+              </Card>
+            )}
+
+            <div className="space-y-4">
+              {entries?.length === 0 ? (
+                <Card>
+                  <CardContent className="p-8 text-center text-muted-foreground">
+                    No entries yet. Create your first entry above.
+                  </CardContent>
+                </Card>
+              ) : (
+                entries?.map((entry) => (
+                  <EntryCard
+                    key={entry.id}
+                    entry={entry}
+                    lifelineType={lifeline?.lifeline_type || "person"}
+                    onEdit={() => handleEntryEdit(entry)}
+                    onDelete={() => setDeletingEntryId(entry.id)}
+                  />
+                ))
+              )}
+            </div>
+          </div>
+        </>
+      )}
+
+      <AlertDialog open={!!deletingEntryId} onOpenChange={() => setDeletingEntryId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Entry</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this entry? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => deletingEntryId && deleteEntryMutation.mutate(deletingEntryId)}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
