@@ -15,6 +15,8 @@ import Profiles from "./pages/Profiles";
 import Elections from "./pages/Elections";
 import Tags from "./pages/Tags";
 import Media from "./pages/Media";
+import LifelineEdit from "./pages/LifelineEdit";
+import ElectionEdit from "./pages/ElectionEdit";
 
 const queryClient = new QueryClient();
 
@@ -68,6 +70,16 @@ const App = () => (
               }
             />
             <Route
+              path="/lifelines/:id"
+              element={
+                <ProtectedRoute>
+                  <AdminLayout>
+                    <LifelineEdit />
+                  </AdminLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/profiles"
               element={
                 <ProtectedRoute>
@@ -83,6 +95,16 @@ const App = () => (
                 <ProtectedRoute>
                   <AdminLayout>
                     <Elections />
+                  </AdminLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/elections/:id"
+              element={
+                <ProtectedRoute>
+                  <AdminLayout>
+                    <ElectionEdit />
                   </AdminLayout>
                 </ProtectedRoute>
               }
