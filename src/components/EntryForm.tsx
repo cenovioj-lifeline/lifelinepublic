@@ -26,7 +26,6 @@ type EntryFormData = {
   order_index: number;
   summary: string;
   details: string;
-  sentiment: "positive" | "negative" | "neutral" | "mixed";
   score: number;
   tags?: string;
   related_lifelines?: string;
@@ -55,7 +54,6 @@ export function EntryForm({
       title: "",
       summary: "",
       details: "",
-      sentiment: "neutral",
       score: 0,
       order_index: 0,
       tags: "",
@@ -65,11 +63,17 @@ export function EntryForm({
     },
   });
 
+  const handleFormSubmit = (data: EntryFormData) => {
+    // Auto-calculate sentiment based on score
+    const sentiment = data.score > 0 ? "positive" : data.score < 0 ? "negative" : "neutral";
+    onSubmit({ ...data, sentiment } as any);
+  };
+
   const isListType = lifelineType === "list";
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4">
         <div className="grid gap-4 md:grid-cols-2">
           <FormField
             control={form.control}
@@ -111,39 +115,15 @@ export function EntryForm({
               name="occurred_on"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Date {isListType ? "" : "*"}</FormLabel>
+                  <FormLabel>Date (Optional)</FormLabel>
                   <FormControl>
-                    <Input type="date" {...field} required={!isListType} />
+                    <Input type="date" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
           )}
-
-          <FormField
-            control={form.control}
-            name="sentiment"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Sentiment *</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="positive">Positive</SelectItem>
-                    <SelectItem value="neutral">Neutral</SelectItem>
-                    <SelectItem value="negative">Negative</SelectItem>
-                    <SelectItem value="mixed">Mixed</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
 
           <FormField
             control={form.control}
@@ -160,7 +140,9 @@ export function EntryForm({
                     onValueChange={(vals) => field.onChange(vals[0])}
                   />
                 </FormControl>
-                <FormDescription>From subject's perspective (-10 to +10)</FormDescription>
+                <FormDescription>
+                  Positive scores = green (good events), Negative scores = red (challenges)
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
