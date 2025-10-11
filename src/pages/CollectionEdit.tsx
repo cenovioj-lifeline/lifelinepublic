@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { ArrowLeft } from "lucide-react";
+import { MediaPicker } from "@/components/MediaPicker";
 
 type CollectionForm = {
   title: string;
@@ -34,6 +35,7 @@ type CollectionForm = {
   secondary_color: string;
   status: "draft" | "published";
   is_featured: boolean;
+  hero_image_id: string;
 };
 
 export default function CollectionEdit() {
@@ -53,6 +55,7 @@ export default function CollectionEdit() {
       secondary_color: "#14b8a6",
       status: "draft",
       is_featured: false,
+      hero_image_id: "",
     },
   });
 
@@ -82,6 +85,7 @@ export default function CollectionEdit() {
         secondary_color: collection.secondary_color || "#14b8a6",
         status: collection.status,
         is_featured: collection.is_featured || false,
+        hero_image_id: collection.hero_image_id || "",
       });
     }
   }, [collection, form]);
@@ -258,6 +262,24 @@ export default function CollectionEdit() {
               )}
             />
           </div>
+
+          <FormField
+            control={form.control}
+            name="hero_image_id"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Hero Image (Optional)</FormLabel>
+                <FormControl>
+                  <MediaPicker
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    placeholder="Select hero image"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
           <FormField
             control={form.control}

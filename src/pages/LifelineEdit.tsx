@@ -23,6 +23,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ArrowLeft } from "lucide-react";
+import { MediaPicker } from "@/components/MediaPicker";
 
 type LifelineForm = {
   title: string;
@@ -35,6 +36,8 @@ type LifelineForm = {
   lifeline_type: "profile" | "event" | "list";
   status: "draft" | "published";
   collection_id: string;
+  profile_id: string;
+  cover_image_id: string;
 };
 
 export default function LifelineEdit() {
@@ -56,6 +59,8 @@ export default function LifelineEdit() {
       lifeline_type: "profile",
       status: "draft",
       collection_id: "",
+      profile_id: "",
+      cover_image_id: "",
     },
   });
 
@@ -86,6 +91,18 @@ export default function LifelineEdit() {
     },
   });
 
+  const { data: profiles } = useQuery({
+    queryKey: ["profiles-select"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, display_name")
+        .order("display_name");
+      if (error) throw error;
+      return data;
+    },
+  });
+
   useEffect(() => {
     if (lifeline) {
       form.reset({
@@ -99,6 +116,8 @@ export default function LifelineEdit() {
         lifeline_type: lifeline.lifeline_type,
         status: lifeline.status,
         collection_id: lifeline.collection_id || "",
+        profile_id: lifeline.profile_id || "",
+        cover_image_id: lifeline.cover_image_id || "",
       });
     }
   }, [lifeline, form]);
@@ -116,6 +135,8 @@ export default function LifelineEdit() {
         lifeline_type: data.lifeline_type,
         status: data.status,
         collection_id: data.collection_id || null,
+        profile_id: data.profile_id || null,
+        cover_image_id: data.cover_image_id || null,
       };
       
       if (isNew) {
@@ -295,6 +316,35 @@ export default function LifelineEdit() {
 
             <FormField
               control={form.control}
+              name="profile_id"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Profile (Optional)</FormLabel>
+                  <Select 
+                    onValueChange={(value) => field.onChange(value === "none" ? "" : value)} 
+                    value={field.value || "none"}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a profile" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent className="bg-background">
+                      <SelectItem value="none">None</SelectItem>
+                      {profiles?.map((p) => (
+                        <SelectItem key={p.id} value={p.id}>
+                          {p.display_name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
               name="collection_id"
               render={({ field }) => (
                 <FormItem>
@@ -308,7 +358,7 @@ export default function LifelineEdit() {
                         <SelectValue placeholder="Select a collection" />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent>
+                    <SelectContent className="bg-background">
                       <SelectItem value="none">None</SelectItem>
                       {collections?.map((c) => (
                         <SelectItem key={c.id} value={c.id}>
@@ -317,6 +367,24 @@ export default function LifelineEdit() {
                       ))}
                     </SelectContent>
                   </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="cover_image_id"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Cover Image (Optional)</FormLabel>
+                  <FormControl>
+                    <MediaPicker
+                      value={field.value}
+                      onValueChange={field.onChange}
+                      placeholder="Select cover image"
+                    />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}

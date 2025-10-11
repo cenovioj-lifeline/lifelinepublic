@@ -23,6 +23,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ArrowLeft } from "lucide-react";
+import { ImageUpload } from "@/components/ImageUpload";
 
 type ProfileForm = {
   display_name: string;
@@ -35,6 +36,7 @@ type ProfileForm = {
   birth_date: string;
   death_date: string;
   status: "draft" | "published";
+  avatar_image_id: string;
 };
 
 export default function ProfileEdit() {
@@ -56,6 +58,7 @@ export default function ProfileEdit() {
       birth_date: "",
       death_date: "",
       status: "draft",
+      avatar_image_id: "",
     },
   });
 
@@ -65,7 +68,10 @@ export default function ProfileEdit() {
       if (isNew) return null;
       const { data, error } = await supabase
         .from("profiles")
-        .select("*")
+        .select(`
+          *,
+          avatar:media_assets!avatar_image_id(id, url)
+        `)
         .eq("id", id)
         .maybeSingle();
       if (error) throw error;
@@ -87,6 +93,7 @@ export default function ProfileEdit() {
         birth_date: profile.birth_date || "",
         death_date: profile.death_date || "",
         status: profile.status,
+        avatar_image_id: profile.avatar_image_id || "",
       });
     }
   }, [profile, form]);
@@ -104,6 +111,7 @@ export default function ProfileEdit() {
         birth_date: data.birth_date || null,
         death_date: data.death_date || null,
         status: data.status,
+        avatar_image_id: data.avatar_image_id || null,
       };
       
       if (isNew) {
@@ -165,6 +173,24 @@ export default function ProfileEdit() {
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <FormField
+            control={form.control}
+            name="avatar_image_id"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Avatar Image</FormLabel>
+                <FormControl>
+                  <ImageUpload
+                    onUploadComplete={(mediaId) => field.onChange(mediaId)}
+                    currentImageUrl={profile?.avatar?.url}
+                    onRemove={() => field.onChange("")}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
           <div className="grid gap-6 md:grid-cols-2">
             <FormField
               control={form.control}

@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,7 +15,8 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Upload, Loader2 } from "lucide-react";
+import { uploadImage, getImageDimensions } from "@/lib/storage";
 
 type MediaForm = {
   filename: string;
@@ -34,6 +35,8 @@ export default function MediaEdit() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const isNew = id === "new";
+  const [uploading, setUploading] = useState(false);
+  const [preview, setPreview] = useState<string | null>(null);
 
   const form = useForm<MediaForm>({
     defaultValues: {
@@ -75,6 +78,7 @@ export default function MediaEdit() {
         width: media.width?.toString() || "",
         height: media.height?.toString() || "",
       });
+      setPreview(media.url);
     }
   }, [media, form]);
 
@@ -127,6 +131,52 @@ export default function MediaEdit() {
     saveMutation.mutate(data);
   };
 
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 10 * 1024 * 1024) {
+      toast({
+        title: "File too large",
+        description: "Please upload a file smaller than 10MB",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setUploading(true);
+    setPreview(URL.createObjectURL(file));
+
+    try {
+      const { url } = await uploadImage(file);
+      
+      form.setValue("filename", file.name);
+      form.setValue("url", url);
+      form.setValue("type", file.type.startsWith("image/") ? "image" : file.type.split("/")[0]);
+      form.setValue("alt_text", file.name.split(".")[0].replace(/-/g, " "));
+
+      if (file.type.startsWith("image/")) {
+        const dimensions = await getImageDimensions(file);
+        form.setValue("width", dimensions.width.toString());
+        form.setValue("height", dimensions.height.toString());
+      }
+
+      toast({
+        title: "Success",
+        description: "File uploaded successfully",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Upload failed",
+        description: error.message,
+        variant: "destructive",
+      });
+      setPreview(null);
+    } finally {
+      setUploading(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
@@ -145,6 +195,37 @@ export default function MediaEdit() {
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          {isNew && (
+            <div className="space-y-4">
+              <label className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed rounded-lg cursor-pointer hover:bg-accent/50 transition-colors">
+                <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                  {uploading ? (
+                    <Loader2 className="h-12 w-12 animate-spin text-muted-foreground" />
+                  ) : preview ? (
+                    <img src={preview} alt="Preview" className="max-h-32 object-cover rounded" />
+                  ) : (
+                    <>
+                      <Upload className="h-12 w-12 mb-4 text-muted-foreground" />
+                      <p className="mb-2 text-sm text-muted-foreground">
+                        <span className="font-semibold">Click to upload</span> or drag and drop
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Images, videos, audio up to 10MB
+                      </p>
+                    </>
+                  )}
+                </div>
+                <input
+                  type="file"
+                  className="hidden"
+                  accept="image/*,video/*,audio/*"
+                  onChange={handleFileUpload}
+                  disabled={uploading}
+                />
+              </label>
+            </div>
+          )}
+
           <div className="grid gap-6 md:grid-cols-2">
             <FormField
               control={form.control}
