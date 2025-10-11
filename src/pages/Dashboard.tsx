@@ -1,38 +1,73 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Folder, Activity, Users, Award, TrendingUp } from "lucide-react";
-
-const stats = [
-  {
-    title: "Collections",
-    value: "0",
-    description: "Themed groups",
-    icon: Folder,
-    color: "text-primary",
-  },
-  {
-    title: "Lifelines",
-    value: "0",
-    description: "Timeline narratives",
-    icon: Activity,
-    color: "text-secondary",
-  },
-  {
-    title: "Profiles",
-    value: "0",
-    description: "People & entities",
-    icon: Users,
-    color: "text-accent",
-  },
-  {
-    title: "Elections",
-    value: "0",
-    description: "Mock elections",
-    icon: Award,
-    color: "text-primary",
-  },
-];
+import { Button } from "@/components/ui/button";
+import { Folder, Activity, Users, Award, TrendingUp, Plus } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function Dashboard() {
+  const navigate = useNavigate();
+
+  const { data: counts } = useQuery({
+    queryKey: ["dashboard-stats"],
+    queryFn: async () => {
+      const [collections, lifelines, profiles, elections] = await Promise.all([
+        supabase.from("collections").select("id", { count: "exact", head: true }),
+        supabase.from("lifelines").select("id", { count: "exact", head: true }),
+        supabase.from("profiles").select("id", { count: "exact", head: true }),
+        supabase.from("mock_elections").select("id", { count: "exact", head: true }),
+      ]);
+      return {
+        collections: collections.count || 0,
+        lifelines: lifelines.count || 0,
+        profiles: profiles.count || 0,
+        elections: elections.count || 0,
+      };
+    },
+  });
+
+  const stats = [
+    {
+      title: "Collections",
+      value: counts?.collections ?? "0",
+      description: "Themed groups",
+      icon: Folder,
+      color: "text-primary",
+      path: "/collections",
+    },
+    {
+      title: "Lifelines",
+      value: counts?.lifelines ?? "0",
+      description: "Timeline narratives",
+      icon: Activity,
+      color: "text-secondary",
+      path: "/lifelines",
+    },
+    {
+      title: "Profiles",
+      value: counts?.profiles ?? "0",
+      description: "People & entities",
+      icon: Users,
+      color: "text-accent",
+      path: "/profiles",
+    },
+    {
+      title: "Elections",
+      value: counts?.elections ?? "0",
+      description: "Mock elections",
+      icon: Award,
+      color: "text-primary",
+      path: "/elections",
+    },
+  ];
+
+  const quickActions = [
+    { label: "Create Collection", path: "/collections/new", icon: Folder },
+    { label: "Add Profile", path: "/profiles/new", icon: Users },
+    { label: "Build Lifeline", path: "/lifelines/new", icon: Activity },
+    { label: "Create Election", path: "/elections/new", icon: Award },
+  ];
+
   return (
     <div className="space-y-6">
       <div>
@@ -44,7 +79,11 @@ export default function Dashboard() {
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {stats.map((stat) => (
-          <Card key={stat.title} className="hover:shadow-md transition-shadow">
+          <Card 
+            key={stat.title} 
+            className="hover:shadow-md transition-all cursor-pointer hover:border-primary/50"
+            onClick={() => navigate(stat.path)}
+          >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 {stat.title}
@@ -72,15 +111,21 @@ export default function Dashboard() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <h3 className="font-semibold">Quick Start Guide</h3>
-            <ol className="list-decimal list-inside space-y-1 text-sm text-muted-foreground">
-              <li>Create a Collection to group related content</li>
-              <li>Add Profiles for people and entities</li>
-              <li>Build Lifelines with timeline entries</li>
-              <li>Create Mock Elections for engagement</li>
-              <li>Organize with Tags and Media</li>
-            </ol>
+          <div className="space-y-3">
+            <h3 className="font-semibold">Quick Actions</h3>
+            <div className="grid gap-2 sm:grid-cols-2">
+              {quickActions.map((action) => (
+                <Button
+                  key={action.label}
+                  variant="outline"
+                  className="justify-start"
+                  onClick={() => navigate(action.path)}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  {action.label}
+                </Button>
+              ))}
+            </div>
           </div>
         </CardContent>
       </Card>
