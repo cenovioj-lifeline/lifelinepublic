@@ -229,7 +229,11 @@ export default function CollectionEdit() {
                 <FormItem>
                   <FormLabel>Primary Color</FormLabel>
                   <FormControl>
-                    <Input type="color" {...field} />
+                    <Input 
+                      {...field} 
+                      placeholder="#6366f1"
+                      pattern="^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -243,7 +247,11 @@ export default function CollectionEdit() {
                 <FormItem>
                   <FormLabel>Secondary Color</FormLabel>
                   <FormControl>
-                    <Input type="color" {...field} />
+                    <Input 
+                      {...field} 
+                      placeholder="#14b8a6"
+                      pattern="^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
