@@ -24,47 +24,47 @@ import {
 } from "@/components/ui/select";
 import { ArrowLeft } from "lucide-react";
 
-type LifelineForm = {
-  title: string;
+type ProfileForm = {
+  display_name: string;
   slug: string;
-  subtitle: string;
-  intro: string;
-  conclusion: string;
-  subject_name: string;
-  visibility: "public" | "private" | "unlisted";
-  lifeline_type: "profile" | "event" | "list";
+  summary: string;
+  long_bio: string;
+  type: "person_real" | "person_fictional" | "organization" | "entity";
+  nationality: string;
+  occupation: string;
+  birth_date: string;
+  death_date: string;
   status: "draft" | "published";
-  collection_id: string;
 };
 
-export default function LifelineEdit() {
+export default function ProfileEdit() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const isNew = id === "new";
 
-  const form = useForm<LifelineForm>({
+  const form = useForm<ProfileForm>({
     defaultValues: {
-      title: "",
+      display_name: "",
       slug: "",
-      subtitle: "",
-      intro: "",
-      conclusion: "",
-      subject_name: "",
-      visibility: "public",
-      lifeline_type: "profile",
+      summary: "",
+      long_bio: "",
+      type: "person_real",
+      nationality: "",
+      occupation: "",
+      birth_date: "",
+      death_date: "",
       status: "draft",
-      collection_id: "",
     },
   });
 
-  const { data: lifeline } = useQuery({
-    queryKey: ["lifeline", id],
+  const { data: profile } = useQuery({
+    queryKey: ["profile", id],
     queryFn: async () => {
       if (isNew) return null;
       const { data, error } = await supabase
-        .from("lifelines")
+        .from("profiles")
         .select("*")
         .eq("id", id)
         .maybeSingle();
@@ -74,68 +74,56 @@ export default function LifelineEdit() {
     enabled: !isNew,
   });
 
-  const { data: collections } = useQuery({
-    queryKey: ["collections"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("collections")
-        .select("id, title")
-        .order("title");
-      if (error) throw error;
-      return data;
-    },
-  });
-
   useEffect(() => {
-    if (lifeline) {
+    if (profile) {
       form.reset({
-        title: lifeline.title,
-        slug: lifeline.slug,
-        subtitle: lifeline.subtitle || "",
-        intro: lifeline.intro || "",
-        conclusion: lifeline.conclusion || "",
-        subject_name: lifeline.subject_name || "",
-        visibility: lifeline.visibility,
-        lifeline_type: lifeline.lifeline_type,
-        status: lifeline.status,
-        collection_id: lifeline.collection_id || "",
+        display_name: profile.display_name,
+        slug: profile.slug,
+        summary: profile.summary || "",
+        long_bio: profile.long_bio || "",
+        type: profile.type,
+        nationality: profile.nationality || "",
+        occupation: profile.occupation || "",
+        birth_date: profile.birth_date || "",
+        death_date: profile.death_date || "",
+        status: profile.status,
       });
     }
-  }, [lifeline, form]);
+  }, [profile, form]);
 
   const saveMutation = useMutation({
-    mutationFn: async (data: LifelineForm) => {
+    mutationFn: async (data: ProfileForm) => {
       const payload = {
-        title: data.title,
+        display_name: data.display_name,
         slug: data.slug,
-        subtitle: data.subtitle || null,
-        intro: data.intro || null,
-        conclusion: data.conclusion || null,
-        subject_name: data.subject_name || null,
-        visibility: data.visibility,
-        lifeline_type: data.lifeline_type,
+        summary: data.summary || null,
+        long_bio: data.long_bio || null,
+        type: data.type,
+        nationality: data.nationality || null,
+        occupation: data.occupation || null,
+        birth_date: data.birth_date || null,
+        death_date: data.death_date || null,
         status: data.status,
-        collection_id: data.collection_id || null,
       };
       
       if (isNew) {
-        const { error } = await supabase.from("lifelines").insert(payload);
+        const { error } = await supabase.from("profiles").insert(payload);
         if (error) throw error;
       } else {
         const { error } = await supabase
-          .from("lifelines")
+          .from("profiles")
           .update(payload)
           .eq("id", id);
         if (error) throw error;
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["lifelines"] });
+      queryClient.invalidateQueries({ queryKey: ["profiles"] });
       toast({
         title: "Success",
-        description: `Lifeline ${isNew ? "created" : "updated"} successfully`,
+        description: `Profile ${isNew ? "created" : "updated"} successfully`,
       });
-      navigate("/lifelines");
+      navigate("/profiles");
     },
     onError: (error: Error) => {
       toast({
@@ -146,13 +134,13 @@ export default function LifelineEdit() {
     },
   });
 
-  const onSubmit = (data: LifelineForm) => {
+  const onSubmit = (data: ProfileForm) => {
     saveMutation.mutate(data);
   };
 
   const generateSlug = () => {
-    const title = form.getValues("title");
-    const slug = title
+    const name = form.getValues("display_name");
+    const slug = name
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/(^-|-$)/g, "");
@@ -162,15 +150,15 @@ export default function LifelineEdit() {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => navigate("/lifelines")}>
+        <Button variant="ghost" size="icon" onClick={() => navigate("/profiles")}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <div>
           <h1 className="text-3xl font-bold tracking-tight">
-            {isNew ? "New Lifeline" : "Edit Lifeline"}
+            {isNew ? "New Profile" : "Edit Profile"}
           </h1>
           <p className="text-muted-foreground">
-            {isNew ? "Create a new lifeline story" : "Update lifeline details"}
+            {isNew ? "Create a new profile" : "Update profile details"}
           </p>
         </div>
       </div>
@@ -180,12 +168,12 @@ export default function LifelineEdit() {
           <div className="grid gap-6 md:grid-cols-2">
             <FormField
               control={form.control}
-              name="title"
+              name="display_name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Title</FormLabel>
+                  <FormLabel>Display Name</FormLabel>
                   <FormControl>
-                    <Input {...field} placeholder="Lifeline title" />
+                    <Input {...field} placeholder="Full name" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -200,7 +188,7 @@ export default function LifelineEdit() {
                   <FormLabel>Slug</FormLabel>
                   <div className="flex gap-2">
                     <FormControl>
-                      <Input {...field} placeholder="lifeline-slug" />
+                      <Input {...field} placeholder="profile-slug" />
                     </FormControl>
                     <Button type="button" variant="outline" onClick={generateSlug}>
                       Generate
@@ -213,21 +201,7 @@ export default function LifelineEdit() {
 
             <FormField
               control={form.control}
-              name="subject_name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Subject Name</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="Person or subject name" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="lifeline_type"
+              name="type"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Type</FormLabel>
@@ -238,9 +212,10 @@ export default function LifelineEdit() {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="profile">Profile</SelectItem>
-                      <SelectItem value="event">Event</SelectItem>
-                      <SelectItem value="list">List</SelectItem>
+                      <SelectItem value="person_real">Person (Real)</SelectItem>
+                      <SelectItem value="person_fictional">Person (Fictional)</SelectItem>
+                      <SelectItem value="organization">Organization</SelectItem>
+                      <SelectItem value="entity">Entity</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -272,61 +247,54 @@ export default function LifelineEdit() {
 
             <FormField
               control={form.control}
-              name="visibility"
+              name="nationality"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Visibility</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="public">Public</SelectItem>
-                      <SelectItem value="private">Private</SelectItem>
-                      <SelectItem value="unlisted">Unlisted</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="collection_id"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Collection (Optional)</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a collection" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="">None</SelectItem>
-                      {collections?.map((c) => (
-                        <SelectItem key={c.id} value={c.id}>
-                          {c.title}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="subtitle"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Subtitle</FormLabel>
+                  <FormLabel>Nationality (Optional)</FormLabel>
                   <FormControl>
-                    <Input {...field} placeholder="Brief subtitle" />
+                    <Input {...field} placeholder="e.g., American" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="occupation"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Occupation (Optional)</FormLabel>
+                  <FormControl>
+                    <Input {...field} placeholder="e.g., Actor, Musician" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="birth_date"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Birth Date (Optional)</FormLabel>
+                  <FormControl>
+                    <Input type="date" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="death_date"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Death Date (Optional)</FormLabel>
+                  <FormControl>
+                    <Input type="date" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -336,15 +304,15 @@ export default function LifelineEdit() {
 
           <FormField
             control={form.control}
-            name="intro"
+            name="summary"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Introduction</FormLabel>
+                <FormLabel>Summary</FormLabel>
                 <FormControl>
                   <Textarea
                     {...field}
-                    placeholder="Introduction text"
-                    rows={4}
+                    placeholder="Brief summary"
+                    rows={3}
                   />
                 </FormControl>
                 <FormMessage />
@@ -354,15 +322,15 @@ export default function LifelineEdit() {
 
           <FormField
             control={form.control}
-            name="conclusion"
+            name="long_bio"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Conclusion</FormLabel>
+                <FormLabel>Biography</FormLabel>
                 <FormControl>
                   <Textarea
                     {...field}
-                    placeholder="Conclusion text"
-                    rows={4}
+                    placeholder="Full biography"
+                    rows={6}
                   />
                 </FormControl>
                 <FormMessage />
@@ -372,12 +340,12 @@ export default function LifelineEdit() {
 
           <div className="flex gap-4">
             <Button type="submit" disabled={saveMutation.isPending}>
-              {saveMutation.isPending ? "Saving..." : "Save Lifeline"}
+              {saveMutation.isPending ? "Saving..." : "Save Profile"}
             </Button>
             <Button
               type="button"
               variant="outline"
-              onClick={() => navigate("/lifelines")}
+              onClick={() => navigate("/profiles")}
             >
               Cancel
             </Button>

@@ -17,6 +17,9 @@ import Tags from "./pages/Tags";
 import Media from "./pages/Media";
 import LifelineEdit from "./pages/LifelineEdit";
 import ElectionEdit from "./pages/ElectionEdit";
+import ProfileEdit from "./pages/ProfileEdit";
+import TagEdit from "./pages/TagEdit";
+import MediaEdit from "./pages/MediaEdit";
 
 const queryClient = new QueryClient();
 
@@ -90,6 +93,16 @@ const App = () => (
               }
             />
             <Route
+              path="/profiles/:id"
+              element={
+                <ProtectedRoute>
+                  <AdminLayout>
+                    <ProfileEdit />
+                  </AdminLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/elections"
               element={
                 <ProtectedRoute>
@@ -120,11 +133,31 @@ const App = () => (
               }
             />
             <Route
+              path="/tags/:id"
+              element={
+                <ProtectedRoute>
+                  <AdminLayout>
+                    <TagEdit />
+                  </AdminLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/media"
               element={
                 <ProtectedRoute>
                   <AdminLayout>
                     <Media />
+                  </AdminLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/media/:id"
+              element={
+                <ProtectedRoute>
+                  <AdminLayout>
+                    <MediaEdit />
                   </AdminLayout>
                 </ProtectedRoute>
               }
