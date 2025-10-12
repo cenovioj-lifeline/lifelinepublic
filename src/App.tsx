@@ -8,6 +8,7 @@ import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
 import { AdminLayout } from "./components/AdminLayout";
+import { PublicLayout } from "./components/PublicLayout";
 import Collections from "./pages/Collections";
 import CollectionEdit from "./pages/CollectionEdit";
 import Lifelines from "./pages/Lifelines";
@@ -20,6 +21,11 @@ import ElectionEdit from "./pages/ElectionEdit";
 import ProfileEdit from "./pages/ProfileEdit";
 import TagEdit from "./pages/TagEdit";
 import MediaEdit from "./pages/MediaEdit";
+import Home from "./pages/public/Home";
+import PublicLifelines from "./pages/public/PublicLifelines";
+import PublicCollections from "./pages/public/PublicCollections";
+import PublicProfiles from "./pages/public/PublicProfiles";
+import PublicElections from "./pages/public/PublicElections";
 
 const queryClient = new QueryClient();
 
@@ -32,6 +38,15 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/auth" element={<Auth />} />
+            
+            {/* Public Routes */}
+            <Route path="/home" element={<PublicLayout><Home /></PublicLayout>} />
+            <Route path="/public/lifelines" element={<PublicLayout><PublicLifelines /></PublicLayout>} />
+            <Route path="/public/collections" element={<PublicLayout><PublicCollections /></PublicLayout>} />
+            <Route path="/public/profiles" element={<PublicLayout><PublicProfiles /></PublicLayout>} />
+            <Route path="/public/elections" element={<PublicLayout><PublicElections /></PublicLayout>} />
+            
+            {/* Admin Routes */}
             <Route
               path="/"
               element={
