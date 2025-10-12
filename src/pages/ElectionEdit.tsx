@@ -561,12 +561,14 @@ export default function ElectionEdit() {
                       <div className="md:col-span-2 space-y-3">
                         <Label>Winner Type</Label>
                         <RadioGroup
-                          value={result.winner_profile_id ? "profile" : "custom"}
+                          value={result.winner_profile_id !== undefined ? "profile" : "custom"}
                           onValueChange={(value) => {
                             if (value === "profile") {
                               updateResult(index, "winner_name", undefined);
+                              updateResult(index, "winner_profile_id", "");
                             } else {
                               updateResult(index, "winner_profile_id", undefined);
+                              updateResult(index, "winner_name", "");
                             }
                           }}
                           className="flex gap-4"
