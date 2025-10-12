@@ -95,6 +95,29 @@ export default function CollectionProfileDetail() {
     }
   };
 
+  const { data: lifelinesData } = useQuery({
+    queryKey: ["profile-lifelines", profile?.id, collectionSlug],
+    enabled: !!profile?.id,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("lifelines")
+        .select(`
+          id,
+          title,
+          slug,
+          lifeline_type,
+          collection_id,
+          cover_image:media_assets(url, alt_text)
+        `)
+        .eq("profile_id", (profile as any).id)
+        .eq("status", "published");
+      if (error) throw error;
+
+      const cid = (profile?.profile_collections as any[])?.find((pc: any) => pc.collection?.slug === collectionSlug)?.collection?.id;
+      return cid ? data?.filter((l: any) => l.collection_id === cid) : data;
+    },
+  });
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background p-6 space-y-6">
@@ -187,7 +210,7 @@ export default function CollectionProfileDetail() {
           </CardContent>
         </Card>
 
-        {associatedLifelines.length > 0 && (
+        {(lifelinesData?.length ?? associatedLifelines.length) > 0 && (
           <>
             <Separator className="my-8" />
             <Card>
@@ -196,7 +219,7 @@ export default function CollectionProfileDetail() {
               </CardHeader>
               <CardContent>
                 <div className="grid gap-4 md:grid-cols-2">
-                  {associatedLifelines.map((lifeline: any) => {
+                  {(lifelinesData ?? associatedLifelines).map((lifeline: any) => {
                     const Icon = getLifelineIcon(lifeline.lifeline_type);
                     return (
                       <Card

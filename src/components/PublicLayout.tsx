@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Home, FileText, Users, Vote, FolderOpen, Menu } from "lucide-react";
+import { Home, FileText, Users, Vote, FolderOpen, Menu, Lock } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { PublicAuthModal } from "@/components/PublicAuthModal";
@@ -21,6 +21,7 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
     { path: "/public/collections", label: "Collections", icon: FolderOpen },
     { path: "/public/profiles", label: "Profiles", icon: Users },
     { path: "/public/elections", label: "Elections", icon: Vote },
+    { path: "/admin/login", label: "Admin", icon: Lock },
   ];
 
   const NavLinks = ({ onClick }: { onClick?: () => void }) => (
