@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Heart, TrendingUp, Star, User, List, Vote, Users } from "lucide-react";
 import { useState } from "react";
-import { CollectionLayout } from "@/components/CollectionLayout";
+import { PublicLayout } from "@/components/PublicLayout";
 
 export default function PublicProfileDetail() {
   const { slug } = useParams<{ slug: string }>();
@@ -42,14 +42,7 @@ export default function PublicProfileDetail() {
               title,
               description,
               hero_image_id,
-              hero:hero_image_id(url),
-              primary_color,
-              secondary_color,
-              web_primary,
-              web_secondary,
-              menu_text_color,
-              menu_hover_color,
-              menu_active_color
+              hero:hero_image_id(url)
             )
           )
         `)
@@ -88,7 +81,6 @@ export default function PublicProfileDetail() {
     }
   };
 
-  // Query for lifeline count and stats
   const { data: stats } = useQuery({
     queryKey: ["profile-stats", profile?.id],
     queryFn: async () => {
@@ -101,8 +93,8 @@ export default function PublicProfileDetail() {
 
       return {
         lifelinesCount: count || 0,
-        votesCount: Math.floor(Math.random() * 500000), // Placeholder
-        rating: (4 + Math.random()).toFixed(1), // Placeholder
+        votesCount: Math.floor(Math.random() * 500000),
+        rating: (4 + Math.random()).toFixed(1),
       };
     },
     enabled: !!profile?.id,
@@ -110,7 +102,6 @@ export default function PublicProfileDetail() {
 
   const handleFollowClick = () => {
     if (!user) {
-      // This will trigger the auth modal
       return;
     }
     setIsFollowing(!isFollowing);
@@ -118,38 +109,38 @@ export default function PublicProfileDetail() {
 
   if (isLoading) {
     return (
-      <div className="space-y-6 animate-pulse">
-        <div className="h-8 w-32 bg-muted rounded" />
-        <div className="flex flex-col items-center space-y-4">
-          <div className="h-32 w-32 rounded-full bg-muted" />
-          <div className="h-8 w-48 bg-muted rounded" />
-          <div className="h-4 w-64 bg-muted rounded" />
+      <PublicLayout>
+        <div className="space-y-6 animate-pulse">
+          <div className="h-8 w-32 bg-muted rounded" />
+          <div className="flex flex-col items-center space-y-4">
+            <div className="h-32 w-32 rounded-full bg-muted" />
+            <div className="h-8 w-48 bg-muted rounded" />
+            <div className="h-4 w-64 bg-muted rounded" />
+          </div>
         </div>
-      </div>
+      </PublicLayout>
     );
   }
 
   if (!profile) {
     return (
-      <div className="text-center py-12">
-        <p className="text-muted-foreground">Profile not found</p>
-        <Button onClick={() => navigate("/public/profiles")} className="mt-4">
-          Back to Profiles
-        </Button>
-      </div>
+      <PublicLayout>
+        <div className="text-center py-12">
+          <p className="text-muted-foreground">Profile not found</p>
+          <Button onClick={() => navigate("/public/profiles")} className="mt-4">
+            Back to Profiles
+          </Button>
+        </div>
+      </PublicLayout>
     );
   }
 
   const lifelines = profile.profile_lifelines?.map((pl: any) => pl.lifeline).filter(Boolean) || [];
   const collections = profile.profile_collections?.map((pc: any) => pc.collection).filter(Boolean) || [];
-  
-  // Use the first collection if profile belongs to one
-  const collection = collections.length > 0 ? collections[0] : null;
 
-  const content = (
-    <div className="max-w-4xl mx-auto space-y-6">
-      {/* Back Button */}
-      {!collection && (
+  return (
+    <PublicLayout>
+      <div className="max-w-4xl mx-auto space-y-6">
         <Button
           variant="ghost"
           size="sm"
@@ -159,203 +150,174 @@ export default function PublicProfileDetail() {
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Profiles
         </Button>
-      )}
 
-      {/* Profile Header - Mobile First Design */}
-      <Card>
-        <CardContent className="pt-6">
-          <div className="flex flex-col items-center text-center space-y-4">
-            {/* Avatar */}
-            <Avatar className="h-24 w-24 md:h-32 md:w-32">
-              <AvatarImage
-                src={(profile.avatar as any)?.url}
-                alt={profile.display_name}
-              />
-              <AvatarFallback className="text-3xl">
-                {profile.display_name.charAt(0)}
-              </AvatarFallback>
-            </Avatar>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex flex-col items-center text-center space-y-4">
+              <Avatar className="h-24 w-24 md:h-32 md:w-32">
+                <AvatarImage
+                  src={(profile.avatar as any)?.url}
+                  alt={profile.display_name}
+                />
+                <AvatarFallback className="text-3xl">
+                  {profile.display_name.charAt(0)}
+                </AvatarFallback>
+              </Avatar>
 
-            {/* Name */}
-            <div>
-              <h1 className="text-2xl md:text-3xl font-bold">
-                {profile.display_name}
-              </h1>
-              {profile.occupation && (
-                <p className="text-muted-foreground mt-1">
-                  {profile.occupation}
+              <div>
+                <h1 className="text-2xl md:text-3xl font-bold">
+                  {profile.display_name}
+                </h1>
+                {profile.occupation && (
+                  <p className="text-muted-foreground mt-1">
+                    {profile.occupation}
+                  </p>
+                )}
+              </div>
+
+              <div className="flex items-center justify-center gap-6 text-sm">
+                <div className="flex items-center gap-1">
+                  <TrendingUp className="h-4 w-4 text-primary" />
+                  <span className="font-semibold">{stats?.lifelinesCount || 0}</span>
+                  <span className="text-muted-foreground">Lifelines</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Heart className="h-4 w-4 text-destructive" />
+                  <span className="font-semibold">{stats?.votesCount.toLocaleString() || "0"}</span>
+                  <span className="text-muted-foreground">Votes</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
+                  <span className="font-semibold">{stats?.rating || "0.0"}</span>
+                  <span className="text-muted-foreground">Rating</span>
+                </div>
+              </div>
+
+              <Button
+                size="lg"
+                onClick={handleFollowClick}
+                variant={isFollowing ? "outline" : "default"}
+                className="w-full max-w-xs"
+              >
+                {isFollowing ? "Following" : "Follow"}
+              </Button>
+
+              {(profile.summary || profile.long_bio) && (
+                <p className="text-muted-foreground text-sm md:text-base max-w-2xl">
+                  {profile.summary || profile.long_bio}
                 </p>
               )}
             </div>
+          </CardContent>
+        </Card>
 
-            {/* Stats */}
-            <div className="flex items-center justify-center gap-6 text-sm">
-              <div className="flex items-center gap-1">
-                <TrendingUp className="h-4 w-4 text-primary" />
-                <span className="font-semibold">{stats?.lifelinesCount || 0}</span>
-                <span className="text-muted-foreground">Lifelines</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <Heart className="h-4 w-4 text-destructive" />
-                <span className="font-semibold">{stats?.votesCount.toLocaleString() || "0"}</span>
-                <span className="text-muted-foreground">Votes</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
-                <span className="font-semibold">{stats?.rating || "0.0"}</span>
-                <span className="text-muted-foreground">Rating</span>
-              </div>
-            </div>
-
-            {/* Follow Button */}
-            <Button
-              size="lg"
-              onClick={handleFollowClick}
-              variant={isFollowing ? "outline" : "default"}
-              className="w-full max-w-xs"
-            >
-              {isFollowing ? "Following" : "Follow"}
-            </Button>
-
-            {/* Bio/Summary */}
-            {(profile.summary || profile.long_bio) && (
-              <p className="text-muted-foreground text-sm md:text-base max-w-2xl">
-                {profile.summary || profile.long_bio}
-              </p>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Family & People Connections */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Family & People Connections</CardTitle>
-          <CardDescription>Related people and relationships</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="bg-muted/30 rounded-lg p-8 flex items-center justify-center">
-            <div className="text-center text-muted-foreground">
-              <Users className="h-12 w-12 mx-auto mb-2 opacity-50" />
-              <p className="text-sm">No connections to display</p>
-              <p className="text-xs mt-1">Family connections will appear here</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Associated Lifelines */}
-      {lifelines.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle>Associated Lifelines</CardTitle>
+            <CardTitle>Family & People Connections</CardTitle>
+            <CardDescription>Related people and relationships</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="overflow-x-auto -mx-2 px-2">
-              <div className="flex gap-4 pb-2">
-                {lifelines.map((lifeline: any) => {
-                  const TypeIcon = getLifelineIcon(lifeline.lifeline_type);
-                  return (
-                    <Card
-                      key={lifeline.id}
-                      className="flex-shrink-0 w-64 cursor-pointer hover:shadow-lg transition-shadow"
-                      onClick={() => navigate(`/public/lifelines/${lifeline.slug}`)}
-                    >
-                      {lifeline.cover?.url && (
-                        <div className="aspect-video bg-muted overflow-hidden rounded-t-lg relative">
-                          <img
-                            src={lifeline.cover.url}
-                            alt={lifeline.title}
-                            className="w-full h-full object-cover"
-                          />
-                          <div className={`absolute top-2 right-2 p-2 rounded-full border ${getLifelineTypeColor(lifeline.lifeline_type)}`}>
-                            <TypeIcon className="h-4 w-4" />
+            <div className="bg-muted/30 rounded-lg p-8 flex items-center justify-center">
+              <div className="text-center text-muted-foreground">
+                <Users className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                <p className="text-sm">No connections to display</p>
+                <p className="text-xs mt-1">Family connections will appear here</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {lifelines.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Associated Lifelines</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto -mx-2 px-2">
+                <div className="flex gap-4 pb-2">
+                  {lifelines.map((lifeline: any) => {
+                    const TypeIcon = getLifelineIcon(lifeline.lifeline_type);
+                    return (
+                      <Card
+                        key={lifeline.id}
+                        className="flex-shrink-0 w-64 cursor-pointer hover:shadow-lg transition-shadow"
+                        onClick={() => navigate(`/public/lifelines/${lifeline.slug}`)}
+                      >
+                        {lifeline.cover?.url && (
+                          <div className="aspect-video bg-muted overflow-hidden rounded-t-lg relative">
+                            <img
+                              src={lifeline.cover.url}
+                              alt={lifeline.title}
+                              className="w-full h-full object-cover"
+                            />
+                            <div className={`absolute top-2 right-2 p-2 rounded-full border ${getLifelineTypeColor(lifeline.lifeline_type)}`}>
+                              <TypeIcon className="h-4 w-4" />
+                            </div>
                           </div>
-                        </div>
-                      )}
-                      {!lifeline.cover?.url && (
-                        <div className={`aspect-video overflow-hidden rounded-t-lg flex items-center justify-center border ${getLifelineTypeColor(lifeline.lifeline_type)}`}>
-                          <TypeIcon className="h-12 w-12" />
-                        </div>
-                      )}
-                      <CardHeader className="p-4">
-                        <div className="flex items-start justify-between gap-2">
-                          <CardTitle className="text-base line-clamp-1 flex-1">
-                            {lifeline.title}
-                          </CardTitle>
-                          <Badge variant="outline" className="text-xs capitalize">
-                            {lifeline.lifeline_type}
-                          </Badge>
-                        </div>
-                        {lifeline.subtitle && (
-                          <CardDescription className="text-xs line-clamp-2">
-                            {lifeline.subtitle}
-                          </CardDescription>
                         )}
-                      </CardHeader>
-                    </Card>
-                  );
-                })}
+                        {!lifeline.cover?.url && (
+                          <div className={`aspect-video overflow-hidden rounded-t-lg flex items-center justify-center border ${getLifelineTypeColor(lifeline.lifeline_type)}`}>
+                            <TypeIcon className="h-12 w-12" />
+                          </div>
+                        )}
+                        <CardHeader className="p-4">
+                          <div className="flex items-start justify-between gap-2">
+                            <CardTitle className="text-base line-clamp-1 flex-1">
+                              {lifeline.title}
+                            </CardTitle>
+                            <Badge variant="outline" className="text-xs capitalize">
+                              {lifeline.lifeline_type}
+                            </Badge>
+                          </div>
+                          {lifeline.subtitle && (
+                            <CardDescription className="text-xs line-clamp-2">
+                              {lifeline.subtitle}
+                            </CardDescription>
+                          )}
+                        </CardHeader>
+                      </Card>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+            </CardContent>
+          </Card>
+        )}
 
-      {/* Related Collections */}
-      {collections.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Related Collections</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {collections.map((collection: any) => (
-                <Card
-                  key={collection.id}
-                  className="cursor-pointer hover:shadow-lg transition-shadow"
-                  onClick={() => navigate(`/public/collections`)}
-                >
-                  {collection.hero?.url && (
-                    <div className="aspect-square bg-muted overflow-hidden rounded-t-lg">
-                      <img
-                        src={collection.hero.url}
-                        alt={collection.title}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                  )}
-                  <CardHeader className="p-3">
-                    <CardTitle className="text-sm line-clamp-2">
-                      {collection.title}
-                    </CardTitle>
-                  </CardHeader>
-                </Card>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-    </div>
+        {collections.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Related Collections</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {collections.map((collection: any) => (
+                  <Card
+                    key={collection.id}
+                    className="cursor-pointer hover:shadow-lg transition-shadow"
+                    onClick={() => navigate(`/public/collections/${collection.slug}`)}
+                  >
+                    {collection.hero?.url && (
+                      <div className="aspect-square bg-muted overflow-hidden rounded-t-lg">
+                        <img
+                          src={collection.hero.url}
+                          alt={collection.title}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    )}
+                    <CardHeader className="p-3">
+                      <CardTitle className="text-sm line-clamp-2">
+                        {collection.title}
+                      </CardTitle>
+                    </CardHeader>
+                  </Card>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+    </PublicLayout>
   );
-
-  if (collection) {
-    return (
-      <CollectionLayout
-        collectionTitle={collection.title}
-        collectionSlug={collection.slug}
-        primaryColor={collection.primary_color}
-        secondaryColor={collection.secondary_color}
-        webPrimary={collection.web_primary}
-        webSecondary={collection.web_secondary}
-        menuTextColor={collection.menu_text_color}
-        menuHoverColor={collection.menu_hover_color}
-        menuActiveColor={collection.menu_active_color}
-      >
-        {content}
-      </CollectionLayout>
-    );
-  }
-
-  return content;
 }
