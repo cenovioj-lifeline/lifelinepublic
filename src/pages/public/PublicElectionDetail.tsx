@@ -29,7 +29,10 @@ export default function PublicElectionDetail() {
             primary_color,
             secondary_color,
             web_primary,
-            web_secondary
+            web_secondary,
+            menu_text_color,
+            menu_hover_color,
+            menu_active_color
           ),
           election_tags(tags(name))
         `)
@@ -195,6 +198,48 @@ export default function PublicElectionDetail() {
 
   const collection = election.collections as any;
   
+  // Helper function to find the darkest color
+  const getDarkestColor = () => {
+    if (!collection) return '#000000';
+    
+    const colors = [
+      collection.primary_color,
+      collection.secondary_color,
+      collection.web_primary,
+      collection.web_secondary,
+      collection.menu_text_color,
+      collection.menu_hover_color,
+      collection.menu_active_color
+    ].filter(Boolean);
+    
+    // Convert hex to luminance and find darkest
+    const getLuminance = (hex: string) => {
+      const rgb = parseInt(hex.replace('#', ''), 16);
+      const r = (rgb >> 16) & 0xff;
+      const g = (rgb >> 8) & 0xff;
+      const b = (rgb >> 0) & 0xff;
+      return 0.299 * r + 0.587 * g + 0.114 * b;
+    };
+    
+    let darkest = '#000000';
+    let minLuminance = 255;
+    
+    colors.forEach(color => {
+      const luminance = getLuminance(color);
+      if (luminance < minLuminance) {
+        minLuminance = luminance;
+        darkest = color;
+      }
+    });
+    
+    return darkest;
+  };
+  
+  const darkestColor = getDarkestColor();
+  const badgeColor = collection?.web_primary || collection?.primary_color;
+  const accentColor = collection?.menu_hover_color || collection?.secondary_color;
+  const borderColor = collection?.menu_active_color || collection?.primary_color;
+  
   const content = (
     <div className="min-h-screen bg-background">
       {/* Compact Header */}
@@ -212,9 +257,9 @@ export default function PublicElectionDetail() {
             </Button>
           )}
           <div className="flex items-center gap-3">
-            <Trophy className="h-8 w-8 text-primary flex-shrink-0" />
+            <Trophy className="h-8 w-8 flex-shrink-0" style={{ color: accentColor }} />
             <div className="flex-1 min-w-0">
-              <h1 className="text-lg sm:text-xl md:text-2xl font-bold truncate">
+              <h1 className="text-lg sm:text-xl md:text-2xl font-bold truncate" style={{ color: darkestColor }}>
                 {election.title}
               </h1>
               {election.description && (
@@ -227,12 +272,28 @@ export default function PublicElectionDetail() {
           {(election.collections || election.election_tags?.length > 0) && (
             <div className="flex flex-wrap gap-1.5 mt-2">
               {election.collections && (
-                <Badge variant="secondary" className="text-xs">
+                <Badge 
+                  variant="secondary" 
+                  className="text-xs"
+                  style={{ 
+                    backgroundColor: `${badgeColor}20`,
+                    color: badgeColor,
+                    borderColor: badgeColor
+                  }}
+                >
                   {election.collections.title}
                 </Badge>
               )}
               {election.election_tags?.slice(0, 2).map((et: any, idx: number) => (
-                <Badge key={idx} variant="outline" className="text-xs">
+                <Badge 
+                  key={idx} 
+                  variant="outline" 
+                  className="text-xs"
+                  style={{ 
+                    borderColor: accentColor,
+                    color: accentColor
+                  }}
+                >
                   {et.tags.name}
                 </Badge>
               ))}
@@ -262,16 +323,26 @@ export default function PublicElectionDetail() {
                   <CollapsibleTrigger className="w-full">
                     <div className="flex items-center justify-between p-4 hover:bg-muted/50 transition-colors">
                       <div className="flex items-center gap-3">
-                        <Sparkles className="h-5 w-5 text-primary flex-shrink-0" />
-                        <h2 className="text-lg sm:text-xl font-bold text-primary text-left">
+                        <Sparkles className="h-5 w-5 flex-shrink-0" style={{ color: accentColor }} />
+                        <h2 className="text-lg sm:text-xl font-bold text-left" style={{ color: darkestColor }}>
                           {category}
                         </h2>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Badge variant="secondary" className="text-xs">
+                        <Badge 
+                          variant="secondary" 
+                          className="text-xs"
+                          style={{ 
+                            backgroundColor: `${badgeColor}20`,
+                            color: badgeColor
+                          }}
+                        >
                           {categoryResults.length}
                         </Badge>
-                        <ChevronDown className={`h-5 w-5 transition-transform ${openCategories[category] ? 'rotate-180' : ''}`} />
+                        <ChevronDown 
+                          className={`h-5 w-5 transition-transform ${openCategories[category] ? 'rotate-180' : ''}`}
+                          style={{ color: accentColor }}
+                        />
                       </div>
                     </div>
                   </CollapsibleTrigger>
@@ -287,14 +358,30 @@ export default function PublicElectionDetail() {
                             <div className="flex items-start gap-3">
                               {/* Avatar */}
                               {result.profile?.avatar?.url ? (
-                                <Avatar className="h-14 w-14 sm:h-16 sm:w-16 border-2 border-primary/20 flex-shrink-0">
+                                <Avatar 
+                                  className="h-14 w-14 sm:h-16 sm:w-16 border-2 flex-shrink-0"
+                                  style={{ borderColor: `${borderColor}40` }}
+                                >
                                   <AvatarImage src={result.profile.avatar.url} />
-                                  <AvatarFallback className="text-lg sm:text-xl font-bold">
+                                  <AvatarFallback 
+                                    className="text-lg sm:text-xl font-bold"
+                                    style={{ 
+                                      backgroundColor: `${accentColor}20`,
+                                      color: accentColor
+                                    }}
+                                  >
                                     {(result.profile.display_name || result.winner_name || "?")[0]}
                                   </AvatarFallback>
                                 </Avatar>
                               ) : (
-                                <div className="h-14 w-14 sm:h-16 sm:w-16 rounded-full bg-primary/10 flex items-center justify-center text-xl sm:text-2xl font-bold text-primary border-2 border-primary/20 flex-shrink-0">
+                                <div 
+                                  className="h-14 w-14 sm:h-16 sm:w-16 rounded-full flex items-center justify-center text-xl sm:text-2xl font-bold border-2 flex-shrink-0"
+                                  style={{ 
+                                    backgroundColor: `${accentColor}20`,
+                                    color: accentColor,
+                                    borderColor: `${borderColor}40`
+                                  }}
+                                >
                                   {(result.profile?.display_name || result.winner_name || "?")[0]}
                                 </div>
                               )}
@@ -303,7 +390,7 @@ export default function PublicElectionDetail() {
                               <div className="flex-1 min-w-0 space-y-2">
                                 {/* Award Name (bigger) */}
                                 {result.superlative_category && (
-                                  <h3 className="text-lg sm:text-xl font-bold line-clamp-2">
+                                  <h3 className="text-lg sm:text-xl font-bold line-clamp-2" style={{ color: darkestColor }}>
                                     {result.superlative_category}
                                   </h3>
                                 )}
@@ -312,7 +399,12 @@ export default function PublicElectionDetail() {
                                 {result.profile ? (
                                   <button
                                     onClick={() => navigate(`/public/profiles/${result.profile.slug}`)}
-                                    className="text-sm sm:text-base text-muted-foreground hover:text-primary hover:underline transition-colors text-left"
+                                    className="text-sm sm:text-base text-muted-foreground hover:underline transition-colors text-left"
+                                    style={{ 
+                                      ['--hover-color' as any]: accentColor 
+                                    }}
+                                    onMouseEnter={(e) => e.currentTarget.style.color = accentColor}
+                                    onMouseLeave={(e) => e.currentTarget.style.color = ''}
                                   >
                                     {result.profile.display_name}
                                   </button>
@@ -327,7 +419,7 @@ export default function PublicElectionDetail() {
                                   <div className="flex items-center gap-4 text-sm bg-muted/50 rounded-lg p-2">
                                     {result.percentage && (
                                       <div className="flex items-center gap-1">
-                                        <span className="text-base sm:text-lg font-bold text-primary">
+                                        <span className="text-base sm:text-lg font-bold" style={{ color: accentColor }}>
                                           {result.percentage}%
                                         </span>
                                       </div>
@@ -371,6 +463,9 @@ export default function PublicElectionDetail() {
         secondaryColor={collection.secondary_color}
         webPrimary={collection.web_primary}
         webSecondary={collection.web_secondary}
+        menuTextColor={collection.menu_text_color}
+        menuHoverColor={collection.menu_hover_color}
+        menuActiveColor={collection.menu_active_color}
       >
         {content}
       </CollectionLayout>
