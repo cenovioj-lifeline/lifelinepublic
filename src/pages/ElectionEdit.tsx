@@ -25,8 +25,6 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, Plus, Trash2, X } from "lucide-react";
 import { MediaPicker } from "@/components/MediaPicker";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 
 type ElectionResult = {
@@ -558,59 +556,32 @@ export default function ElectionEdit() {
                         />
                       </div>
                       
-                      <div className="md:col-span-2 space-y-3">
-                        <Label>Winner Type</Label>
-                        <RadioGroup
-                          value={(result.winner_profile_ids && result.winner_profile_ids.length > 0) ? "profile" : "custom"}
-                          onValueChange={(value) => {
-                            if (value === "profile") {
-                              updateResult(index, "winner_name", undefined);
-                              updateResult(index, "winner_profile_ids", []);
-                            } else {
-                              updateResult(index, "winner_profile_ids", []);
-                              updateResult(index, "winner_name", "");
-                            }
-                          }}
-                          className="flex gap-4"
-                        >
-                          <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="profile" id={`profile-${index}`} />
-                            <Label htmlFor={`profile-${index}`} className="font-normal">Link to Profile</Label>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="custom" id={`custom-${index}`} />
-                            <Label htmlFor={`custom-${index}`} className="font-normal">Custom Name</Label>
-                          </div>
-                        </RadioGroup>
-                      </div>
-
-                      {(result.winner_profile_ids !== undefined && result.winner_profile_ids.length === 0) || (result.winner_profile_ids && result.winner_profile_ids.length > 0) ? (
-                        <div className="md:col-span-2 space-y-2">
-                          <div className="flex items-center justify-between">
-                            <label className="text-sm font-medium">Winner (Profiles) *</label>
-                          </div>
-                          <div className="space-y-2">
-                            <Select
-                              value=""
-                              onValueChange={(value) => {
-                                if (!result.winner_profile_ids?.includes(value)) {
-                                  updateResult(index, "winner_profile_ids", [...(result.winner_profile_ids || []), value]);
-                                }
-                              }}
-                            >
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select profiles..." />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {profiles?.filter(p => !result.winner_profile_ids?.includes(p.id)).map((p) => (
-                                  <SelectItem key={p.id} value={p.id}>
-                                    {p.display_name}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
+                      
+                      <div className="md:col-span-2 grid md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium">Link to Profile(s)</label>
+                          <Select
+                            value=""
+                            onValueChange={(value) => {
+                              if (!result.winner_profile_ids?.includes(value)) {
+                                updateResult(index, "winner_profile_ids", [...(result.winner_profile_ids || []), value]);
+                              }
+                            }}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select profiles..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {profiles?.filter(p => !result.winner_profile_ids?.includes(p.id)).map((p) => (
+                                <SelectItem key={p.id} value={p.id}>
+                                  {p.display_name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          {result.winner_profile_ids && result.winner_profile_ids.length > 0 && (
                             <div className="flex flex-wrap gap-2">
-                              {result.winner_profile_ids?.map((profileId) => {
+                              {result.winner_profile_ids.map((profileId) => {
                                 const profile = profiles?.find(p => p.id === profileId);
                                 return profile ? (
                                   <Badge key={profileId} variant="secondary">
@@ -626,18 +597,21 @@ export default function ElectionEdit() {
                                 ) : null;
                               })}
                             </div>
-                          </div>
+                          )}
                         </div>
-                      ) : (
-                        <div className="md:col-span-2">
-                          <label className="text-sm font-medium">Winner (Custom Name) *</label>
+
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium">Or Enter Custom Name(s)</label>
                           <Input
                             value={result.winner_name || ""}
                             onChange={(e) => updateResult(index, "winner_name", e.target.value)}
-                            placeholder="Enter winner's name"
+                            placeholder="Enter name(s)"
                           />
+                          <p className="text-xs text-muted-foreground">
+                            Separate multiple names with commas
+                          </p>
                         </div>
-                      )}
+                      </div>
 
                       <div className="md:col-span-2">
                         <label className="text-sm font-medium">Images (Optional)</label>
