@@ -33,6 +33,8 @@ type CollectionForm = {
   category: string;
   primary_color: string;
   secondary_color: string;
+  web_primary: string;
+  web_secondary: string;
   status: "draft" | "published";
   is_featured: boolean;
   hero_image_id: string;
@@ -51,8 +53,10 @@ export default function CollectionEdit() {
       slug: "",
       description: "",
       category: "",
-      primary_color: "#6366f1",
-      secondary_color: "#14b8a6",
+      primary_color: "#16a34a",
+      secondary_color: "#dc2626",
+      web_primary: "",
+      web_secondary: "",
       status: "draft",
       is_featured: false,
       hero_image_id: "",
@@ -81,8 +85,10 @@ export default function CollectionEdit() {
         slug: collection.slug,
         description: collection.description || "",
         category: collection.category || "",
-        primary_color: collection.primary_color || "#6366f1",
-        secondary_color: collection.secondary_color || "#14b8a6",
+        primary_color: collection.primary_color || "#16a34a",
+        secondary_color: collection.secondary_color || "#dc2626",
+        web_primary: collection.web_primary || "",
+        web_secondary: collection.web_secondary || "",
         status: collection.status,
         is_featured: collection.is_featured || false,
         hero_image_id: collection.hero_image_id || "",
@@ -231,14 +237,24 @@ export default function CollectionEdit() {
               name="primary_color"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Primary Color</FormLabel>
-                  <FormControl>
+                  <FormLabel>Primary Color (green bar)</FormLabel>
+                  <div className="flex gap-2">
+                    <FormControl>
+                      <Input 
+                        {...field} 
+                        type="text"
+                        placeholder="#16a34a"
+                        pattern="^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"
+                        className="flex-1"
+                      />
+                    </FormControl>
                     <Input 
-                      {...field} 
-                      placeholder="#6366f1"
-                      pattern="^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"
+                      type="color" 
+                      value={field.value || "#16a34a"}
+                      onChange={(e) => field.onChange(e.target.value)}
+                      className="w-16 h-10 cursor-pointer"
                     />
-                  </FormControl>
+                  </div>
                   <FormMessage />
                 </FormItem>
               )}
@@ -249,14 +265,80 @@ export default function CollectionEdit() {
               name="secondary_color"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Secondary Color</FormLabel>
-                  <FormControl>
+                  <FormLabel>Secondary Color (red bar)</FormLabel>
+                  <div className="flex gap-2">
+                    <FormControl>
+                      <Input 
+                        {...field} 
+                        type="text"
+                        placeholder="#dc2626"
+                        pattern="^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"
+                        className="flex-1"
+                      />
+                    </FormControl>
                     <Input 
-                      {...field} 
-                      placeholder="#14b8a6"
-                      pattern="^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"
+                      type="color" 
+                      value={field.value || "#dc2626"}
+                      onChange={(e) => field.onChange(e.target.value)}
+                      className="w-16 h-10 cursor-pointer"
                     />
-                  </FormControl>
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="web_primary"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Web Primary Color (Optional)</FormLabel>
+                  <div className="flex gap-2">
+                    <FormControl>
+                      <Input 
+                        {...field} 
+                        type="text"
+                        placeholder="#000000"
+                        pattern="^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"
+                        className="flex-1"
+                      />
+                    </FormControl>
+                    <Input 
+                      type="color" 
+                      value={field.value || "#000000"}
+                      onChange={(e) => field.onChange(e.target.value)}
+                      className="w-16 h-10 cursor-pointer"
+                    />
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="web_secondary"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Web Secondary Color (Optional)</FormLabel>
+                  <div className="flex gap-2">
+                    <FormControl>
+                      <Input 
+                        {...field} 
+                        type="text"
+                        placeholder="#ffffff"
+                        pattern="^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"
+                        className="flex-1"
+                      />
+                    </FormControl>
+                    <Input 
+                      type="color" 
+                      value={field.value || "#ffffff"}
+                      onChange={(e) => field.onChange(e.target.value)}
+                      className="w-16 h-10 cursor-pointer"
+                    />
+                  </div>
                   <FormMessage />
                 </FormItem>
               )}

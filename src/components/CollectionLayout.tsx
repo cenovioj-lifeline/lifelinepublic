@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { X, Menu } from "lucide-react";
+import { Home, Rss, Users, Vote, ArrowLeft } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { PublicUserMenu } from "@/components/PublicUserMenu";
@@ -13,6 +13,8 @@ interface CollectionLayoutProps {
   collectionSlug: string;
   primaryColor?: string | null;
   secondaryColor?: string | null;
+  webPrimary?: string | null;
+  webSecondary?: string | null;
 }
 
 export function CollectionLayout({
@@ -21,6 +23,8 @@ export function CollectionLayout({
   collectionSlug,
   primaryColor,
   secondaryColor,
+  webPrimary,
+  webSecondary,
 }: CollectionLayoutProps) {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -53,65 +57,118 @@ export function CollectionLayout({
     navigate("/public/collections");
   };
 
+  const navItems = [
+    { label: "Home", icon: Home, to: `/public/collections/${collectionSlug}` },
+    { label: "Feed", icon: Rss, to: `/public/collections/${collectionSlug}/feed` },
+    { label: "Lifelines", icon: Users, to: `/public/collections/${collectionSlug}/lifelines` },
+    { label: "Profiles", icon: Users, to: `/public/collections/${collectionSlug}/profiles` },
+    { label: "MER", icon: Vote, to: `/public/collections/${collectionSlug}/elections` },
+  ];
+
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b bg-card sticky top-0 z-50 shadow-sm">
+      <header 
+        className="border-b sticky top-0 z-50 shadow-sm"
+        style={{
+          backgroundColor: webPrimary || undefined,
+        }}
+      >
         <div className="container mx-auto px-4 py-3">
           <nav className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-6">
               <Link
                 to={`/public/collections/${collectionSlug}`}
                 className="text-lg md:text-xl font-bold"
                 style={{
-                  color: primaryColor || undefined,
+                  color: webSecondary || (webPrimary ? "#ffffff" : undefined),
                 }}
               >
                 {collectionTitle}
               </Link>
+              
+              {!isMobile && (
+                <div className="flex items-center gap-2">
+                  {navItems.map((item) => (
+                    <Button
+                      key={item.label}
+                      variant="ghost"
+                      size="sm"
+                      asChild
+                      className="gap-2"
+                      style={{
+                        color: webPrimary ? "#ffffff" : undefined,
+                      }}
+                    >
+                      <Link to={item.to}>
+                        <item.icon className="h-4 w-4" />
+                        {item.label}
+                      </Link>
+                    </Button>
+                  ))}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleExit}
+                    className="gap-2"
+                    style={{
+                      color: webPrimary ? "#ffffff" : undefined,
+                    }}
+                  >
+                    <ArrowLeft className="h-4 w-4" />
+                    LP
+                  </Button>
+                </div>
+              )}
             </div>
 
-            {!isMobile && (
-              <div className="flex items-center gap-2">
-                {user && <PublicUserMenu />}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleExit}
-                  className="gap-2"
-                >
-                  <X className="h-4 w-4" />
-                  Exit Collection
-                </Button>
-              </div>
-            )}
-
-            {isMobile && (
-              <div className="flex items-center gap-2">
-                {user && <PublicUserMenu />}
+            <div className="flex items-center gap-2">
+              {user && <PublicUserMenu />}
+              
+              {isMobile && (
                 <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
                   <SheetTrigger asChild>
-                    <Button variant="ghost" size="icon">
-                      <Menu className="h-5 w-5" />
+                    <Button 
+                      variant="ghost" 
+                      size="icon"
+                      style={{
+                        color: webPrimary ? "#ffffff" : undefined,
+                      }}
+                    >
+                      <Home className="h-5 w-5" />
                     </Button>
                   </SheetTrigger>
                   <SheetContent side="right" className="w-64">
-                    <div className="flex flex-col gap-4 mt-8">
+                    <div className="flex flex-col gap-2 mt-8">
+                      {navItems.map((item) => (
+                        <Button
+                          key={item.label}
+                          variant="ghost"
+                          onClick={() => {
+                            navigate(item.to);
+                            setMobileMenuOpen(false);
+                          }}
+                          className="gap-2 justify-start"
+                        >
+                          <item.icon className="h-4 w-4" />
+                          {item.label}
+                        </Button>
+                      ))}
                       <Button
                         variant="outline"
                         onClick={() => {
                           handleExit();
                           setMobileMenuOpen(false);
                         }}
-                        className="gap-2 justify-start"
+                        className="gap-2 justify-start mt-4"
                       >
-                        <X className="h-4 w-4" />
-                        Exit Collection
+                        <ArrowLeft className="h-4 w-4" />
+                        Back to Lifeline Public
                       </Button>
                     </div>
                   </SheetContent>
                 </Sheet>
-              </div>
-            )}
+              )}
+            </div>
           </nav>
         </div>
       </header>

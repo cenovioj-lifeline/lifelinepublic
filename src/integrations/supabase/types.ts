@@ -163,6 +163,8 @@ export type Database = {
           style_notes: string | null
           title: string
           updated_at: string
+          web_primary: string | null
+          web_secondary: string | null
         }
         Insert: {
           category?: string | null
@@ -179,6 +181,8 @@ export type Database = {
           style_notes?: string | null
           title: string
           updated_at?: string
+          web_primary?: string | null
+          web_secondary?: string | null
         }
         Update: {
           category?: string | null
@@ -195,6 +199,8 @@ export type Database = {
           style_notes?: string | null
           title?: string
           updated_at?: string
+          web_primary?: string | null
+          web_secondary?: string | null
         }
         Relationships: [
           {

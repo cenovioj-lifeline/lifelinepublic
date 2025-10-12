@@ -160,6 +160,8 @@ export default function PublicCollectionDetail() {
       collectionSlug={collection.slug}
       primaryColor={collection.primary_color}
       secondaryColor={collection.secondary_color}
+      webPrimary={collection.web_primary}
+      webSecondary={collection.web_secondary}
     >
       <div className="space-y-8">
         {/* Hero Section */}
