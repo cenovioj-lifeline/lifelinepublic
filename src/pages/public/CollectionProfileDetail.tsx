@@ -2,12 +2,13 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Users, User, List, Vote, TrendingUp } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CollectionLayout } from "@/components/CollectionLayout";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 
 export default function CollectionProfileDetail() {
   const { collectionSlug, profileSlug } = useParams<{ collectionSlug: string; profileSlug: string }>();
@@ -34,6 +35,15 @@ export default function CollectionProfileDetail() {
               menu_hover_color,
               menu_active_color
             )
+          ),
+          profile_lifelines(
+            lifeline:lifelines(
+              id,
+              title,
+              slug,
+              lifeline_type,
+              cover_image:media_assets(url, alt_text)
+            )
           )
         `)
         .eq("slug", profileSlug)
@@ -54,6 +64,36 @@ export default function CollectionProfileDetail() {
       return data;
     },
   });
+
+  const getLifelineIcon = (type: string) => {
+    switch (type) {
+      case "family":
+        return Users;
+      case "person":
+        return User;
+      case "list":
+        return List;
+      case "election":
+        return Vote;
+      default:
+        return TrendingUp;
+    }
+  };
+
+  const getLifelineTypeColor = (type: string) => {
+    switch (type) {
+      case "family":
+        return "text-blue-500";
+      case "person":
+        return "text-green-500";
+      case "list":
+        return "text-purple-500";
+      case "election":
+        return "text-orange-500";
+      default:
+        return "text-gray-500";
+    }
+  };
 
   if (isLoading) {
     return (
@@ -77,6 +117,9 @@ export default function CollectionProfileDetail() {
   }
 
   const collection = (profile.profile_collections as any[])?.[0]?.collection;
+  const associatedLifelines = (profile.profile_lifelines as any[])
+    ?.map((pl: any) => pl.lifeline)
+    .filter(Boolean) || [];
 
   const getInitials = (name: string) => {
     return name
@@ -143,6 +186,47 @@ export default function CollectionProfileDetail() {
             </div>
           </CardContent>
         </Card>
+
+        {associatedLifelines.length > 0 && (
+          <>
+            <Separator className="my-8" />
+            <Card>
+              <CardHeader>
+                <CardTitle>Associated Lifelines</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid gap-4 md:grid-cols-2">
+                  {associatedLifelines.map((lifeline: any) => {
+                    const Icon = getLifelineIcon(lifeline.lifeline_type);
+                    return (
+                      <Card
+                        key={lifeline.id}
+                        className="overflow-hidden cursor-pointer hover:shadow-lg transition-shadow"
+                        onClick={() => navigate(`/public/collections/${collectionSlug}/lifelines/${lifeline.slug}`)}
+                      >
+                        {lifeline.cover_image && (
+                          <div className="aspect-video w-full overflow-hidden">
+                            <img
+                              src={lifeline.cover_image.url}
+                              alt={lifeline.cover_image.alt_text || lifeline.title}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        )}
+                        <CardContent className="p-4">
+                          <div className="flex items-center gap-2">
+                            <Icon className={`h-5 w-5 ${getLifelineTypeColor(lifeline.lifeline_type)}`} />
+                            <h3 className="font-semibold">{lifeline.title}</h3>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+          </>
+        )}
       </div>
     </CollectionLayout>
   );
