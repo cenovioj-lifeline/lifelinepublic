@@ -27,7 +27,10 @@ export default function PublicLifelineDetail() {
             primary_color,
             secondary_color,
             web_primary,
-            web_secondary
+            web_secondary,
+            menu_text_color,
+            menu_hover_color,
+            menu_active_color
           )
         `)
         .eq("slug", slug)
@@ -93,6 +96,9 @@ export default function PublicLifelineDetail() {
         secondaryColor={collection.secondary_color}
         webPrimary={collection.web_primary}
         webSecondary={collection.web_secondary}
+        menuTextColor={collection.menu_text_color}
+        menuHoverColor={collection.menu_hover_color}
+        menuActiveColor={collection.menu_active_color}
       >
         {content}
       </CollectionLayout>

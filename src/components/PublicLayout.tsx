@@ -16,7 +16,7 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
   const isMobile = useIsMobile();
 
   const navItems = [
-    { path: "/home", label: "Home", icon: Home },
+    { path: "/", label: "Home", icon: Home },
     { path: "/public/lifelines", label: "Lifelines", icon: FileText },
     { path: "/public/collections", label: "Collections", icon: FolderOpen },
     { path: "/public/profiles", label: "Profiles", icon: Users },
@@ -52,7 +52,7 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
       <header className="border-b bg-card sticky top-0 z-50">
         <div className="container mx-auto px-4 py-3">
           <nav className="flex items-center justify-between">
-            <Link to="/home" className="text-lg md:text-xl font-bold text-primary">
+            <Link to="/" className="text-lg md:text-xl font-bold text-primary">
               Lifeline Public
             </Link>
             
