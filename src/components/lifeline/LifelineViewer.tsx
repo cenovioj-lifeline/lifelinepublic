@@ -127,7 +127,7 @@ export function LifelineViewer({ lifelineId }: LifelineViewerProps) {
 
                   const baseClasses = cn(
                     "relative px-4 py-2 rounded-lg font-medium transition-all duration-300 cursor-pointer",
-                    "flex items-center gap-2",
+                    "flex items-center gap-3",
                     positive
                       ? "bg-green-600 text-white hover:bg-green-700"
                       : "bg-red-600 text-white hover:bg-red-700"
@@ -139,32 +139,37 @@ export function LifelineViewer({ lifelineId }: LifelineViewerProps) {
                     "animate-pulse": selectionStyle === "wave" && isSelected,
                   });
 
+                  const scoreBoxClasses = cn(
+                    "px-2 py-1 rounded bg-white font-bold text-sm min-w-[2rem] text-center",
+                    positive ? "text-green-600" : "text-red-600"
+                  );
+
                   return (
                     <div
                       key={entry.id}
-                      className="relative flex items-center justify-center"
+                      className="relative"
+                      style={{ 
+                        marginLeft: positive ? 'auto' : '50%',
+                        marginRight: positive ? '50%' : 'auto',
+                        width: `${width}%`
+                      }}
                     >
-                      {positive ? (
-                        // Green bars on the left - right justified text, score on far left
-                        <div
-                          className={cn(baseClasses, selectedClasses, "justify-between ml-auto mr-[50%]")}
-                          style={{ width: `${width}%` }}
-                          onClick={() => setSelectedId(entry.id)}
-                        >
-                          <span className="font-bold text-sm">{score}</span>
-                          <span className="truncate text-right">{entry.title}</span>
-                        </div>
-                      ) : (
-                        // Red bars on the right - left justified text, score on far right
-                        <div
-                          className={cn(baseClasses, selectedClasses, "justify-between ml-[50%]")}
-                          style={{ width: `${width}%` }}
-                          onClick={() => setSelectedId(entry.id)}
-                        >
-                          <span className="truncate">{entry.title}</span>
-                          <span className="font-bold text-sm">{score}</span>
-                        </div>
-                      )}
+                      <div
+                        className={cn(baseClasses, selectedClasses, positive ? "justify-between" : "justify-between")}
+                        onClick={() => setSelectedId(entry.id)}
+                      >
+                        {positive ? (
+                          <>
+                            <span className={scoreBoxClasses}>{score}</span>
+                            <span className="truncate text-right flex-1">{entry.title}</span>
+                          </>
+                        ) : (
+                          <>
+                            <span className="truncate flex-1">{entry.title}</span>
+                            <span className={scoreBoxClasses}>{score}</span>
+                          </>
+                        )}
+                      </div>
                     </div>
                   );
                 })}
