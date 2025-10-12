@@ -31,6 +31,7 @@ import CollectionFeed from "./pages/public/CollectionFeed";
 import CollectionLifelines from "./pages/public/CollectionLifelines";
 import CollectionProfiles from "./pages/public/CollectionProfiles";
 import CollectionElections from "./pages/public/CollectionElections";
+import CollectionSettings from "./pages/public/CollectionSettings";
 import PublicProfiles from "./pages/public/PublicProfiles";
 import PublicProfileDetail from "./pages/public/PublicProfileDetail";
 import PublicElections from "./pages/public/PublicElections";
@@ -54,8 +55,9 @@ const App = () => (
           <Route path="/public/lifelines" element={<PublicLayout><PublicLifelines /></PublicLayout>} />
           <Route path="/public/lifelines/:slug" element={<PublicLifelineDetail />} />
             <Route path="/public/collections" element={<PublicLayout><PublicCollections /></PublicLayout>} />
-            <Route path="/public/collections/:slug" element={<PublicCollectionDetail />} />
-            <Route path="/public/collections/:slug/feed" element={<CollectionFeed />} />
+          <Route path="/public/collections/:slug" element={<PublicCollectionDetail />} />
+          <Route path="/public/collections/:slug/feed" element={<CollectionFeed />} />
+          <Route path="/public/collections/:slug/settings" element={<CollectionSettings />} />
             <Route path="/public/collections/:slug/lifelines" element={<CollectionLifelines />} />
             <Route path="/public/collections/:slug/profiles" element={<CollectionProfiles />} />
             <Route path="/public/collections/:slug/elections" element={<CollectionElections />} />

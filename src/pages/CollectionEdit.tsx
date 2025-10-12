@@ -25,6 +25,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { ArrowLeft } from "lucide-react";
 import { MediaPicker } from "@/components/MediaPicker";
+import { CollectionQuotesUpload } from "@/components/CollectionQuotesUpload";
 
 type CollectionForm = {
   title: string;
@@ -402,6 +403,10 @@ export default function CollectionEdit() {
               </FormItem>
             )}
           />
+
+          {!isNew && collection && (
+            <CollectionQuotesUpload collectionId={collection.id} />
+          )}
 
           <div className="flex gap-4">
             <Button type="submit" disabled={saveMutation.isPending}>

@@ -117,6 +117,41 @@ export type Database = {
           },
         ]
       }
+      collection_quotes: {
+        Row: {
+          author: string | null
+          collection_id: string
+          context: string | null
+          created_at: string
+          id: string
+          quote: string
+        }
+        Insert: {
+          author?: string | null
+          collection_id: string
+          context?: string | null
+          created_at?: string
+          id?: string
+          quote: string
+        }
+        Update: {
+          author?: string | null
+          collection_id?: string
+          context?: string | null
+          created_at?: string
+          id?: string
+          quote?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "collection_quotes_collection_id_fkey"
+            columns: ["collection_id"]
+            isOneToOne: false
+            referencedRelation: "collections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       collection_tags: {
         Row: {
           collection_id: string
@@ -157,6 +192,8 @@ export type Database = {
           id: string
           is_featured: boolean | null
           primary_color: string | null
+          quote_frequency: number | null
+          quotes_enabled: boolean | null
           secondary_color: string | null
           slug: string
           status: Database["public"]["Enums"]["content_status"]
@@ -175,6 +212,8 @@ export type Database = {
           id?: string
           is_featured?: boolean | null
           primary_color?: string | null
+          quote_frequency?: number | null
+          quotes_enabled?: boolean | null
           secondary_color?: string | null
           slug: string
           status?: Database["public"]["Enums"]["content_status"]
@@ -193,6 +232,8 @@ export type Database = {
           id?: string
           is_featured?: boolean | null
           primary_color?: string | null
+          quote_frequency?: number | null
+          quotes_enabled?: boolean | null
           secondary_color?: string | null
           slug?: string
           status?: Database["public"]["Enums"]["content_status"]

@@ -1,11 +1,15 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Home, Rss, Users, Vote, ArrowLeft } from "lucide-react";
+import { Home, Rss, Users, Vote, ArrowLeft, Settings } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { PublicUserMenu } from "@/components/PublicUserMenu";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { CollectionQuotePopup } from "@/components/CollectionQuotePopup";
+import { useCollectionQuote } from "@/hooks/useCollectionQuote";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 interface CollectionLayoutProps {
   children: React.ReactNode;
@@ -30,6 +34,28 @@ export function CollectionLayout({
   const { user } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const isMobile = useIsMobile();
+
+  // Fetch collection settings for quotes
+  const { data: collectionSettings } = useQuery({
+    queryKey: ["collection-settings", collectionSlug],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("collections")
+        .select("id, quotes_enabled, quote_frequency")
+        .eq("slug", collectionSlug)
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Use the quote hook
+  const { currentQuote, dismissQuote } = useCollectionQuote(
+    collectionSettings?.id || "",
+    collectionSettings?.quotes_enabled ?? true,
+    collectionSettings?.quote_frequency || 1
+  );
 
   // Apply custom colors to CSS variables
   useEffect(() => {
@@ -63,6 +89,7 @@ export function CollectionLayout({
     { label: "Lifelines", icon: Users, to: `/public/collections/${collectionSlug}/lifelines` },
     { label: "Profiles", icon: Users, to: `/public/collections/${collectionSlug}/profiles` },
     { label: "MER", icon: Vote, to: `/public/collections/${collectionSlug}/elections` },
+    { label: "Settings", icon: Settings, to: `/public/collections/${collectionSlug}/settings` },
   ];
 
   return (
@@ -172,7 +199,17 @@ export function CollectionLayout({
           </nav>
         </div>
       </header>
-      <main className="container mx-auto px-4 py-6 md:py-8">{children}</main>
+      <main className="container mx-auto px-4 py-6 md:py-8">
+        {children}
+        {currentQuote && (
+          <CollectionQuotePopup
+            quote={currentQuote.quote}
+            author={currentQuote.author}
+            context={currentQuote.context}
+            onDismiss={dismissQuote}
+          />
+        )}
+      </main>
     </div>
   );
 }
