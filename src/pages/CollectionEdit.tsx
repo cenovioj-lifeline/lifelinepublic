@@ -100,16 +100,24 @@ export default function CollectionEdit() {
     mutationFn: async (data: CollectionForm) => {
       const { data: { user } } = await supabase.auth.getUser();
       
+      // Convert empty strings to null for UUID fields
+      const cleanedData = {
+        ...data,
+        hero_image_id: data.hero_image_id || null,
+        web_primary: data.web_primary || null,
+        web_secondary: data.web_secondary || null,
+      };
+      
       if (isNew) {
         const { error } = await supabase.from("collections").insert({
-          ...data,
+          ...cleanedData,
           created_by: user?.id,
         });
         if (error) throw error;
       } else {
         const { error } = await supabase
           .from("collections")
-          .update(data)
+          .update(cleanedData)
           .eq("id", id);
         if (error) throw error;
       }
