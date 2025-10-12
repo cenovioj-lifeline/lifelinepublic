@@ -870,7 +870,7 @@ export type Database = {
         | "entity"
         | "organization"
       sentiment_type: "positive" | "negative" | "neutral" | "mixed"
-      user_role: "admin" | "editor" | "viewer"
+      user_role: "admin" | "editor" | "viewer" | "public_user"
       visibility_type: "public" | "unlisted" | "private"
     }
     CompositeTypes: {
@@ -1008,7 +1008,7 @@ export const Constants = {
         "organization",
       ],
       sentiment_type: ["positive", "negative", "neutral", "mixed"],
-      user_role: ["admin", "editor", "viewer"],
+      user_role: ["admin", "editor", "viewer", "public_user"],
       visibility_type: ["public", "unlisted", "private"],
     },
   },

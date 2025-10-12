@@ -82,14 +82,37 @@ export function useAuth() {
 export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const [hasAccess, setHasAccess] = useState<boolean | null>(null);
 
   useEffect(() => {
-    if (!loading && !user) {
-      navigate("/auth");
-    }
+    const checkAdminAccess = async () => {
+      if (loading) return;
+      
+      if (!user) {
+        navigate("/admin/login");
+        return;
+      }
+
+      // Check if user has admin/editor/viewer role
+      const { data } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .in('role', ['admin', 'editor', 'viewer'])
+        .single();
+
+      if (!data) {
+        navigate("/home");
+        return;
+      }
+
+      setHasAccess(true);
+    };
+
+    checkAdminAccess();
   }, [user, loading, navigate]);
 
-  if (loading) {
+  if (loading || hasAccess === null) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="animate-pulse text-muted-foreground">Loading...</div>
@@ -97,7 +120,7 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (!user) {
+  if (!hasAccess) {
     return null;
   }
 
