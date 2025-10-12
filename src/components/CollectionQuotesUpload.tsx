@@ -29,24 +29,22 @@ export function CollectionQuotesUpload({ collectionId }: CollectionQuotesUploadP
       const workbook = XLSX.read(data);
       const sheetName = workbook.SheetNames[0];
       const worksheet = workbook.Sheets[sheetName];
-      const jsonData = XLSX.utils.sheet_to_json(worksheet) as Array<{
-        quote?: string;
-        author?: string;
-        context?: string;
-      }>;
+      
+      // Read data without headers - first column is quote, second is author
+      const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 }) as Array<Array<any>>;
 
-      // Validate data
+      // Validate and map data
       const quotes = jsonData
-        .filter((row) => row.quote && row.quote.trim())
+        .filter((row) => row[0] && String(row[0]).trim())
         .map((row) => ({
           collection_id: collectionId,
-          quote: row.quote?.trim() || "",
-          author: row.author?.trim() || null,
-          context: row.context?.trim() || null,
+          quote: String(row[0]).trim(),
+          author: row[1] ? String(row[1]).trim() : null,
+          context: null,
         }));
 
       if (quotes.length === 0) {
-        throw new Error("No valid quotes found in the file. Make sure you have a 'quote' column with data.");
+        throw new Error("No valid quotes found in the file. Make sure the first column contains quote text.");
       }
 
       // Delete old quotes for this collection
@@ -88,9 +86,7 @@ export function CollectionQuotesUpload({ collectionId }: CollectionQuotesUploadP
       <div>
         <h3 className="text-lg font-semibold mb-2">Collection Quotes</h3>
         <p className="text-sm text-muted-foreground mb-4">
-          Upload an Excel file with quotes to display throughout this collection.
-          Required column: <span className="font-mono bg-muted px-1">quote</span>.
-          Optional columns: <span className="font-mono bg-muted px-1">author</span>, <span className="font-mono bg-muted px-1">context</span>.
+          Upload an Excel or CSV file with quotes. First column should contain the quote text, second column (optional) should contain the author name.
         </p>
       </div>
 

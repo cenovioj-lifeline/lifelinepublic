@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Home, Rss, Users, Vote, ArrowLeft, Settings } from "lucide-react";
+import { Home, Rss, Users, Vote, ArrowLeft, Settings, Share2 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { PublicUserMenu } from "@/components/PublicUserMenu";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { CollectionQuotePopup } from "@/components/CollectionQuotePopup";
+import { CollectionShareModal } from "@/components/CollectionShareModal";
 import { useCollectionQuote } from "@/hooks/useCollectionQuote";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -33,6 +34,7 @@ export function CollectionLayout({
   const navigate = useNavigate();
   const { user } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [shareModalOpen, setShareModalOpen] = useState(false);
   const isMobile = useIsMobile();
 
   // Fetch collection settings for quotes
@@ -89,6 +91,10 @@ export function CollectionLayout({
     { label: "Lifelines", icon: Users, to: `/public/collections/${collectionSlug}/lifelines` },
     { label: "Profiles", icon: Users, to: `/public/collections/${collectionSlug}/profiles` },
     { label: "MER", icon: Vote, to: `/public/collections/${collectionSlug}/elections` },
+  ];
+
+  const actionItems: Array<{ label: string; icon: any; action?: () => void; to?: string }> = [
+    { label: "Share", icon: Share2, action: () => setShareModalOpen(true) },
     { label: "Settings", icon: Settings, to: `/public/collections/${collectionSlug}/settings` },
   ];
 
@@ -132,6 +138,39 @@ export function CollectionLayout({
                       </Link>
                     </Button>
                   ))}
+                  {actionItems.map((item) =>
+                    item.to ? (
+                      <Button
+                        key={item.label}
+                        variant="ghost"
+                        size="sm"
+                        asChild
+                        className="gap-2"
+                        style={{
+                          color: webPrimary ? "#ffffff" : undefined,
+                        }}
+                      >
+                        <Link to={item.to}>
+                          <item.icon className="h-4 w-4" />
+                          {item.label}
+                        </Link>
+                      </Button>
+                    ) : (
+                      <Button
+                        key={item.label}
+                        variant="ghost"
+                        size="sm"
+                        onClick={item.action}
+                        className="gap-2"
+                        style={{
+                          color: webPrimary ? "#ffffff" : undefined,
+                        }}
+                      >
+                        <item.icon className="h-4 w-4" />
+                        {item.label}
+                      </Button>
+                    )
+                  )}
                   <Button
                     variant="ghost"
                     size="sm"
@@ -180,6 +219,24 @@ export function CollectionLayout({
                           {item.label}
                         </Button>
                       ))}
+                      {actionItems.map((item) => (
+                        <Button
+                          key={item.label}
+                          variant="ghost"
+                          onClick={() => {
+                            if (item.action) {
+                              item.action();
+                            } else if (item.to) {
+                              navigate(item.to);
+                            }
+                            setMobileMenuOpen(false);
+                          }}
+                          className="gap-2 justify-start"
+                        >
+                          <item.icon className="h-4 w-4" />
+                          {item.label}
+                        </Button>
+                      ))}
                       <Button
                         variant="outline"
                         onClick={() => {
@@ -210,6 +267,13 @@ export function CollectionLayout({
           />
         )}
       </main>
+      
+      <CollectionShareModal
+        open={shareModalOpen}
+        onOpenChange={setShareModalOpen}
+        collectionSlug={collectionSlug}
+        collectionTitle={collectionTitle}
+      />
     </div>
   );
 }
