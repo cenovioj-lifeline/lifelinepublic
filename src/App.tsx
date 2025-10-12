@@ -28,6 +28,7 @@ import PublicCollections from "./pages/public/PublicCollections";
 import PublicProfiles from "./pages/public/PublicProfiles";
 import PublicProfileDetail from "./pages/public/PublicProfileDetail";
 import PublicElections from "./pages/public/PublicElections";
+import PublicElectionDetail from "./pages/public/PublicElectionDetail";
 
 const queryClient = new QueryClient();
 
@@ -49,6 +50,7 @@ const App = () => (
             <Route path="/public/collections" element={<PublicLayout><PublicCollections /></PublicLayout>} />
             <Route path="/public/profiles" element={<PublicLayout><PublicProfiles /></PublicLayout>} />
           <Route path="/public/elections" element={<PublicLayout><PublicElections /></PublicLayout>} />
+          <Route path="/public/elections/:slug" element={<PublicLayout><PublicElectionDetail /></PublicLayout>} />
           <Route path="/public/profiles/:slug" element={<PublicLayout><PublicProfileDetail /></PublicLayout>} />
             
             {/* Admin Routes */}
