@@ -14,13 +14,19 @@ import {
 } from "@/components/ui/sidebar";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 const items = [
   { title: "Dashboard", url: "/", icon: Home },
   { title: "Collections", url: "/collections", icon: Folder },
   { title: "Lifelines", url: "/lifelines", icon: Activity },
   { title: "Profiles", url: "/profiles", icon: Users },
-  { title: "Elections", url: "/elections", icon: Award },
+  { title: "MER", fullTitle: "Mock Election Results", url: "/elections", icon: Award },
   { title: "Tags", url: "/tags", icon: Tag },
   { title: "Media", url: "/media", icon: Image },
 ];
@@ -42,16 +48,34 @@ export function AppSidebar() {
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {items.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild className="text-sidebar-foreground">
-                    <NavLink to={item.url} end className={getNavCls}>
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.title}</span>
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+              <TooltipProvider>
+                {items.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    {item.fullTitle ? (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <SidebarMenuButton asChild className="text-sidebar-foreground">
+                            <NavLink to={item.url} end className={getNavCls}>
+                              <item.icon className="h-4 w-4" />
+                              <span>{item.title}</span>
+                            </NavLink>
+                          </SidebarMenuButton>
+                        </TooltipTrigger>
+                        <TooltipContent side="right">
+                          <p>{item.fullTitle}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    ) : (
+                      <SidebarMenuButton asChild className="text-sidebar-foreground">
+                        <NavLink to={item.url} end className={getNavCls}>
+                          <item.icon className="h-4 w-4" />
+                          <span>{item.title}</span>
+                        </NavLink>
+                      </SidebarMenuButton>
+                    )}
+                  </SidebarMenuItem>
+                ))}
+              </TooltipProvider>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

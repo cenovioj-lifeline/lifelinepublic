@@ -23,10 +23,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, X } from "lucide-react";
 import { MediaPicker } from "@/components/MediaPicker";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 
 type ElectionResult = {
   id?: string;
@@ -44,11 +45,10 @@ type ElectionForm = {
   title: string;
   slug: string;
   description: string;
-  opens_at: string;
-  closes_at: string;
   visibility: "public" | "private" | "unlisted";
   status: "draft" | "published";
   collection_id: string;
+  tag_ids: string[];
 };
 
 export default function ElectionEdit() {
@@ -64,11 +64,10 @@ export default function ElectionEdit() {
       title: "",
       slug: "",
       description: "",
-      opens_at: "",
-      closes_at: "",
       visibility: "public",
       status: "draft",
       collection_id: "",
+      tag_ids: [],
     },
   });
 
@@ -111,6 +110,32 @@ export default function ElectionEdit() {
     },
   });
 
+  const { data: tags } = useQuery({
+    queryKey: ["tags"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("tags")
+        .select("id, name")
+        .order("name");
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: electionTags } = useQuery({
+    queryKey: ["election-tags", id],
+    queryFn: async () => {
+      if (isNew) return [];
+      const { data, error } = await supabase
+        .from("election_tags")
+        .select("tag_id")
+        .eq("election_id", id);
+      if (error) throw error;
+      return data.map(t => t.tag_id);
+    },
+    enabled: !isNew,
+  });
+
   const { data: electionResults } = useQuery({
     queryKey: ["election-results", id],
     queryFn: async () => {
@@ -127,19 +152,18 @@ export default function ElectionEdit() {
   });
 
   useEffect(() => {
-    if (election) {
+    if (election && electionTags) {
       form.reset({
         title: election.title,
         slug: election.slug,
         description: election.description || "",
-        opens_at: election.opens_at ? new Date(election.opens_at).toISOString().slice(0, 16) : "",
-        closes_at: election.closes_at ? new Date(election.closes_at).toISOString().slice(0, 16) : "",
         visibility: election.visibility,
         status: election.status,
         collection_id: election.collection_id || "",
+        tag_ids: electionTags,
       });
     }
-  }, [election, form]);
+  }, [election, electionTags, form]);
 
   useEffect(() => {
     if (electionResults) {
@@ -163,8 +187,6 @@ export default function ElectionEdit() {
         title: data.title,
         slug: data.slug,
         description: data.description || null,
-        opens_at: data.opens_at || null,
-        closes_at: data.closes_at || null,
         visibility: data.visibility,
         status: data.status,
         collection_id: data.collection_id || null,
@@ -186,6 +208,21 @@ export default function ElectionEdit() {
           .update(payload)
           .eq("id", id);
         if (error) throw error;
+      }
+
+      // Save tags
+      if (electionId) {
+        await supabase
+          .from("election_tags")
+          .delete()
+          .eq("election_id", electionId);
+
+        if (data.tag_ids.length > 0) {
+          const { error } = await supabase
+            .from("election_tags")
+            .insert(data.tag_ids.map(tag_id => ({ election_id: electionId, tag_id })));
+          if (error) throw error;
+        }
       }
 
       // Save election results
@@ -225,7 +262,7 @@ export default function ElectionEdit() {
       queryClient.invalidateQueries({ queryKey: ["elections"] });
       toast({
         title: "Success",
-        description: `Election ${isNew ? "created" : "updated"} successfully`,
+        description: `Mock Election Results ${isNew ? "created" : "updated"} successfully`,
       });
       navigate("/elections");
     },
@@ -282,10 +319,10 @@ export default function ElectionEdit() {
         </Button>
         <div>
           <h1 className="text-3xl font-bold tracking-tight">
-            {isNew ? "New Election" : "Edit Election"}
+            {isNew ? "New Mock Election Results" : "Edit Mock Election Results"}
           </h1>
           <p className="text-muted-foreground">
-            {isNew ? "Create a new mock election" : "Update election details"}
+            {isNew ? "Create new mock election results" : "Update mock election results"}
           </p>
         </div>
       </div>
@@ -300,7 +337,7 @@ export default function ElectionEdit() {
                 <FormItem>
                   <FormLabel>Title</FormLabel>
                   <FormControl>
-                    <Input {...field} placeholder="Election title" />
+                    <Input {...field} placeholder="Mock election title" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -315,7 +352,7 @@ export default function ElectionEdit() {
                   <FormLabel>Slug</FormLabel>
                   <div className="flex gap-2">
                     <FormControl>
-                      <Input {...field} placeholder="election-slug" />
+                      <Input {...field} placeholder="mer-slug" />
                     </FormControl>
                     <Button type="button" variant="outline" onClick={generateSlug}>
                       Generate
@@ -399,34 +436,6 @@ export default function ElectionEdit() {
                 </FormItem>
               )}
             />
-
-            <FormField
-              control={form.control}
-              name="opens_at"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Opens At (Optional)</FormLabel>
-                  <FormControl>
-                    <Input type="datetime-local" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="closes_at"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Closes At (Optional)</FormLabel>
-                  <FormControl>
-                    <Input type="datetime-local" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
           </div>
 
           <FormField
@@ -438,7 +447,7 @@ export default function ElectionEdit() {
                 <FormControl>
                   <Textarea
                     {...field}
-                    placeholder="Election description"
+                    placeholder="Mock election description"
                     rows={4}
                   />
                 </FormControl>
@@ -447,9 +456,58 @@ export default function ElectionEdit() {
             )}
           />
 
+          <FormField
+            control={form.control}
+            name="tag_ids"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Tags (Optional)</FormLabel>
+                <div className="space-y-2">
+                  <Select
+                    value=""
+                    onValueChange={(value) => {
+                      if (!field.value.includes(value)) {
+                        field.onChange([...field.value, value]);
+                      }
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Add tags..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {tags?.filter(t => !field.value.includes(t.id)).map((tag) => (
+                        <SelectItem key={tag.id} value={tag.id}>
+                          {tag.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <div className="flex flex-wrap gap-2">
+                    {field.value.map((tagId) => {
+                      const tag = tags?.find(t => t.id === tagId);
+                      return tag ? (
+                        <Badge key={tagId} variant="secondary">
+                          {tag.name}
+                          <button
+                            type="button"
+                            onClick={() => field.onChange(field.value.filter(id => id !== tagId))}
+                            className="ml-1 hover:bg-secondary-foreground/20 rounded-full"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </Badge>
+                      ) : null;
+                    })}
+                  </div>
+                </div>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
           <div className="flex gap-4">
             <Button type="submit" disabled={saveMutation.isPending}>
-              {saveMutation.isPending ? "Saving..." : "Save Election"}
+              {saveMutation.isPending ? "Saving..." : "Save MER"}
             </Button>
             <Button
               type="button"
@@ -466,7 +524,7 @@ export default function ElectionEdit() {
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle>Election Results</CardTitle>
+              <CardTitle>Results</CardTitle>
               <Button type="button" size="sm" onClick={addResult}>
                 <Plus className="h-4 w-4 mr-2" />
                 Add Result

@@ -266,6 +266,36 @@ export type Database = {
           },
         ]
       }
+      election_tags: {
+        Row: {
+          election_id: string
+          tag_id: string
+        }
+        Insert: {
+          election_id: string
+          tag_id: string
+        }
+        Update: {
+          election_id?: string
+          tag_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "election_tags_election_id_fkey"
+            columns: ["election_id"]
+            isOneToOne: false
+            referencedRelation: "mock_elections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "election_tags_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "tags"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       entries: {
         Row: {
           age_at_event: number | null

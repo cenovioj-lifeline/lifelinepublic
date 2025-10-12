@@ -41,14 +41,14 @@ export default function Elections() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Mock Elections</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Mock Election Results</h1>
           <p className="text-muted-foreground">
-            Manage mock elections with ballots and options
+            Manage mock election results and outcomes
           </p>
         </div>
         <Button onClick={() => navigate("/elections/new")}>
           <Plus className="mr-2 h-4 w-4" />
-          New Election
+          New MER
         </Button>
       </div>
 
@@ -56,7 +56,7 @@ export default function Elections() {
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder="Search elections..."
+            placeholder="Search mock election results..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-9"
@@ -71,8 +71,6 @@ export default function Elections() {
               <TableHead>Title</TableHead>
               <TableHead>Collection</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead>Opens</TableHead>
-              <TableHead>Closes</TableHead>
               <TableHead>Updated</TableHead>
               <TableHead className="w-[100px]">Actions</TableHead>
             </TableRow>
@@ -80,14 +78,14 @@ export default function Elections() {
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center">
+                <TableCell colSpan={5} className="text-center">
                   Loading...
                 </TableCell>
               </TableRow>
             ) : elections?.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center">
-                  No elections found
+                <TableCell colSpan={5} className="text-center">
+                  No mock election results found
                 </TableCell>
               </TableRow>
             ) : (
@@ -105,12 +103,6 @@ export default function Elections() {
                     <Badge variant={election.status === "published" ? "default" : "secondary"}>
                       {election.status}
                     </Badge>
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {election.opens_at ? new Date(election.opens_at).toLocaleDateString() : "—"}
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {election.closes_at ? new Date(election.closes_at).toLocaleDateString() : "—"}
                   </TableCell>
                   <TableCell className="text-muted-foreground">
                     {new Date(election.updated_at).toLocaleDateString()}
