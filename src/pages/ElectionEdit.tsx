@@ -33,7 +33,7 @@ type ElectionResult = {
   id?: string;
   category: string;
   superlative_category: string;
-  winner_profile_id?: string;
+  winner_profile_ids?: string[];
   winner_name?: string;
   vote_count?: number;
   percentage?: number;
@@ -171,7 +171,7 @@ export default function ElectionEdit() {
         id: r.id,
         category: r.category || "",
         superlative_category: r.superlative_category || "",
-        winner_profile_id: r.winner_profile_id || undefined,
+        winner_profile_ids: r.winner_profile_ids || [],
         winner_name: r.winner_name || undefined,
         vote_count: r.vote_count || undefined,
         percentage: r.percentage || undefined,
@@ -236,12 +236,12 @@ export default function ElectionEdit() {
         // Insert new results
         if (results.length > 0) {
           const resultsPayload = results
-            .filter(r => r.category && r.superlative_category && (r.winner_profile_id || r.winner_name))
+            .filter(r => r.category && r.superlative_category && ((r.winner_profile_ids && r.winner_profile_ids.length > 0) || r.winner_name))
             .map(r => ({
               election_id: electionId,
               category: r.category,
               superlative_category: r.superlative_category,
-              winner_profile_id: r.winner_profile_id || null,
+              winner_profile_ids: r.winner_profile_ids || [],
               winner_name: r.winner_name || null,
               vote_count: r.vote_count || null,
               percentage: r.percentage || null,
@@ -292,7 +292,7 @@ export default function ElectionEdit() {
     setResults([...results, {
       category: "",
       superlative_category: "",
-      winner_profile_id: undefined,
+      winner_profile_ids: [],
       winner_name: undefined,
       vote_count: undefined,
       percentage: undefined,
@@ -561,13 +561,13 @@ export default function ElectionEdit() {
                       <div className="md:col-span-2 space-y-3">
                         <Label>Winner Type</Label>
                         <RadioGroup
-                          value={result.winner_profile_id !== undefined ? "profile" : "custom"}
+                          value={(result.winner_profile_ids && result.winner_profile_ids.length > 0) ? "profile" : "custom"}
                           onValueChange={(value) => {
                             if (value === "profile") {
                               updateResult(index, "winner_name", undefined);
-                              updateResult(index, "winner_profile_id", "");
+                              updateResult(index, "winner_profile_ids", []);
                             } else {
-                              updateResult(index, "winner_profile_id", undefined);
+                              updateResult(index, "winner_profile_ids", []);
                               updateResult(index, "winner_name", "");
                             }
                           }}
@@ -584,37 +584,49 @@ export default function ElectionEdit() {
                         </RadioGroup>
                       </div>
 
-                      {result.winner_profile_id !== undefined ? (
+                      {(result.winner_profile_ids !== undefined && result.winner_profile_ids.length === 0) || (result.winner_profile_ids && result.winner_profile_ids.length > 0) ? (
                         <div className="md:col-span-2 space-y-2">
                           <div className="flex items-center justify-between">
-                            <label className="text-sm font-medium">Winner (Profile) *</label>
-                            {result.winner_profile_id && (
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => window.open(`/profiles/${result.winner_profile_id}`, '_blank')}
-                                className="h-7"
-                              >
-                                View Profile
-                              </Button>
-                            )}
+                            <label className="text-sm font-medium">Winner (Profiles) *</label>
                           </div>
-                          <Select
-                            value={result.winner_profile_id || ""}
-                            onValueChange={(value) => updateResult(index, "winner_profile_id", value)}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select winner" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {profiles?.map((p) => (
-                                <SelectItem key={p.id} value={p.id}>
-                                  {p.display_name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                          <div className="space-y-2">
+                            <Select
+                              value=""
+                              onValueChange={(value) => {
+                                if (!result.winner_profile_ids?.includes(value)) {
+                                  updateResult(index, "winner_profile_ids", [...(result.winner_profile_ids || []), value]);
+                                }
+                              }}
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select profiles..." />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {profiles?.filter(p => !result.winner_profile_ids?.includes(p.id)).map((p) => (
+                                  <SelectItem key={p.id} value={p.id}>
+                                    {p.display_name}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <div className="flex flex-wrap gap-2">
+                              {result.winner_profile_ids?.map((profileId) => {
+                                const profile = profiles?.find(p => p.id === profileId);
+                                return profile ? (
+                                  <Badge key={profileId} variant="secondary">
+                                    {profile.display_name}
+                                    <button
+                                      type="button"
+                                      onClick={() => updateResult(index, "winner_profile_ids", result.winner_profile_ids?.filter(id => id !== profileId))}
+                                      className="ml-1 hover:bg-secondary-foreground/20 rounded-full"
+                                    >
+                                      <X className="h-3 w-3" />
+                                    </button>
+                                  </Badge>
+                                ) : null;
+                              })}
+                            </div>
+                          </div>
                         </div>
                       ) : (
                         <div className="md:col-span-2">

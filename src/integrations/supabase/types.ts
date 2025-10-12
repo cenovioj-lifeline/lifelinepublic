@@ -300,6 +300,7 @@ export type Database = {
           vote_count: number | null
           winner_name: string | null
           winner_profile_id: string | null
+          winner_profile_ids: string[] | null
         }
         Insert: {
           category: string
@@ -314,6 +315,7 @@ export type Database = {
           vote_count?: number | null
           winner_name?: string | null
           winner_profile_id?: string | null
+          winner_profile_ids?: string[] | null
         }
         Update: {
           category?: string
@@ -328,6 +330,7 @@ export type Database = {
           vote_count?: number | null
           winner_name?: string | null
           winner_profile_id?: string | null
+          winner_profile_ids?: string[] | null
         }
         Relationships: [
           {

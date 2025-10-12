@@ -66,8 +66,8 @@ export default function CollectionElectionDetail() {
       if (!resultsData) return [];
 
       const profileIds = resultsData
-        .filter(r => r.winner_profile_id)
-        .map(r => r.winner_profile_id);
+        .filter(r => r.winner_profile_ids && r.winner_profile_ids.length > 0)
+        .flatMap(r => r.winner_profile_ids);
 
       let profilesMap: Record<string, any> = {};
       if (profileIds.length > 0) {
@@ -108,7 +108,7 @@ export default function CollectionElectionDetail() {
 
       return resultsData.map(result => ({
         ...result,
-        profile: result.winner_profile_id ? profilesMap[result.winner_profile_id] : null
+        profiles: result.winner_profile_ids?.map(id => profilesMap[id]).filter(Boolean) || []
       }));
     },
     enabled: !!election?.id,
@@ -346,12 +346,12 @@ export default function CollectionElectionDetail() {
                           >
                             <CardContent className="p-4">
                               <div className="flex items-start gap-3">
-                                {result.profile?.avatar?.url ? (
+                                {result.profiles && result.profiles.length > 0 && result.profiles[0]?.avatar?.url ? (
                                   <Avatar 
                                     className="h-14 w-14 sm:h-16 sm:w-16 border-2 flex-shrink-0"
                                     style={{ borderColor: `${borderColor}40` }}
                                   >
-                                    <AvatarImage src={result.profile.avatar.url} />
+                                    <AvatarImage src={result.profiles[0].avatar.url} />
                                     <AvatarFallback 
                                       className="text-lg sm:text-xl font-bold"
                                       style={{ 
@@ -359,7 +359,7 @@ export default function CollectionElectionDetail() {
                                         color: accentColor
                                       }}
                                     >
-                                      {(result.profile.display_name || result.winner_name || "?")[0]}
+                                      {(result.profiles[0].display_name || result.winner_name || "?")[0]}
                                     </AvatarFallback>
                                   </Avatar>
                                 ) : (
@@ -371,7 +371,7 @@ export default function CollectionElectionDetail() {
                                       borderColor: `${borderColor}40`
                                     }}
                                   >
-                                    {(result.profile?.display_name || result.winner_name || "?")[0]}
+                                    {(result.profiles?.[0]?.display_name || result.winner_name || "?")[0]}
                                   </div>
                                 )}
                                 
@@ -382,18 +382,23 @@ export default function CollectionElectionDetail() {
                                     </h3>
                                   )}
                                   
-                                  {result.profile ? (
-                                    <button
-                                      onClick={() => navigate(`/public/collections/${collectionSlug}/profiles/${result.profile.slug}`)}
-                                      className="text-sm sm:text-base text-muted-foreground hover:underline transition-colors text-left"
-                                      style={{ 
-                                        ['--hover-color' as any]: accentColor 
-                                      }}
-                                      onMouseEnter={(e) => e.currentTarget.style.color = accentColor}
-                                      onMouseLeave={(e) => e.currentTarget.style.color = ''}
-                                    >
-                                      {result.profile.display_name}
-                                    </button>
+                                  {result.profiles && result.profiles.length > 0 ? (
+                                    <div className="flex flex-wrap gap-2">
+                                      {result.profiles.map((profile: any, idx: number) => (
+                                        <button
+                                          key={idx}
+                                          onClick={() => navigate(`/public/collections/${collectionSlug}/profiles/${profile.slug}`)}
+                                          className="text-sm sm:text-base text-muted-foreground hover:underline transition-colors text-left"
+                                          style={{ 
+                                            ['--hover-color' as any]: accentColor 
+                                          }}
+                                          onMouseEnter={(e) => e.currentTarget.style.color = accentColor}
+                                          onMouseLeave={(e) => e.currentTarget.style.color = ''}
+                                        >
+                                          {profile.display_name}{idx < result.profiles.length - 1 ? ',' : ''}
+                                        </button>
+                                      ))}
+                                    </div>
                                   ) : result.winner_name ? (
                                     <p className="text-sm sm:text-base text-muted-foreground">
                                       {result.winner_name}
