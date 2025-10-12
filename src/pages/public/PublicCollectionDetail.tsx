@@ -257,7 +257,7 @@ export default function PublicCollectionDetail() {
               {lifelines.map((lifeline) => (
                 <Link
                   key={lifeline.id}
-                  to={`/public/lifelines/${lifeline.slug}`}
+                  to={`/public/collections/${collection.slug}/lifelines/${lifeline.slug}`}
                   className="group"
                 >
                   <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full">
@@ -301,7 +301,7 @@ export default function PublicCollectionDetail() {
                   {elections.map((election) => (
                     <Link
                       key={election.id}
-                      to={`/public/elections/${election.slug}`}
+                      to={`/public/collections/${collection.slug}/elections/${election.slug}`}
                       className="flex items-center justify-between p-4 hover:bg-muted/50 transition-colors"
                     >
                       <div className="flex-1">

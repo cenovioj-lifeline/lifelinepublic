@@ -583,8 +583,21 @@ export default function ElectionEdit() {
                       </div>
 
                       {result.winner_profile_id !== undefined ? (
-                        <div className="md:col-span-2">
-                          <label className="text-sm font-medium">Winner (Profile) *</label>
+                        <div className="md:col-span-2 space-y-2">
+                          <div className="flex items-center justify-between">
+                            <label className="text-sm font-medium">Winner (Profile) *</label>
+                            {result.winner_profile_id && (
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => window.open(`/profiles/${result.winner_profile_id}`, '_blank')}
+                                className="h-7"
+                              >
+                                View Profile
+                              </Button>
+                            )}
+                          </div>
                           <Select
                             value={result.winner_profile_id || ""}
                             onValueChange={(value) => updateResult(index, "winner_profile_id", value)}
