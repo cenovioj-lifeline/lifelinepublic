@@ -83,7 +83,7 @@ export default function CollectionElections() {
                 {elections.map((election) => (
                   <Link
                     key={election.id}
-                    to={`/public/elections/${election.slug}`}
+                    to={`/public/collections/${slug}/elections/${election.slug}`}
                     className="flex items-center justify-between p-4 hover:bg-muted/50 transition-colors"
                   >
                     <div className="flex-1">

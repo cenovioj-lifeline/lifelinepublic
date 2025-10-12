@@ -87,7 +87,7 @@ export default function CollectionLifelines() {
             {lifelines.map((lifeline) => (
               <Link
                 key={lifeline.id}
-                to={`/public/lifelines/${lifeline.slug}`}
+                to={`/public/collections/${slug}/lifelines/${lifeline.slug}`}
                 className="group"
               >
                 <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full">

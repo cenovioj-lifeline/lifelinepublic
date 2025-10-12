@@ -95,7 +95,7 @@ export default function CollectionProfiles() {
             {profiles.map((profile) => (
               <Link
                 key={profile.id}
-                to={`/public/profiles/${profile.slug}`}
+                to={`/public/collections/${slug}/profiles/${profile.slug}`}
                 className="group"
               >
                 <Card className="hover:shadow-lg transition-shadow h-full">

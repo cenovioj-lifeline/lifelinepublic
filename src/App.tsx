@@ -36,6 +36,9 @@ import PublicProfiles from "./pages/public/PublicProfiles";
 import PublicProfileDetail from "./pages/public/PublicProfileDetail";
 import PublicElections from "./pages/public/PublicElections";
 import PublicElectionDetail from "./pages/public/PublicElectionDetail";
+import CollectionLifelineDetail from "./pages/public/CollectionLifelineDetail";
+import CollectionProfileDetail from "./pages/public/CollectionProfileDetail";
+import CollectionElectionDetail from "./pages/public/CollectionElectionDetail";
 
 const queryClient = new QueryClient();
 
@@ -60,8 +63,11 @@ const App = () => (
           <Route path="/public/collections/:slug/feed" element={<CollectionFeed />} />
           <Route path="/public/collections/:slug/settings" element={<CollectionSettings />} />
             <Route path="/public/collections/:slug/lifelines" element={<CollectionLifelines />} />
+            <Route path="/public/collections/:collectionSlug/lifelines/:lifelineSlug" element={<CollectionLifelineDetail />} />
             <Route path="/public/collections/:slug/profiles" element={<CollectionProfiles />} />
+            <Route path="/public/collections/:collectionSlug/profiles/:profileSlug" element={<CollectionProfileDetail />} />
             <Route path="/public/collections/:slug/elections" element={<CollectionElections />} />
+            <Route path="/public/collections/:collectionSlug/elections/:electionSlug" element={<CollectionElectionDetail />} />
           <Route path="/public/profiles" element={<PublicLayout><PublicProfiles /></PublicLayout>} />
           <Route path="/public/elections" element={<PublicLayout><PublicElections /></PublicLayout>} />
           <Route path="/public/elections/:slug" element={<PublicElectionDetail />} />

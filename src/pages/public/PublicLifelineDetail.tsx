@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { LifelineViewer } from "@/components/lifeline/LifelineViewer";
-import { CollectionLayout } from "@/components/CollectionLayout";
+import { PublicLayout } from "@/components/PublicLayout";
 
 export default function PublicLifelineDetail() {
   const { slug } = useParams<{ slug: string }>();
@@ -15,24 +15,7 @@ export default function PublicLifelineDetail() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("lifelines")
-        .select(`
-          id, 
-          title, 
-          slug,
-          collection_id,
-          collections!lifelines_collection_id_fkey(
-            id,
-            title,
-            slug,
-            primary_color,
-            secondary_color,
-            web_primary,
-            web_secondary,
-            menu_text_color,
-            menu_hover_color,
-            menu_active_color
-          )
-        `)
+        .select("id, title, slug")
         .eq("slug", slug)
         .eq("status", "published")
         .eq("visibility", "public")
@@ -45,65 +28,41 @@ export default function PublicLifelineDetail() {
 
   if (isLoading) {
     return (
-      <div className="space-y-6 animate-pulse">
-        <div className="h-8 w-32 bg-muted rounded" />
-        <div className="h-64 bg-muted rounded" />
-      </div>
+      <PublicLayout>
+        <div className="space-y-6 animate-pulse">
+          <div className="h-8 w-32 bg-muted rounded" />
+          <div className="h-64 bg-muted rounded" />
+        </div>
+      </PublicLayout>
     );
   }
 
   if (!lifeline) {
     return (
-      <div className="text-center py-12">
-        <p className="text-muted-foreground">Lifeline not found</p>
-        <Button onClick={() => navigate("/public/lifelines")} className="mt-4">
-          Back to Lifelines
-        </Button>
-      </div>
+      <PublicLayout>
+        <div className="text-center py-12">
+          <p className="text-muted-foreground">Lifeline not found</p>
+          <Button onClick={() => navigate("/public/lifelines")} className="mt-4">
+            Back to Lifelines
+          </Button>
+        </div>
+      </PublicLayout>
     );
   }
 
-  const collection = lifeline.collections as any;
-  
-  const content = (
-    <div className="space-y-6">
-      {!collection && (
+  return (
+    <PublicLayout>
+      <div className="space-y-6">
         <Button
           variant="ghost"
-          size="sm"
-          onClick={() => navigate(-1)}
+          onClick={() => navigate("/public/lifelines")}
           className="mb-4"
         >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back to Lifelines
         </Button>
-      )}
-
-      <LifelineViewer 
-        lifelineId={lifeline.id}
-        primaryColor={collection?.primary_color}
-        secondaryColor={collection?.secondary_color}
-      />
-    </div>
+        <LifelineViewer lifelineId={lifeline.id} />
+      </div>
+    </PublicLayout>
   );
-
-  if (collection) {
-    return (
-      <CollectionLayout
-        collectionTitle={collection.title}
-        collectionSlug={collection.slug}
-        primaryColor={collection.primary_color}
-        secondaryColor={collection.secondary_color}
-        webPrimary={collection.web_primary}
-        webSecondary={collection.web_secondary}
-        menuTextColor={collection.menu_text_color}
-        menuHoverColor={collection.menu_hover_color}
-        menuActiveColor={collection.menu_active_color}
-      >
-        {content}
-      </CollectionLayout>
-    );
-  }
-
-  return content;
 }
