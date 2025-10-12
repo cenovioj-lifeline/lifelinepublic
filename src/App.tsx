@@ -51,7 +51,7 @@ const App = () => (
             <Route path="/admin/login" element={<AdminAuth />} />
             
             {/* Public Routes */}
-          <Route path="/home" element={<PublicLayout><Home /></PublicLayout>} />
+          <Route path="/" element={<PublicLayout><Home /></PublicLayout>} />
           <Route path="/public/lifelines" element={<PublicLayout><PublicLifelines /></PublicLayout>} />
           <Route path="/public/lifelines/:slug" element={<PublicLifelineDetail />} />
             <Route path="/public/collections" element={<PublicLayout><PublicCollections /></PublicLayout>} />
@@ -68,7 +68,7 @@ const App = () => (
             
             {/* Admin Routes */}
             <Route
-              path="/"
+              path="/admin"
               element={
                 <ProtectedRoute>
                   <AdminLayout>

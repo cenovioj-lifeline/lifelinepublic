@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/tooltip";
 
 const items = [
-  { title: "Dashboard", url: "/", icon: Home },
+  { title: "Dashboard", url: "/admin", icon: Home },
   { title: "Collections", url: "/collections", icon: Folder },
   { title: "Lifelines", url: "/lifelines", icon: Activity },
   { title: "Profiles", url: "/profiles", icon: Users },
