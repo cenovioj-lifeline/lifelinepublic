@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Home, Rss, Users, Vote, ArrowLeft, Settings, Share2 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,9 @@ interface CollectionLayoutProps {
   secondaryColor?: string | null;
   webPrimary?: string | null;
   webSecondary?: string | null;
+  menuTextColor?: string | null;
+  menuHoverColor?: string | null;
+  menuActiveColor?: string | null;
 }
 
 export function CollectionLayout({
@@ -30,12 +33,46 @@ export function CollectionLayout({
   secondaryColor,
   webPrimary,
   webSecondary,
+  menuTextColor,
+  menuHoverColor,
+  menuActiveColor,
 }: CollectionLayoutProps) {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const isMobile = useIsMobile();
+
+  // Calculate smart defaults for menu colors
+  const getMenuTextColor = () => {
+    if (menuTextColor) return menuTextColor;
+    if (webPrimary) {
+      const luminance = getLuminance(webPrimary);
+      return luminance < 0.5 ? "#ffffff" : "#1f2937";
+    }
+    return undefined;
+  };
+
+  const getMenuHoverColor = () => {
+    if (menuHoverColor) return menuHoverColor;
+    const textColor = getMenuTextColor();
+    if (textColor === "#ffffff") return "rgba(255, 255, 255, 0.1)";
+    if (textColor === "#1f2937") return "rgba(31, 41, 55, 0.1)";
+    return undefined;
+  };
+
+  const getMenuActiveColor = () => {
+    if (menuActiveColor) return menuActiveColor;
+    const textColor = getMenuTextColor();
+    if (textColor === "#ffffff") return "rgba(255, 255, 255, 0.2)";
+    if (textColor === "#1f2937") return "rgba(31, 41, 55, 0.2)";
+    return undefined;
+  };
+
+  const isActiveRoute = (path: string) => {
+    return location.pathname === path;
+  };
 
   // Fetch collection settings for quotes
   const { data: collectionSettings } = useQuery({
@@ -121,23 +158,37 @@ export function CollectionLayout({
               
               {!isMobile && (
                 <div className="flex items-center gap-2">
-                  {navItems.map((item) => (
-                    <Button
-                      key={item.label}
-                      variant="ghost"
-                      size="sm"
-                      asChild
-                      className="gap-2"
-                      style={{
-                        color: webPrimary ? "#ffffff" : undefined,
-                      }}
-                    >
-                      <Link to={item.to}>
-                        <item.icon className="h-4 w-4" />
-                        {item.label}
-                      </Link>
-                    </Button>
-                  ))}
+                  {navItems.map((item) => {
+                    const isActive = isActiveRoute(item.to);
+                    return (
+                      <Button
+                        key={item.label}
+                        variant="ghost"
+                        size="sm"
+                        asChild
+                        className="gap-2 transition-colors"
+                        style={{
+                          color: getMenuTextColor(),
+                          backgroundColor: isActive ? getMenuActiveColor() : undefined,
+                        }}
+                        onMouseEnter={(e) => {
+                          if (!isActive) {
+                            e.currentTarget.style.backgroundColor = getMenuHoverColor() || "";
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (!isActive) {
+                            e.currentTarget.style.backgroundColor = "";
+                          }
+                        }}
+                      >
+                        <Link to={item.to}>
+                          <item.icon className="h-4 w-4" />
+                          {item.label}
+                        </Link>
+                      </Button>
+                    );
+                  })}
                   {actionItems.map((item) =>
                     item.to ? (
                       <Button
@@ -145,9 +196,15 @@ export function CollectionLayout({
                         variant="ghost"
                         size="sm"
                         asChild
-                        className="gap-2"
+                        className="gap-2 transition-colors"
                         style={{
-                          color: webPrimary ? "#ffffff" : undefined,
+                          color: getMenuTextColor(),
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = getMenuHoverColor() || "";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = "";
                         }}
                       >
                         <Link to={item.to}>
@@ -161,9 +218,15 @@ export function CollectionLayout({
                         variant="ghost"
                         size="sm"
                         onClick={item.action}
-                        className="gap-2"
+                        className="gap-2 transition-colors"
                         style={{
-                          color: webPrimary ? "#ffffff" : undefined,
+                          color: getMenuTextColor(),
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = getMenuHoverColor() || "";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = "";
                         }}
                       >
                         <item.icon className="h-4 w-4" />
@@ -175,9 +238,15 @@ export function CollectionLayout({
                     variant="ghost"
                     size="sm"
                     onClick={handleExit}
-                    className="gap-2"
+                    className="gap-2 transition-colors"
                     style={{
-                      color: webPrimary ? "#ffffff" : undefined,
+                      color: getMenuTextColor(),
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = getMenuHoverColor() || "";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = "";
                     }}
                   >
                     <ArrowLeft className="h-4 w-4" />
@@ -312,4 +381,18 @@ function hexToHSL(hex: string): string {
   }
 
   return `${Math.round(h * 360)} ${Math.round(s * 100)}% ${Math.round(l * 100)}%`;
+}
+
+// Helper function to calculate luminance from hex color
+function getLuminance(hex: string): number {
+  hex = hex.replace(/^#/, '');
+  const r = parseInt(hex.substring(0, 2), 16) / 255;
+  const g = parseInt(hex.substring(2, 4), 16) / 255;
+  const b = parseInt(hex.substring(4, 6), 16) / 255;
+
+  const srgb = [r, g, b].map((c) => {
+    return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+  });
+
+  return 0.2126 * srgb[0] + 0.7152 * srgb[1] + 0.0722 * srgb[2];
 }

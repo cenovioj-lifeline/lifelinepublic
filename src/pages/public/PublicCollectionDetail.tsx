@@ -162,6 +162,9 @@ export default function PublicCollectionDetail() {
       secondaryColor={collection.secondary_color}
       webPrimary={collection.web_primary}
       webSecondary={collection.web_secondary}
+      menuTextColor={collection.menu_text_color}
+      menuHoverColor={collection.menu_hover_color}
+      menuActiveColor={collection.menu_active_color}
     >
       <div className="space-y-8">
         {/* Hero Section */}

@@ -36,6 +36,9 @@ type CollectionForm = {
   secondary_color: string;
   web_primary: string;
   web_secondary: string;
+  menu_text_color: string;
+  menu_hover_color: string;
+  menu_active_color: string;
   status: "draft" | "published";
   is_featured: boolean;
   hero_image_id: string;
@@ -58,6 +61,9 @@ export default function CollectionEdit() {
       secondary_color: "#dc2626",
       web_primary: "",
       web_secondary: "",
+      menu_text_color: "",
+      menu_hover_color: "",
+      menu_active_color: "",
       status: "draft",
       is_featured: false,
       hero_image_id: "",
@@ -90,6 +96,9 @@ export default function CollectionEdit() {
         secondary_color: collection.secondary_color || "#dc2626",
         web_primary: collection.web_primary || "",
         web_secondary: collection.web_secondary || "",
+        menu_text_color: collection.menu_text_color || "",
+        menu_hover_color: collection.menu_hover_color || "",
+        menu_active_color: collection.menu_active_color || "",
         status: collection.status,
         is_featured: collection.is_featured || false,
         hero_image_id: collection.hero_image_id || "",
@@ -107,6 +116,9 @@ export default function CollectionEdit() {
         hero_image_id: data.hero_image_id || null,
         web_primary: data.web_primary || null,
         web_secondary: data.web_secondary || null,
+        menu_text_color: data.menu_text_color || null,
+        menu_hover_color: data.menu_hover_color || null,
+        menu_active_color: data.menu_active_color || null,
       };
       
       if (isNew) {
@@ -338,6 +350,97 @@ export default function CollectionEdit() {
                         type="text"
                         placeholder="#ffffff"
                         pattern="^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"
+                        className="flex-1"
+                      />
+                    </FormControl>
+                    <Input 
+                      type="color" 
+                      value={field.value || "#ffffff"}
+                      onChange={(e) => field.onChange(e.target.value)}
+                      className="w-16 h-10 cursor-pointer"
+                    />
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <h3 className="text-lg font-semibold">Menu Appearance (Optional)</h3>
+            <p className="text-sm text-muted-foreground">
+              Customize navigation menu colors. If not set, smart defaults will be used.
+            </p>
+          </div>
+
+          <div className="grid gap-6 md:grid-cols-3">
+            <FormField
+              control={form.control}
+              name="menu_text_color"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Menu Text Color (Optional)</FormLabel>
+                  <div className="flex gap-2">
+                    <FormControl>
+                      <Input 
+                        {...field} 
+                        type="text"
+                        placeholder="#ffffff"
+                        pattern="^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"
+                        className="flex-1"
+                      />
+                    </FormControl>
+                    <Input 
+                      type="color" 
+                      value={field.value || "#ffffff"}
+                      onChange={(e) => field.onChange(e.target.value)}
+                      className="w-16 h-10 cursor-pointer"
+                    />
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="menu_hover_color"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Menu Hover Color (Optional)</FormLabel>
+                  <div className="flex gap-2">
+                    <FormControl>
+                      <Input 
+                        {...field} 
+                        type="text"
+                        placeholder="#rgba(255,255,255,0.1)"
+                        className="flex-1"
+                      />
+                    </FormControl>
+                    <Input 
+                      type="color" 
+                      value={field.value || "#ffffff"}
+                      onChange={(e) => field.onChange(e.target.value)}
+                      className="w-16 h-10 cursor-pointer"
+                    />
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="menu_active_color"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Menu Active Color (Optional)</FormLabel>
+                  <div className="flex gap-2">
+                    <FormControl>
+                      <Input 
+                        {...field} 
+                        type="text"
+                        placeholder="#rgba(255,255,255,0.2)"
                         className="flex-1"
                       />
                     </FormControl>

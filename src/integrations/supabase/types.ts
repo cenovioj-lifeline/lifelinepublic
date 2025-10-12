@@ -191,6 +191,9 @@ export type Database = {
           hero_image_id: string | null
           id: string
           is_featured: boolean | null
+          menu_active_color: string | null
+          menu_hover_color: string | null
+          menu_text_color: string | null
           primary_color: string | null
           quote_frequency: number | null
           quotes_enabled: boolean | null
@@ -211,6 +214,9 @@ export type Database = {
           hero_image_id?: string | null
           id?: string
           is_featured?: boolean | null
+          menu_active_color?: string | null
+          menu_hover_color?: string | null
+          menu_text_color?: string | null
           primary_color?: string | null
           quote_frequency?: number | null
           quotes_enabled?: boolean | null
@@ -231,6 +237,9 @@ export type Database = {
           hero_image_id?: string | null
           id?: string
           is_featured?: boolean | null
+          menu_active_color?: string | null
+          menu_hover_color?: string | null
+          menu_text_color?: string | null
           primary_color?: string | null
           quote_frequency?: number | null
           quotes_enabled?: boolean | null
