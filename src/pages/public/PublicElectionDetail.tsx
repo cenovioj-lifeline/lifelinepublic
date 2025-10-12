@@ -35,18 +35,65 @@ export default function PublicElectionDetail() {
     queryKey: ["election-results", election?.id],
     queryFn: async () => {
       if (!election?.id) return [];
-      const { data, error } = await supabase
+      
+      // Fetch results
+      const { data: resultsData, error: resultsError } = await supabase
         .from("election_results")
-        .select(`
-          *,
-          profiles:winner_profile_id(display_name, avatar_image_id, slug),
-          media_assets:media_ids(url, filename)
-        `)
+        .select("*")
         .eq("election_id", election.id)
         .order("category");
 
-      if (error) throw error;
-      return data;
+      if (resultsError) throw resultsError;
+      if (!resultsData) return [];
+
+      // Fetch related profiles and their avatars
+      const profileIds = resultsData
+        .filter(r => r.winner_profile_id)
+        .map(r => r.winner_profile_id);
+
+      let profilesMap: Record<string, any> = {};
+      if (profileIds.length > 0) {
+        const { data: profilesData } = await supabase
+          .from("profiles")
+          .select("id, display_name, slug, avatar_image_id")
+          .in("id", profileIds);
+
+        if (profilesData) {
+          // Fetch avatar images
+          const avatarIds = profilesData
+            .filter(p => p.avatar_image_id)
+            .map(p => p.avatar_image_id);
+
+          let avatarsMap: Record<string, any> = {};
+          if (avatarIds.length > 0) {
+            const { data: avatarsData } = await supabase
+              .from("media_assets")
+              .select("id, url")
+              .in("id", avatarIds);
+
+            if (avatarsData) {
+              avatarsMap = avatarsData.reduce((acc, avatar) => {
+                acc[avatar.id] = avatar;
+                return acc;
+              }, {} as Record<string, any>);
+            }
+          }
+
+          profilesMap = profilesData.reduce((acc, profile) => {
+            acc[profile.id] = {
+              ...profile,
+              avatar: profile.avatar_image_id ? avatarsMap[profile.avatar_image_id] : null
+            };
+            return acc;
+          }, {} as Record<string, any>);
+        }
+      }
+
+      // Combine results with profile data
+      return resultsData.map(result => ({
+        ...result,
+        profile: result.winner_profile_id ? profilesMap[result.winner_profile_id] : null
+      }));
     },
     enabled: !!election?.id,
   });
@@ -125,80 +172,94 @@ export default function PublicElectionDetail() {
               </CardContent>
             </Card>
           ) : (
-            <div className="grid gap-6 md:grid-cols-2">
-              {results.map((result: any) => (
-                <Card key={result.id} className="overflow-hidden">
-                  <CardHeader className="bg-muted/50">
-                    <CardTitle className="text-lg">
-                      {result.superlative_category}
-                    </CardTitle>
-                    <p className="text-sm text-muted-foreground">
-                      {result.category}
-                    </p>
-                  </CardHeader>
-                  <CardContent className="p-6 space-y-4">
-                    {/* Winner Info */}
-                    <div className="flex items-center gap-4">
-                      {result.profiles?.avatar_image_id ? (
-                        <Avatar className="h-16 w-16">
-                          <AvatarImage
-                            src={`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/media-uploads/${result.profiles.avatar_image_id}`}
-                          />
-                          <AvatarFallback>
-                            {(result.profiles.display_name || result.winner_name || "?")[0]}
-                          </AvatarFallback>
-                        </Avatar>
-                      ) : (
-                        <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center text-2xl font-bold text-primary">
-                          {(result.profiles?.display_name || result.winner_name || "?")[0]}
+            <div className="space-y-4">
+              {results.map((result: any, index: number) => (
+                <Card 
+                  key={result.id} 
+                  className="overflow-hidden hover:shadow-lg transition-shadow"
+                >
+                  <CardContent className="p-6">
+                    <div className="flex items-center gap-6">
+                      {/* Rank Badge */}
+                      <div className="flex-shrink-0">
+                        <div className={`
+                          w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold
+                          ${index === 0 ? 'bg-yellow-500 text-yellow-950' : 
+                            index === 1 ? 'bg-gray-400 text-gray-950' : 
+                            index === 2 ? 'bg-orange-600 text-orange-950' : 
+                            'bg-muted text-muted-foreground'}
+                        `}>
+                          {index + 1}
                         </div>
-                      )}
-                      <div className="flex-1">
-                        {result.profiles ? (
-                          <Button
-                            variant="link"
-                            className="p-0 h-auto text-xl font-semibold"
-                            onClick={() => navigate(`/public/profiles/${result.profiles.slug}`)}
-                          >
-                            {result.profiles.display_name}
-                          </Button>
+                      </div>
+
+                      {/* Winner Avatar & Info */}
+                      <div className="flex items-center gap-4 flex-1 min-w-0">
+                        {result.profile?.avatar?.url ? (
+                          <Avatar className="h-20 w-20 border-2 border-border flex-shrink-0">
+                            <AvatarImage src={result.profile.avatar.url} />
+                            <AvatarFallback className="text-2xl">
+                              {(result.profile.display_name || result.winner_name || "?")[0]}
+                            </AvatarFallback>
+                          </Avatar>
                         ) : (
-                          <p className="text-xl font-semibold">
-                            {result.winner_name}
-                          </p>
-                        )}
-                        {(result.vote_count || result.percentage) && (
-                          <div className="flex gap-3 text-sm text-muted-foreground mt-1">
-                            {result.vote_count && (
-                              <span>{result.vote_count} votes</span>
-                            )}
-                            {result.percentage && (
-                              <span>{result.percentage}%</span>
-                            )}
+                          <div className="h-20 w-20 rounded-full bg-primary/10 flex items-center justify-center text-3xl font-bold text-primary border-2 border-border flex-shrink-0">
+                            {(result.profile?.display_name || result.winner_name || "?")[0]}
                           </div>
                         )}
+                        
+                        <div className="flex-1 min-w-0 space-y-1">
+                          {/* Category */}
+                          <p className="text-sm font-medium text-primary">
+                            {result.category}
+                          </p>
+                          
+                          {/* Winner Name */}
+                          {result.profile ? (
+                            <Button
+                              variant="link"
+                              className="p-0 h-auto text-2xl font-bold hover:underline"
+                              onClick={() => navigate(`/public/profiles/${result.profile.slug}`)}
+                            >
+                              {result.profile.display_name}
+                            </Button>
+                          ) : (
+                            <h3 className="text-2xl font-bold">
+                              {result.winner_name}
+                            </h3>
+                          )}
+                          
+                          {/* Superlative */}
+                          {result.superlative_category && (
+                            <p className="text-sm text-muted-foreground italic">
+                              "{result.superlative_category}"
+                            </p>
+                          )}
+                        </div>
                       </div>
+
+                      {/* Stats */}
+                      {(result.vote_count || result.percentage) && (
+                        <div className="flex flex-col items-end gap-1 text-right flex-shrink-0">
+                          {result.percentage && (
+                            <div className="text-3xl font-bold text-primary">
+                              {result.percentage}%
+                            </div>
+                          )}
+                          {result.vote_count && (
+                            <div className="text-sm text-muted-foreground">
+                              {result.vote_count.toLocaleString()} votes
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
 
                     {/* Notes */}
                     {result.notes && (
-                      <p className="text-sm text-muted-foreground border-t pt-4">
+                      <p className="mt-4 pt-4 border-t text-sm text-muted-foreground">
                         {result.notes}
                       </p>
-                    )}
-
-                    {/* Images */}
-                    {result.media_assets && result.media_assets.length > 0 && (
-                      <div className="grid grid-cols-2 gap-2 border-t pt-4">
-                        {result.media_assets.slice(0, 2).map((media: any, idx: number) => (
-                          <img
-                            key={idx}
-                            src={media.url}
-                            alt={media.filename}
-                            className="w-full h-32 object-cover rounded"
-                          />
-                        ))}
-                      </div>
                     )}
                   </CardContent>
                 </Card>
