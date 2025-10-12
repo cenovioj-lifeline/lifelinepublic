@@ -18,6 +18,7 @@ import Tags from "./pages/Tags";
 import Media from "./pages/Media";
 import LifelineEdit from "./pages/LifelineEdit";
 import ElectionEdit from "./pages/ElectionEdit";
+import ElectionCategoryOrder from "./pages/ElectionCategoryOrder";
 import ProfileEdit from "./pages/ProfileEdit";
 import TagEdit from "./pages/TagEdit";
 import MediaEdit from "./pages/MediaEdit";
@@ -140,6 +141,16 @@ const App = () => (
                 <ProtectedRoute>
                   <AdminLayout>
                     <ElectionEdit />
+                  </AdminLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/elections-category-order"
+              element={
+                <ProtectedRoute>
+                  <AdminLayout>
+                    <ElectionCategoryOrder />
                   </AdminLayout>
                 </ProtectedRoute>
               }

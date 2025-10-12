@@ -43,8 +43,7 @@ export default function PublicElectionDetail() {
       const { data: resultsData, error: resultsError } = await supabase
         .from("election_results")
         .select("*")
-        .eq("election_id", election.id)
-        .order("category");
+        .eq("election_id", election.id);
 
       if (resultsError) throw resultsError;
       if (!resultsData) return [];
@@ -101,10 +100,30 @@ export default function PublicElectionDetail() {
     enabled: !!election?.id,
   });
 
-  // Group results by category
+  // Fetch category ordering
+  const { data: categoryOrdering } = useQuery({
+    queryKey: ["election-category-order"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("election_category_order")
+        .select("*");
+      
+      if (error) throw error;
+      
+      const orderMap: Record<string, number> = {};
+      data?.forEach(o => {
+        orderMap[o.category] = o.display_order;
+      });
+      return orderMap;
+    },
+  });
+
+  // Group results by category and sort categories by order
   const groupedResults = useMemo(() => {
     if (!results) return {};
-    return results.reduce((acc: Record<string, any[]>, result: any) => {
+    
+    // Group by category
+    const grouped = results.reduce((acc: Record<string, any[]>, result: any) => {
       const category = result.category || 'Other';
       if (!acc[category]) {
         acc[category] = [];
@@ -112,7 +131,27 @@ export default function PublicElectionDetail() {
       acc[category].push(result);
       return acc;
     }, {});
-  }, [results]);
+    
+    // Sort categories by display_order (highest first), then alphabetically
+    const sortedEntries = Object.entries(grouped).sort(([catA], [catB]) => {
+      const orderA = categoryOrdering?.[catA] ?? -1;
+      const orderB = categoryOrdering?.[catB] ?? -1;
+      
+      // If both are -1 (unassigned), sort alphabetically
+      if (orderA === -1 && orderB === -1) {
+        return catA.localeCompare(catB);
+      }
+      
+      // If one is -1, it goes last
+      if (orderA === -1) return 1;
+      if (orderB === -1) return -1;
+      
+      // Otherwise, sort by order descending (highest first)
+      return orderB - orderA;
+    });
+    
+    return Object.fromEntries(sortedEntries);
+  }, [results, categoryOrdering]);
 
   // Track which categories are open (all open by default)
   const [openCategories, setOpenCategories] = useState<Record<string, boolean>>(() => {

@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Search } from "lucide-react";
+import { Plus, Search, ArrowUpDown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import {
   Table,
@@ -46,10 +46,19 @@ export default function Elections() {
             Manage mock election results and outcomes
           </p>
         </div>
-        <Button onClick={() => navigate("/elections/new")}>
-          <Plus className="mr-2 h-4 w-4" />
-          New MER
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            onClick={() => navigate("/elections-category-order")}
+          >
+            <ArrowUpDown className="mr-2 h-4 w-4" />
+            Order Categories
+          </Button>
+          <Button onClick={() => navigate("/elections/new")}>
+            <Plus className="mr-2 h-4 w-4" />
+            New MER
+          </Button>
+        </div>
       </div>
 
       <div className="flex items-center gap-4">

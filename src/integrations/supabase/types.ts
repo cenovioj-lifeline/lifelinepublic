@@ -206,6 +206,30 @@ export type Database = {
           },
         ]
       }
+      election_category_order: {
+        Row: {
+          category: string
+          created_at: string
+          display_order: number
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       election_results: {
         Row: {
           category: string
