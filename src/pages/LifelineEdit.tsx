@@ -45,7 +45,6 @@ type LifelineForm = {
   subtitle: string;
   intro: string;
   conclusion: string;
-  subject_name: string;
   visibility: "public" | "private" | "unlisted";
   lifeline_type: "person" | "list" | "voting";
   status: "draft" | "published";
@@ -71,7 +70,6 @@ export default function LifelineEdit() {
       subtitle: "",
       intro: "",
       conclusion: "",
-      subject_name: "",
       visibility: "public",
       lifeline_type: "person",
       status: "draft",
@@ -132,8 +130,8 @@ export default function LifelineEdit() {
         .select("*")
         .eq("lifeline_id", id)
         .order(
-          lifeline?.lifeline_type === "list" ? "order_index" : "occurred_on",
-          { ascending: lifeline?.lifeline_type === "list" }
+          lifeline?.lifeline_type === "list" || lifeline?.lifeline_type === "voting" ? "order_index" : "occurred_on",
+          { ascending: lifeline?.lifeline_type === "list" || lifeline?.lifeline_type === "voting" }
         );
       if (error) throw error;
       return data;
@@ -150,7 +148,6 @@ export default function LifelineEdit() {
         subtitle: lifeline.subtitle || "",
         intro: lifeline.intro || "",
         conclusion: lifeline.conclusion || "",
-        subject_name: lifeline.subject_name || "",
         visibility: lifeline.visibility,
         lifeline_type: lifeline.lifeline_type,
         status: lifeline.status,
@@ -169,7 +166,6 @@ export default function LifelineEdit() {
         subtitle: data.subtitle || null,
         intro: data.intro || null,
         conclusion: data.conclusion || null,
-        subject_name: data.subject_name || null,
         visibility: data.visibility,
         lifeline_type: data.lifeline_type,
         status: data.status,
@@ -343,9 +339,9 @@ export default function LifelineEdit() {
               name="title"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Title</FormLabel>
+                  <FormLabel>Lifeline Name</FormLabel>
                   <FormControl>
-                    <Input {...field} placeholder="Lifeline title" />
+                    <Input {...field} placeholder="Lifeline name" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -366,20 +362,6 @@ export default function LifelineEdit() {
                       Generate
                     </Button>
                   </div>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="subject_name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Subject Name</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="Person or subject name" />
-                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}

@@ -69,7 +69,7 @@ export function EntryForm({
     onSubmit({ ...data, sentiment } as any);
   };
 
-  const isListType = lifelineType === "list";
+  const isListType = lifelineType === "list" || lifelineType === "voting";
 
   return (
     <Form {...form}>
@@ -125,28 +125,30 @@ export function EntryForm({
             />
           )}
 
-          <FormField
-            control={form.control}
-            name="score"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Rating: {field.value}</FormLabel>
-                <FormControl>
-                  <Slider
-                    min={-10}
-                    max={10}
-                    step={1}
-                    value={[field.value]}
-                    onValueChange={(vals) => field.onChange(vals[0])}
-                  />
-                </FormControl>
-                <FormDescription>
-                  Positive scores = green (good events), Negative scores = red (challenges)
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          {lifelineType !== "voting" && (
+            <FormField
+              control={form.control}
+              name="score"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Rating: {field.value}</FormLabel>
+                  <FormControl>
+                    <Slider
+                      min={-10}
+                      max={10}
+                      step={1}
+                      value={[field.value]}
+                      onValueChange={(vals) => field.onChange(vals[0])}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Positive scores = green (good events), Negative scores = red (challenges)
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
         </div>
 
         <FormField
