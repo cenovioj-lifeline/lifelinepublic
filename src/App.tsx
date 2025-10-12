@@ -50,19 +50,19 @@ const App = () => (
             <Route path="/admin/login" element={<AdminAuth />} />
             
             {/* Public Routes */}
-            <Route path="/home" element={<PublicLayout><Home /></PublicLayout>} />
+          <Route path="/home" element={<PublicLayout><Home /></PublicLayout>} />
           <Route path="/public/lifelines" element={<PublicLayout><PublicLifelines /></PublicLayout>} />
-          <Route path="/public/lifelines/:slug" element={<PublicLayout><PublicLifelineDetail /></PublicLayout>} />
+          <Route path="/public/lifelines/:slug" element={<PublicLifelineDetail />} />
             <Route path="/public/collections" element={<PublicLayout><PublicCollections /></PublicLayout>} />
             <Route path="/public/collections/:slug" element={<PublicCollectionDetail />} />
             <Route path="/public/collections/:slug/feed" element={<CollectionFeed />} />
             <Route path="/public/collections/:slug/lifelines" element={<CollectionLifelines />} />
             <Route path="/public/collections/:slug/profiles" element={<CollectionProfiles />} />
             <Route path="/public/collections/:slug/elections" element={<CollectionElections />} />
-            <Route path="/public/profiles" element={<PublicLayout><PublicProfiles /></PublicLayout>} />
+          <Route path="/public/profiles" element={<PublicLayout><PublicProfiles /></PublicLayout>} />
           <Route path="/public/elections" element={<PublicLayout><PublicElections /></PublicLayout>} />
-          <Route path="/public/elections/:slug" element={<PublicLayout><PublicElectionDetail /></PublicLayout>} />
-          <Route path="/public/profiles/:slug" element={<PublicLayout><PublicProfileDetail /></PublicLayout>} />
+          <Route path="/public/elections/:slug" element={<PublicElectionDetail />} />
+          <Route path="/public/profiles/:slug" element={<PublicProfileDetail />} />
             
             {/* Admin Routes */}
             <Route

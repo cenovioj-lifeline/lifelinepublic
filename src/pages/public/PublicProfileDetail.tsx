@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Heart, TrendingUp, Star, User, List, Vote, Users } from "lucide-react";
 import { useState } from "react";
+import { CollectionLayout } from "@/components/CollectionLayout";
 
 export default function PublicProfileDetail() {
   const { slug } = useParams<{ slug: string }>();
@@ -41,7 +42,11 @@ export default function PublicProfileDetail() {
               title,
               description,
               hero_image_id,
-              hero:hero_image_id(url)
+              hero:hero_image_id(url),
+              primary_color,
+              secondary_color,
+              web_primary,
+              web_secondary
             )
           )
         `)
@@ -134,19 +139,24 @@ export default function PublicProfileDetail() {
 
   const lifelines = profile.profile_lifelines?.map((pl: any) => pl.lifeline).filter(Boolean) || [];
   const collections = profile.profile_collections?.map((pc: any) => pc.collection).filter(Boolean) || [];
+  
+  // Use the first collection if profile belongs to one
+  const collection = collections.length > 0 ? collections[0] : null;
 
-  return (
+  const content = (
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Back Button */}
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={() => navigate("/public/profiles")}
-        className="mb-4"
-      >
-        <ArrowLeft className="h-4 w-4 mr-2" />
-        Back to Profiles
-      </Button>
+      {!collection && (
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => navigate("/public/profiles")}
+          className="mb-4"
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back to Profiles
+        </Button>
+      )}
 
       {/* Profile Header - Mobile First Design */}
       <Card>
@@ -325,4 +335,21 @@ export default function PublicProfileDetail() {
       )}
     </div>
   );
+
+  if (collection) {
+    return (
+      <CollectionLayout
+        collectionTitle={collection.title}
+        collectionSlug={collection.slug}
+        primaryColor={collection.primary_color}
+        secondaryColor={collection.secondary_color}
+        webPrimary={collection.web_primary}
+        webSecondary={collection.web_secondary}
+      >
+        {content}
+      </CollectionLayout>
+    );
+  }
+
+  return content;
 }
