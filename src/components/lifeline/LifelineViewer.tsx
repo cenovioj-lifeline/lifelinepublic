@@ -4,24 +4,23 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 
 interface LifelineViewerProps {
   lifelineId: string;
+  primaryColor?: string | null;
+  secondaryColor?: string | null;
 }
 
 type SelectionStyle = "glow" | "lifted" | "sheen" | "wave";
 
-export function LifelineViewer({ lifelineId }: LifelineViewerProps) {
+export function LifelineViewer({ lifelineId, primaryColor, secondaryColor }: LifelineViewerProps) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [selectionStyle, setSelectionStyle] = useState<SelectionStyle>("glow");
+  const selectionStyle: SelectionStyle = "glow"; // Always use glow
+
+  // Default colors (green and red)
+  const positiveColor = primaryColor || "#16a34a";
+  const negativeColor = secondaryColor || "#dc2626";
 
   const { data: lifeline } = useQuery({
     queryKey: ["lifeline", lifelineId],
@@ -99,21 +98,6 @@ export function LifelineViewer({ lifelineId }: LifelineViewerProps) {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Left side - Timeline */}
           <div className="space-y-4">
-            <div className="flex items-center gap-4 mb-6">
-              <label className="text-sm text-muted-foreground">Selection style</label>
-              <Select value={selectionStyle} onValueChange={(v) => setSelectionStyle(v as SelectionStyle)}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="glow">Glow + Scale</SelectItem>
-                  <SelectItem value="lifted">Lifted Card</SelectItem>
-                  <SelectItem value="sheen">Animated Sheen</SelectItem>
-                  <SelectItem value="wave">Wave Subtle</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
             <div className="relative">
               {/* Center vertical line */}
               <div className="absolute left-1/2 top-0 bottom-0 w-0.5 bg-border -translate-x-1/2" />
@@ -129,20 +113,25 @@ export function LifelineViewer({ lifelineId }: LifelineViewerProps) {
                     "relative px-4 py-2 rounded-lg font-medium transition-all duration-300 cursor-pointer",
                     "flex items-center gap-3",
                     positive
-                      ? "bg-green-600 text-white hover:bg-green-700"
-                      : "bg-red-600 text-white hover:bg-red-700"
+                      ? `text-white hover:opacity-90`
+                      : `text-white hover:opacity-90`
                   );
 
+                  const bgStyle = positive
+                    ? { backgroundColor: positiveColor }
+                    : { backgroundColor: negativeColor };
+
                   const selectedClasses = cn({
-                    "scale-110 shadow-lg ring-2 ring-primary": selectionStyle === "glow" && isSelected,
-                    "translate-y-[-4px] shadow-xl": selectionStyle === "lifted" && isSelected,
-                    "animate-pulse": selectionStyle === "wave" && isSelected,
+                    "scale-110 shadow-lg ring-2 ring-primary": isSelected,
                   });
 
                   const scoreBoxClasses = cn(
-                    "px-2 py-1 rounded bg-white font-bold text-sm min-w-[2rem] text-center",
-                    positive ? "text-green-600" : "text-red-600"
+                    "px-2 py-1 rounded bg-white font-bold text-sm min-w-[2rem] text-center"
                   );
+
+                  const scoreTextStyle = positive
+                    ? { color: positiveColor }
+                    : { color: negativeColor };
 
                   return (
                     <div
@@ -157,16 +146,17 @@ export function LifelineViewer({ lifelineId }: LifelineViewerProps) {
                       <div
                         className={cn(baseClasses, selectedClasses, positive ? "justify-between" : "justify-between")}
                         onClick={() => setSelectedId(entry.id)}
+                        style={bgStyle}
                       >
                         {positive ? (
                           <>
-                            <span className={scoreBoxClasses}>{score}</span>
+                            <span className={scoreBoxClasses} style={scoreTextStyle}>{score}</span>
                             <span className="truncate text-right flex-1">{entry.title}</span>
                           </>
                         ) : (
                           <>
                             <span className="truncate flex-1">{entry.title}</span>
-                            <span className={scoreBoxClasses}>{score}</span>
+                            <span className={scoreBoxClasses} style={scoreTextStyle}>{score}</span>
                           </>
                         )}
                       </div>
@@ -197,11 +187,11 @@ export function LifelineViewer({ lifelineId }: LifelineViewerProps) {
                   </div>
                   <div
                     className={cn(
-                      "px-3 py-1 rounded-md font-bold",
-                      (selected.score || 0) >= 0
-                        ? "bg-green-600 text-white"
-                        : "bg-red-600 text-white"
+                      "px-3 py-1 rounded-md font-bold text-white"
                     )}
+                    style={{
+                      backgroundColor: (selected.score || 0) >= 0 ? positiveColor : negativeColor
+                    }}
                   >
                     {selected.score || 0}
                   </div>

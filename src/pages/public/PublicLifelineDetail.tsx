@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { LifelineViewer } from "@/components/lifeline/LifelineViewer";
+import { CollectionLayout } from "@/components/CollectionLayout";
 
 export default function PublicLifelineDetail() {
   const { slug } = useParams<{ slug: string }>();
@@ -14,7 +15,21 @@ export default function PublicLifelineDetail() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("lifelines")
-        .select("id, title, slug")
+        .select(`
+          id, 
+          title, 
+          slug,
+          collection_id,
+          collections!lifelines_collection_id_fkey(
+            id,
+            title,
+            slug,
+            primary_color,
+            secondary_color,
+            web_primary,
+            web_secondary
+          )
+        `)
         .eq("slug", slug)
         .eq("status", "published")
         .eq("visibility", "public")
@@ -45,19 +60,44 @@ export default function PublicLifelineDetail() {
     );
   }
 
-  return (
+  const collection = lifeline.collections as any;
+  
+  const content = (
     <div className="space-y-6">
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={() => navigate(-1)}
-        className="mb-4"
-      >
-        <ArrowLeft className="h-4 w-4 mr-2" />
-        Back
-      </Button>
+      {!collection && (
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => navigate(-1)}
+          className="mb-4"
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back
+        </Button>
+      )}
 
-      <LifelineViewer lifelineId={lifeline.id} />
+      <LifelineViewer 
+        lifelineId={lifeline.id}
+        primaryColor={collection?.primary_color}
+        secondaryColor={collection?.secondary_color}
+      />
     </div>
   );
+
+  if (collection) {
+    return (
+      <CollectionLayout
+        collectionTitle={collection.title}
+        collectionSlug={collection.slug}
+        primaryColor={collection.primary_color}
+        secondaryColor={collection.secondary_color}
+        webPrimary={collection.web_primary}
+        webSecondary={collection.web_secondary}
+      >
+        {content}
+      </CollectionLayout>
+    );
+  }
+
+  return content;
 }
