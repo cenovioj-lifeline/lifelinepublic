@@ -68,8 +68,7 @@ export default function Lifelines() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Title</TableHead>
-              <TableHead>Subject</TableHead>
+              <TableHead>Lifeline Name</TableHead>
               <TableHead>Collection</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Visibility</TableHead>
@@ -80,13 +79,13 @@ export default function Lifelines() {
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center">
+                <TableCell colSpan={6} className="text-center">
                   Loading...
                 </TableCell>
               </TableRow>
             ) : lifelines?.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center">
+                <TableCell colSpan={6} className="text-center">
                   No lifelines found
                 </TableCell>
               </TableRow>
@@ -98,9 +97,6 @@ export default function Lifelines() {
                   onClick={() => navigate(`/lifelines/${lifeline.id}`)}
                 >
                   <TableCell className="font-medium">{lifeline.title}</TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {lifeline.profiles?.display_name || lifeline.subject_name || "—"}
-                  </TableCell>
                   <TableCell className="text-muted-foreground">
                     {lifeline.collections?.title || "—"}
                   </TableCell>

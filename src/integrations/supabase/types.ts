@@ -455,7 +455,6 @@ export type Database = {
           profile_id: string | null
           slug: string
           status: Database["public"]["Enums"]["content_status"]
-          subject_name: string | null
           subtitle: string | null
           title: string
           updated_at: string
@@ -473,7 +472,6 @@ export type Database = {
           profile_id?: string | null
           slug: string
           status?: Database["public"]["Enums"]["content_status"]
-          subject_name?: string | null
           subtitle?: string | null
           title: string
           updated_at?: string
@@ -491,7 +489,6 @@ export type Database = {
           profile_id?: string | null
           slug?: string
           status?: Database["public"]["Enums"]["content_status"]
-          subject_name?: string | null
           subtitle?: string | null
           title?: string
           updated_at?: string
