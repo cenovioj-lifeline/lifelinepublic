@@ -114,39 +114,61 @@ export function LifelineViewer({ lifelineId }: LifelineViewerProps) {
               </Select>
             </div>
 
-            <div className="relative flex flex-col items-center gap-3">
-              {entries.map((entry) => {
-                const isSelected = entry.id === selectedId;
-                const positive = (entry.score || 0) >= 0;
-                const score = entry.score || 0;
-                const width = Math.max(10, Math.min(100, Math.abs(score) * 10));
+            <div className="relative">
+              {/* Center vertical line */}
+              <div className="absolute left-1/2 top-0 bottom-0 w-0.5 bg-border -translate-x-1/2" />
+              
+              <div className="flex flex-col gap-3 py-4">
+                {entries.map((entry) => {
+                  const isSelected = entry.id === selectedId;
+                  const positive = (entry.score || 0) >= 0;
+                  const score = entry.score || 0;
+                  const width = Math.max(20, Math.min(50, Math.abs(score) * 5));
 
-                const baseClasses = cn(
-                  "relative px-4 py-2 rounded-lg font-medium transition-all duration-300 cursor-pointer",
-                  "flex items-center justify-between gap-2",
-                  positive
-                    ? "bg-green-600 text-white hover:bg-green-700"
-                    : "bg-red-600 text-white hover:bg-red-700"
-                );
+                  const baseClasses = cn(
+                    "relative px-4 py-2 rounded-lg font-medium transition-all duration-300 cursor-pointer",
+                    "flex items-center gap-2",
+                    positive
+                      ? "bg-green-600 text-white hover:bg-green-700"
+                      : "bg-red-600 text-white hover:bg-red-700"
+                  );
 
-                const selectedClasses = cn({
-                  "scale-110 shadow-lg ring-2 ring-primary": selectionStyle === "glow" && isSelected,
-                  "translate-y-[-4px] shadow-xl": selectionStyle === "lifted" && isSelected,
-                  "animate-pulse": selectionStyle === "wave" && isSelected,
-                });
+                  const selectedClasses = cn({
+                    "scale-110 shadow-lg ring-2 ring-primary": selectionStyle === "glow" && isSelected,
+                    "translate-y-[-4px] shadow-xl": selectionStyle === "lifted" && isSelected,
+                    "animate-pulse": selectionStyle === "wave" && isSelected,
+                  });
 
-                return (
-                  <div
-                    key={entry.id}
-                    className={cn(baseClasses, selectedClasses)}
-                    style={{ width: `${width}%` }}
-                    onClick={() => setSelectedId(entry.id)}
-                  >
-                    <span className="truncate">{entry.title}</span>
-                    <span className="font-bold text-sm">{score}</span>
-                  </div>
-                );
-              })}
+                  return (
+                    <div
+                      key={entry.id}
+                      className="relative flex items-center justify-center"
+                    >
+                      {positive ? (
+                        // Green bars on the left - right justified text, score on far left
+                        <div
+                          className={cn(baseClasses, selectedClasses, "justify-between ml-auto mr-[50%]")}
+                          style={{ width: `${width}%` }}
+                          onClick={() => setSelectedId(entry.id)}
+                        >
+                          <span className="font-bold text-sm">{score}</span>
+                          <span className="truncate text-right">{entry.title}</span>
+                        </div>
+                      ) : (
+                        // Red bars on the right - left justified text, score on far right
+                        <div
+                          className={cn(baseClasses, selectedClasses, "justify-between ml-[50%]")}
+                          style={{ width: `${width}%` }}
+                          onClick={() => setSelectedId(entry.id)}
+                        >
+                          <span className="truncate">{entry.title}</span>
+                          <span className="font-bold text-sm">{score}</span>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
 
