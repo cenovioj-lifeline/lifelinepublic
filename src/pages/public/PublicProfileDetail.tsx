@@ -6,7 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Heart, TrendingUp, Star } from "lucide-react";
+import { ArrowLeft, Heart, TrendingUp, Star, User, List, Vote, Users } from "lucide-react";
 import { useState } from "react";
 
 export default function PublicProfileDetail() {
@@ -29,6 +29,7 @@ export default function PublicProfileDetail() {
               slug,
               title,
               subtitle,
+              lifeline_type,
               cover_image_id,
               cover:cover_image_id(url)
             )
@@ -52,6 +53,32 @@ export default function PublicProfileDetail() {
       return data;
     },
   });
+
+  const getLifelineIcon = (type: string) => {
+    switch (type) {
+      case "person":
+        return User;
+      case "list":
+        return List;
+      case "voting":
+        return Vote;
+      default:
+        return TrendingUp;
+    }
+  };
+
+  const getLifelineTypeColor = (type: string) => {
+    switch (type) {
+      case "person":
+        return "bg-blue-500/10 text-blue-500 border-blue-500/20";
+      case "list":
+        return "bg-green-500/10 text-green-500 border-green-500/20";
+      case "voting":
+        return "bg-purple-500/10 text-purple-500 border-purple-500/20";
+      default:
+        return "bg-muted";
+    }
+  };
 
   // Query for lifeline count and stats
   const { data: stats } = useQuery({
@@ -187,17 +214,18 @@ export default function PublicProfileDetail() {
         </CardContent>
       </Card>
 
-      {/* Lifeline Overview */}
+      {/* Family & People Connections */}
       <Card>
         <CardHeader>
-          <CardTitle>Lifeline Overview</CardTitle>
+          <CardTitle>Family & People Connections</CardTitle>
+          <CardDescription>Related people and relationships</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="bg-muted/30 rounded-lg p-8 flex items-center justify-center">
             <div className="text-center text-muted-foreground">
-              <TrendingUp className="h-12 w-12 mx-auto mb-2 opacity-50" />
-              <p className="text-sm">Timeline Graph Preview</p>
-              <p className="text-xs mt-1">Coming soon</p>
+              <Users className="h-12 w-12 mx-auto mb-2 opacity-50" />
+              <p className="text-sm">No connections to display</p>
+              <p className="text-xs mt-1">Family connections will appear here</p>
             </div>
           </div>
         </CardContent>
@@ -212,33 +240,49 @@ export default function PublicProfileDetail() {
           <CardContent>
             <div className="overflow-x-auto -mx-2 px-2">
               <div className="flex gap-4 pb-2">
-                {lifelines.map((lifeline: any) => (
-                  <Card
-                    key={lifeline.id}
-                    className="flex-shrink-0 w-64 cursor-pointer hover:shadow-lg transition-shadow"
-                    onClick={() => navigate(`/public/lifelines`)}
-                  >
-                    {lifeline.cover?.url && (
-                      <div className="aspect-video bg-muted overflow-hidden rounded-t-lg">
-                        <img
-                          src={lifeline.cover.url}
-                          alt={lifeline.title}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                    )}
-                    <CardHeader className="p-4">
-                      <CardTitle className="text-base line-clamp-1">
-                        {lifeline.title}
-                      </CardTitle>
-                      {lifeline.subtitle && (
-                        <CardDescription className="text-xs line-clamp-2">
-                          {lifeline.subtitle}
-                        </CardDescription>
+                {lifelines.map((lifeline: any) => {
+                  const TypeIcon = getLifelineIcon(lifeline.lifeline_type);
+                  return (
+                    <Card
+                      key={lifeline.id}
+                      className="flex-shrink-0 w-64 cursor-pointer hover:shadow-lg transition-shadow"
+                      onClick={() => navigate(`/public/lifelines/${lifeline.slug}`)}
+                    >
+                      {lifeline.cover?.url && (
+                        <div className="aspect-video bg-muted overflow-hidden rounded-t-lg relative">
+                          <img
+                            src={lifeline.cover.url}
+                            alt={lifeline.title}
+                            className="w-full h-full object-cover"
+                          />
+                          <div className={`absolute top-2 right-2 p-2 rounded-full border ${getLifelineTypeColor(lifeline.lifeline_type)}`}>
+                            <TypeIcon className="h-4 w-4" />
+                          </div>
+                        </div>
                       )}
-                    </CardHeader>
-                  </Card>
-                ))}
+                      {!lifeline.cover?.url && (
+                        <div className={`aspect-video overflow-hidden rounded-t-lg flex items-center justify-center border ${getLifelineTypeColor(lifeline.lifeline_type)}`}>
+                          <TypeIcon className="h-12 w-12" />
+                        </div>
+                      )}
+                      <CardHeader className="p-4">
+                        <div className="flex items-start justify-between gap-2">
+                          <CardTitle className="text-base line-clamp-1 flex-1">
+                            {lifeline.title}
+                          </CardTitle>
+                          <Badge variant="outline" className="text-xs capitalize">
+                            {lifeline.lifeline_type}
+                          </Badge>
+                        </div>
+                        {lifeline.subtitle && (
+                          <CardDescription className="text-xs line-clamp-2">
+                            {lifeline.subtitle}
+                          </CardDescription>
+                        )}
+                      </CardHeader>
+                    </Card>
+                  );
+                })}
               </div>
             </div>
           </CardContent>

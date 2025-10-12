@@ -23,6 +23,7 @@ import TagEdit from "./pages/TagEdit";
 import MediaEdit from "./pages/MediaEdit";
 import Home from "./pages/public/Home";
 import PublicLifelines from "./pages/public/PublicLifelines";
+import PublicLifelineDetail from "./pages/public/PublicLifelineDetail";
 import PublicCollections from "./pages/public/PublicCollections";
 import PublicProfiles from "./pages/public/PublicProfiles";
 import PublicProfileDetail from "./pages/public/PublicProfileDetail";
@@ -43,7 +44,8 @@ const App = () => (
             
             {/* Public Routes */}
             <Route path="/home" element={<PublicLayout><Home /></PublicLayout>} />
-            <Route path="/public/lifelines" element={<PublicLayout><PublicLifelines /></PublicLayout>} />
+          <Route path="/public/lifelines" element={<PublicLayout><PublicLifelines /></PublicLayout>} />
+          <Route path="/public/lifelines/:slug" element={<PublicLayout><PublicLifelineDetail /></PublicLayout>} />
             <Route path="/public/collections" element={<PublicLayout><PublicCollections /></PublicLayout>} />
             <Route path="/public/profiles" element={<PublicLayout><PublicProfiles /></PublicLayout>} />
           <Route path="/public/elections" element={<PublicLayout><PublicElections /></PublicLayout>} />
