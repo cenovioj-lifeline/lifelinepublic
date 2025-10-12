@@ -26,6 +26,7 @@ import Home from "./pages/public/Home";
 import PublicLifelines from "./pages/public/PublicLifelines";
 import PublicLifelineDetail from "./pages/public/PublicLifelineDetail";
 import PublicCollections from "./pages/public/PublicCollections";
+import PublicCollectionDetail from "./pages/public/PublicCollectionDetail";
 import PublicProfiles from "./pages/public/PublicProfiles";
 import PublicProfileDetail from "./pages/public/PublicProfileDetail";
 import PublicElections from "./pages/public/PublicElections";
@@ -49,6 +50,7 @@ const App = () => (
           <Route path="/public/lifelines" element={<PublicLayout><PublicLifelines /></PublicLayout>} />
           <Route path="/public/lifelines/:slug" element={<PublicLayout><PublicLifelineDetail /></PublicLayout>} />
             <Route path="/public/collections" element={<PublicLayout><PublicCollections /></PublicLayout>} />
+            <Route path="/public/collections/:slug" element={<PublicCollectionDetail />} />
             <Route path="/public/profiles" element={<PublicLayout><PublicProfiles /></PublicLayout>} />
           <Route path="/public/elections" element={<PublicLayout><PublicElections /></PublicLayout>} />
           <Route path="/public/elections/:slug" element={<PublicLayout><PublicElectionDetail /></PublicLayout>} />
