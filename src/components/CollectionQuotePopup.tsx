@@ -30,8 +30,8 @@ export function CollectionQuotePopup({ quote, author, context, onDismiss }: Coll
         isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
       }`}
     >
-      <Card className="shadow-lg border-2">
-        <CardContent className="pt-6 pb-4 relative">
+      <Card className="shadow-lg border-2 bg-white">
+        <CardContent className="pt-6 pb-4 relative bg-white">
           <Button
             variant="ghost"
             size="icon"

@@ -283,7 +283,7 @@ export default function PublicCollectionDetail() {
                       )}
                     </div>
                     <CardHeader>
-                      <CardTitle className="text-lg group-hover:text-primary transition-colors">
+                      <CardTitle className="text-lg text-foreground transition-colors">
                         {lifeline.title}
                       </CardTitle>
                     </CardHeader>

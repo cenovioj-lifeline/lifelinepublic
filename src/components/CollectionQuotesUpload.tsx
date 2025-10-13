@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -15,6 +16,20 @@ export function CollectionQuotesUpload({ collectionId }: CollectionQuotesUploadP
   const [uploading, setUploading] = useState(false);
   const [uploadedCount, setUploadedCount] = useState<number | null>(null);
   const { toast } = useToast();
+
+  // Fetch current quote count
+  const { data: currentCount } = useQuery({
+    queryKey: ["collection-quotes-count", collectionId],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from("collection_quotes")
+        .select("*", { count: "exact", head: true })
+        .eq("collection_id", collectionId);
+      
+      if (error) throw error;
+      return count || 0;
+    },
+  });
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -84,7 +99,14 @@ export function CollectionQuotesUpload({ collectionId }: CollectionQuotesUploadP
   return (
     <div className="space-y-4 p-6 border rounded-lg bg-muted/20">
       <div>
-        <h3 className="text-lg font-semibold mb-2">Collection Quotes</h3>
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="text-lg font-semibold">Collection Quotes</h3>
+          {currentCount !== undefined && (
+            <span className="text-sm font-medium text-muted-foreground">
+              Current: {currentCount} quote{currentCount !== 1 ? 's' : ''}
+            </span>
+          )}
+        </div>
         <p className="text-sm text-muted-foreground mb-4">
           Upload an Excel or CSV file with quotes. First column should contain the quote text, second column (optional) should contain the author name.
         </p>

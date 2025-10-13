@@ -112,11 +112,11 @@ export default function CollectionLifelines() {
                       </div>
                     )}
                   </div>
-                  <CardHeader>
-                    <CardTitle className="text-lg group-hover:text-primary transition-colors">
-                      {lifeline.title}
-                    </CardTitle>
-                  </CardHeader>
+                    <CardHeader>
+                      <CardTitle className="text-lg text-foreground transition-colors">
+                        {lifeline.title}
+                      </CardTitle>
+                    </CardHeader>
                   <CardContent>
                     <p className="text-sm text-muted-foreground line-clamp-2">
                       {lifeline.subtitle || lifeline.intro || "Explore this lifeline"}
