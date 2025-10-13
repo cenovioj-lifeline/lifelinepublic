@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { Plus, Star } from "lucide-react";
 import { ContributeEventDialog } from "@/components/ContributeEventDialog";
 import { useAuth } from "@/lib/auth";
+import { PublicAuthModal } from "@/components/PublicAuthModal";
 
 interface LifelineViewerProps {
   lifelineId: string;
@@ -166,7 +167,10 @@ export function LifelineViewer({
               </p>
             )}
           </div>
-          <Button onClick={() => setContributeDialogOpen(true)}>
+          <Button 
+            onClick={() => setContributeDialogOpen(true)}
+            style={collectionHeadingColor ? { backgroundColor: collectionHeadingColor, color: 'white' } : undefined}
+          >
             <Plus className="h-4 w-4 mr-2" />
             Contribute a new event
           </Button>
@@ -229,11 +233,17 @@ export function LifelineViewer({
                         {positive ? (
                           <>
                             <span className={scoreBoxClasses} style={scoreTextStyle}>{score}</span>
-                            <span className="truncate text-right flex-1">{entry.title}</span>
+                            <span className="truncate text-right flex-1 flex items-center justify-end gap-1">
+                              {entry.title}
+                              {entry.is_fan_contributed && <Star className="h-3 w-3 fill-yellow-400 text-yellow-400 flex-shrink-0" />}
+                            </span>
                           </>
                         ) : (
                           <>
-                            <span className="truncate flex-1">{entry.title}</span>
+                            <span className="truncate flex-1 flex items-center gap-1">
+                              {entry.is_fan_contributed && <Star className="h-3 w-3 fill-yellow-400 text-yellow-400 flex-shrink-0" />}
+                              {entry.title}
+                            </span>
                             <span className={scoreBoxClasses} style={scoreTextStyle}>{score}</span>
                           </>
                         )}
@@ -257,10 +267,18 @@ export function LifelineViewer({
                       </AvatarFallback>
                     </Avatar>
                     <div>
-                      <CardTitle className="text-base leading-tight">
+                      <CardTitle 
+                        className="text-base leading-tight"
+                        style={collectionHeadingColor ? { color: collectionHeadingColor } : undefined}
+                      >
                         {lifeline.profiles?.display_name || "Unknown"}
                       </CardTitle>
-                      <p className="text-xs text-muted-foreground">Entry details</p>
+                      <p 
+                        className="text-xs"
+                        style={collectionTextColor ? { color: collectionTextColor, opacity: 0.7 } : undefined}
+                      >
+                        Entry details
+                      </p>
                     </div>
                   </div>
                   <div
@@ -289,7 +307,10 @@ export function LifelineViewer({
                   {selected.summary || selected.details}
                 </p>
                  {selected.is_fan_contributed && selected.user_profile && (
-                   <p className="text-sm text-muted-foreground italic">
+                   <p 
+                     className="text-sm italic"
+                     style={collectionTextColor ? { color: collectionTextColor, opacity: 0.7 } : undefined}
+                   >
                      Credit: Created by {selected.user_profile.first_name}{" "}
                      {selected.user_profile.last_name}
                    </p>
@@ -299,12 +320,20 @@ export function LifelineViewer({
                     variant="outline"
                     onClick={handlePrevious}
                     disabled={currentIndex === 0}
+                    style={collectionHeadingColor ? { 
+                      borderColor: collectionHeadingColor, 
+                      color: collectionHeadingColor 
+                    } : undefined}
                   >
                     ← Previous
                   </Button>
                   <Button
                     onClick={handleNext}
                     disabled={currentIndex === (entries?.length || 0) - 1}
+                    style={collectionHeadingColor ? { 
+                      backgroundColor: collectionHeadingColor, 
+                      color: 'white' 
+                    } : undefined}
                   >
                     Next →
                   </Button>
@@ -323,6 +352,17 @@ export function LifelineViewer({
         onSignInRequired={() => {
           setContributeDialogOpen(false);
           setShowAuthModal(true);
+        }}
+      />
+
+      <PublicAuthModal
+        open={showAuthModal}
+        onOpenChange={(open) => {
+          setShowAuthModal(open);
+          if (!open && user) {
+            // User just signed in, reopen contribute dialog
+            setContributeDialogOpen(true);
+          }
         }}
       />
     </Card>
