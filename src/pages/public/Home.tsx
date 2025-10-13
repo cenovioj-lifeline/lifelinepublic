@@ -1,10 +1,19 @@
+import { PublicLayout } from "@/components/PublicLayout";
+import { TopContributorsCard } from "@/components/TopContributorsCard";
+
 export default function Home() {
   return (
-    <div className="space-y-6">
-      <h1 className="text-3xl font-bold">Welcome to Lifeline Public</h1>
-      <p className="text-muted-foreground">
-        Explore lifelines, collections, profiles, and elections.
-      </p>
-    </div>
+    <PublicLayout>
+      <div className="container mx-auto px-4 py-8">
+        <h1 className="text-4xl font-bold mb-4">Welcome to Lifeline</h1>
+        <p className="text-lg text-muted-foreground mb-8">
+          Explore curated collections and lifelines
+        </p>
+        
+        <div className="max-w-md">
+          <TopContributorsCard />
+        </div>
+      </div>
+    </PublicLayout>
   );
 }

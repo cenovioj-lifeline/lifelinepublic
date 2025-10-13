@@ -246,6 +246,16 @@ function AppContent() {
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/fan-contributions"
+              element={
+                <ProtectedRoute>
+                  <AdminLayout>
+                    <FanContributions />
+                  </AdminLayout>
+                </ProtectedRoute>
+              }
+            />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

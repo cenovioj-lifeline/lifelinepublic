@@ -5,6 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { Plus, Star } from "lucide-react";
+import { ContributeEventDialog } from "@/components/ContributeEventDialog";
+import { useAuth } from "@/lib/auth";
 
 interface LifelineViewerProps {
   lifelineId: string;
@@ -25,7 +28,10 @@ export function LifelineViewer({
   collectionTextColor,
   collectionHeadingColor
 }: LifelineViewerProps) {
+  const { user } = useAuth();
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [contributeDialogOpen, setContributeDialogOpen] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
   const selectionStyle: SelectionStyle = "glow"; // Always use glow
 
   // Default colors (green and red)
@@ -56,6 +62,27 @@ export function LifelineViewer({
         .order("order_index");
 
       if (error) throw error;
+      
+      // Fetch user profiles separately for fan-contributed entries
+      if (data) {
+        const userIds = data
+          .filter((e: any) => e.is_fan_contributed && e.contributed_by_user_id)
+          .map((e: any) => e.contributed_by_user_id);
+        
+        if (userIds.length > 0) {
+          const { data: profiles } = await supabase
+            .from("user_profiles")
+            .select("*")
+            .in("user_id", userIds);
+          
+          // Attach profiles to entries
+          return data.map((entry: any) => ({
+            ...entry,
+            user_profile: profiles?.find((p: any) => p.user_id === entry.contributed_by_user_id),
+          }));
+        }
+      }
+      
       return data;
     },
     enabled: !!lifelineId,
@@ -122,20 +149,28 @@ export function LifelineViewer({
   return (
     <Card className="p-6">
       <CardHeader>
-        <CardTitle 
-          className="text-2xl"
-          style={collectionHeadingColor ? { color: collectionHeadingColor } : undefined}
-        >
-          {lifeline.title}
-        </CardTitle>
-        {lifeline.subtitle && (
-          <p 
-            className="text-muted-foreground"
-            style={collectionTextColor ? { color: collectionTextColor } : undefined}
-          >
-            {lifeline.subtitle}
-          </p>
-        )}
+        <div className="flex items-start justify-between">
+          <div>
+            <CardTitle 
+              className="text-2xl"
+              style={collectionHeadingColor ? { color: collectionHeadingColor } : undefined}
+            >
+              {lifeline.title}
+            </CardTitle>
+            {lifeline.subtitle && (
+              <p 
+                className="text-muted-foreground"
+                style={collectionTextColor ? { color: collectionTextColor } : undefined}
+              >
+                {lifeline.subtitle}
+              </p>
+            )}
+          </div>
+          <Button onClick={() => setContributeDialogOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Contribute a new event
+          </Button>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -253,6 +288,12 @@ export function LifelineViewer({
                 >
                   {selected.summary || selected.details}
                 </p>
+                 {selected.is_fan_contributed && selected.user_profile && (
+                   <p className="text-sm text-muted-foreground italic">
+                     Credit: Created by {selected.user_profile.first_name}{" "}
+                     {selected.user_profile.last_name}
+                   </p>
+                 )}
                 <div className="flex items-center justify-between pt-4">
                   <Button
                     variant="outline"
@@ -273,6 +314,17 @@ export function LifelineViewer({
           )}
         </div>
       </CardContent>
+
+      <ContributeEventDialog
+        open={contributeDialogOpen}
+        onOpenChange={setContributeDialogOpen}
+        lifelineId={lifelineId}
+        lifelineTitle={lifeline.title}
+        onSignInRequired={() => {
+          setContributeDialogOpen(false);
+          setShowAuthModal(true);
+        }}
+      />
     </Card>
   );
 }

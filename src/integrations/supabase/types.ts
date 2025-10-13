@@ -407,9 +407,11 @@ export type Database = {
         Row: {
           age_at_event: number | null
           collection_id: string | null
+          contributed_by_user_id: string | null
           created_at: string
           details: string | null
           id: string
+          is_fan_contributed: boolean | null
           lifeline_id: string
           media_suggestion: string | null
           occurred_on: string | null
@@ -425,9 +427,11 @@ export type Database = {
         Insert: {
           age_at_event?: number | null
           collection_id?: string | null
+          contributed_by_user_id?: string | null
           created_at?: string
           details?: string | null
           id?: string
+          is_fan_contributed?: boolean | null
           lifeline_id: string
           media_suggestion?: string | null
           occurred_on?: string | null
@@ -443,9 +447,11 @@ export type Database = {
         Update: {
           age_at_event?: number | null
           collection_id?: string | null
+          contributed_by_user_id?: string | null
           created_at?: string
           details?: string | null
           id?: string
+          is_fan_contributed?: boolean | null
           lifeline_id?: string
           media_suggestion?: string | null
           occurred_on?: string | null
@@ -545,6 +551,66 @@ export type Database = {
             columns: ["entry_id"]
             isOneToOne: false
             referencedRelation: "entries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fan_contributions: {
+        Row: {
+          admin_message: string | null
+          created_at: string | null
+          description: string
+          entry_id: string | null
+          id: string
+          lifeline_id: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          score: number | null
+          status: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          admin_message?: string | null
+          created_at?: string | null
+          description: string
+          entry_id?: string | null
+          id?: string
+          lifeline_id: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          score?: number | null
+          status?: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          admin_message?: string | null
+          created_at?: string | null
+          description?: string
+          entry_id?: string | null
+          id?: string
+          lifeline_id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          score?: number | null
+          status?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fan_contributions_entry_id_fkey"
+            columns: ["entry_id"]
+            isOneToOne: false
+            referencedRelation: "entries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fan_contributions_lifeline_id_fkey"
+            columns: ["lifeline_id"]
+            isOneToOne: false
+            referencedRelation: "lifelines"
             referencedColumns: ["id"]
           },
         ]
@@ -992,6 +1058,36 @@ export type Database = {
           id?: string
           name?: string
           slug?: string
+        }
+        Relationships: []
+      }
+      user_profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          first_name: string | null
+          id: string
+          last_name: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          updated_at?: string | null
+          user_id?: string
         }
         Relationships: []
       }
