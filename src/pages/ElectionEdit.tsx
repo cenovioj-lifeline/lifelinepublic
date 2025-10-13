@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, Plus, Trash2, X } from "lucide-react";
-import { MediaPicker } from "@/components/MediaPicker";
+import { MediaPickerModal } from "@/components/MediaPickerModal";
 import { Badge } from "@/components/ui/badge";
 
 type ElectionResult = {
@@ -618,7 +618,7 @@ export default function ElectionEdit() {
                         <div className="space-y-2">
                           {(result.media_ids || []).map((mediaId, mediaIndex) => (
                             <div key={mediaIndex} className="flex gap-2">
-                              <MediaPicker
+                              <MediaPickerModal
                                 value={mediaId}
                                 onValueChange={(value) => {
                                   const newMediaIds = [...(result.media_ids || [])];

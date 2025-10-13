@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { ArrowLeft } from "lucide-react";
-import { MediaPicker } from "@/components/MediaPicker";
+import { MediaPickerModal } from "@/components/MediaPickerModal";
 import { CollectionQuotesUpload } from "@/components/CollectionQuotesUpload";
 
 type CollectionForm = {
@@ -729,7 +729,7 @@ export default function CollectionEdit() {
               <FormItem>
                 <FormLabel>Hero Image (Optional)</FormLabel>
                 <FormControl>
-                  <MediaPicker
+                  <MediaPickerModal
                     value={field.value}
                     onValueChange={field.onChange}
                     placeholder="Select hero image"

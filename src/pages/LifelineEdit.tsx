@@ -23,7 +23,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ArrowLeft, Plus } from "lucide-react";
-import { MediaPicker } from "@/components/MediaPicker";
+import { MediaPickerModal } from "@/components/MediaPickerModal";
 import { EntryCard } from "@/components/EntryCard";
 import { EntryForm } from "@/components/EntryForm";
 import {
@@ -498,7 +498,7 @@ export default function LifelineEdit() {
                 <FormItem>
                   <FormLabel>Cover Image (Optional)</FormLabel>
                   <FormControl>
-                    <MediaPicker
+                    <MediaPickerModal
                       value={field.value}
                       onValueChange={field.onChange}
                       placeholder="Select cover image"
