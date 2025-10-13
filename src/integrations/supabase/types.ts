@@ -525,6 +525,33 @@ export type Database = {
           },
         ]
       }
+      lifeline_settings: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          setting_key: string
+          setting_value: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          setting_key: string
+          setting_value?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          setting_key?: string
+          setting_value?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       lifeline_tags: {
         Row: {
           lifeline_id: string
@@ -568,6 +595,7 @@ export type Database = {
           profile_id: string | null
           slug: string
           status: Database["public"]["Enums"]["content_status"]
+          subject: string | null
           subtitle: string | null
           title: string
           updated_at: string
@@ -585,6 +613,7 @@ export type Database = {
           profile_id?: string | null
           slug: string
           status?: Database["public"]["Enums"]["content_status"]
+          subject?: string | null
           subtitle?: string | null
           title: string
           updated_at?: string
@@ -602,6 +631,7 @@ export type Database = {
           profile_id?: string | null
           slug?: string
           status?: Database["public"]["Enums"]["content_status"]
+          subject?: string | null
           subtitle?: string | null
           title?: string
           updated_at?: string

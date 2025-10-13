@@ -22,6 +22,8 @@ import ElectionCategoryOrder from "./pages/ElectionCategoryOrder";
 import ProfileEdit from "./pages/ProfileEdit";
 import TagEdit from "./pages/TagEdit";
 import MediaEdit from "./pages/MediaEdit";
+import Settings from "./pages/Settings";
+import LifelineColorEditor from "./pages/LifelineColorEditor";
 import Home from "./pages/public/Home";
 import PublicLifelines from "./pages/public/PublicLifelines";
 import PublicLifelineDetail from "./pages/public/PublicLifelineDetail";
@@ -210,6 +212,26 @@ const App = () => (
                 <ProtectedRoute>
                   <AdminLayout>
                     <MediaEdit />
+                  </AdminLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/settings"
+              element={
+                <ProtectedRoute>
+                  <AdminLayout>
+                    <Settings />
+                  </AdminLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/settings/lifeline-colors"
+              element={
+                <ProtectedRoute>
+                  <AdminLayout>
+                    <LifelineColorEditor />
                   </AdminLayout>
                 </ProtectedRoute>
               }

@@ -42,6 +42,7 @@ import { Separator } from "@/components/ui/separator";
 type LifelineForm = {
   title: string;
   slug: string;
+  subject: string;
   subtitle: string;
   intro: string;
   conclusion: string;
@@ -67,6 +68,7 @@ export default function LifelineEdit() {
     defaultValues: {
       title: "",
       slug: "",
+      subject: "",
       subtitle: "",
       intro: "",
       conclusion: "",
@@ -145,6 +147,7 @@ export default function LifelineEdit() {
       form.reset({
         title: lifeline.title,
         slug: lifeline.slug,
+        subject: lifeline.subject || "",
         subtitle: lifeline.subtitle || "",
         intro: lifeline.intro || "",
         conclusion: lifeline.conclusion || "",
@@ -158,11 +161,26 @@ export default function LifelineEdit() {
     }
   }, [lifeline, form]);
 
+  // Auto-generate slug when title changes
+  useEffect(() => {
+    const subscription = form.watch((value, { name }) => {
+      if (name === "title" && value.title && !form.formState.dirtyFields.slug) {
+        const slug = value.title
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/(^-|-$)/g, "");
+        form.setValue("slug", slug, { shouldDirty: false });
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [form]);
+
   const saveMutation = useMutation({
     mutationFn: async (data: LifelineForm) => {
       const payload = {
         title: data.title,
         slug: data.slug,
+        subject: data.subject || null,
         subtitle: data.subtitle || null,
         intro: data.intro || null,
         conclusion: data.conclusion || null,
@@ -353,15 +371,24 @@ export default function LifelineEdit() {
               name="slug"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Slug</FormLabel>
-                  <div className="flex gap-2">
-                    <FormControl>
-                      <Input {...field} placeholder="lifeline-slug" />
-                    </FormControl>
-                    <Button type="button" variant="outline" onClick={generateSlug}>
-                      Generate
-                    </Button>
-                  </div>
+                  <FormLabel>Slug (auto-generated)</FormLabel>
+                  <FormControl>
+                    <Input {...field} placeholder="lifeline-slug" readOnly className="bg-muted" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="subject"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Subject</FormLabel>
+                  <FormControl>
+                    <Input {...field} placeholder="Lifeline subject" />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
