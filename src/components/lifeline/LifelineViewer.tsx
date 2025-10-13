@@ -167,10 +167,7 @@ export function LifelineViewer({
               </p>
             )}
           </div>
-          <Button 
-            onClick={() => setContributeDialogOpen(true)}
-            style={collectionHeadingColor ? { backgroundColor: collectionHeadingColor, color: 'white' } : undefined}
-          >
+          <Button onClick={() => setContributeDialogOpen(true)}>
             <Plus className="h-4 w-4 mr-2" />
             Contribute a new event
           </Button>
@@ -320,20 +317,12 @@ export function LifelineViewer({
                     variant="outline"
                     onClick={handlePrevious}
                     disabled={currentIndex === 0}
-                    style={collectionHeadingColor ? { 
-                      borderColor: collectionHeadingColor, 
-                      color: collectionHeadingColor 
-                    } : undefined}
                   >
                     ← Previous
                   </Button>
                   <Button
                     onClick={handleNext}
                     disabled={currentIndex === (entries?.length || 0) - 1}
-                    style={collectionHeadingColor ? { 
-                      backgroundColor: collectionHeadingColor, 
-                      color: 'white' 
-                    } : undefined}
                   >
                     Next →
                   </Button>
@@ -351,7 +340,7 @@ export function LifelineViewer({
         lifelineTitle={lifeline.title}
         onSignInRequired={() => {
           setContributeDialogOpen(false);
-          setShowAuthModal(true);
+          setTimeout(() => setShowAuthModal(true), 0);
         }}
       />
 

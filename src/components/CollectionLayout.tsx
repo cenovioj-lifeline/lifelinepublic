@@ -138,9 +138,12 @@ export function CollectionLayout({
       root.style.setProperty('--foreground', hsl);
     }
 
-    if (collectionHeadingColor) {
-      const hsl = hexToHSL(collectionHeadingColor);
+    // Use collectionHeadingColor if available, otherwise fall back to webPrimary
+    const primaryColorSource = collectionHeadingColor || webPrimary;
+    if (primaryColorSource) {
+      const hsl = hexToHSL(primaryColorSource);
       root.style.setProperty('--primary', hsl);
+      root.style.setProperty('--ring', hsl);
     }
 
     if (collectionAccentColor) {
@@ -180,8 +183,9 @@ export function CollectionLayout({
       root.style.removeProperty('--border');
       root.style.removeProperty('--muted-foreground');
       root.style.removeProperty('--secondary');
+      root.style.removeProperty('--ring');
     };
-  }, [primaryColor, secondaryColor, collectionBgColor, collectionTextColor, collectionHeadingColor, collectionAccentColor, collectionCardBg, collectionBorderColor, collectionMutedText, collectionBadgeColor]);
+  }, [primaryColor, secondaryColor, collectionBgColor, collectionTextColor, collectionHeadingColor, collectionAccentColor, collectionCardBg, collectionBorderColor, collectionMutedText, collectionBadgeColor, webPrimary]);
 
   const handleExit = () => {
     navigate("/public/collections");
