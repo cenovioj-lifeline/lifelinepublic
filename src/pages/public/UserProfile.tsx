@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
-import { PublicLayout } from "@/components/PublicLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,6 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Pencil, Save, X } from "lucide-react";
+import { ImageUpload } from "@/components/ImageUpload";
 
 export default function UserProfile() {
   const { user } = useAuth();
@@ -60,6 +60,14 @@ export default function UserProfile() {
     },
     enabled: !!user?.id,
   });
+
+  const handleAvatarUploadComplete = (mediaAssetId: string, url: string) => {
+    setAvatarUrl(url);
+  };
+
+  const handleAvatarRemove = () => {
+    setAvatarUrl("");
+  };
 
   const saveMutation = useMutation({
     mutationFn: async () => {
@@ -116,17 +124,14 @@ export default function UserProfile() {
 
   if (profileLoading) {
     return (
-      <PublicLayout>
-        <div className="container mx-auto px-4 py-8">
-          <p>Loading...</p>
-        </div>
-      </PublicLayout>
+      <div className="container mx-auto px-4 py-8">
+        <p>Loading...</p>
+      </div>
     );
   }
 
   return (
-    <PublicLayout>
-      <div className="container mx-auto px-4 py-8 space-y-6">
+    <div className="container mx-auto px-4 py-8 space-y-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>My Profile</CardTitle>
@@ -172,12 +177,11 @@ export default function UserProfile() {
                   </div>
                 </div>
                 <div>
-                  <Label htmlFor="avatarUrl">Avatar URL</Label>
-                  <Input
-                    id="avatarUrl"
-                    value={avatarUrl}
-                    onChange={(e) => setAvatarUrl(e.target.value)}
-                    placeholder="https://example.com/avatar.jpg"
+                  <Label htmlFor="avatarUrl">Upload Profile Picture</Label>
+                  <ImageUpload
+                    onUploadComplete={handleAvatarUploadComplete}
+                    currentImageUrl={avatarUrl}
+                    onRemove={handleAvatarRemove}
                   />
                 </div>
                 <div className="flex gap-2">
@@ -235,6 +239,5 @@ export default function UserProfile() {
           </CardContent>
         </Card>
       </div>
-    </PublicLayout>
   );
 }

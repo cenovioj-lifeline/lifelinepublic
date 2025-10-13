@@ -160,8 +160,7 @@ export function LifelineViewer({
             </CardTitle>
             {lifeline.subtitle && (
               <p 
-                className="text-muted-foreground"
-                style={collectionTextColor ? { color: collectionTextColor } : undefined}
+                style={collectionTextColor ? { color: collectionTextColor, opacity: 0.7 } : undefined}
               >
                 {lifeline.subtitle}
               </p>

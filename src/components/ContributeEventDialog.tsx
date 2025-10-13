@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 
 interface ContributeEventDialogProps {
@@ -114,13 +115,18 @@ export function ContributeEventDialog({
           </div>
           <div>
             <Label htmlFor="score">Rating (optional)</Label>
-            <Input
-              id="score"
-              type="number"
-              value={score}
-              onChange={(e) => setScore(e.target.value)}
-              placeholder="Enter rating (e.g., 1-10)"
-            />
+            <Select value={score} onValueChange={setScore}>
+              <SelectTrigger id="score">
+                <SelectValue placeholder="Select a rating" />
+              </SelectTrigger>
+              <SelectContent>
+                {Array.from({ length: 21 }, (_, i) => i - 10).map((value) => (
+                  <SelectItem key={value} value={value.toString()}>
+                    {value > 0 ? `+${value}` : value}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div>
             <Label htmlFor="description">Description *</Label>
