@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Upload, X } from "lucide-react";
+import { Upload, X, Move } from "lucide-react";
 import { uploadImage, createMediaAsset, getImageDimensions } from "@/lib/storage";
 import { useToast } from "@/hooks/use-toast";
 import { Progress } from "@/components/ui/progress";
+import { ImagePositionPicker } from "@/components/ImagePositionPicker";
 
 interface MediaUploadDialogProps {
   open: boolean;
@@ -14,6 +15,8 @@ interface MediaUploadDialogProps {
 
 export function MediaUploadDialog({ open, onOpenChange, onUploadComplete }: MediaUploadDialogProps) {
   const [files, setFiles] = useState<File[]>([]);
+  const [filePositions, setFilePositions] = useState<Record<number, { x: number; y: number }>>({});
+  const [positioningIndex, setPositioningIndex] = useState<number | null>(null);
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
   const { toast } = useToast();
@@ -29,6 +32,10 @@ export function MediaUploadDialog({ open, onOpenChange, onUploadComplete }: Medi
 
   const removeFile = (index: number) => {
     setFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handlePositionChange = (index: number, position: { x: number; y: number }) => {
+    setFilePositions(prev => ({ ...prev, [index]: position }));
   };
 
   const handleUpload = async () => {
@@ -48,8 +55,11 @@ export function MediaUploadDialog({ open, onOpenChange, onUploadComplete }: Medi
         // Get dimensions
         const dimensions = await getImageDimensions(file);
         
-        // Create media asset record
-        await createMediaAsset(file, url, dimensions);
+        // Get position for this file (default to center if not set)
+        const position = filePositions[i] || { x: 50, y: 50 };
+        
+        // Create media asset record with position
+        await createMediaAsset(file, url, dimensions, position);
         
         setProgress(Math.round(((i + 1) / total) * 100));
       }
@@ -60,6 +70,7 @@ export function MediaUploadDialog({ open, onOpenChange, onUploadComplete }: Medi
       });
 
       setFiles([]);
+      setFilePositions({});
       onUploadComplete();
       onOpenChange(false);
     } catch (error) {
@@ -117,6 +128,15 @@ export function MediaUploadDialog({ open, onOpenChange, onUploadComplete }: Medi
                     <Button
                       variant="ghost"
                       size="icon"
+                      onClick={() => setPositioningIndex(index)}
+                      disabled={uploading}
+                      title="Position image"
+                    >
+                      <Move className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
                       onClick={() => removeFile(index)}
                       disabled={uploading}
                     >
@@ -147,6 +167,16 @@ export function MediaUploadDialog({ open, onOpenChange, onUploadComplete }: Medi
           </div>
         </div>
       </DialogContent>
+
+      {positioningIndex !== null && (
+        <ImagePositionPicker
+          imageUrl={URL.createObjectURL(files[positioningIndex])}
+          initialPosition={filePositions[positioningIndex] || { x: 50, y: 50 }}
+          onPositionChange={(position) => handlePositionChange(positioningIndex, position)}
+          open={positioningIndex !== null}
+          onOpenChange={(open) => !open && setPositioningIndex(null)}
+        />
+      )}
     </Dialog>
   );
 }

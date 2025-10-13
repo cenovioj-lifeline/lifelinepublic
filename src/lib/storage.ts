@@ -28,7 +28,8 @@ export const uploadImage = async (
 export const createMediaAsset = async (
   file: File,
   url: string,
-  dimensions?: { width: number; height: number }
+  dimensions?: { width: number; height: number },
+  position?: { x: number; y: number }
 ) => {
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -41,6 +42,8 @@ export const createMediaAsset = async (
       alt_text: file.name.split(".")[0].replace(/-/g, " "),
       width: dimensions?.width || null,
       height: dimensions?.height || null,
+      position_x: position?.x || 50,
+      position_y: position?.y || 50,
       created_by: user?.id,
     })
     .select()

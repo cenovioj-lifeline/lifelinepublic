@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -25,14 +26,16 @@ export function MediaPickerModal({
   const [open, setOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [positionPickerOpen, setPositionPickerOpen] = useState(false);
-  const [selectedImageForPosition, setSelectedImageForPosition] = useState<string | null>(null);
+  const [selectedImageForPosition, setSelectedImageForPosition] = useState<any | null>(null);
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   const { data: mediaAssets } = useQuery({
     queryKey: ["media-assets-picker"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("media_assets")
-        .select("id, filename, url, type, alt_text")
+        .select("id, filename, url, type, alt_text, position_x, position_y")
         .eq("type", "image")
         .order("created_at", { ascending: false });
       if (error) throw error;
@@ -52,9 +55,40 @@ export function MediaPickerModal({
     setOpen(false);
   };
 
-  const handlePositionImage = (mediaUrl: string) => {
-    setSelectedImageForPosition(mediaUrl);
+  const handlePositionImage = (media: any) => {
+    setSelectedImageForPosition(media);
     setPositionPickerOpen(true);
+  };
+
+  const handlePositionSave = async (position: { x: number; y: number }) => {
+    if (!selectedImageForPosition) return;
+    
+    try {
+      const { error } = await supabase
+        .from('media_assets')
+        .update({
+          position_x: position.x,
+          position_y: position.y,
+        })
+        .eq('id', selectedImageForPosition.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Position saved",
+        description: "Image position updated successfully",
+      });
+
+      // Refetch to show updated position
+      queryClient.invalidateQueries({ queryKey: ['media-assets-picker'] });
+    } catch (error) {
+      console.error("Error saving position:", error);
+      toast({
+        title: "Error",
+        description: "Failed to save image position",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleClear = () => {
@@ -134,6 +168,9 @@ export function MediaPickerModal({
                       src={media.url}
                       alt={media.alt_text || media.filename}
                       className="absolute inset-0 w-full h-full object-cover"
+                      style={{
+                        objectPosition: `${media.position_x || 50}% ${media.position_y || 50}%`
+                      }}
                     />
                     <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-2">
                       <p className="text-xs text-white truncate">{media.filename}</p>
@@ -147,10 +184,10 @@ export function MediaPickerModal({
                   <Button
                     size="sm"
                     variant="secondary"
-                    className="absolute top-2 left-2 h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="absolute top-2 left-2 h-8 w-8 p-0"
                     onClick={(e) => {
                       e.stopPropagation();
-                      handlePositionImage(media.url);
+                      handlePositionImage(media);
                     }}
                   >
                     <Move className="h-4 w-4" />
@@ -172,13 +209,14 @@ export function MediaPickerModal({
 
       {selectedImageForPosition && (
         <ImagePositionPicker
-          imageUrl={selectedImageForPosition}
+          imageUrl={selectedImageForPosition.url}
           open={positionPickerOpen}
           onOpenChange={setPositionPickerOpen}
-          onPositionChange={(position) => {
-            console.log("Image position:", position);
-            // Position can be saved to media_assets table if needed
+          initialPosition={{
+            x: selectedImageForPosition.position_x || 50,
+            y: selectedImageForPosition.position_y || 50
           }}
+          onPositionChange={handlePositionSave}
         />
       )}
     </Dialog>

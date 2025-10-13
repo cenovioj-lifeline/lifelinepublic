@@ -695,6 +695,8 @@ export type Database = {
           filename: string
           height: number | null
           id: string
+          position_x: number | null
+          position_y: number | null
           source_url: string | null
           type: string
           updated_at: string
@@ -710,6 +712,8 @@ export type Database = {
           filename: string
           height?: number | null
           id?: string
+          position_x?: number | null
+          position_y?: number | null
           source_url?: string | null
           type: string
           updated_at?: string
@@ -725,6 +729,8 @@ export type Database = {
           filename?: string
           height?: number | null
           id?: string
+          position_x?: number | null
+          position_y?: number | null
           source_url?: string | null
           type?: string
           updated_at?: string
