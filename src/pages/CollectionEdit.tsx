@@ -39,6 +39,14 @@ type CollectionForm = {
   menu_text_color: string;
   menu_hover_color: string;
   menu_active_color: string;
+  collection_bg_color: string;
+  collection_text_color: string;
+  collection_heading_color: string;
+  collection_accent_color: string;
+  collection_card_bg: string;
+  collection_border_color: string;
+  collection_muted_text: string;
+  collection_badge_color: string;
   status: "draft" | "published";
   is_featured: boolean;
   hero_image_id: string;
@@ -64,6 +72,14 @@ export default function CollectionEdit() {
       menu_text_color: "",
       menu_hover_color: "",
       menu_active_color: "",
+      collection_bg_color: "",
+      collection_text_color: "",
+      collection_heading_color: "",
+      collection_accent_color: "",
+      collection_card_bg: "",
+      collection_border_color: "",
+      collection_muted_text: "",
+      collection_badge_color: "",
       status: "draft",
       is_featured: false,
       hero_image_id: "",
@@ -99,6 +115,14 @@ export default function CollectionEdit() {
         menu_text_color: collection.menu_text_color || "",
         menu_hover_color: collection.menu_hover_color || "",
         menu_active_color: collection.menu_active_color || "",
+        collection_bg_color: collection.collection_bg_color || "",
+        collection_text_color: collection.collection_text_color || "",
+        collection_heading_color: collection.collection_heading_color || "",
+        collection_accent_color: collection.collection_accent_color || "",
+        collection_card_bg: collection.collection_card_bg || "",
+        collection_border_color: collection.collection_border_color || "",
+        collection_muted_text: collection.collection_muted_text || "",
+        collection_badge_color: collection.collection_badge_color || "",
         status: collection.status,
         is_featured: collection.is_featured || false,
         hero_image_id: collection.hero_image_id || "",
@@ -119,6 +143,14 @@ export default function CollectionEdit() {
         menu_text_color: data.menu_text_color || null,
         menu_hover_color: data.menu_hover_color || null,
         menu_active_color: data.menu_active_color || null,
+        collection_bg_color: data.collection_bg_color || null,
+        collection_text_color: data.collection_text_color || null,
+        collection_heading_color: data.collection_heading_color || null,
+        collection_accent_color: data.collection_accent_color || null,
+        collection_card_bg: data.collection_card_bg || null,
+        collection_border_color: data.collection_border_color || null,
+        collection_muted_text: data.collection_muted_text || null,
+        collection_badge_color: data.collection_badge_color || null,
       };
       
       if (isNew) {
@@ -447,6 +479,239 @@ export default function CollectionEdit() {
                     <Input 
                       type="color" 
                       value={field.value || "#ffffff"}
+                      onChange={(e) => field.onChange(e.target.value)}
+                      className="w-16 h-10 cursor-pointer"
+                    />
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <h3 className="text-lg font-semibold">Collection Page Colors (Optional)</h3>
+            <p className="text-sm text-muted-foreground">
+              Customize the colors for all pages within this collection. If not set, global colors will be used.
+            </p>
+          </div>
+
+          <div className="grid gap-6 md:grid-cols-2">
+            <FormField
+              control={form.control}
+              name="collection_bg_color"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Background Color</FormLabel>
+                  <div className="flex gap-2">
+                    <FormControl>
+                      <Input 
+                        {...field} 
+                        type="text"
+                        placeholder="#ffffff"
+                        pattern="^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"
+                        className="flex-1"
+                      />
+                    </FormControl>
+                    <Input 
+                      type="color" 
+                      value={field.value || "#ffffff"}
+                      onChange={(e) => field.onChange(e.target.value)}
+                      className="w-16 h-10 cursor-pointer"
+                    />
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="collection_text_color"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Primary Text Color</FormLabel>
+                  <div className="flex gap-2">
+                    <FormControl>
+                      <Input 
+                        {...field} 
+                        type="text"
+                        placeholder="#000000"
+                        pattern="^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"
+                        className="flex-1"
+                      />
+                    </FormControl>
+                    <Input 
+                      type="color" 
+                      value={field.value || "#000000"}
+                      onChange={(e) => field.onChange(e.target.value)}
+                      className="w-16 h-10 cursor-pointer"
+                    />
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="collection_heading_color"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Heading Color</FormLabel>
+                  <div className="flex gap-2">
+                    <FormControl>
+                      <Input 
+                        {...field} 
+                        type="text"
+                        placeholder="#000000"
+                        pattern="^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"
+                        className="flex-1"
+                      />
+                    </FormControl>
+                    <Input 
+                      type="color" 
+                      value={field.value || "#000000"}
+                      onChange={(e) => field.onChange(e.target.value)}
+                      className="w-16 h-10 cursor-pointer"
+                    />
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="collection_accent_color"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Accent Color (Buttons)</FormLabel>
+                  <div className="flex gap-2">
+                    <FormControl>
+                      <Input 
+                        {...field} 
+                        type="text"
+                        placeholder="#16a34a"
+                        pattern="^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"
+                        className="flex-1"
+                      />
+                    </FormControl>
+                    <Input 
+                      type="color" 
+                      value={field.value || "#16a34a"}
+                      onChange={(e) => field.onChange(e.target.value)}
+                      className="w-16 h-10 cursor-pointer"
+                    />
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="collection_card_bg"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Card Background</FormLabel>
+                  <div className="flex gap-2">
+                    <FormControl>
+                      <Input 
+                        {...field} 
+                        type="text"
+                        placeholder="#f9fafb"
+                        pattern="^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"
+                        className="flex-1"
+                      />
+                    </FormControl>
+                    <Input 
+                      type="color" 
+                      value={field.value || "#f9fafb"}
+                      onChange={(e) => field.onChange(e.target.value)}
+                      className="w-16 h-10 cursor-pointer"
+                    />
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="collection_border_color"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Border Color</FormLabel>
+                  <div className="flex gap-2">
+                    <FormControl>
+                      <Input 
+                        {...field} 
+                        type="text"
+                        placeholder="#e5e7eb"
+                        pattern="^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"
+                        className="flex-1"
+                      />
+                    </FormControl>
+                    <Input 
+                      type="color" 
+                      value={field.value || "#e5e7eb"}
+                      onChange={(e) => field.onChange(e.target.value)}
+                      className="w-16 h-10 cursor-pointer"
+                    />
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="collection_muted_text"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Muted Text Color</FormLabel>
+                  <div className="flex gap-2">
+                    <FormControl>
+                      <Input 
+                        {...field} 
+                        type="text"
+                        placeholder="#6b7280"
+                        pattern="^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"
+                        className="flex-1"
+                      />
+                    </FormControl>
+                    <Input 
+                      type="color" 
+                      value={field.value || "#6b7280"}
+                      onChange={(e) => field.onChange(e.target.value)}
+                      className="w-16 h-10 cursor-pointer"
+                    />
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="collection_badge_color"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Badge Color</FormLabel>
+                  <div className="flex gap-2">
+                    <FormControl>
+                      <Input 
+                        {...field} 
+                        type="text"
+                        placeholder="#f3f4f6"
+                        pattern="^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"
+                        className="flex-1"
+                      />
+                    </FormControl>
+                    <Input 
+                      type="color" 
+                      value={field.value || "#f3f4f6"}
                       onChange={(e) => field.onChange(e.target.value)}
                       className="w-16 h-10 cursor-pointer"
                     />

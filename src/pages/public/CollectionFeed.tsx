@@ -41,6 +41,14 @@ export default function CollectionFeed() {
       menuTextColor={collection.menu_text_color}
       menuHoverColor={collection.menu_hover_color}
       menuActiveColor={collection.menu_active_color}
+      collectionBgColor={collection.collection_bg_color}
+      collectionTextColor={collection.collection_text_color}
+      collectionHeadingColor={collection.collection_heading_color}
+      collectionAccentColor={collection.collection_accent_color}
+      collectionCardBg={collection.collection_card_bg}
+      collectionBorderColor={collection.collection_border_color}
+      collectionMutedText={collection.collection_muted_text}
+      collectionBadgeColor={collection.collection_badge_color}
     >
       <div className="space-y-6">
         <div>

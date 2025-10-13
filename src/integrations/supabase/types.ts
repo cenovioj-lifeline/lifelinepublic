@@ -185,6 +185,14 @@ export type Database = {
       collections: {
         Row: {
           category: string | null
+          collection_accent_color: string | null
+          collection_badge_color: string | null
+          collection_bg_color: string | null
+          collection_border_color: string | null
+          collection_card_bg: string | null
+          collection_heading_color: string | null
+          collection_muted_text: string | null
+          collection_text_color: string | null
           created_at: string
           created_by: string | null
           description: string | null
@@ -208,6 +216,14 @@ export type Database = {
         }
         Insert: {
           category?: string | null
+          collection_accent_color?: string | null
+          collection_badge_color?: string | null
+          collection_bg_color?: string | null
+          collection_border_color?: string | null
+          collection_card_bg?: string | null
+          collection_heading_color?: string | null
+          collection_muted_text?: string | null
+          collection_text_color?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
@@ -231,6 +247,14 @@ export type Database = {
         }
         Update: {
           category?: string | null
+          collection_accent_color?: string | null
+          collection_badge_color?: string | null
+          collection_bg_color?: string | null
+          collection_border_color?: string | null
+          collection_card_bg?: string | null
+          collection_heading_color?: string | null
+          collection_muted_text?: string | null
+          collection_text_color?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null

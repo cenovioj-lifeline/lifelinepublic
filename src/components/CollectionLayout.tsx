@@ -23,6 +23,14 @@ interface CollectionLayoutProps {
   menuTextColor?: string | null;
   menuHoverColor?: string | null;
   menuActiveColor?: string | null;
+  collectionBgColor?: string | null;
+  collectionTextColor?: string | null;
+  collectionHeadingColor?: string | null;
+  collectionAccentColor?: string | null;
+  collectionCardBg?: string | null;
+  collectionBorderColor?: string | null;
+  collectionMutedText?: string | null;
+  collectionBadgeColor?: string | null;
 }
 
 export function CollectionLayout({
@@ -36,6 +44,14 @@ export function CollectionLayout({
   menuTextColor,
   menuHoverColor,
   menuActiveColor,
+  collectionBgColor,
+  collectionTextColor,
+  collectionHeadingColor,
+  collectionAccentColor,
+  collectionCardBg,
+  collectionBorderColor,
+  collectionMutedText,
+  collectionBadgeColor,
 }: CollectionLayoutProps) {
   const navigate = useNavigate();
   const location = useLocation();
@@ -100,8 +116,8 @@ export function CollectionLayout({
   useEffect(() => {
     const root = document.documentElement;
     
+    // Lifeline timeline colors
     if (primaryColor) {
-      // Convert hex to HSL for CSS variables
       const hsl = hexToHSL(primaryColor);
       root.style.setProperty('--collection-primary', hsl);
     }
@@ -111,12 +127,61 @@ export function CollectionLayout({
       root.style.setProperty('--collection-secondary', hsl);
     }
 
+    // Page-wide collection colors
+    if (collectionBgColor) {
+      const hsl = hexToHSL(collectionBgColor);
+      root.style.setProperty('--background', hsl);
+    }
+
+    if (collectionTextColor) {
+      const hsl = hexToHSL(collectionTextColor);
+      root.style.setProperty('--foreground', hsl);
+    }
+
+    if (collectionHeadingColor) {
+      const hsl = hexToHSL(collectionHeadingColor);
+      root.style.setProperty('--primary', hsl);
+    }
+
+    if (collectionAccentColor) {
+      const hsl = hexToHSL(collectionAccentColor);
+      root.style.setProperty('--accent', hsl);
+    }
+
+    if (collectionCardBg) {
+      const hsl = hexToHSL(collectionCardBg);
+      root.style.setProperty('--card', hsl);
+    }
+
+    if (collectionBorderColor) {
+      const hsl = hexToHSL(collectionBorderColor);
+      root.style.setProperty('--border', hsl);
+    }
+
+    if (collectionMutedText) {
+      const hsl = hexToHSL(collectionMutedText);
+      root.style.setProperty('--muted-foreground', hsl);
+    }
+
+    if (collectionBadgeColor) {
+      const hsl = hexToHSL(collectionBadgeColor);
+      root.style.setProperty('--secondary', hsl);
+    }
+
     // Cleanup on unmount
     return () => {
       root.style.removeProperty('--collection-primary');
       root.style.removeProperty('--collection-secondary');
+      root.style.removeProperty('--background');
+      root.style.removeProperty('--foreground');
+      root.style.removeProperty('--primary');
+      root.style.removeProperty('--accent');
+      root.style.removeProperty('--card');
+      root.style.removeProperty('--border');
+      root.style.removeProperty('--muted-foreground');
+      root.style.removeProperty('--secondary');
     };
-  }, [primaryColor, secondaryColor]);
+  }, [primaryColor, secondaryColor, collectionBgColor, collectionTextColor, collectionHeadingColor, collectionAccentColor, collectionCardBg, collectionBorderColor, collectionMutedText, collectionBadgeColor]);
 
   const handleExit = () => {
     navigate("/public/collections");
