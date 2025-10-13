@@ -187,12 +187,44 @@ export function CollectionLayout({
     navigate("/public/collections");
   };
 
+  // Fetch the first election for direct navigation
+  const { data: firstElection } = useQuery({
+    queryKey: ["collection-first-election", collectionSlug],
+    queryFn: async () => {
+      const { data: collectionData } = await supabase
+        .from("collections")
+        .select("id")
+        .eq("slug", collectionSlug)
+        .single();
+
+      if (!collectionData?.id) return null;
+
+      const { data, error } = await supabase
+        .from("mock_elections")
+        .select("slug")
+        .eq("collection_id", collectionData.id)
+        .eq("status", "published")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .single();
+
+      if (error) return null;
+      return data;
+    },
+  });
+
   const navItems = [
     { label: "Home", icon: Home, to: `/public/collections/${collectionSlug}` },
     { label: "Feed", icon: Rss, to: `/public/collections/${collectionSlug}/feed` },
     { label: "Lifelines", icon: Users, to: `/public/collections/${collectionSlug}/lifelines` },
     { label: "Profiles", icon: Users, to: `/public/collections/${collectionSlug}/profiles` },
-    { label: "MER", icon: Vote, to: `/public/collections/${collectionSlug}/elections` },
+    { 
+      label: "Mock", 
+      icon: Vote, 
+      to: firstElection 
+        ? `/public/collections/${collectionSlug}/elections/${firstElection.slug}`
+        : `/public/collections/${collectionSlug}/elections`
+    },
   ];
 
   const actionItems: Array<{ label: string; icon: any; action?: () => void; to?: string }> = [

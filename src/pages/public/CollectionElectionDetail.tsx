@@ -358,9 +358,9 @@ export default function CollectionElectionDetail() {
                         {categoryResults.map((result: any) => (
                           <Card 
                             key={result.id} 
-                            className="overflow-hidden hover:shadow-md transition-all animate-fade-in"
+                            className="overflow-hidden hover:shadow-md transition-all animate-fade-in bg-white rounded-lg"
                           >
-                            <CardContent className="p-4">
+                            <CardContent className="p-4 bg-white rounded-lg">
                               <div className="flex items-start gap-3">
                                 {result.profiles && result.profiles.length > 0 && result.profiles[0]?.avatar?.url ? (
                                   <Avatar 
