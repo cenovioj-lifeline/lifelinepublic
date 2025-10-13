@@ -12,6 +12,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import {
   Table,
   TableBody,
@@ -25,6 +27,8 @@ export default function Lifelines() {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [collectionFilter, setCollectionFilter] = useState<string>("all");
+  const [needsPic, setNeedsPic] = useState(false);
+  const [lifelineTypeFilter, setLifelineTypeFilter] = useState<string>("all");
 
   const { data: collections } = useQuery({
     queryKey: ["collections-filter"],
@@ -39,7 +43,7 @@ export default function Lifelines() {
   });
 
   const { data: lifelines, isLoading } = useQuery({
-    queryKey: ["lifelines", searchTerm, collectionFilter],
+    queryKey: ["lifelines", searchTerm, collectionFilter, needsPic, lifelineTypeFilter],
     queryFn: async () => {
       let query = supabase
         .from("lifelines")
@@ -52,6 +56,14 @@ export default function Lifelines() {
 
       if (collectionFilter && collectionFilter !== "all") {
         query = query.eq("collection_id", collectionFilter);
+      }
+
+      if (needsPic) {
+        query = query.is("cover_image_id", null);
+      }
+
+      if (lifelineTypeFilter && lifelineTypeFilter !== "all") {
+        query = query.eq("lifeline_type", lifelineTypeFilter as "person" | "list" | "voting");
       }
 
       const { data, error } = await query;
@@ -75,7 +87,7 @@ export default function Lifelines() {
         </Button>
       </div>
 
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-4 flex-wrap">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -98,6 +110,27 @@ export default function Lifelines() {
             ))}
           </SelectContent>
         </Select>
+        <Select value={lifelineTypeFilter} onValueChange={setLifelineTypeFilter}>
+          <SelectTrigger className="w-[200px]">
+            <SelectValue placeholder="All Types" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Types</SelectItem>
+            <SelectItem value="person">Person</SelectItem>
+            <SelectItem value="list">List</SelectItem>
+            <SelectItem value="voting">Voting</SelectItem>
+          </SelectContent>
+        </Select>
+        <div className="flex items-center gap-2">
+          <Checkbox 
+            id="needs-pic" 
+            checked={needsPic}
+            onCheckedChange={(checked) => setNeedsPic(checked === true)}
+          />
+          <Label htmlFor="needs-pic" className="cursor-pointer">
+            Needs Pic
+          </Label>
+        </div>
       </div>
 
       <div className="rounded-md border">
