@@ -688,6 +688,7 @@ export type Database = {
       media_assets: {
         Row: {
           alt_text: string | null
+          collection_tags: string[] | null
           created_at: string
           created_by: string | null
           credit: string | null
@@ -702,6 +703,7 @@ export type Database = {
         }
         Insert: {
           alt_text?: string | null
+          collection_tags?: string[] | null
           created_at?: string
           created_by?: string | null
           credit?: string | null
@@ -716,6 +718,7 @@ export type Database = {
         }
         Update: {
           alt_text?: string | null
+          collection_tags?: string[] | null
           created_at?: string
           created_by?: string | null
           credit?: string | null

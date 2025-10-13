@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Upload, Search } from "lucide-react";
+import { Upload, Search, X } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -13,11 +13,24 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { MediaUploadDialog } from "@/components/MediaUploadDialog";
+import { MediaCollectionTagger } from "@/components/MediaCollectionTagger";
 
 export default function Media() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [collectionFilter, setCollectionFilter] = useState<string>("");
+  const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
 
-  const { data: media, isLoading } = useQuery({
+  const { data: media, isLoading, refetch } = useQuery({
     queryKey: ["media", searchTerm],
     queryFn: async () => {
       let query = supabase
@@ -35,6 +48,46 @@ export default function Media() {
     },
   });
 
+  // Get unique collection tags from all media
+  const allCollectionTags = Array.from(
+    new Set(media?.flatMap(m => m.collection_tags || []) || [])
+  ).sort();
+
+  // Filter media by collection
+  const filteredMedia = collectionFilter
+    ? media?.filter(m => m.collection_tags?.includes(collectionFilter))
+    : media;
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedIds(filteredMedia?.map(m => m.id) || []);
+    } else {
+      setSelectedIds([]);
+    }
+  };
+
+  const handleSelectOne = (id: string, checked: boolean) => {
+    if (checked) {
+      setSelectedIds(prev => [...prev, id]);
+    } else {
+      setSelectedIds(prev => prev.filter(selectedId => selectedId !== id));
+    }
+  };
+
+  const handleRemoveTag = async (mediaId: string, tagToRemove: string) => {
+    const mediaItem = media?.find(m => m.id === mediaId);
+    if (!mediaItem) return;
+
+    const updatedTags = (mediaItem.collection_tags || []).filter(tag => tag !== tagToRemove);
+    
+    await supabase
+      .from("media_assets")
+      .update({ collection_tags: updatedTags })
+      .eq("id", mediaId);
+    
+    refetch();
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -44,7 +97,7 @@ export default function Media() {
             Manage images, videos, and other media assets
           </p>
         </div>
-        <Button>
+        <Button onClick={() => setUploadDialogOpen(true)}>
           <Upload className="mr-2 h-4 w-4" />
           Upload Media
         </Button>
@@ -60,36 +113,82 @@ export default function Media() {
             className="pl-9"
           />
         </div>
+        
+        {allCollectionTags.length > 0 && (
+          <Select value={collectionFilter} onValueChange={setCollectionFilter}>
+            <SelectTrigger className="w-[200px]">
+              <SelectValue placeholder="Filter by collection" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">All collections</SelectItem>
+              {allCollectionTags.map(tag => (
+                <SelectItem key={tag} value={tag}>{tag}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+
+        {selectedIds.length > 0 && (
+          <div className="flex items-center gap-2">
+            <Badge variant="secondary">{selectedIds.length} selected</Badge>
+            <MediaCollectionTagger 
+              selectedIds={selectedIds} 
+              onComplete={() => {
+                setSelectedIds([]);
+                refetch();
+              }}
+            />
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setSelectedIds([])}
+            >
+              Clear
+            </Button>
+          </div>
+        )}
       </div>
 
       <div className="rounded-md border">
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-[50px]">
+                <Checkbox
+                  checked={selectedIds.length > 0 && selectedIds.length === filteredMedia?.length}
+                  onCheckedChange={handleSelectAll}
+                />
+              </TableHead>
               <TableHead>Preview</TableHead>
               <TableHead>Filename</TableHead>
               <TableHead>Type</TableHead>
               <TableHead>Dimensions</TableHead>
-              <TableHead>Alt Text</TableHead>
+              <TableHead>Collections</TableHead>
               <TableHead>Uploaded</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center">
+                <TableCell colSpan={7} className="text-center">
                   Loading...
                 </TableCell>
               </TableRow>
-            ) : media?.length === 0 ? (
+            ) : filteredMedia?.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center">
+                <TableCell colSpan={7} className="text-center">
                   No media found
                 </TableCell>
               </TableRow>
             ) : (
-              media?.map((item) => (
+              filteredMedia?.map((item) => (
                 <TableRow key={item.id}>
+                  <TableCell>
+                    <Checkbox
+                      checked={selectedIds.includes(item.id)}
+                      onCheckedChange={(checked) => handleSelectOne(item.id, checked as boolean)}
+                    />
+                  </TableCell>
                   <TableCell>
                     {item.type.startsWith("image") ? (
                       <img
@@ -110,8 +209,24 @@ export default function Media() {
                   <TableCell className="text-muted-foreground">
                     {item.width && item.height ? `${item.width} × ${item.height}` : "—"}
                   </TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {item.alt_text || "—"}
+                  <TableCell>
+                    <div className="flex flex-wrap gap-1">
+                      {item.collection_tags && item.collection_tags.length > 0 ? (
+                        item.collection_tags.map((tag) => (
+                          <Badge key={tag} variant="secondary" className="gap-1">
+                            {tag}
+                            <button
+                              onClick={() => handleRemoveTag(item.id, tag)}
+                              className="ml-1 hover:text-destructive"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </Badge>
+                        ))
+                      ) : (
+                        <span className="text-muted-foreground">—</span>
+                      )}
+                    </div>
                   </TableCell>
                   <TableCell className="text-muted-foreground">
                     {new Date(item.created_at).toLocaleDateString()}
@@ -122,6 +237,12 @@ export default function Media() {
           </TableBody>
         </Table>
       </div>
+
+      <MediaUploadDialog
+        open={uploadDialogOpen}
+        onOpenChange={setUploadDialogOpen}
+        onUploadComplete={() => refetch()}
+      />
     </div>
   );
 }
