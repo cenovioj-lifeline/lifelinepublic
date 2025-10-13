@@ -42,7 +42,7 @@ export function CollectionQuotePopup({ quote, author, context, onDismiss }: Coll
           </Button>
           
           <div className="pr-6">
-            <p className="text-sm italic mb-2">"{quote}"</p>
+            <p className="text-sm italic mb-2 text-foreground">"{quote}"</p>
             {author && (
               <p className="text-xs text-muted-foreground font-semibold">
                 — {author}

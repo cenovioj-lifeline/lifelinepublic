@@ -121,7 +121,7 @@ export default function CollectionProfiles() {
                         </AvatarFallback>
                       </Avatar>
                       <div>
-                        <CardTitle className="text-lg group-hover:text-primary transition-colors">
+                        <CardTitle className="text-lg text-foreground transition-colors">
                           {profile.display_name}
                         </CardTitle>
                         {profile.occupation && (
