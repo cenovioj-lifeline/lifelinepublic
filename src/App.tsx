@@ -43,6 +43,7 @@ import PublicElectionDetail from "./pages/public/PublicElectionDetail";
 import CollectionLifelineDetail from "./pages/public/CollectionLifelineDetail";
 import CollectionProfileDetail from "./pages/public/CollectionProfileDetail";
 import CollectionElectionDetail from "./pages/public/CollectionElectionDetail";
+import FanContributions from "./pages/FanContributions";
 
 const queryClient = new QueryClient();
 
