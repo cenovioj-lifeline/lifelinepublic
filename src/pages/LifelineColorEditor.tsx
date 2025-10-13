@@ -14,8 +14,9 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Check } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState, useEffect } from "react";
 
 type ColorSettings = {
   lifeline_bg_color: string;
@@ -30,15 +31,15 @@ type ColorSettings = {
 };
 
 const colorFields = [
-  { key: "lifeline_bg_color", label: "Background Color", description: "Background color for lifeline pages" },
-  { key: "lifeline_text_color", label: "Text Color", description: "Primary text color" },
-  { key: "lifeline_heading_color", label: "Heading Color", description: "Color for headings" },
-  { key: "lifeline_accent_color", label: "Accent Color", description: "Used for links and highlights" },
-  { key: "lifeline_card_bg", label: "Card Background", description: "Background color for cards" },
-  { key: "lifeline_border_color", label: "Border Color", description: "Color for borders and dividers" },
-  { key: "lifeline_timeline_positive", label: "Positive Event Color", description: "Color for positive timeline events" },
-  { key: "lifeline_timeline_negative", label: "Negative Event Color", description: "Color for negative timeline events" },
-  { key: "lifeline_timeline_neutral", label: "Neutral Event Color", description: "Color for neutral timeline events" },
+  { key: "lifeline_bg_color", label: "Background Color", description: "Main page background color" },
+  { key: "lifeline_text_color", label: "Text Color", description: "Primary text color throughout site" },
+  { key: "lifeline_heading_color", label: "Heading Color", description: "Color for headings and titles" },
+  { key: "lifeline_accent_color", label: "Primary/Button Color", description: "Primary buttons (Collections, Profiles, Elections), links, and accent elements" },
+  { key: "lifeline_card_bg", label: "Card Background", description: "Background color for cards and content boxes" },
+  { key: "lifeline_border_color", label: "Border Color", description: "Borders, dividers, and input outlines" },
+  { key: "lifeline_timeline_positive", label: "Secondary/Badge Color", description: "Secondary buttons, badges (Real Person, Fictional), positive events" },
+  { key: "lifeline_timeline_negative", label: "Negative/Destructive Color", description: "Error states, delete buttons, negative events" },
+  { key: "lifeline_timeline_neutral", label: "Neutral/Muted Color", description: "Neutral events, muted text, disabled states" },
 ];
 
 export default function LifelineColorEditor() {
@@ -77,39 +78,38 @@ export default function LifelineColorEditor() {
     },
   });
 
+  const [savingField, setSavingField] = useState<string | null>(null);
+
   // Update form when settings load
-  if (settings && !isLoading) {
-    Object.keys(settings).forEach((key) => {
-      if (settings[key]) {
-        form.setValue(key as keyof ColorSettings, settings[key], { shouldDirty: false });
-      }
-    });
-  }
+  useEffect(() => {
+    if (settings && !isLoading) {
+      Object.keys(settings).forEach((key) => {
+        if (settings[key]) {
+          form.setValue(key as keyof ColorSettings, settings[key], { shouldDirty: false });
+        }
+      });
+    }
+  }, [settings, isLoading, form]);
 
-  const saveMutation = useMutation({
-    mutationFn: async (data: ColorSettings) => {
-      const updates = Object.entries(data).map(([key, value]) => ({
-        setting_key: key,
-        setting_value: value,
-      }));
-
-      for (const update of updates) {
-        const { error } = await supabase
-          .from("lifeline_settings")
-          .update({ setting_value: update.setting_value })
-          .eq("setting_key", update.setting_key);
-        if (error) throw error;
-      }
+  const saveFieldMutation = useMutation({
+    mutationFn: async ({ key, value }: { key: string; value: string }) => {
+      const { error } = await supabase
+        .from("lifeline_settings")
+        .update({ setting_value: value })
+        .eq("setting_key", key);
+      if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["lifeline-settings"] });
       queryClient.invalidateQueries({ queryKey: ["global-color-settings"] });
+      setSavingField(null);
       toast({
         title: "Success",
-        description: "Color settings updated successfully. Refresh the page to see changes.",
+        description: `${colorFields.find(f => f.key === variables.key)?.label} updated. Refresh to see changes.`,
       });
     },
     onError: (error: Error) => {
+      setSavingField(null);
       toast({
         title: "Error",
         description: error.message,
@@ -118,8 +118,9 @@ export default function LifelineColorEditor() {
     },
   });
 
-  const onSubmit = (data: ColorSettings) => {
-    saveMutation.mutate(data);
+  const handleSaveField = (key: string, value: string) => {
+    setSavingField(key);
+    saveFieldMutation.mutate({ key, value });
   };
 
   if (isLoading) {
@@ -141,7 +142,7 @@ export default function LifelineColorEditor() {
       </div>
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <form className="space-y-6">
           <Card>
             <CardHeader>
               <CardTitle>Color Settings</CardTitle>
@@ -171,6 +172,14 @@ export default function LifelineColorEditor() {
                           onChange={(e) => formField.onChange(e.target.value)}
                           className="w-16 h-10 cursor-pointer"
                         />
+                        <Button
+                          type="button"
+                          size="icon"
+                          onClick={() => handleSaveField(field.key, formField.value)}
+                          disabled={savingField === field.key}
+                        >
+                          {savingField === field.key ? "..." : <Check className="h-4 w-4" />}
+                        </Button>
                       </div>
                       <FormDescription>{field.description}</FormDescription>
                       <FormMessage />
@@ -182,11 +191,8 @@ export default function LifelineColorEditor() {
           </Card>
 
           <div className="flex gap-4">
-            <Button type="submit" disabled={saveMutation.isPending}>
-              {saveMutation.isPending ? "Saving..." : "Save Changes"}
-            </Button>
             <Button type="button" variant="outline" onClick={() => navigate("/settings")}>
-              Cancel
+              Back to Settings
             </Button>
           </div>
         </form>
