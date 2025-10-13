@@ -4,9 +4,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { ImageIcon, Search, Check } from "lucide-react";
+import { ImageIcon, Search, Check, Move } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
+import { ImagePositionPicker } from "./ImagePositionPicker";
 
 interface MediaPickerModalProps {
   value: string;
@@ -23,6 +24,8 @@ export function MediaPickerModal({
 }: MediaPickerModalProps) {
   const [open, setOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [positionPickerOpen, setPositionPickerOpen] = useState(false);
+  const [selectedImageForPosition, setSelectedImageForPosition] = useState<string | null>(null);
 
   const { data: mediaAssets } = useQuery({
     queryKey: ["media-assets-picker"],
@@ -47,6 +50,11 @@ export function MediaPickerModal({
   const handleSelect = (mediaId: string) => {
     onValueChange(mediaId);
     setOpen(false);
+  };
+
+  const handlePositionImage = (mediaUrl: string) => {
+    setSelectedImageForPosition(mediaUrl);
+    setPositionPickerOpen(true);
   };
 
   const handleClear = () => {
@@ -114,28 +122,40 @@ export function MediaPickerModal({
               )}
               
               {filteredMedia?.map((media) => (
-                <button
-                  key={media.id}
-                  onClick={() => handleSelect(media.id)}
-                  className={cn(
-                    "relative aspect-video rounded-lg border-2 overflow-hidden transition-all hover:border-primary hover:shadow-lg",
-                    value === media.id ? "border-primary ring-2 ring-primary ring-offset-2" : "border-border"
-                  )}
-                >
-                  <img
-                    src={media.url}
-                    alt={media.alt_text || media.filename}
-                    className="absolute inset-0 w-full h-full object-cover"
-                  />
-                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-2">
-                    <p className="text-xs text-white truncate">{media.filename}</p>
-                  </div>
-                  {value === media.id && (
-                    <div className="absolute top-2 right-2 h-6 w-6 rounded-full bg-primary flex items-center justify-center">
-                      <Check className="h-4 w-4 text-primary-foreground" />
+                <div key={media.id} className="relative group">
+                  <button
+                    onClick={() => handleSelect(media.id)}
+                    className={cn(
+                      "relative aspect-video rounded-lg border-2 overflow-hidden transition-all hover:border-primary hover:shadow-lg w-full",
+                      value === media.id ? "border-primary ring-2 ring-primary ring-offset-2" : "border-border"
+                    )}
+                  >
+                    <img
+                      src={media.url}
+                      alt={media.alt_text || media.filename}
+                      className="absolute inset-0 w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-2">
+                      <p className="text-xs text-white truncate">{media.filename}</p>
                     </div>
-                  )}
-                </button>
+                    {value === media.id && (
+                      <div className="absolute top-2 right-2 h-6 w-6 rounded-full bg-primary flex items-center justify-center">
+                        <Check className="h-4 w-4 text-primary-foreground" />
+                      </div>
+                    )}
+                  </button>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    className="absolute top-2 left-2 h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handlePositionImage(media.url);
+                    }}
+                  >
+                    <Move className="h-4 w-4" />
+                  </Button>
+                </div>
               ))}
             </div>
 
@@ -149,6 +169,18 @@ export function MediaPickerModal({
           </ScrollArea>
         </div>
       </DialogContent>
+
+      {selectedImageForPosition && (
+        <ImagePositionPicker
+          imageUrl={selectedImageForPosition}
+          open={positionPickerOpen}
+          onOpenChange={setPositionPickerOpen}
+          onPositionChange={(position) => {
+            console.log("Image position:", position);
+            // Position can be saved to media_assets table if needed
+          }}
+        />
+      )}
     </Dialog>
   );
 }
