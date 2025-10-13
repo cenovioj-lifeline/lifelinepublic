@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "@/lib/auth";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,6 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 interface PublicAuthModalProps {
   open: boolean;
@@ -23,6 +25,20 @@ export function PublicAuthModal({ open, onOpenChange }: PublicAuthModalProps) {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const { signIn, signUp } = useAuth();
+  const navigate = useNavigate();
+
+  const checkAdminAccess = async (userId: string) => {
+    const { data } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', userId)
+      .in('role', ['admin', 'editor', 'viewer'])
+      .single();
+
+    if (data) {
+      navigate('/admin');
+    }
+  };
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,16 +49,22 @@ export function PublicAuthModal({ open, onOpenChange }: PublicAuthModalProps) {
     }
 
     setLoading(true);
-    const { error } = await signIn(email, password);
+    const result = await signIn(email, password);
     setLoading(false);
 
-    if (error) {
-      toast.error(error.message || "Failed to sign in");
+    if (result.error) {
+      toast.error(result.error.message || "Failed to sign in");
     } else {
       toast.success("Signed in successfully!");
       onOpenChange(false);
       setEmail("");
       setPassword("");
+      
+      // Check if user has admin access and redirect
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await checkAdminAccess(user.id);
+      }
     }
   };
 
