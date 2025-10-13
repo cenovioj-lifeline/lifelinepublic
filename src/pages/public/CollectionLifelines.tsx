@@ -4,9 +4,16 @@ import { supabase } from "@/integrations/supabase/client";
 import { CollectionLayout } from "@/components/CollectionLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Search } from "lucide-react";
+import { useState, useMemo } from "react";
 
 export default function CollectionLifelines() {
   const { slug } = useParams<{ slug: string }>();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortBy, setSortBy] = useState<"name" | "type">("name");
+  const [filterType, setFilterType] = useState<string>("all");
 
   const { data: collection } = useQuery({
     queryKey: ["public-collection", slug],
@@ -48,6 +55,42 @@ export default function CollectionLifelines() {
     enabled: !!collection?.id,
   });
 
+  const lifelineTypes = useMemo(() => {
+    if (!lifelines) return [];
+    const types = new Set(lifelines.map(l => l.lifeline_type));
+    return Array.from(types);
+  }, [lifelines]);
+
+  const filteredAndSortedLifelines = useMemo(() => {
+    if (!lifelines) return [];
+    
+    let filtered = lifelines;
+    
+    // Apply search filter
+    if (searchTerm) {
+      filtered = filtered.filter(lifeline =>
+        lifeline.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        lifeline.subject?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+    
+    // Apply type filter
+    if (filterType !== "all") {
+      filtered = filtered.filter(lifeline => lifeline.lifeline_type === filterType);
+    }
+    
+    // Apply sorting
+    const sorted = [...filtered].sort((a, b) => {
+      if (sortBy === "name") {
+        return a.title.localeCompare(b.title);
+      } else {
+        return a.lifeline_type.localeCompare(b.lifeline_type);
+      }
+    });
+    
+    return sorted;
+  }, [lifelines, searchTerm, filterType, sortBy]);
+
   if (!collection) {
     return (
       <CollectionLayout collectionTitle="Loading..." collectionSlug={slug || ""}>
@@ -84,15 +127,53 @@ export default function CollectionLifelines() {
           </p>
         </div>
 
+        {/* Search, Sort, and Filter Controls */}
+        <div className="flex flex-col sm:flex-row gap-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="text"
+              placeholder="Search lifelines..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+          
+          <Select value={sortBy} onValueChange={(value: "name" | "type") => setSortBy(value)}>
+            <SelectTrigger className="w-full sm:w-[180px]">
+              <SelectValue placeholder="Sort by..." />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="name">Sort by Name</SelectItem>
+              <SelectItem value="type">Sort by Type</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select value={filterType} onValueChange={setFilterType}>
+            <SelectTrigger className="w-full sm:w-[180px]">
+              <SelectValue placeholder="Filter by type..." />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Types</SelectItem>
+              {lifelineTypes.map((type) => (
+                <SelectItem key={type} value={type}>
+                  {type.charAt(0).toUpperCase() + type.slice(1)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
         {isLoading ? (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {[...Array(6)].map((_, i) => (
               <Skeleton key={i} className="h-64" />
             ))}
           </div>
-        ) : lifelines && lifelines.length > 0 ? (
+        ) : filteredAndSortedLifelines && filteredAndSortedLifelines.length > 0 ? (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {lifelines.map((lifeline) => (
+            {filteredAndSortedLifelines.map((lifeline) => (
               <Link
                 key={lifeline.id}
                 to={`/public/collections/${slug}/lifelines/${lifeline.slug}`}
@@ -130,7 +211,9 @@ export default function CollectionLifelines() {
           <Card>
             <CardContent className="py-12 text-center">
               <p className="text-muted-foreground">
-                No lifelines found in this collection.
+                {lifelines && lifelines.length > 0 
+                  ? "No lifelines match your search criteria."
+                  : "No lifelines found in this collection."}
               </p>
             </CardContent>
           </Card>

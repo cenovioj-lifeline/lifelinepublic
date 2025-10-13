@@ -96,11 +96,11 @@ export function LifelineViewer({ lifelineId, primaryColor, secondaryColor }: Lif
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Left side - Timeline */}
-          <div className="space-y-4">
+          {/* Left side - Timeline - Always white background */}
+          <div className="space-y-4 bg-white rounded-lg p-6">
             <div className="relative">
               {/* Center vertical line */}
-              <div className="absolute left-1/2 top-0 bottom-0 w-0.5 bg-border -translate-x-1/2" />
+              <div className="absolute left-1/2 top-0 bottom-0 w-0.5 bg-gray-200 -translate-x-1/2" />
               
               <div className="flex flex-col gap-3 py-4">
                 {entries.map((entry) => {
