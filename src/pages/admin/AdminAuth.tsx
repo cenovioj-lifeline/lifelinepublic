@@ -33,7 +33,7 @@ export default function AdminAuth() {
       .single();
 
     if (data) {
-      navigate('/');
+      navigate('/admin');
     } else {
       toast.error("Access denied. Admin privileges required.");
       await supabase.auth.signOut();
