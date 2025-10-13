@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, ProtectedRoute } from "./lib/auth";
+import { useGlobalColors } from "@/hooks/useGlobalColors";
 import AdminAuth from "./pages/admin/AdminAuth";
 import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
@@ -44,13 +45,11 @@ import CollectionElectionDetail from "./pages/public/CollectionElectionDetail";
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
+function AppContent() {
+  useGlobalColors(); // Apply global colors
+  
+  return (
+    <BrowserRouter>
           <Routes>
             {/* Admin Login */}
             <Route path="/admin/login" element={<AdminAuth />} />
@@ -240,6 +239,16 @@ const App = () => (
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
+  );
+}
+
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <AuthProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <AppContent />
       </TooltipProvider>
     </AuthProvider>
   </QueryClientProvider>

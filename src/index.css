@@ -8,40 +8,41 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222 47% 11%;
+    /* Default colors - can be overridden by global color settings */
+    --background: var(--global-bg, 0 0% 100%);
+    --foreground: var(--global-text, 222 47% 11%);
 
-    --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card: var(--global-card-bg, 0 0% 100%);
+    --card-foreground: var(--global-text, 222 47% 11%);
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --popover: var(--global-card-bg, 0 0% 100%);
+    --popover-foreground: var(--global-text, 222 47% 11%);
 
-    --primary: 237 83% 57%;
+    --primary: var(--global-accent, 237 83% 57%);
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 174 63% 53%;
+    --secondary: var(--global-positive, 174 63% 53%);
     --secondary-foreground: 0 0% 100%;
 
     --muted: 220 13% 95%;
     --muted-foreground: 220 9% 46%;
 
-    --accent: 174 63% 53%;
+    --accent: var(--global-accent, 174 63% 53%);
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 84% 60%;
+    --destructive: var(--global-negative, 0 84% 60%);
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
-    --ring: 237 83% 57%;
+    --border: var(--global-border, 220 13% 91%);
+    --input: var(--global-border, 220 13% 91%);
+    --ring: var(--global-accent, 237 83% 57%);
 
     --radius: 0.5rem;
     
-    --gradient-primary: linear-gradient(135deg, hsl(237 83% 57%), hsl(174 63% 53%));
-    --gradient-subtle: linear-gradient(180deg, hsl(0 0% 100%), hsl(220 13% 98%));
-    --shadow-elegant: 0 4px 24px -4px hsl(237 83% 57% / 0.15);
-    --shadow-strong: 0 8px 32px -8px hsl(237 83% 57% / 0.25);
+    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--secondary)));
+    --gradient-subtle: linear-gradient(180deg, hsl(var(--background)), hsl(220 13% 98%));
+    --shadow-elegant: 0 4px 24px -4px hsl(var(--primary) / 0.15);
+    --shadow-strong: 0 8px 32px -8px hsl(var(--primary) / 0.25);
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
     --sidebar-background: 0 0% 98%;
@@ -56,9 +57,9 @@ All colors MUST be HSL.
 
     --sidebar-accent-foreground: 240 5.9% 10%;
 
-    --sidebar-border: 220 13% 91%;
+    --sidebar-border: var(--global-border, 220 13% 91%);
 
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-ring: var(--global-accent, 217.2 91.2% 59.8%);
   }
 
   .dark {

@@ -23,10 +23,10 @@ export default function Settings() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Palette className="h-5 w-5" />
-              Lifeline Colors
+              Global Site Colors
             </CardTitle>
             <CardDescription>
-              Customize the color scheme for public lifeline pages
+              Customize the global color scheme for all public and admin pages (collections have their own colors)
             </CardDescription>
           </CardHeader>
           <CardContent>

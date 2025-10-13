@@ -103,9 +103,10 @@ export default function LifelineColorEditor() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["lifeline-settings"] });
+      queryClient.invalidateQueries({ queryKey: ["global-color-settings"] });
       toast({
         title: "Success",
-        description: "Color settings updated successfully",
+        description: "Color settings updated successfully. Refresh the page to see changes.",
       });
     },
     onError: (error: Error) => {
@@ -132,9 +133,9 @@ export default function LifelineColorEditor() {
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Lifeline Color Editor</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Global Site Colors</h1>
           <p className="text-muted-foreground">
-            Customize colors used on public lifeline pages
+            Customize the global color scheme used across all pages (except collection-specific pages)
           </p>
         </div>
       </div>
