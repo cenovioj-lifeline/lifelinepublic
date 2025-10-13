@@ -43,7 +43,7 @@ export default function Lifelines() {
     queryFn: async () => {
       let query = supabase
         .from("lifelines")
-        .select("*, profiles(display_name), collections(title), media_assets!lifelines_cover_image_id_fkey(url)")
+        .select("*, profiles(display_name), collections(title), media_assets!lifelines_cover_image_id_fkey(url, position_x, position_y)")
         .order("updated_at", { ascending: false });
 
       if (searchTerm) {
@@ -138,6 +138,9 @@ export default function Lifelines() {
                           src={lifeline.media_assets.url}
                           alt={lifeline.title}
                           className="w-full h-full object-cover"
+                          style={{
+                            objectPosition: `${lifeline.media_assets.position_x || 50}% ${lifeline.media_assets.position_y || 50}%`
+                          }}
                         />
                       ) : (
                         <span className="text-xs text-muted-foreground">No image</span>
