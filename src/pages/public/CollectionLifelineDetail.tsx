@@ -20,6 +20,7 @@ export default function CollectionLifelineDetail() {
           id,
           title,
           slug,
+          lifeline_type,
           collection_id,
           collections!lifelines_collection_id_fkey(
             id,
@@ -103,8 +104,11 @@ export default function CollectionLifelineDetail() {
     >
       <LifelineViewer
         lifelineId={lifeline.id}
+        lifelineType={lifeline.lifeline_type}
         primaryColor={collection.primary_color}
         secondaryColor={collection.secondary_color}
+        collectionTextColor={collection.collection_text_color}
+        collectionHeadingColor={collection.collection_heading_color}
       />
     </CollectionLayout>
   );

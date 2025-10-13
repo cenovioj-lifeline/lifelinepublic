@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,13 +8,23 @@ import { cn } from "@/lib/utils";
 
 interface LifelineViewerProps {
   lifelineId: string;
+  lifelineType?: string;
   primaryColor?: string | null;
   secondaryColor?: string | null;
+  collectionTextColor?: string | null;
+  collectionHeadingColor?: string | null;
 }
 
 type SelectionStyle = "glow" | "lifted" | "sheen" | "wave";
 
-export function LifelineViewer({ lifelineId, primaryColor, secondaryColor }: LifelineViewerProps) {
+export function LifelineViewer({ 
+  lifelineId, 
+  lifelineType,
+  primaryColor, 
+  secondaryColor,
+  collectionTextColor,
+  collectionHeadingColor
+}: LifelineViewerProps) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const selectionStyle: SelectionStyle = "glow"; // Always use glow
 
@@ -36,7 +46,7 @@ export function LifelineViewer({ lifelineId, primaryColor, secondaryColor }: Lif
     },
   });
 
-  const { data: entries } = useQuery({
+  const { data: rawEntries } = useQuery({
     queryKey: ["entries", lifelineId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -50,6 +60,29 @@ export function LifelineViewer({ lifelineId, primaryColor, secondaryColor }: Lif
     },
     enabled: !!lifelineId,
   });
+
+  // Process entries: sort by score if it's a "list" type with uniform sentiment
+  const entries = useMemo(() => {
+    if (!rawEntries || lifelineType !== "list") return rawEntries;
+
+    // Check if all entries have the same sentiment (all positive or all negative)
+    const allPositive = rawEntries.every((e) => (e.score || 0) >= 0);
+    const allNegative = rawEntries.every((e) => (e.score || 0) < 0);
+
+    if (allPositive || allNegative) {
+      // Sort by score descending (best to worst for positive, worst to best for negative)
+      return [...rawEntries].sort((a, b) => (b.score || 0) - (a.score || 0));
+    }
+
+    return rawEntries;
+  }, [rawEntries, lifelineType]);
+
+  // Auto-select first entry when entries load
+  useEffect(() => {
+    if (entries && entries.length > 0 && !selectedId) {
+      setSelectedId(entries[0].id);
+    }
+  }, [entries, selectedId]);
 
   const selected = useMemo(() => {
     if (!selectedId || !entries) return null;
@@ -89,9 +122,19 @@ export function LifelineViewer({ lifelineId, primaryColor, secondaryColor }: Lif
   return (
     <Card className="p-6">
       <CardHeader>
-        <CardTitle className="text-2xl">{lifeline.title}</CardTitle>
+        <CardTitle 
+          className="text-2xl"
+          style={collectionHeadingColor ? { color: collectionHeadingColor } : undefined}
+        >
+          {lifeline.title}
+        </CardTitle>
         {lifeline.subtitle && (
-          <p className="text-muted-foreground">{lifeline.subtitle}</p>
+          <p 
+            className="text-muted-foreground"
+            style={collectionTextColor ? { color: collectionTextColor } : undefined}
+          >
+            {lifeline.subtitle}
+          </p>
         )}
       </CardHeader>
       <CardContent>
@@ -198,8 +241,16 @@ export function LifelineViewer({ lifelineId, primaryColor, secondaryColor }: Lif
                 </div>
               </CardHeader>
               <CardContent className="space-y-4 py-6">
-                <h2 className="text-2xl font-bold">{selected.title}</h2>
-                <p className="text-muted-foreground leading-relaxed">
+                <h2 
+                  className="text-2xl font-bold"
+                  style={collectionHeadingColor ? { color: collectionHeadingColor } : undefined}
+                >
+                  {selected.title}
+                </h2>
+                <p 
+                  className="leading-relaxed"
+                  style={collectionTextColor ? { color: collectionTextColor } : undefined}
+                >
                   {selected.summary || selected.details}
                 </p>
                 <div className="flex items-center justify-between pt-4">
