@@ -25,6 +25,7 @@ import TagEdit from "./pages/TagEdit";
 import MediaEdit from "./pages/MediaEdit";
 import Settings from "./pages/Settings";
 import LifelineColorEditor from "./pages/LifelineColorEditor";
+import LoadMadMenData from "./pages/LoadMadMenData";
 import Home from "./pages/public/Home";
 import PublicLifelines from "./pages/public/PublicLifelines";
 import PublicLifelineDetail from "./pages/public/PublicLifelineDetail";
@@ -231,6 +232,16 @@ function AppContent() {
                 <ProtectedRoute>
                   <AdminLayout>
                     <LifelineColorEditor />
+                  </AdminLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/load-mad-men-data"
+              element={
+                <ProtectedRoute>
+                  <AdminLayout>
+                    <LoadMadMenData />
                   </AdminLayout>
                 </ProtectedRoute>
               }
