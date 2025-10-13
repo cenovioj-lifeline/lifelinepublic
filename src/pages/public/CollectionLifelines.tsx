@@ -39,7 +39,7 @@ export default function CollectionLifelines() {
         .from("lifelines")
         .select(`
           *,
-          cover_image:media_assets!lifelines_cover_image_id_fkey(url, alt_text),
+          cover_image:media_assets!lifelines_cover_image_id_fkey(url, alt_text, position_x, position_y),
           profile:profiles!lifelines_profile_id_fkey(
             display_name,
             avatar_image:media_assets!profiles_avatar_image_id_fkey(url, alt_text)
@@ -186,6 +186,9 @@ export default function CollectionLifelines() {
                         src={lifeline.cover_image.url}
                         alt={lifeline.cover_image.alt_text || lifeline.title}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        style={{
+                          objectPosition: `${lifeline.cover_image.position_x ?? 50}% ${lifeline.cover_image.position_y ?? 50}%`
+                        }}
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-muted-foreground">
