@@ -33,7 +33,15 @@ export default function CollectionProfileDetail() {
               web_secondary,
               menu_text_color,
               menu_hover_color,
-              menu_active_color
+              menu_active_color,
+              collection_bg_color,
+              collection_text_color,
+              collection_heading_color,
+              collection_accent_color,
+              collection_card_bg,
+              collection_border_color,
+              collection_muted_text,
+              collection_badge_color
             )
           ),
           profile_lifelines(
