@@ -44,6 +44,8 @@ import CollectionLifelineDetail from "./pages/public/CollectionLifelineDetail";
 import CollectionProfileDetail from "./pages/public/CollectionProfileDetail";
 import CollectionElectionDetail from "./pages/public/CollectionElectionDetail";
 import FanContributions from "./pages/FanContributions";
+import UserProfile from "./pages/public/UserProfile";
+import TopContributors from "./pages/public/TopContributors";
 
 const queryClient = new QueryClient();
 
@@ -75,6 +77,8 @@ function AppContent() {
           <Route path="/public/elections" element={<PublicLayout><PublicElections /></PublicLayout>} />
           <Route path="/public/elections/:slug" element={<PublicElectionDetail />} />
           <Route path="/public/profiles/:slug" element={<PublicProfileDetail />} />
+          <Route path="/profile" element={<PublicLayout><UserProfile /></PublicLayout>} />
+          <Route path="/top-contributors" element={<PublicLayout><TopContributors /></PublicLayout>} />
             
             {/* Admin Routes */}
             <Route
