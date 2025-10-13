@@ -1,6 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { PublicLayout } from "@/components/PublicLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -83,88 +82,86 @@ export default function TopContributors() {
   };
 
   return (
-    <PublicLayout>
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-4xl font-bold mb-8">Top Contributors</h1>
-        <p className="text-lg text-muted-foreground mb-8">
-          Celebrating our community members who help make our lifelines better
-        </p>
+    <div className="container mx-auto px-4 py-8">
+      <h1 className="text-4xl font-bold mb-8">Top Contributors</h1>
+      <p className="text-lg text-muted-foreground mb-8">
+        Celebrating our community members who help make our lifelines better
+      </p>
 
-        {isLoading ? (
-          <p>Loading...</p>
-        ) : (
-          <div className="grid gap-4">
-            {contributors?.map((contributor: any, index: number) => (
-              <Card
-                key={contributor.user_id}
-                className="cursor-pointer hover:border-primary transition-colors"
-                onClick={() => setSelectedContributor(contributor)}
-              >
-                <CardContent className="flex items-center gap-4 p-6">
-                  <div className="text-3xl font-bold text-muted-foreground w-12">
-                    #{index + 1}
-                  </div>
-                  <Avatar className="h-16 w-16">
-                    <AvatarImage
-                      src={contributor.profile?.avatar_url}
-                      alt={getDisplayName(contributor.profile)}
-                    />
-                    <AvatarFallback>
-                      {getInitials(contributor.profile)}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1">
-                    <h3 className="text-xl font-semibold">
-                      {getDisplayName(contributor.profile)}
-                    </h3>
-                    <p className="text-muted-foreground">
-                      {contributor.count} approved contribution
-                      {contributor.count !== 1 ? "s" : ""}
-                    </p>
-                  </div>
-                  <Badge variant="secondary" className="text-lg px-4 py-2">
-                    {contributor.count}
-                  </Badge>
+      {isLoading ? (
+        <p>Loading...</p>
+      ) : (
+        <div className="grid gap-4">
+          {contributors?.map((contributor: any, index: number) => (
+            <Card
+              key={contributor.user_id}
+              className="cursor-pointer hover:border-primary transition-colors"
+              onClick={() => setSelectedContributor(contributor)}
+            >
+              <CardContent className="flex items-center gap-4 p-6">
+                <div className="text-3xl font-bold text-muted-foreground w-12">
+                  #{index + 1}
+                </div>
+                <Avatar className="h-16 w-16">
+                  <AvatarImage
+                    src={contributor.profile?.avatar_url}
+                    alt={getDisplayName(contributor.profile)}
+                  />
+                  <AvatarFallback>
+                    {getInitials(contributor.profile)}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1">
+                  <h3 className="text-xl font-semibold">
+                    {getDisplayName(contributor.profile)}
+                  </h3>
+                  <p className="text-muted-foreground">
+                    {contributor.count} approved contribution
+                    {contributor.count !== 1 ? "s" : ""}
+                  </p>
+                </div>
+                <Badge variant="secondary" className="text-lg px-4 py-2">
+                  {contributor.count}
+                </Badge>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      <Dialog
+        open={!!selectedContributor}
+        onOpenChange={() => setSelectedContributor(null)}
+      >
+        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              {getDisplayName(selectedContributor?.profile)}'s Contributions
+            </DialogTitle>
+            <DialogDescription>
+              All approved contributions from this user
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 mt-4">
+            {selectedContributions?.map((contribution) => (
+              <Card key={contribution.id}>
+                <CardHeader>
+                  <CardTitle className="text-lg">
+                    {contribution.title}
+                  </CardTitle>
+                  <p className="text-sm text-muted-foreground">
+                    {contribution.lifelines?.title}
+                    {contribution.score && ` • Score: ${contribution.score}`}
+                  </p>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm">{contribution.description}</p>
                 </CardContent>
               </Card>
             ))}
           </div>
-        )}
-
-        <Dialog
-          open={!!selectedContributor}
-          onOpenChange={() => setSelectedContributor(null)}
-        >
-          <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>
-                {getDisplayName(selectedContributor?.profile)}'s Contributions
-              </DialogTitle>
-              <DialogDescription>
-                All approved contributions from this user
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4 mt-4">
-              {selectedContributions?.map((contribution) => (
-                <Card key={contribution.id}>
-                  <CardHeader>
-                    <CardTitle className="text-lg">
-                      {contribution.title}
-                    </CardTitle>
-                    <p className="text-sm text-muted-foreground">
-                      {contribution.lifelines?.title}
-                      {contribution.score && ` • Score: ${contribution.score}`}
-                    </p>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm">{contribution.description}</p>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </DialogContent>
-        </Dialog>
-      </div>
-    </PublicLayout>
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 }
