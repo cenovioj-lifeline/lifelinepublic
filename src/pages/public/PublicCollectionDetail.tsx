@@ -92,7 +92,7 @@ export default function PublicCollectionDetail() {
         .from("lifelines")
         .select(`
           *,
-          cover_image:media_assets!lifelines_cover_image_id_fkey(url, alt_text),
+          cover_image:media_assets!lifelines_cover_image_id_fkey(url, alt_text, position_x, position_y),
           profile:profiles!lifelines_profile_id_fkey(
             display_name,
             avatar_image:media_assets!profiles_avatar_image_id_fkey(url, alt_text)
@@ -122,7 +122,7 @@ export default function PublicCollectionDetail() {
             slug,
             display_name,
             summary,
-            avatar_image:media_assets!profiles_avatar_image_id_fkey(url, alt_text)
+            avatar_image:media_assets!profiles_avatar_image_id_fkey(url, alt_text, position_x, position_y)
           )
         `)
         .eq("collection_id", collection.id)
@@ -331,7 +331,7 @@ export default function PublicCollectionDetail() {
               </Link>
             </div>
             {lifelines.length <= 3 ? (
-              <div className="grid gap-6 md:grid-cols-3">
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {lifelines.map((lifeline) => (
                   <Link
                     key={lifeline.id}
@@ -345,6 +345,9 @@ export default function PublicCollectionDetail() {
                             src={lifeline.cover_image.url}
                             alt={lifeline.cover_image.alt_text || lifeline.title}
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            style={{
+                              objectPosition: `${lifeline.cover_image.position_x ?? 50}% ${lifeline.cover_image.position_y ?? 50}%`
+                            }}
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center text-muted-foreground">
@@ -388,6 +391,9 @@ export default function PublicCollectionDetail() {
                                 src={lifeline.cover_image.url}
                                 alt={lifeline.cover_image.alt_text || lifeline.title}
                                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                style={{
+                                  objectPosition: `${lifeline.cover_image.position_x ?? 50}% ${lifeline.cover_image.position_y ?? 50}%`
+                                }}
                               />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center text-muted-foreground">
@@ -431,7 +437,7 @@ export default function PublicCollectionDetail() {
               </Link>
             </div>
             {profiles.length <= 3 ? (
-              <div className="grid gap-6 md:grid-cols-3">
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {profiles.map((profile: any) => (
                   <Link
                     key={profile.id}
@@ -445,6 +451,9 @@ export default function PublicCollectionDetail() {
                             src={profile.avatar_image.url}
                             alt={profile.avatar_image.alt_text || profile.display_name}
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            style={{
+                              objectPosition: `${profile.avatar_image.position_x ?? 50}% ${profile.avatar_image.position_y ?? 50}%`
+                            }}
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center text-muted-foreground">
@@ -488,6 +497,9 @@ export default function PublicCollectionDetail() {
                                 src={profile.avatar_image.url}
                                 alt={profile.avatar_image.alt_text || profile.display_name}
                                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                style={{
+                                  objectPosition: `${profile.avatar_image.position_x ?? 50}% ${profile.avatar_image.position_y ?? 50}%`
+                                }}
                               />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center text-muted-foreground">
