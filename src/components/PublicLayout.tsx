@@ -78,31 +78,37 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
 
             {/* Mobile Navigation */}
             {isMobile && (
-              <div className="flex items-center gap-2">
-                {user ? (
-                  <PublicUserMenu />
-                ) : (
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    onClick={() => setAuthModalOpen(true)}
-                  >
-                    Sign In
+              <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+                <SheetTrigger asChild>
+                  <Button variant="ghost" size="icon">
+                    <Menu className="h-5 w-5" />
                   </Button>
-                )}
-                <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-                  <SheetTrigger asChild>
-                    <Button variant="ghost" size="icon">
-                      <Menu className="h-5 w-5" />
-                    </Button>
-                  </SheetTrigger>
-                  <SheetContent side="right" className="w-64">
-                    <div className="flex flex-col gap-2 mt-8">
+                </SheetTrigger>
+                <SheetContent side="right" className="w-64">
+                  <div className="flex flex-col gap-4">
+                    <h2 className="text-lg font-bold mt-2">Lifeline Public</h2>
+                    <div className="flex flex-col gap-2">
                       <NavLinks onClick={() => setMobileMenuOpen(false)} />
+                      {user ? (
+                        <div className="mt-4 pt-4 border-t">
+                          <PublicUserMenu />
+                        </div>
+                      ) : (
+                        <Button 
+                          variant="outline" 
+                          className="mt-4"
+                          onClick={() => {
+                            setAuthModalOpen(true);
+                            setMobileMenuOpen(false);
+                          }}
+                        >
+                          Sign In
+                        </Button>
+                      )}
                     </div>
-                  </SheetContent>
-                </Sheet>
-              </div>
+                  </div>
+                </SheetContent>
+              </Sheet>
             )}
           </nav>
         </div>

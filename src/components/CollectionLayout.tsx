@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Home, Rss, Users, Vote, ArrowLeft, Settings, Share2, Award, BookOpen } from "lucide-react";
+import { Home, Rss, Users, Vote, ArrowLeft, Settings, Share2, Award, BookOpen, Menu } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { PublicUserMenu } from "@/components/PublicUserMenu";
@@ -356,7 +356,7 @@ export function CollectionLayout({
             </div>
 
             <div className="flex items-center gap-2">
-              {user && <PublicUserMenu />}
+              {!isMobile && user && <PublicUserMenu />}
               
               {isMobile && (
                 <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
@@ -365,57 +365,65 @@ export function CollectionLayout({
                       variant="ghost" 
                       size="icon"
                       style={{
-                        color: webPrimary ? "#ffffff" : undefined,
+                        color: webSecondary || (webPrimary ? "#ffffff" : undefined),
                       }}
                     >
-                      <Home className="h-5 w-5" />
+                      <Menu className="h-5 w-5" />
                     </Button>
                   </SheetTrigger>
                   <SheetContent side="right" className="w-64">
-                    <div className="flex flex-col gap-2 mt-8">
-                      {navItems.map((item) => (
-                        <Button
-                          key={item.label}
-                          variant="ghost"
-                          onClick={() => {
-                            navigate(item.to);
-                            setMobileMenuOpen(false);
-                          }}
-                          className="gap-2 justify-start"
-                        >
-                          <item.icon className="h-4 w-4" />
-                          {item.label}
-                        </Button>
-                      ))}
-                      {actionItems.map((item) => (
-                        <Button
-                          key={item.label}
-                          variant="ghost"
-                          onClick={() => {
-                            if (item.action) {
-                              item.action();
-                            } else if (item.to) {
+                    <div className="flex flex-col gap-4">
+                      <h2 className="text-lg font-bold mt-2">{collectionTitle}</h2>
+                      <div className="flex flex-col gap-2">
+                        {navItems.map((item) => (
+                          <Button
+                            key={item.label}
+                            variant="ghost"
+                            onClick={() => {
                               navigate(item.to);
-                            }
+                              setMobileMenuOpen(false);
+                            }}
+                            className="gap-2 justify-start"
+                          >
+                            <item.icon className="h-4 w-4" />
+                            {item.label}
+                          </Button>
+                        ))}
+                        {actionItems.map((item) => (
+                          <Button
+                            key={item.label}
+                            variant="ghost"
+                            onClick={() => {
+                              if (item.action) {
+                                item.action();
+                              } else if (item.to) {
+                                navigate(item.to);
+                              }
+                              setMobileMenuOpen(false);
+                            }}
+                            className="gap-2 justify-start"
+                          >
+                            <item.icon className="h-4 w-4" />
+                            {item.label}
+                          </Button>
+                        ))}
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            handleExit();
                             setMobileMenuOpen(false);
                           }}
-                          className="gap-2 justify-start"
+                          className="gap-2 justify-start mt-4"
                         >
-                          <item.icon className="h-4 w-4" />
-                          {item.label}
+                          <ArrowLeft className="h-4 w-4" />
+                          Back to Lifeline Public
                         </Button>
-                      ))}
-                      <Button
-                        variant="outline"
-                        onClick={() => {
-                          handleExit();
-                          setMobileMenuOpen(false);
-                        }}
-                        className="gap-2 justify-start mt-4"
-                      >
-                        <ArrowLeft className="h-4 w-4" />
-                        Back to Lifeline Public
-                      </Button>
+                        {user && (
+                          <div className="mt-4 pt-4 border-t">
+                            <PublicUserMenu />
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </SheetContent>
                 </Sheet>
