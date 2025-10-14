@@ -560,7 +560,7 @@ export type Database = {
           admin_message: string | null
           contribution_type: string
           created_at: string | null
-          description: string
+          description: string | null
           entry_id: string | null
           entry_ref: string | null
           id: string
@@ -570,14 +570,14 @@ export type Database = {
           reviewed_by: string | null
           score: number | null
           status: string
-          title: string
+          title: string | null
           user_id: string
         }
         Insert: {
           admin_message?: string | null
           contribution_type?: string
           created_at?: string | null
-          description: string
+          description?: string | null
           entry_id?: string | null
           entry_ref?: string | null
           id?: string
@@ -587,14 +587,14 @@ export type Database = {
           reviewed_by?: string | null
           score?: number | null
           status?: string
-          title: string
+          title?: string | null
           user_id: string
         }
         Update: {
           admin_message?: string | null
           contribution_type?: string
           created_at?: string | null
-          description?: string
+          description?: string | null
           entry_id?: string | null
           entry_ref?: string | null
           id?: string
@@ -604,7 +604,7 @@ export type Database = {
           reviewed_by?: string | null
           score?: number | null
           status?: string
-          title?: string
+          title?: string | null
           user_id?: string
         }
         Relationships: [
