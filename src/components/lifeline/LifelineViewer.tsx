@@ -61,7 +61,7 @@ export function LifelineViewer({
     queryFn: async () => {
       const { data, error } = await supabase
         .from("entries")
-        .select("*, entry_media(media_id, order_index), media_assets!inner(*)")
+        .select("*, entry_media(media_id, order_index)")
         .eq("lifeline_id", lifelineId)
         .order("order_index");
 
