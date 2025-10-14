@@ -1,4 +1,5 @@
 import { useForm } from "react-hook-form";
+import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -73,6 +74,21 @@ export function EntryForm({
       ...defaultValues,
     },
   });
+
+  // Reset form when defaultValues change (e.g., when editing a different entry)
+  useEffect(() => {
+    form.reset({
+      title: "",
+      summary: "",
+      details: "",
+      score: 0,
+      order_index: 0,
+      tags: "",
+      related_lifelines: "",
+      media_suggestion: "",
+      ...defaultValues,
+    });
+  }, [defaultValues, form]);
 
   // Fetch existing images for this entry
   const { data: entryMedia } = useQuery({

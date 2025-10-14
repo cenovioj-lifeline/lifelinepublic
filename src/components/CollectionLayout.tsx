@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Home, Rss, Users, Vote, ArrowLeft, Settings, Share2, Award } from "lucide-react";
+import { Home, Rss, Users, Vote, ArrowLeft, Settings, Share2, Award, BookOpen } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { PublicUserMenu } from "@/components/PublicUserMenu";
@@ -220,11 +220,11 @@ export function CollectionLayout({
   const navItems = [
     { label: "Home", icon: Home, to: `/public/collections/${collectionSlug}` },
     { label: "Feed", icon: Rss, to: `/public/collections/${collectionSlug}/feed` },
-    { label: "Lifelines", icon: Users, to: `/public/collections/${collectionSlug}/lifelines` },
+    { label: "Stories", icon: BookOpen, to: `/public/collections/${collectionSlug}/lifelines` },
     { label: "Profiles", icon: Users, to: `/public/collections/${collectionSlug}/profiles` },
     { 
-      label: "Mock", 
-      icon: Vote, 
+      label: "Awards", 
+      icon: Award, 
       to: firstElection 
         ? `/public/collections/${collectionSlug}/elections/${firstElection.slug}`
         : `/public/collections/${collectionSlug}/elections`

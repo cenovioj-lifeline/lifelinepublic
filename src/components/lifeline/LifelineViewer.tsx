@@ -330,7 +330,7 @@ export function LifelineViewer({
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1">
                     <h2 
-                      className="text-2xl font-bold"
+                      className="text-2xl font-bold text-foreground"
                       style={collectionHeadingColor ? { color: collectionHeadingColor } : undefined}
                     >
                       {selected.title}
@@ -348,7 +348,7 @@ export function LifelineViewer({
                   )}
                 </div>
                 <p 
-                  className="leading-relaxed"
+                  className="leading-relaxed text-foreground"
                   style={collectionTextColor ? { color: collectionTextColor } : undefined}
                 >
                   {selected.summary || selected.details}
