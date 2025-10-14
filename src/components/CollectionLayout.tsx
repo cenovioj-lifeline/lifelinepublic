@@ -232,9 +232,7 @@ export function CollectionLayout({
     { label: "Contributors", icon: Award, to: `/public/collections/${collectionSlug}/contributors` },
   ];
 
-  const actionItems: Array<{ label: string; icon: any; action?: () => void; to?: string }> = [
-    { label: "Settings", icon: Settings, to: `/public/collections/${collectionSlug}/settings` },
-  ];
+  const actionItems: Array<{ label: string; icon: any; action?: () => void; to?: string }> = [];
 
   return (
     <div className="min-h-screen bg-background">

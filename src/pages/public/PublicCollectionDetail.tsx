@@ -1,16 +1,19 @@
 import { useQuery } from "@tanstack/react-query";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { CollectionLayout } from "@/components/CollectionLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowRight, Share2 } from "lucide-react";
+import { ArrowRight, Share2, Vote, Users, Settings } from "lucide-react";
 import { CollectionShareModal } from "@/components/CollectionShareModal";
 import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 export default function PublicCollectionDetail() {
   const { slug } = useParams<{ slug: string }>();
+  const navigate = useNavigate();
+  const { toast } = useToast();
   const [shareModalOpen, setShareModalOpen] = useState(false);
 
   const { data: collection, isLoading: collectionLoading } = useQuery({
@@ -95,7 +98,7 @@ export default function PublicCollectionDetail() {
         .eq("collection_id", collection.id)
         .eq("status", "published")
         .order("created_at", { ascending: false })
-        .limit(6);
+        .limit(3);
 
       if (error) throw error;
       return data;
@@ -103,21 +106,29 @@ export default function PublicCollectionDetail() {
     enabled: !!collection?.id,
   });
 
-  const { data: elections } = useQuery({
-    queryKey: ["collection-elections", collection?.id],
+  const { data: profiles } = useQuery({
+    queryKey: ["collection-profiles", collection?.id],
     queryFn: async () => {
       if (!collection?.id) return [];
 
       const { data, error } = await supabase
-        .from("mock_elections")
-        .select("*")
+        .from("profile_collections")
+        .select(`
+          profiles!inner(
+            id,
+            slug,
+            display_name,
+            summary,
+            avatar_image:media_assets!profiles_avatar_image_id_fkey(url, alt_text)
+          )
+        `)
         .eq("collection_id", collection.id)
-        .eq("status", "published")
+        .eq("profiles.status", "published")
         .order("created_at", { ascending: false })
-        .limit(5);
+        .limit(3);
 
       if (error) throw error;
-      return data;
+      return data?.map(item => item.profiles).filter(Boolean);
     },
     enabled: !!collection?.id,
   });
@@ -213,48 +224,71 @@ export default function PublicCollectionDetail() {
           )}
         </div>
 
-        {/* Stats Grid */}
-        {stats && (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Card style={{ borderColor: collection.primary_color || undefined }}>
-              <CardContent className="pt-6 text-center">
-                <div className="text-3xl font-bold" style={{ color: collection.primary_color || undefined }}>
-                  {formatNumber(stats.lifelines)}
-                </div>
-                <div className="text-sm text-muted-foreground mt-1">Lifelines</div>
-              </CardContent>
-            </Card>
-            <Card style={{ borderColor: collection.primary_color || undefined }}>
-              <CardContent className="pt-6 text-center">
-                <div className="text-3xl font-bold" style={{ color: collection.primary_color || undefined }}>
-                  {formatNumber(stats.votes)}
-                </div>
-                <div className="text-sm text-muted-foreground mt-1">Votes</div>
-              </CardContent>
-            </Card>
-            <Card
-              style={{ borderColor: collection.primary_color || undefined }}
-              className="cursor-pointer hover:shadow-lg transition-shadow"
-              onClick={() => setShareModalOpen(true)}
-            >
-              <CardContent className="pt-6 text-center">
-                <Share2
-                  className="h-8 w-8 mx-auto mb-2"
-                  style={{ color: collection.primary_color || undefined }}
-                />
-                <div className="text-sm text-muted-foreground mt-1">Share</div>
-              </CardContent>
-            </Card>
-            <Card style={{ borderColor: collection.primary_color || undefined }}>
-              <CardContent className="pt-6 text-center">
-                <div className="text-3xl font-bold" style={{ color: collection.primary_color || undefined }}>
-                  {formatNumber(stats.entries)}
-                </div>
-                <div className="text-sm text-muted-foreground mt-1">Entries</div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
+        {/* Action Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <Card
+            style={{ borderColor: collection.primary_color || undefined }}
+            className="cursor-pointer hover:shadow-lg transition-shadow"
+            onClick={() => {
+              toast({
+                title: "Coming Soon",
+                description: "Voting lifelines coming soon",
+              });
+            }}
+          >
+            <CardContent className="pt-6 text-center">
+              <Vote
+                className="h-8 w-8 mx-auto mb-2"
+                style={{ color: collection.primary_color || undefined }}
+              />
+              <div className="text-sm text-muted-foreground mt-1">Vote</div>
+            </CardContent>
+          </Card>
+          <Card
+            style={{ borderColor: collection.primary_color || undefined }}
+            className="cursor-pointer hover:shadow-lg transition-shadow"
+            onClick={() => setShareModalOpen(true)}
+          >
+            <CardContent className="pt-6 text-center">
+              <Share2
+                className="h-8 w-8 mx-auto mb-2"
+                style={{ color: collection.primary_color || undefined }}
+              />
+              <div className="text-sm text-muted-foreground mt-1">Share</div>
+            </CardContent>
+          </Card>
+          <Card
+            style={{ borderColor: collection.primary_color || undefined }}
+            className="cursor-pointer hover:shadow-lg transition-shadow"
+            onClick={() => {
+              toast({
+                title: "Coming Soon",
+                description: "Following coming soon",
+              });
+            }}
+          >
+            <CardContent className="pt-6 text-center">
+              <Users
+                className="h-8 w-8 mx-auto mb-2"
+                style={{ color: collection.primary_color || undefined }}
+              />
+              <div className="text-sm text-muted-foreground mt-1">Following</div>
+            </CardContent>
+          </Card>
+          <Card
+            style={{ borderColor: collection.primary_color || undefined }}
+            className="cursor-pointer hover:shadow-lg transition-shadow"
+            onClick={() => navigate(`/public/collections/${collection.slug}/settings`)}
+          >
+            <CardContent className="pt-6 text-center">
+              <Settings
+                className="h-8 w-8 mx-auto mb-2"
+                style={{ color: collection.primary_color || undefined }}
+              />
+              <div className="text-sm text-muted-foreground mt-1">Settings</div>
+            </CardContent>
+          </Card>
+        </div>
 
         {/* Featured Lifelines */}
         {lifelines && lifelines.length > 0 && (
@@ -262,14 +296,14 @@ export default function PublicCollectionDetail() {
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-2xl font-bold">Featured Lifelines</h2>
               <Link
-                to="#"
+                to={`/public/collections/${collection.slug}/lifelines`}
                 className="text-sm flex items-center gap-1 hover:underline"
                 style={{ color: collection.primary_color || undefined }}
               >
                 View All <ArrowRight className="h-4 w-4" />
               </Link>
             </div>
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-6 md:grid-cols-3">
               {lifelines.map((lifeline) => (
                 <Link
                   key={lifeline.id}
@@ -307,33 +341,54 @@ export default function PublicCollectionDetail() {
           </section>
         )}
 
-        {/* Current Mock Elections */}
-        {elections && elections.length > 0 && (
+        {/* Featured Profiles */}
+        {profiles && profiles.length > 0 && (
           <section>
-            <h2 className="text-2xl font-bold mb-4">Current Mock Elections</h2>
-            <Card>
-              <CardContent className="p-0">
-                <div className="divide-y">
-                  {elections.map((election) => (
-                    <Link
-                      key={election.id}
-                      to={`/public/collections/${collection.slug}/elections/${election.slug}`}
-                      className="flex items-center justify-between p-4 hover:bg-muted/50 transition-colors"
-                    >
-                      <div className="flex-1">
-                        <div className="font-medium">{election.title}</div>
-                        {election.description && (
-                          <div className="text-sm text-muted-foreground line-clamp-1">
-                            {election.description}
-                          </div>
-                        )}
-                      </div>
-                      <ArrowRight className="h-4 w-4 text-muted-foreground" />
-                    </Link>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-2xl font-bold">Featured Profiles</h2>
+              <Link
+                to={`/public/collections/${collection.slug}/profiles`}
+                className="text-sm flex items-center gap-1 hover:underline"
+                style={{ color: collection.primary_color || undefined }}
+              >
+                View All <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+            <div className="grid gap-6 md:grid-cols-3">
+              {profiles.map((profile: any) => (
+                <Link
+                  key={profile.id}
+                  to={`/public/collections/${collection.slug}/profiles/${profile.slug}`}
+                  className="group"
+                >
+                  <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full">
+                    <div className="aspect-video relative bg-muted overflow-hidden">
+                      {profile.avatar_image?.url ? (
+                        <img
+                          src={profile.avatar_image.url}
+                          alt={profile.avatar_image.alt_text || profile.display_name}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+                          No image
+                        </div>
+                      )}
+                    </div>
+                    <CardHeader>
+                      <CardTitle className="text-lg text-foreground transition-colors">
+                        {profile.display_name}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-muted-foreground line-clamp-2">
+                        {profile.summary || "View this profile"}
+                      </p>
+                    </CardContent>
+                  </Card>
+                </Link>
+              ))}
+            </div>
           </section>
         )}
       </div>
