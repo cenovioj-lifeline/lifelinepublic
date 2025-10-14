@@ -5,7 +5,7 @@ import { CollectionLayout } from "@/components/CollectionLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowRight, Share2, Vote, Users, Settings } from "lucide-react";
+import { ArrowRight, Share2, Rss, Users, Settings } from "lucide-react";
 import { CollectionShareModal } from "@/components/CollectionShareModal";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
@@ -231,32 +231,15 @@ export default function PublicCollectionDetail() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <Card
             style={{ borderColor: collection.primary_color || undefined }}
-            className="cursor-pointer hover:shadow-lg transition-all perspective-1000"
-            onClick={() => {
-              setVoteFlipped(true);
-              setTimeout(() => setVoteFlipped(false), 2000);
-            }}
+            className="cursor-pointer hover:shadow-lg transition-shadow"
+            onClick={() => navigate(`/public/collections/${collection.slug}/feed`)}
           >
-            <CardContent 
-              className="relative pt-6 h-24 preserve-3d transition-transform duration-500"
-              style={{
-                transformStyle: 'preserve-3d',
-                transform: voteFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
-              }}
-            >
-              <div className="absolute inset-0 flex flex-col items-center justify-center backface-hidden pt-6">
-                <Vote
-                  className="h-8 w-8 mb-2"
-                  style={{ color: collection.primary_color || undefined }}
-                />
-                <div className="text-sm text-muted-foreground">Vote</div>
-              </div>
-              <div 
-                className="absolute inset-0 flex items-center justify-center backface-hidden text-center text-sm font-medium px-4"
-                style={{ transform: 'rotateY(180deg)' }}
-              >
-                Voting lifelines coming soon
-              </div>
+            <CardContent className="pt-6 text-center">
+              <Rss
+                className="h-8 w-8 mx-auto mb-2"
+                style={{ color: collection.primary_color || undefined }}
+              />
+              <div className="text-sm text-muted-foreground mt-1">Feed</div>
             </CardContent>
           </Card>
           <Card

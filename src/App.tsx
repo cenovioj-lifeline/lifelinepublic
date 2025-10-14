@@ -46,6 +46,8 @@ import CollectionElectionDetail from "./pages/public/CollectionElectionDetail";
 import FanContributions from "./pages/FanContributions";
 import UserProfile from "./pages/public/UserProfile";
 import TopContributors from "./pages/public/TopContributors";
+import PublicMore from "./pages/public/PublicMore";
+import CollectionMore from "./pages/public/CollectionMore";
 
 const queryClient = new QueryClient();
 
@@ -80,6 +82,9 @@ function AppContent() {
           <Route path="/public/profiles/:slug" element={<PublicProfileDetail />} />
           <Route path="/profile" element={<PublicLayout><UserProfile /></PublicLayout>} />
           <Route path="/top-contributors" element={<PublicLayout><TopContributors /></PublicLayout>} />
+          <Route path="/public/more" element={<PublicLayout><PublicMore /></PublicLayout>} />
+          <Route path="/public/collections/:slug/more" element={<CollectionMore />} />
+          <Route path="/public/contributors" element={<PublicLayout><TopContributors /></PublicLayout>} />
             
             {/* Admin Routes */}
             <Route

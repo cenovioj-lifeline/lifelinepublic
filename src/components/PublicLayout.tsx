@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Home, FileText, Users, Vote, FolderOpen, Menu, Lock, Trophy } from "lucide-react";
+import { Home, BookOpen, Users, Award, FolderOpen, Menu, Lock, MoreHorizontal } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { PublicAuthModal } from "@/components/PublicAuthModal";
@@ -17,11 +17,11 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
 
   const navItems = [
     { path: "/", label: "Home", icon: Home },
-    { path: "/public/lifelines", label: "Lifelines", icon: FileText },
+    { path: "/public/lifelines", label: "Stories", icon: BookOpen },
     { path: "/public/collections", label: "Collections", icon: FolderOpen },
     { path: "/public/profiles", label: "Profiles", icon: Users },
-    { path: "/public/elections", label: "Elections", icon: Vote },
-    { path: "/top-contributors", label: "Contributors", icon: Trophy },
+    { path: "/public/elections", label: "Awards", icon: Award },
+    { path: "/public/more", label: "More", icon: MoreHorizontal },
     { path: "/admin/login", label: "Admin", icon: Lock },
   ];
 

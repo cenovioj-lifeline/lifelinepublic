@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Home, Rss, Users, Vote, ArrowLeft, Settings, Share2, Award, BookOpen, Menu } from "lucide-react";
+import { Home, Users, ArrowLeft, Settings, Share2, Award, BookOpen, Menu, MoreHorizontal } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { PublicUserMenu } from "@/components/PublicUserMenu";
@@ -219,7 +219,6 @@ export function CollectionLayout({
 
   const navItems = [
     { label: "Home", icon: Home, to: `/public/collections/${collectionSlug}` },
-    { label: "Feed", icon: Rss, to: `/public/collections/${collectionSlug}/feed` },
     { label: "Stories", icon: BookOpen, to: `/public/collections/${collectionSlug}/lifelines` },
     { label: "Profiles", icon: Users, to: `/public/collections/${collectionSlug}/profiles` },
     { 
@@ -229,10 +228,11 @@ export function CollectionLayout({
         ? `/public/collections/${collectionSlug}/elections/${firstElection.slug}`
         : `/public/collections/${collectionSlug}/elections`
     },
-    { label: "Contributors", icon: Award, to: `/public/collections/${collectionSlug}/contributors` },
   ];
 
-  const actionItems: Array<{ label: string; icon: any; action?: () => void; to?: string }> = [];
+  const actionItems: Array<{ label: string; icon: any; action?: () => void; to?: string }> = [
+    { label: "More", icon: MoreHorizontal, to: `/public/collections/${collectionSlug}/more` },
+  ];
 
   return (
     <div className="min-h-screen bg-background">
