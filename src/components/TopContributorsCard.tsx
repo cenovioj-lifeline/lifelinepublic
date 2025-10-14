@@ -10,23 +10,31 @@ export function TopContributorsCard() {
   const { data: topContributors, isLoading } = useQuery({
     queryKey: ["top-contributors-preview"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // Fetch fan contributions
+      const { data: contributions, error: contribError } = await supabase
         .from("fan_contributions")
-        .select(`
-          user_id,
-          user_profiles(first_name, last_name, avatar_url)
-        `)
+        .select("user_id")
         .eq("status", "approved");
 
-      if (error) throw error;
+      if (contribError) throw contribError;
+
+      // Fetch user profiles
+      const { data: profiles, error: profilesError } = await supabase
+        .from("user_profiles")
+        .select("user_id, first_name, last_name, avatar_url");
+
+      if (profilesError) throw profilesError;
+
+      // Create a profile lookup map
+      const profileMap = new Map(profiles?.map((p) => [p.user_id, p]) || []);
 
       // Group by user and count
-      const userCounts = data.reduce((acc: any, curr) => {
+      const userCounts = contributions.reduce((acc: any, curr) => {
         if (!acc[curr.user_id]) {
           acc[curr.user_id] = {
             user_id: curr.user_id,
             count: 0,
-            profile: curr.user_profiles,
+            profile: profileMap.get(curr.user_id),
           };
         }
         acc[curr.user_id].count++;

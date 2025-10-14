@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Home, Rss, Users, Vote, ArrowLeft, Settings, Share2 } from "lucide-react";
+import { Home, Rss, Users, Vote, ArrowLeft, Settings, Share2, Award } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { PublicUserMenu } from "@/components/PublicUserMenu";
@@ -229,6 +229,7 @@ export function CollectionLayout({
         ? `/public/collections/${collectionSlug}/elections/${firstElection.slug}`
         : `/public/collections/${collectionSlug}/elections`
     },
+    { label: "Contributors", icon: Award, to: "/top-contributors" },
   ];
 
   const actionItems: Array<{ label: string; icon: any; action?: () => void; to?: string }> = [

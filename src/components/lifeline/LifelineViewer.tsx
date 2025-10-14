@@ -9,6 +9,7 @@ import { Plus, Star } from "lucide-react";
 import { ContributeEventDialog } from "@/components/ContributeEventDialog";
 import { useAuth } from "@/lib/auth";
 import { PublicAuthModal } from "@/components/PublicAuthModal";
+import { Link } from "react-router-dom";
 
 interface LifelineViewerProps {
   lifelineId: string;
@@ -307,8 +308,15 @@ export function LifelineViewer({
                      className="text-sm italic"
                      style={collectionTextColor ? { color: collectionTextColor, opacity: 0.7 } : undefined}
                    >
-                     Credit: Created by {selected.user_profile.first_name}{" "}
-                     {selected.user_profile.last_name}
+                     Credit: Created by{" "}
+                     <Link 
+                       to="/top-contributors"
+                       className="underline hover:opacity-80 transition-opacity"
+                       style={collectionTextColor ? { color: collectionTextColor } : undefined}
+                     >
+                       {selected.user_profile.first_name}{" "}
+                       {selected.user_profile.last_name}
+                     </Link>
                    </p>
                  )}
                 <div className="flex items-center justify-between pt-4">
