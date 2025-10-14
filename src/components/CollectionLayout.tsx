@@ -229,11 +229,10 @@ export function CollectionLayout({
         ? `/public/collections/${collectionSlug}/elections/${firstElection.slug}`
         : `/public/collections/${collectionSlug}/elections`
     },
-    { label: "Contributors", icon: Award, to: "/top-contributors" },
+    { label: "Contributors", icon: Award, to: `/public/collections/${collectionSlug}/contributors` },
   ];
 
   const actionItems: Array<{ label: string; icon: any; action?: () => void; to?: string }> = [
-    { label: "Share", icon: Share2, action: () => setShareModalOpen(true) },
     { label: "Settings", icon: Settings, to: `/public/collections/${collectionSlug}/settings` },
   ];
 

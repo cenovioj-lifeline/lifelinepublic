@@ -6,15 +6,35 @@ import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 
-export function TopContributorsCard() {
+interface TopContributorsCardProps {
+  collectionId?: string;
+}
+
+export function TopContributorsCard({ collectionId }: TopContributorsCardProps) {
   const { data: topContributors, isLoading } = useQuery({
-    queryKey: ["top-contributors-preview"],
+    queryKey: ["top-contributors-preview", collectionId],
     queryFn: async () => {
-      // Fetch fan contributions
-      const { data: contributions, error: contribError } = await supabase
+      // Get lifelines for collection if provided
+      let lifelineIds: string[] | undefined;
+      if (collectionId) {
+        const { data: lifelines } = await supabase
+          .from("lifelines")
+          .select("id")
+          .eq("collection_id", collectionId);
+        lifelineIds = lifelines?.map((l) => l.id) || [];
+      }
+
+      // Fetch fan contributions, filtered by lifeline if needed
+      let query = supabase
         .from("fan_contributions")
-        .select("user_id")
+        .select("user_id, lifeline_id")
         .eq("status", "approved");
+
+      if (lifelineIds && lifelineIds.length > 0) {
+        query = query.in("lifeline_id", lifelineIds);
+      }
+
+      const { data: contributions, error: contribError } = await query;
 
       if (contribError) throw contribError;
 

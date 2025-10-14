@@ -5,10 +5,13 @@ import { CollectionLayout } from "@/components/CollectionLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Share2 } from "lucide-react";
+import { CollectionShareModal } from "@/components/CollectionShareModal";
+import { useState } from "react";
 
 export default function PublicCollectionDetail() {
   const { slug } = useParams<{ slug: string }>();
+  const [shareModalOpen, setShareModalOpen] = useState(false);
 
   const { data: collection, isLoading: collectionLoading } = useQuery({
     queryKey: ["public-collection", slug],
@@ -229,12 +232,17 @@ export default function PublicCollectionDetail() {
                 <div className="text-sm text-muted-foreground mt-1">Votes</div>
               </CardContent>
             </Card>
-            <Card style={{ borderColor: collection.primary_color || undefined }}>
+            <Card
+              style={{ borderColor: collection.primary_color || undefined }}
+              className="cursor-pointer hover:shadow-lg transition-shadow"
+              onClick={() => setShareModalOpen(true)}
+            >
               <CardContent className="pt-6 text-center">
-                <div className="text-3xl font-bold" style={{ color: collection.primary_color || undefined }}>
-                  {formatNumber(stats.elections)}
-                </div>
-                <div className="text-sm text-muted-foreground mt-1">Mock Elections</div>
+                <Share2
+                  className="h-8 w-8 mx-auto mb-2"
+                  style={{ color: collection.primary_color || undefined }}
+                />
+                <div className="text-sm text-muted-foreground mt-1">Share</div>
               </CardContent>
             </Card>
             <Card style={{ borderColor: collection.primary_color || undefined }}>
@@ -329,6 +337,13 @@ export default function PublicCollectionDetail() {
           </section>
         )}
       </div>
+
+      <CollectionShareModal
+        open={shareModalOpen}
+        onOpenChange={setShareModalOpen}
+        collectionSlug={collection.slug}
+        collectionTitle={collection.title}
+      />
     </CollectionLayout>
   );
 }

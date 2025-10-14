@@ -69,10 +69,11 @@ function AppContent() {
           <Route path="/public/collections/:slug/settings" element={<CollectionSettings />} />
             <Route path="/public/collections/:slug/lifelines" element={<CollectionLifelines />} />
             <Route path="/public/collections/:collectionSlug/lifelines/:lifelineSlug" element={<CollectionLifelineDetail />} />
-            <Route path="/public/collections/:slug/profiles" element={<CollectionProfiles />} />
+          <Route path="/public/collections/:slug/profiles" element={<CollectionProfiles />} />
             <Route path="/public/collections/:collectionSlug/profiles/:profileSlug" element={<CollectionProfileDetail />} />
             <Route path="/public/collections/:slug/elections" element={<CollectionElections />} />
             <Route path="/public/collections/:collectionSlug/elections/:electionSlug" element={<CollectionElectionDetail />} />
+            <Route path="/public/collections/:slug/contributors" element={<TopContributors />} />
           <Route path="/public/profiles" element={<PublicLayout><PublicProfiles /></PublicLayout>} />
           <Route path="/public/elections" element={<PublicLayout><PublicElections /></PublicLayout>} />
           <Route path="/public/elections/:slug" element={<PublicElectionDetail />} />

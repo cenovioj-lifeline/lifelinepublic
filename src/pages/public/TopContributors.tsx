@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { useParams, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -11,18 +12,57 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useState } from "react";
+import { CollectionLayout } from "@/components/CollectionLayout";
 
 export default function TopContributors() {
+  const location = useLocation();
+  const { slug } = useParams<{ slug?: string }>();
   const [selectedContributor, setSelectedContributor] = useState<any>(null);
 
-  const { data: contributors, isLoading } = useQuery({
-    queryKey: ["top-contributors"],
+  // Check if we're in a collection context
+  const isCollectionContext = location.pathname.includes("/collections/");
+
+  const { data: collection } = useQuery({
+    queryKey: ["collection-for-contributors", slug],
     queryFn: async () => {
-      // Fetch fan contributions
-      const { data: contributions, error: contribError } = await supabase
+      if (!slug || !isCollectionContext) return null;
+      const { data, error } = await supabase
+        .from("collections")
+        .select("*")
+        .eq("slug", slug)
+        .eq("status", "published")
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: isCollectionContext && !!slug,
+  });
+
+  const { data: contributors, isLoading } = useQuery({
+    queryKey: ["top-contributors", collection?.id],
+    queryFn: async () => {
+      // First, get lifelines for this collection if in collection context
+      let lifelineIds: string[] | undefined;
+      if (collection?.id) {
+        const { data: lifelines } = await supabase
+          .from("lifelines")
+          .select("id")
+          .eq("collection_id", collection.id);
+        lifelineIds = lifelines?.map((l) => l.id) || [];
+      }
+
+      // Fetch fan contributions, filtered by lifeline if needed
+      let query = supabase
         .from("fan_contributions")
-        .select("user_id")
+        .select("user_id, lifeline_id")
         .eq("status", "approved");
+
+      if (lifelineIds && lifelineIds.length > 0) {
+        query = query.in("lifeline_id", lifelineIds);
+      }
+
+      const { data: contributions, error: contribError } = await query;
 
       if (contribError) throw contribError;
 
@@ -53,21 +93,38 @@ export default function TopContributors() {
         (a: any, b: any) => b.count - a.count
       );
     },
+    enabled: !isCollectionContext || !!collection,
   });
 
   const { data: selectedContributions } = useQuery({
-    queryKey: ["contributor-details", selectedContributor?.user_id],
+    queryKey: ["contributor-details", selectedContributor?.user_id, collection?.id],
     queryFn: async () => {
       if (!selectedContributor?.user_id) return [];
-      const { data, error } = await supabase
+
+      // Get lifelines for collection if needed
+      let lifelineIds: string[] | undefined;
+      if (collection?.id) {
+        const { data: lifelines } = await supabase
+          .from("lifelines")
+          .select("id")
+          .eq("collection_id", collection.id);
+        lifelineIds = lifelines?.map((l) => l.id) || [];
+      }
+
+      let query = supabase
         .from("fan_contributions")
         .select(`
           *,
-          lifelines(title, slug)
+          lifelines(title, slug, collection_id)
         `)
         .eq("user_id", selectedContributor.user_id)
-        .eq("status", "approved")
-        .order("created_at", { ascending: false });
+        .eq("status", "approved");
+
+      if (lifelineIds && lifelineIds.length > 0) {
+        query = query.in("lifeline_id", lifelineIds);
+      }
+
+      const { data, error } = await query.order("created_at", { ascending: false });
 
       if (error) throw error;
       return data;
@@ -89,11 +146,13 @@ export default function TopContributors() {
     return "F";
   };
 
-  return (
-    <div className="container mx-auto px-4 py-8">
+  const content = (
+    <>
       <h1 className="text-4xl font-bold mb-8">Top Contributors</h1>
       <p className="text-lg text-muted-foreground mb-8">
-        Celebrating our community members who help make our lifelines better
+        {isCollectionContext
+          ? `Celebrating community members who contribute to ${collection?.title || "this collection"}`
+          : "Celebrating our community members who help make our lifelines better"}
       </p>
 
       {isLoading ? (
@@ -105,6 +164,11 @@ export default function TopContributors() {
               key={contributor.user_id}
               className="cursor-pointer hover:border-primary transition-colors"
               onClick={() => setSelectedContributor(contributor)}
+              style={
+                collection
+                  ? { borderColor: collection.primary_color || undefined }
+                  : undefined
+              }
             >
               <CardContent className="flex items-center gap-4 p-6">
                 <div className="text-3xl font-bold text-muted-foreground w-12">
@@ -128,7 +192,18 @@ export default function TopContributors() {
                     {contributor.count !== 1 ? "s" : ""}
                   </p>
                 </div>
-                <Badge variant="secondary" className="text-lg px-4 py-2">
+                <Badge
+                  variant="secondary"
+                  className="text-lg px-4 py-2"
+                  style={
+                    collection
+                      ? {
+                          backgroundColor: collection.collection_badge_color || undefined,
+                          color: collection.collection_text_color || undefined,
+                        }
+                      : undefined
+                  }
+                >
                   {contributor.count}
                 </Badge>
               </CardContent>
@@ -147,7 +222,9 @@ export default function TopContributors() {
               {getDisplayName(selectedContributor?.profile)}'s Contributions
             </DialogTitle>
             <DialogDescription>
-              All approved contributions from this user
+              {isCollectionContext
+                ? `Approved contributions to ${collection?.title || "this collection"}`
+                : "All approved contributions from this user"}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 mt-4">
@@ -170,6 +247,34 @@ export default function TopContributors() {
           </div>
         </DialogContent>
       </Dialog>
-    </div>
+    </>
   );
+
+  if (isCollectionContext && collection) {
+    return (
+      <CollectionLayout
+        collectionTitle={collection.title}
+        collectionSlug={collection.slug}
+        primaryColor={collection.primary_color}
+        secondaryColor={collection.secondary_color}
+        webPrimary={collection.web_primary}
+        webSecondary={collection.web_secondary}
+        menuTextColor={collection.menu_text_color}
+        menuHoverColor={collection.menu_hover_color}
+        menuActiveColor={collection.menu_active_color}
+        collectionBgColor={collection.collection_bg_color}
+        collectionTextColor={collection.collection_text_color}
+        collectionHeadingColor={collection.collection_heading_color}
+        collectionAccentColor={collection.collection_accent_color}
+        collectionCardBg={collection.collection_card_bg}
+        collectionBorderColor={collection.collection_border_color}
+        collectionMutedText={collection.collection_muted_text}
+        collectionBadgeColor={collection.collection_badge_color}
+      >
+        <div className="container mx-auto px-4 py-8">{content}</div>
+      </CollectionLayout>
+    );
+  }
+
+  return <div className="container mx-auto px-4 py-8">{content}</div>;
 }
