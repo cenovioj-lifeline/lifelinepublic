@@ -685,6 +685,7 @@ export default function LifelineEdit() {
                     onCancel={handleEntryCancel}
                     isSubmitting={saveEntryMutation.isPending}
                     isEditing={!!editingEntry}
+                    entryId={editingEntry?.id}
                   />
                 </CardContent>
               </Card>
