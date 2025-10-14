@@ -38,7 +38,7 @@ export default function FanContributions() {
           *,
           lifelines(title, slug),
           media_assets(*),
-          entries(title)
+          entries!fan_contributions_entry_ref_fkey(title)
         `)
         .order("created_at", { ascending: false });
 
