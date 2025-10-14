@@ -26,6 +26,7 @@ import { Switch } from "@/components/ui/switch";
 import { ArrowLeft } from "lucide-react";
 import { MediaPickerModal } from "@/components/MediaPickerModal";
 import { CollectionQuotesUpload } from "@/components/CollectionQuotesUpload";
+import { CollectionFeaturedProfiles } from "@/components/CollectionFeaturedProfiles";
 
 type CollectionForm = {
   title: string;
@@ -773,7 +774,10 @@ export default function CollectionEdit() {
           />
 
           {!isNew && collection && (
-            <CollectionQuotesUpload collectionId={collection.id} />
+            <>
+              <CollectionQuotesUpload collectionId={collection.id} />
+              <CollectionFeaturedProfiles collectionId={collection.id} />
+            </>
           )}
 
           <div className="flex gap-4">

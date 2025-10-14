@@ -25,6 +25,7 @@ import {
 import { ArrowLeft, Plus } from "lucide-react";
 import { MediaPickerModal } from "@/components/MediaPickerModal";
 import { EntryCard } from "@/components/EntryCard";
+import { Checkbox } from "@/components/ui/checkbox";
 import { EntryForm } from "@/components/EntryForm";
 import {
   AlertDialog,
@@ -52,6 +53,7 @@ type LifelineForm = {
   collection_id: string;
   cover_image_id: string;
   linked_profile_ids: string[];
+  is_featured: boolean;
 };
 
 export default function LifelineEdit() {
@@ -78,6 +80,7 @@ export default function LifelineEdit() {
       collection_id: "",
       cover_image_id: "",
       linked_profile_ids: [],
+      is_featured: false,
     },
   });
 
@@ -157,6 +160,7 @@ export default function LifelineEdit() {
         collection_id: lifeline.collection_id || "",
         cover_image_id: lifeline.cover_image_id || "",
         linked_profile_ids: linkedProfileIds,
+        is_featured: lifeline.is_featured || false,
       });
     }
   }, [lifeline, form]);
@@ -189,6 +193,7 @@ export default function LifelineEdit() {
         status: data.status,
         collection_id: data.collection_id || null,
         cover_image_id: data.cover_image_id || null,
+        is_featured: data.is_featured,
       };
       
       let lifelineId = id;
@@ -487,6 +492,29 @@ export default function LifelineEdit() {
                     </SelectContent>
                   </Select>
                   <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="is_featured"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                  <div className="space-y-1 leading-none">
+                    <FormLabel>
+                      Featured in Collection
+                    </FormLabel>
+                    <p className="text-sm text-muted-foreground">
+                      Display this lifeline in the featured section of the collection homepage
+                    </p>
+                  </div>
                 </FormItem>
               )}
             />

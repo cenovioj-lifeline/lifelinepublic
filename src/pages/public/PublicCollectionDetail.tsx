@@ -9,6 +9,7 @@ import { ArrowRight, Share2, Vote, Users, Settings } from "lucide-react";
 import { CollectionShareModal } from "@/components/CollectionShareModal";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 
 export default function PublicCollectionDetail() {
   const { slug } = useParams<{ slug: string }>();
@@ -99,8 +100,8 @@ export default function PublicCollectionDetail() {
         `)
         .eq("collection_id", collection.id)
         .eq("status", "published")
-        .order("created_at", { ascending: false })
-        .limit(3);
+        .eq("is_featured", true)
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
       return data;
@@ -125,9 +126,9 @@ export default function PublicCollectionDetail() {
           )
         `)
         .eq("collection_id", collection.id)
+        .eq("is_featured", true)
         .eq("profiles.status", "published")
-        .order("created_at", { ascending: false })
-        .limit(3);
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
       return data?.map(item => item.profiles).filter(Boolean);
@@ -329,41 +330,90 @@ export default function PublicCollectionDetail() {
                 View All <ArrowRight className="h-4 w-4" />
               </Link>
             </div>
-            <div className="grid gap-6 md:grid-cols-3">
-              {lifelines.map((lifeline) => (
-                <Link
-                  key={lifeline.id}
-                  to={`/public/collections/${collection.slug}/lifelines/${lifeline.slug}`}
-                  className="group"
-                >
-                  <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full">
-                    <div className="aspect-video relative bg-muted overflow-hidden">
-                      {lifeline.cover_image?.url ? (
-                        <img
-                          src={lifeline.cover_image.url}
-                          alt={lifeline.cover_image.alt_text || lifeline.title}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-                          No image
-                        </div>
-                      )}
-                    </div>
-                    <CardHeader>
-                      <CardTitle className="text-lg text-foreground transition-colors">
-                        {lifeline.title}
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-sm text-muted-foreground line-clamp-2">
-                        {lifeline.subtitle || lifeline.intro || "Explore this lifeline"}
-                      </p>
-                    </CardContent>
-                  </Card>
-                </Link>
-              ))}
-            </div>
+            {lifelines.length <= 3 ? (
+              <div className="grid gap-6 md:grid-cols-3">
+                {lifelines.map((lifeline) => (
+                  <Link
+                    key={lifeline.id}
+                    to={`/public/collections/${collection.slug}/lifelines/${lifeline.slug}`}
+                    className="group"
+                  >
+                    <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full">
+                      <div className="aspect-video relative bg-muted overflow-hidden">
+                        {lifeline.cover_image?.url ? (
+                          <img
+                            src={lifeline.cover_image.url}
+                            alt={lifeline.cover_image.alt_text || lifeline.title}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+                            No image
+                          </div>
+                        )}
+                      </div>
+                      <CardHeader>
+                        <CardTitle className="text-lg text-foreground transition-colors">
+                          {lifeline.title}
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-sm text-muted-foreground line-clamp-2">
+                          {lifeline.subtitle || lifeline.intro || "Explore this lifeline"}
+                        </p>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <Carousel
+                opts={{
+                  align: "start",
+                  loop: false,
+                }}
+                className="w-full"
+              >
+                <CarouselContent>
+                  {lifelines.map((lifeline) => (
+                    <CarouselItem key={lifeline.id} className="md:basis-1/2 lg:basis-1/3">
+                      <Link
+                        to={`/public/collections/${collection.slug}/lifelines/${lifeline.slug}`}
+                        className="group block h-full"
+                      >
+                        <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full">
+                          <div className="aspect-video relative bg-muted overflow-hidden">
+                            {lifeline.cover_image?.url ? (
+                              <img
+                                src={lifeline.cover_image.url}
+                                alt={lifeline.cover_image.alt_text || lifeline.title}
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+                                No image
+                              </div>
+                            )}
+                          </div>
+                          <CardHeader>
+                            <CardTitle className="text-lg text-foreground transition-colors">
+                              {lifeline.title}
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <p className="text-sm text-muted-foreground line-clamp-2">
+                              {lifeline.subtitle || lifeline.intro || "Explore this lifeline"}
+                            </p>
+                          </CardContent>
+                        </Card>
+                      </Link>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                <CarouselPrevious />
+                <CarouselNext />
+              </Carousel>
+            )}
           </section>
         )}
 
@@ -380,41 +430,90 @@ export default function PublicCollectionDetail() {
                 View All <ArrowRight className="h-4 w-4" />
               </Link>
             </div>
-            <div className="grid gap-6 md:grid-cols-3">
-              {profiles.map((profile: any) => (
-                <Link
-                  key={profile.id}
-                  to={`/public/collections/${collection.slug}/profiles/${profile.slug}`}
-                  className="group"
-                >
-                  <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full">
-                    <div className="aspect-video relative bg-muted overflow-hidden">
-                      {profile.avatar_image?.url ? (
-                        <img
-                          src={profile.avatar_image.url}
-                          alt={profile.avatar_image.alt_text || profile.display_name}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-                          No image
-                        </div>
-                      )}
-                    </div>
-                    <CardHeader>
-                      <CardTitle className="text-lg text-foreground transition-colors">
-                        {profile.display_name}
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-sm text-muted-foreground line-clamp-2">
-                        {profile.summary || "View this profile"}
-                      </p>
-                    </CardContent>
-                  </Card>
-                </Link>
-              ))}
-            </div>
+            {profiles.length <= 3 ? (
+              <div className="grid gap-6 md:grid-cols-3">
+                {profiles.map((profile: any) => (
+                  <Link
+                    key={profile.id}
+                    to={`/public/collections/${collection.slug}/profiles/${profile.slug}`}
+                    className="group"
+                  >
+                    <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full">
+                      <div className="aspect-video relative bg-muted overflow-hidden">
+                        {profile.avatar_image?.url ? (
+                          <img
+                            src={profile.avatar_image.url}
+                            alt={profile.avatar_image.alt_text || profile.display_name}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+                            No image
+                          </div>
+                        )}
+                      </div>
+                      <CardHeader>
+                        <CardTitle className="text-lg text-foreground transition-colors">
+                          {profile.display_name}
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-sm text-muted-foreground line-clamp-2">
+                          {profile.summary || "View this profile"}
+                        </p>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <Carousel
+                opts={{
+                  align: "start",
+                  loop: false,
+                }}
+                className="w-full"
+              >
+                <CarouselContent>
+                  {profiles.map((profile: any) => (
+                    <CarouselItem key={profile.id} className="md:basis-1/2 lg:basis-1/3">
+                      <Link
+                        to={`/public/collections/${collection.slug}/profiles/${profile.slug}`}
+                        className="group block h-full"
+                      >
+                        <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full">
+                          <div className="aspect-video relative bg-muted overflow-hidden">
+                            {profile.avatar_image?.url ? (
+                              <img
+                                src={profile.avatar_image.url}
+                                alt={profile.avatar_image.alt_text || profile.display_name}
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+                                No image
+                              </div>
+                            )}
+                          </div>
+                          <CardHeader>
+                            <CardTitle className="text-lg text-foreground transition-colors">
+                              {profile.display_name}
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <p className="text-sm text-muted-foreground line-clamp-2">
+                              {profile.summary || "View this profile"}
+                            </p>
+                          </CardContent>
+                        </Card>
+                      </Link>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                <CarouselPrevious />
+                <CarouselNext />
+              </Carousel>
+            )}
           </section>
         )}
       </div>

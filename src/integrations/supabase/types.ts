@@ -704,6 +704,7 @@ export type Database = {
           created_by: string | null
           id: string
           intro: string | null
+          is_featured: boolean | null
           lifeline_type: Database["public"]["Enums"]["lifeline_type"]
           profile_id: string | null
           slug: string
@@ -722,6 +723,7 @@ export type Database = {
           created_by?: string | null
           id?: string
           intro?: string | null
+          is_featured?: boolean | null
           lifeline_type?: Database["public"]["Enums"]["lifeline_type"]
           profile_id?: string | null
           slug: string
@@ -740,6 +742,7 @@ export type Database = {
           created_by?: string | null
           id?: string
           intro?: string | null
+          is_featured?: boolean | null
           lifeline_type?: Database["public"]["Enums"]["lifeline_type"]
           profile_id?: string | null
           slug?: string
@@ -886,6 +889,7 @@ export type Database = {
           collection_id: string
           created_at: string
           id: string
+          is_featured: boolean | null
           profile_id: string
           role_in_collection: string | null
         }
@@ -893,6 +897,7 @@ export type Database = {
           collection_id: string
           created_at?: string
           id?: string
+          is_featured?: boolean | null
           profile_id: string
           role_in_collection?: string | null
         }
@@ -900,6 +905,7 @@ export type Database = {
           collection_id?: string
           created_at?: string
           id?: string
+          is_featured?: boolean | null
           profile_id?: string
           role_in_collection?: string | null
         }
