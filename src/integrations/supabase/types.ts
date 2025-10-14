@@ -558,11 +558,14 @@ export type Database = {
       fan_contributions: {
         Row: {
           admin_message: string | null
+          contribution_type: string
           created_at: string | null
           description: string
           entry_id: string | null
+          entry_ref: string | null
           id: string
           lifeline_id: string
+          media_id: string | null
           reviewed_at: string | null
           reviewed_by: string | null
           score: number | null
@@ -572,11 +575,14 @@ export type Database = {
         }
         Insert: {
           admin_message?: string | null
+          contribution_type?: string
           created_at?: string | null
           description: string
           entry_id?: string | null
+          entry_ref?: string | null
           id?: string
           lifeline_id: string
+          media_id?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           score?: number | null
@@ -586,11 +592,14 @@ export type Database = {
         }
         Update: {
           admin_message?: string | null
+          contribution_type?: string
           created_at?: string | null
           description?: string
           entry_id?: string | null
+          entry_ref?: string | null
           id?: string
           lifeline_id?: string
+          media_id?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           score?: number | null
@@ -607,10 +616,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "fan_contributions_entry_ref_fkey"
+            columns: ["entry_ref"]
+            isOneToOne: false
+            referencedRelation: "entries"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "fan_contributions_lifeline_id_fkey"
             columns: ["lifeline_id"]
             isOneToOne: false
             referencedRelation: "lifelines"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fan_contributions_media_id_fkey"
+            columns: ["media_id"]
+            isOneToOne: false
+            referencedRelation: "media_assets"
             referencedColumns: ["id"]
           },
         ]

@@ -36,7 +36,9 @@ export default function FanContributions() {
         .from("fan_contributions")
         .select(`
           *,
-          lifelines(title, slug)
+          lifelines(title, slug),
+          media_assets(*),
+          entries(title)
         `)
         .order("created_at", { ascending: false });
 
@@ -74,24 +76,39 @@ export default function FanContributions() {
       const contribution = contributions?.find((c) => c.id === contributionId);
       if (!contribution) throw new Error("Contribution not found");
 
-      // If approving, create the entry
+      // If approving, handle based on contribution type
       let entryId = null;
       if (status === "approved") {
-        const { data: entry, error: entryError } = await supabase
-          .from("entries")
-          .insert({
-            lifeline_id: contribution.lifeline_id,
-            title: contribution.title,
-            score: contribution.score,
-            summary: contribution.description,
-            is_fan_contributed: true,
-            contributed_by_user_id: contribution.user_id,
-          })
-          .select()
-          .single();
+        if (contribution.contribution_type === "event") {
+          // Create new entry
+          const { data: entry, error: entryError } = await supabase
+            .from("entries")
+            .insert({
+              lifeline_id: contribution.lifeline_id,
+              title: contribution.title,
+              score: contribution.score,
+              summary: contribution.description,
+              is_fan_contributed: true,
+              contributed_by_user_id: contribution.user_id,
+            })
+            .select()
+            .single();
 
-        if (entryError) throw entryError;
-        entryId = entry.id;
+          if (entryError) throw entryError;
+          entryId = entry.id;
+        } else if (contribution.contribution_type === "image") {
+          // Add image to existing entry
+          const { error: mediaError } = await supabase
+            .from("entry_media")
+            .insert({
+              entry_id: contribution.entry_ref,
+              media_id: contribution.media_id,
+              order_index: 0,
+            });
+
+          if (mediaError) throw mediaError;
+          entryId = contribution.entry_ref;
+        }
       }
 
       // Update contribution status
@@ -152,9 +169,9 @@ export default function FanContributions() {
           <TableHeader>
             <TableRow>
               <TableHead>Contributor</TableHead>
+              <TableHead>Type</TableHead>
               <TableHead>Lifeline</TableHead>
-              <TableHead>Title</TableHead>
-              <TableHead>Score</TableHead>
+              <TableHead>Title/Event</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Submitted</TableHead>
               <TableHead className="w-[100px]">Actions</TableHead>
@@ -184,9 +201,17 @@ export default function FanContributions() {
                         }`.trim()
                       : "Anonymous User"}
                   </TableCell>
+                  <TableCell>
+                    <Badge variant="outline">
+                      {contribution.contribution_type === "image" ? "Image" : "Event"}
+                    </Badge>
+                  </TableCell>
                   <TableCell>{contribution.lifelines?.title}</TableCell>
-                  <TableCell>{contribution.title}</TableCell>
-                  <TableCell>{contribution.score || "—"}</TableCell>
+                  <TableCell>
+                    {contribution.contribution_type === "image" 
+                      ? contribution.entries?.title || "—"
+                      : contribution.title}
+                  </TableCell>
                   <TableCell>{getStatusBadge(contribution.status)}</TableCell>
                   <TableCell>
                     {new Date(contribution.created_at).toLocaleDateString()}
@@ -224,23 +249,50 @@ export default function FanContributions() {
           {selectedContribution && (
             <div className="space-y-4">
               <div>
+                <Label>Type</Label>
+                <p className="text-sm">
+                  {selectedContribution.contribution_type === "image" ? "Image Contribution" : "Event Contribution"}
+                </p>
+              </div>
+              <div>
                 <Label>Lifeline</Label>
                 <p className="text-sm">{selectedContribution.lifelines?.title}</p>
               </div>
-              <div>
-                <Label>Title</Label>
-                <p className="text-sm">{selectedContribution.title}</p>
-              </div>
-              <div>
-                <Label>Score</Label>
-                <p className="text-sm">{selectedContribution.score || "Not provided"}</p>
-              </div>
-              <div>
-                <Label>Description</Label>
-                <p className="text-sm whitespace-pre-wrap">
-                  {selectedContribution.description}
-                </p>
-              </div>
+              {selectedContribution.contribution_type === "event" ? (
+                <>
+                  <div>
+                    <Label>Title</Label>
+                    <p className="text-sm">{selectedContribution.title}</p>
+                  </div>
+                  <div>
+                    <Label>Score</Label>
+                    <p className="text-sm">{selectedContribution.score || "Not provided"}</p>
+                  </div>
+                  <div>
+                    <Label>Description</Label>
+                    <p className="text-sm whitespace-pre-wrap">
+                      {selectedContribution.description}
+                    </p>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div>
+                    <Label>Event</Label>
+                    <p className="text-sm">{selectedContribution.entries?.title}</p>
+                  </div>
+                  <div>
+                    <Label>Image</Label>
+                    {selectedContribution.media_assets && (
+                      <img
+                        src={selectedContribution.media_assets.url}
+                        alt={selectedContribution.media_assets.alt_text || "Contributed image"}
+                        className="mt-2 w-full max-h-64 object-contain rounded-lg border"
+                      />
+                    )}
+                  </div>
+                </>
+              )}
               <div>
                 <Label htmlFor="adminMessage">Message to User</Label>
                 <Textarea

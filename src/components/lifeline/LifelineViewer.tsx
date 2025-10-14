@@ -5,8 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { Plus, Star } from "lucide-react";
+import { Plus, Star, Image as ImageIcon } from "lucide-react";
 import { ContributeEventDialog } from "@/components/ContributeEventDialog";
+import { ContributeImageDialog } from "@/components/ContributeImageDialog";
 import { useAuth } from "@/lib/auth";
 import { PublicAuthModal } from "@/components/PublicAuthModal";
 import { Link } from "react-router-dom";
@@ -33,6 +34,7 @@ export function LifelineViewer({
   const { user } = useAuth();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [contributeDialogOpen, setContributeDialogOpen] = useState(false);
+  const [contributeImageDialogOpen, setContributeImageDialogOpen] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const selectionStyle: SelectionStyle = "glow"; // Always use glow
 
@@ -59,7 +61,7 @@ export function LifelineViewer({
     queryFn: async () => {
       const { data, error } = await supabase
         .from("entries")
-        .select("*")
+        .select("*, entry_media(media_id, order_index), media_assets!inner(*)")
         .eq("lifeline_id", lifelineId)
         .order("order_index");
 
@@ -77,12 +79,34 @@ export function LifelineViewer({
             .select("*")
             .in("user_id", userIds);
           
-          // Attach profiles to entries
+          // Get media assets for entries
+          const entryIds = data.map((e: any) => e.id);
+          const { data: entryMedia } = await supabase
+            .from("entry_media")
+            .select("*, media_assets(*)")
+            .in("entry_id", entryIds)
+            .order("order_index");
+          
+          // Attach profiles and media to entries
           return data.map((entry: any) => ({
             ...entry,
             user_profile: profiles?.find((p: any) => p.user_id === entry.contributed_by_user_id),
+            media: entryMedia?.filter((m: any) => m.entry_id === entry.id).map((m: any) => m.media_assets) || [],
           }));
         }
+        
+        // If no user profiles needed, still fetch media
+        const entryIds = data.map((e: any) => e.id);
+        const { data: entryMedia } = await supabase
+          .from("entry_media")
+          .select("*, media_assets(*)")
+          .in("entry_id", entryIds)
+          .order("order_index");
+        
+        return data.map((entry: any) => ({
+          ...entry,
+          media: entryMedia?.filter((m: any) => m.entry_id === entry.id).map((m: any) => m.media_assets) || [],
+        }));
       }
       
       return data;
@@ -291,12 +315,35 @@ export function LifelineViewer({
                 </div>
               </CardHeader>
               <CardContent className="space-y-4 py-6">
-                <h2 
-                  className="text-2xl font-bold"
-                  style={collectionHeadingColor ? { color: collectionHeadingColor } : undefined}
-                >
-                  {selected.title}
-                </h2>
+                {selected.media && selected.media.length > 0 && (
+                  <div className="mb-4">
+                    <img
+                      src={selected.media[0].url}
+                      alt={selected.media[0].alt_text || selected.title}
+                      className="w-full h-64 object-cover rounded-lg"
+                    />
+                  </div>
+                )}
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1">
+                    <h2 
+                      className="text-2xl font-bold"
+                      style={collectionHeadingColor ? { color: collectionHeadingColor } : undefined}
+                    >
+                      {selected.title}
+                    </h2>
+                  </div>
+                  {!selected.media || selected.media.length === 0 && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setContributeImageDialogOpen(true)}
+                    >
+                      <ImageIcon className="h-4 w-4 mr-2" />
+                      Add Image
+                    </Button>
+                  )}
+                </div>
                 <p 
                   className="leading-relaxed"
                   style={collectionTextColor ? { color: collectionTextColor } : undefined}
@@ -347,6 +394,18 @@ export function LifelineViewer({
         lifelineTitle={lifeline.title}
         onSignInRequired={() => {
           setContributeDialogOpen(false);
+          setTimeout(() => setShowAuthModal(true), 0);
+        }}
+      />
+
+      <ContributeImageDialog
+        open={contributeImageDialogOpen}
+        onOpenChange={setContributeImageDialogOpen}
+        entryId={selected?.id || ""}
+        entryTitle={selected?.title || ""}
+        lifelineId={lifelineId}
+        onSignInRequired={() => {
+          setContributeImageDialogOpen(false);
           setTimeout(() => setShowAuthModal(true), 0);
         }}
       />

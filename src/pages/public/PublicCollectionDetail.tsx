@@ -15,6 +15,8 @@ export default function PublicCollectionDetail() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [shareModalOpen, setShareModalOpen] = useState(false);
+  const [voteFlipped, setVoteFlipped] = useState(false);
+  const [followFlipped, setFollowFlipped] = useState(false);
 
   const { data: collection, isLoading: collectionLoading } = useQuery({
     queryKey: ["public-collection", slug],
@@ -228,20 +230,32 @@ export default function PublicCollectionDetail() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <Card
             style={{ borderColor: collection.primary_color || undefined }}
-            className="cursor-pointer hover:shadow-lg transition-shadow"
+            className="cursor-pointer hover:shadow-lg transition-all perspective-1000"
             onClick={() => {
-              toast({
-                title: "Coming Soon",
-                description: "Voting lifelines coming soon",
-              });
+              setVoteFlipped(true);
+              setTimeout(() => setVoteFlipped(false), 2000);
             }}
           >
-            <CardContent className="pt-6 text-center">
-              <Vote
-                className="h-8 w-8 mx-auto mb-2"
-                style={{ color: collection.primary_color || undefined }}
-              />
-              <div className="text-sm text-muted-foreground mt-1">Vote</div>
+            <CardContent 
+              className="relative pt-6 h-24 preserve-3d transition-transform duration-500"
+              style={{
+                transformStyle: 'preserve-3d',
+                transform: voteFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
+              }}
+            >
+              <div className="absolute inset-0 flex flex-col items-center justify-center backface-hidden pt-6">
+                <Vote
+                  className="h-8 w-8 mb-2"
+                  style={{ color: collection.primary_color || undefined }}
+                />
+                <div className="text-sm text-muted-foreground">Vote</div>
+              </div>
+              <div 
+                className="absolute inset-0 flex items-center justify-center backface-hidden text-center text-sm font-medium px-4"
+                style={{ transform: 'rotateY(180deg)' }}
+              >
+                Voting lifelines coming soon
+              </div>
             </CardContent>
           </Card>
           <Card
@@ -259,20 +273,32 @@ export default function PublicCollectionDetail() {
           </Card>
           <Card
             style={{ borderColor: collection.primary_color || undefined }}
-            className="cursor-pointer hover:shadow-lg transition-shadow"
+            className="cursor-pointer hover:shadow-lg transition-all perspective-1000"
             onClick={() => {
-              toast({
-                title: "Coming Soon",
-                description: "Following coming soon",
-              });
+              setFollowFlipped(true);
+              setTimeout(() => setFollowFlipped(false), 2000);
             }}
           >
-            <CardContent className="pt-6 text-center">
-              <Users
-                className="h-8 w-8 mx-auto mb-2"
-                style={{ color: collection.primary_color || undefined }}
-              />
-              <div className="text-sm text-muted-foreground mt-1">Following</div>
+            <CardContent 
+              className="relative pt-6 h-24 preserve-3d transition-transform duration-500"
+              style={{
+                transformStyle: 'preserve-3d',
+                transform: followFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
+              }}
+            >
+              <div className="absolute inset-0 flex flex-col items-center justify-center backface-hidden pt-6">
+                <Users
+                  className="h-8 w-8 mb-2"
+                  style={{ color: collection.primary_color || undefined }}
+                />
+                <div className="text-sm text-muted-foreground">Following</div>
+              </div>
+              <div 
+                className="absolute inset-0 flex items-center justify-center backface-hidden text-center text-sm font-medium px-4"
+                style={{ transform: 'rotateY(180deg)' }}
+              >
+                Following coming soon
+              </div>
             </CardContent>
           </Card>
           <Card
