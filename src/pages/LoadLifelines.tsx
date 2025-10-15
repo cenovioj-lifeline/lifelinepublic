@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
@@ -6,15 +7,30 @@ import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import * as XLSX from "xlsx";
 import { supabase } from "@/integrations/supabase/client";
 
-export default function LoadMadMenData() {
+export default function LoadLifelines() {
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [status, setStatus] = useState("");
   const [file, setFile] = useState<File | null>(null);
+  const [selectedCollectionId, setSelectedCollectionId] = useState<string>("");
   const { toast } = useToast();
+
+  const { data: collections } = useQuery({
+    queryKey: ["collections-for-load"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("collections")
+        .select("id, title, slug")
+        .order("title", { ascending: true });
+      
+      if (error) throw error;
+      return data;
+    },
+  });
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -27,6 +43,15 @@ export default function LoadMadMenData() {
       toast({
         title: "Error",
         description: "Please select an Excel file first",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!selectedCollectionId) {
+      toast({
+        title: "Error",
+        description: "Please select a collection",
         variant: "destructive",
       });
       return;
@@ -52,8 +77,6 @@ export default function LoadMadMenData() {
         subject: row.subject_name,
         type: (row.lifeline_type || "person").toLowerCase(),
         intro: row.Introduction || row.introduction,
-        subtitle: row.subtitle || null,
-        conclusion: row.conclusion || null,
       }));
 
       // Parse entries sheet (second sheet)
@@ -63,7 +86,7 @@ export default function LoadMadMenData() {
       const entriesJson = XLSX.utils.sheet_to_json(entriesSheet);
 
       const entries = entriesJson.map((row: any, index: number) => ({
-        lifeline_title: row.lifeline_title,
+        lifeline_title: row.Lifeline_title || row.lifeline_title,
         date: row.date || "",
         title: row.entry_title,
         details: row.description,
@@ -75,8 +98,12 @@ export default function LoadMadMenData() {
       setProgress(30);
 
       // Call the edge function
-      const { data: result, error } = await supabase.functions.invoke('load-mad-men-data', {
-        body: { lifelines, entries }
+      const { data: result, error } = await supabase.functions.invoke('load-lifelines-data', {
+        body: { 
+          lifelines, 
+          entries,
+          collectionId: selectedCollectionId
+        }
       });
 
       if (error) throw error;
@@ -114,19 +141,41 @@ export default function LoadMadMenData() {
     <div className="container mx-auto p-6">
       <Card>
         <CardHeader>
-          <CardTitle>Load Mad Men Data</CardTitle>
+          <CardTitle>Load Lifelines</CardTitle>
           <CardDescription>
-            Upload the Excel file with lifelines and entries to bulk load the data
+            Upload an Excel file with lifelines and entries to bulk load data into a collection
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <Alert>
             <AlertDescription>
-              The Excel file should have two sheets: one for lifelines and one for entries.
-              Make sure column names match: Lifeline_name, subject_name, lifeline_type, Introduction for lifelines sheet;
-              lifeline_title, date, entry_title, description, rating for entries sheet.
+              The Excel file should have two sheets:
+              <br />
+              <strong>Sheet 1 (Lifelines):</strong> Lifeline_name, subject_name, lifeline_type, Introduction
+              <br />
+              <strong>Sheet 2 (Entries):</strong> Lifeline_title, date, entry_title, description, rating
             </AlertDescription>
           </Alert>
+
+          <div className="space-y-2">
+            <Label htmlFor="collection">Select Collection</Label>
+            <Select
+              value={selectedCollectionId}
+              onValueChange={setSelectedCollectionId}
+              disabled={loading}
+            >
+              <SelectTrigger id="collection">
+                <SelectValue placeholder="Choose a collection" />
+              </SelectTrigger>
+              <SelectContent>
+                {collections?.map((collection) => (
+                  <SelectItem key={collection.id} value={collection.id}>
+                    {collection.title}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
           <div className="space-y-2">
             <Label htmlFor="excel-file">Excel File (.xlsx)</Label>
@@ -151,7 +200,7 @@ export default function LoadMadMenData() {
             </div>
           )}
 
-          <Button onClick={loadData} disabled={loading || !file}>
+          <Button onClick={loadData} disabled={loading || !file || !selectedCollectionId}>
             {loading ? "Loading..." : "Load Data"}
           </Button>
         </CardContent>

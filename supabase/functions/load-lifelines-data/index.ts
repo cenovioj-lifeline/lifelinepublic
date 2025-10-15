@@ -30,18 +30,25 @@ Deno.serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const { lifelines, entries } = await req.json();
+    const { lifelines, entries, collectionId } = await req.json();
 
-    // Get Mad Men collection
+    if (!collectionId) {
+      return new Response(
+        JSON.stringify({ error: 'Collection ID is required' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+      );
+    }
+
+    // Verify collection exists
     const { data: collection, error: collError } = await supabase
       .from('collections')
       .select('id')
-      .eq('slug', 'mad-men-complete')
+      .eq('id', collectionId)
       .single();
 
     if (collError || !collection) {
       return new Response(
-        JSON.stringify({ error: 'Mad Men collection not found' }),
+        JSON.stringify({ error: 'Collection not found' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 404 }
       );
     }
@@ -83,10 +90,8 @@ Deno.serve(async (req) => {
             lifeline_type: lifelineData.type,
             status: 'published',
             visibility: 'public',
-            collection_id: collection.id,
+            collection_id: collectionId,
             intro: lifelineData.intro,
-            subtitle: lifelineData.subtitle || null,
-            conclusion: lifelineData.conclusion || null,
           })
           .select('id')
           .single();
@@ -125,6 +130,7 @@ Deno.serve(async (req) => {
             score: entryData.score,
             occurred_on: occurredOn,
             order_index: entryData.order_index || 0,
+            collection_id: collectionId,
           });
 
         if (entryError) {
