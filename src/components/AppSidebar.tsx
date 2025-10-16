@@ -1,4 +1,4 @@
-import { Home, Folder, Activity, Users, Award, Tag, Image, LogOut, Settings, Heart } from "lucide-react";
+import { Home, Folder, Activity, Users, Award, Tag, Image, LogOut, Settings, Heart, Upload } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import {
   Sidebar,
@@ -30,6 +30,7 @@ const items = [
   { title: "Tags", url: "/tags", icon: Tag },
   { title: "Media", url: "/media", icon: Image },
   { title: "Fan Contributions", url: "/fan-contributions", icon: Heart },
+  { title: "Load Lifelines", url: "/load-lifelines", icon: Upload },
   { title: "Settings", url: "/settings", icon: Settings },
 ];
 
