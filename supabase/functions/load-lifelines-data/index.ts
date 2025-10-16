@@ -68,8 +68,12 @@ Deno.serve(async (req) => {
       lifelines_created: 0,
       lifelines_skipped: 0,
       entries_created: 0,
+      entries_skipped: 0,
       errors: [] as string[],
     };
+
+    console.log(`Starting import for collection ${collectionId}`);
+    console.log(`Processing ${lifelines.length} lifelines and ${entries.length} entries`);
 
     const lifelineMap = new Map<string, string>();
 
@@ -122,11 +126,28 @@ Deno.serve(async (req) => {
     }
 
     // Process entries
+    console.log(`Lifeline mapping:`, Object.fromEntries(lifelineMap));
+    
     for (const entryData of entries) {
       try {
         const lifelineId = lifelineMap.get(entryData.lifeline_title);
         if (!lifelineId) {
+          console.log(`Entry "${entryData.title}": Lifeline "${entryData.lifeline_title}" not found in map`);
           results.errors.push(`Entry "${entryData.title}": Lifeline not found`);
+          continue;
+        }
+
+        // Check for duplicate entry
+        const { data: existingEntry } = await supabase
+          .from('entries')
+          .select('id')
+          .eq('lifeline_id', lifelineId)
+          .eq('title', entryData.title)
+          .maybeSingle();
+
+        if (existingEntry) {
+          console.log(`Entry "${entryData.title}" already exists for lifeline "${entryData.lifeline_title}"`);
+          results.entries_skipped++;
           continue;
         }
 
@@ -145,15 +166,19 @@ Deno.serve(async (req) => {
           });
 
         if (entryError) {
+          console.log(`Entry insert error for "${entryData.title}":`, entryError);
           results.errors.push(`Entry "${entryData.title}": ${entryError.message}`);
           continue;
         }
 
         results.entries_created++;
       } catch (error: any) {
+        console.log(`Entry processing error for "${entryData.title}":`, error);
         results.errors.push(`Entry "${entryData.title}": ${error.message}`);
       }
     }
+
+    console.log('Import complete:', results);
 
     return new Response(
       JSON.stringify(results),

@@ -70,7 +70,30 @@ export default function LoadLifelines() {
       setStatus("Parsing lifelines...");
       setProgress(10);
       const lifelinesSheet = workbook.Sheets[workbook.SheetNames[0]];
-      const lifelinesJson = XLSX.utils.sheet_to_json(lifelinesSheet);
+      
+      // Parse with header detection for lifelines
+      let lifelinesJson;
+      const lifelinesRaw: any[] = XLSX.utils.sheet_to_json(lifelinesSheet, { header: 1 });
+      const lifelinesFirstRow = lifelinesRaw[0] || [];
+      const hasLifelinesHeaders = 
+        lifelinesFirstRow.some((cell: any) => 
+          typeof cell === 'string' && 
+          ['Lifeline_name', 'lifeline_name', 'subject_name', 'lifeline_type'].some(h => 
+            cell.toLowerCase().includes(h.toLowerCase())
+          )
+        );
+
+      if (hasLifelinesHeaders) {
+        lifelinesJson = XLSX.utils.sheet_to_json(lifelinesSheet);
+      } else {
+        // Map headerless data: [Lifeline_name, subject_name, lifeline_type, Introduction]
+        lifelinesJson = lifelinesRaw.map((row: any[]) => ({
+          Lifeline_name: row[0],
+          subject_name: row[1],
+          lifeline_type: row[2],
+          Introduction: row[3]
+        }));
+      }
 
       const lifelines = lifelinesJson.map((row: any) => ({
         title: row.Lifeline_name || row.lifeline_name,
@@ -83,7 +106,31 @@ export default function LoadLifelines() {
       setStatus("Parsing entries...");
       setProgress(20);
       const entriesSheet = workbook.Sheets[workbook.SheetNames[1]];
-      const entriesJson = XLSX.utils.sheet_to_json(entriesSheet);
+      
+      // Parse with header detection for entries
+      let entriesJson;
+      const entriesRaw: any[] = XLSX.utils.sheet_to_json(entriesSheet, { header: 1 });
+      const entriesFirstRow = entriesRaw[0] || [];
+      const hasEntriesHeaders = 
+        entriesFirstRow.some((cell: any) => 
+          typeof cell === 'string' && 
+          ['Lifeline_title', 'lifeline_title', 'entry_title', 'date'].some(h => 
+            cell.toLowerCase().includes(h.toLowerCase())
+          )
+        );
+
+      if (hasEntriesHeaders) {
+        entriesJson = XLSX.utils.sheet_to_json(entriesSheet);
+      } else {
+        // Map headerless data: [Lifeline_title, date, entry_title, description, rating]
+        entriesJson = entriesRaw.map((row: any[]) => ({
+          Lifeline_title: row[0],
+          date: row[1],
+          entry_title: row[2],
+          description: row[3],
+          rating: row[4]
+        }));
+      }
 
       const entries = entriesJson.map((row: any, index: number) => ({
         lifeline_title: row.Lifeline_title || row.lifeline_title,
@@ -111,10 +158,18 @@ export default function LoadLifelines() {
       setProgress(100);
       setStatus("Complete!");
 
-      toast({
-        title: "Success",
-        description: `Loaded ${result.lifelines_created} lifelines (${result.lifelines_skipped} skipped) and ${result.entries_created} entries`,
-      });
+      const parts = [];
+      if (result.lifelines_created > 0) parts.push(`${result.lifelines_created} lifelines created`);
+      if (result.lifelines_skipped > 0) parts.push(`${result.lifelines_skipped} lifelines skipped`);
+      if (result.entries_created > 0) parts.push(`${result.entries_created} entries created`);
+      if (result.entries_skipped > 0) parts.push(`${result.entries_skipped} entries skipped`);
+      
+      if (parts.length > 0) {
+        toast({
+          title: "Success",
+          description: parts.join(', '),
+        });
+      }
 
       if (result.errors && result.errors.length > 0) {
         console.error("Errors during load:", result.errors);
