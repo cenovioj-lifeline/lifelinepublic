@@ -48,7 +48,7 @@ type LifelineForm = {
   intro: string;
   conclusion: string;
   visibility: "public" | "private" | "unlisted";
-  lifeline_type: "person" | "list" | "voting";
+  lifeline_type: "person" | "list" | "voting" | "event";
   status: "draft" | "published";
   collection_id: string;
   cover_image_id: string;

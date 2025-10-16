@@ -8,10 +8,21 @@ const generateSlug = (title: string): string => {
     .replace(/(^-|-$)/g, '');
 };
 
-const parseFlexibleDate = (dateStr: string): string | null => {
+const parseFlexibleDate = (dateStr: any): string | null => {
   if (!dateStr || dateStr === '-') return null;
   
-  const cleaned = dateStr.trim();
+  // Handle Excel numeric dates (days since 1900-01-01)
+  if (typeof dateStr === 'number') {
+    const excelEpoch = new Date(1900, 0, 1);
+    const date = new Date(excelEpoch.getTime() + (dateStr - 2) * 24 * 60 * 60 * 1000);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+  
+  // Handle string dates
+  const cleaned = String(dateStr).trim();
   
   if (/^\d{4}-\d{2}-\d{2}$/.test(cleaned)) return cleaned;
   if (/^\d{4}-\d{2}$/.test(cleaned)) return `${cleaned}-01`;

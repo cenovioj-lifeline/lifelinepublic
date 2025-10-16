@@ -40,7 +40,7 @@ type EntryFormData = {
 };
 
 interface EntryFormProps {
-  lifelineType: "person" | "list" | "voting";
+  lifelineType: "person" | "list" | "voting" | "event";
   defaultValues?: Partial<EntryFormData>;
   onSubmit: (data: EntryFormData) => void;
   onCancel: () => void;

@@ -151,9 +151,9 @@ export default function LoadLifelines() {
             <AlertDescription>
               The Excel file should have two sheets:
               <br />
-              <strong>Sheet 1 (Lifelines):</strong> Lifeline_name, subject_name, lifeline_type, Introduction
+              <strong>Sheet 1 (Lifelines):</strong> Lifeline_name, subject_name, lifeline_type (person/event/list/voting), Introduction
               <br />
-              <strong>Sheet 2 (Entries):</strong> Lifeline_title, date, entry_title, description, rating
+              <strong>Sheet 2 (Entries):</strong> Lifeline_title, date (YYYY-MM-DD or numeric), entry_title, description, rating
             </AlertDescription>
           </Alert>
 
