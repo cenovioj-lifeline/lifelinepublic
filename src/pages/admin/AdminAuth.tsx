@@ -12,6 +12,7 @@ export default function AdminAuth() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [resetMode, setResetMode] = useState(false);
   const { signIn, user } = useAuth();
   const navigate = useNavigate();
 
@@ -58,17 +59,43 @@ export default function AdminAuth() {
     // checkAdminAccess will run via useEffect after successful sign in
   };
 
+  const handlePasswordReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!email) {
+      toast.error("Please enter your email address");
+      return;
+    }
+
+    setLoading(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/admin/login`,
+    });
+    
+    if (error) {
+      toast.error(error.message || "Failed to send reset email");
+    } else {
+      toast.success("Password reset email sent! Check your inbox.");
+      setResetMode(false);
+    }
+    setLoading(false);
+  };
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold">Admin Access</CardTitle>
+          <CardTitle className="text-2xl font-bold">
+            {resetMode ? "Reset Password" : "Admin Access"}
+          </CardTitle>
           <CardDescription>
-            Sign in with your admin credentials
+            {resetMode 
+              ? "Enter your email to receive a password reset link" 
+              : "Sign in with your admin credentials"}
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSignIn} className="space-y-4">
+          <form onSubmit={resetMode ? handlePasswordReset : handleSignIn} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -80,18 +107,34 @@ export default function AdminAuth() {
                 disabled={loading}
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                disabled={loading}
-              />
-            </div>
+            {!resetMode && (
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  disabled={loading}
+                />
+              </div>
+            )}
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Signing in..." : "Sign In"}
+              {loading 
+                ? (resetMode ? "Sending..." : "Signing in...") 
+                : (resetMode ? "Send Reset Link" : "Sign In")}
+            </Button>
+            <Button
+              type="button"
+              variant="link"
+              className="w-full"
+              onClick={() => {
+                setResetMode(!resetMode);
+                setPassword("");
+              }}
+              disabled={loading}
+            >
+              {resetMode ? "Back to Sign In" : "Forgot Password?"}
             </Button>
           </form>
         </CardContent>
