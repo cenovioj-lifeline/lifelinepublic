@@ -13,15 +13,28 @@ export default function AdminAuth() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [resetMode, setResetMode] = useState(false);
+  const [isRecovery, setIsRecovery] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const { signIn, user } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (user) {
+    // Check if this is a password recovery link
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    const type = hashParams.get('type');
+    
+    if (type === 'recovery') {
+      setIsRecovery(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (user && !isRecovery) {
       // Check if user has admin access
       checkAdminAccess();
     }
-  }, [user, navigate]);
+  }, [user, navigate, isRecovery]);
 
   const checkAdminAccess = async () => {
     if (!user) return;
@@ -81,62 +94,130 @@ export default function AdminAuth() {
     setLoading(false);
   };
 
+  const handleSetNewPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!newPassword || !confirmPassword) {
+      toast.error("Please fill in both password fields");
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      toast.error("Passwords don't match");
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      toast.error("Password must be at least 6 characters");
+      return;
+    }
+
+    setLoading(true);
+    const { error } = await supabase.auth.updateUser({
+      password: newPassword
+    });
+    
+    if (error) {
+      toast.error(error.message || "Failed to update password");
+      setLoading(false);
+    } else {
+      toast.success("Password updated successfully! Please sign in.");
+      setIsRecovery(false);
+      setNewPassword("");
+      setConfirmPassword("");
+      window.location.hash = "";
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold">
-            {resetMode ? "Reset Password" : "Admin Access"}
+            {isRecovery ? "Set New Password" : resetMode ? "Reset Password" : "Admin Access"}
           </CardTitle>
           <CardDescription>
-            {resetMode 
+            {isRecovery 
+              ? "Enter your new password below"
+              : resetMode 
               ? "Enter your email to receive a password reset link" 
               : "Sign in with your admin credentials"}
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={resetMode ? handlePasswordReset : handleSignIn} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="admin@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                disabled={loading}
-              />
-            </div>
-            {!resetMode && (
+          {isRecovery ? (
+            <form onSubmit={handleSetNewPassword} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="new-password">New Password</Label>
                 <Input
-                  id="password"
+                  id="new-password"
                   type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  disabled={loading}
+                  minLength={6}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="confirm-password">Confirm Password</Label>
+                <Input
+                  id="confirm-password"
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  disabled={loading}
+                  minLength={6}
+                />
+              </div>
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? "Updating..." : "Set New Password"}
+              </Button>
+            </form>
+          ) : (
+            <form onSubmit={resetMode ? handlePasswordReset : handleSignIn} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="admin@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   disabled={loading}
                 />
               </div>
-            )}
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading 
-                ? (resetMode ? "Sending..." : "Signing in...") 
-                : (resetMode ? "Send Reset Link" : "Sign In")}
-            </Button>
-            <Button
-              type="button"
-              variant="link"
-              className="w-full"
-              onClick={() => {
-                setResetMode(!resetMode);
-                setPassword("");
-              }}
-              disabled={loading}
-            >
-              {resetMode ? "Back to Sign In" : "Forgot Password?"}
-            </Button>
-          </form>
+              {!resetMode && (
+                <div className="space-y-2">
+                  <Label htmlFor="password">Password</Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    disabled={loading}
+                  />
+                </div>
+              )}
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading 
+                  ? (resetMode ? "Sending..." : "Signing in...") 
+                  : (resetMode ? "Send Reset Link" : "Sign In")}
+              </Button>
+              <Button
+                type="button"
+                variant="link"
+                className="w-full"
+                onClick={() => {
+                  setResetMode(!resetMode);
+                  setPassword("");
+                }}
+                disabled={loading}
+              >
+                {resetMode ? "Back to Sign In" : "Forgot Password?"}
+              </Button>
+            </form>
+          )}
         </CardContent>
       </Card>
     </div>
