@@ -591,6 +591,7 @@ export default function LifelineEdit() {
                       y: form.watch("cover_image_position_y"),
                     }}
                     label="Upload Cover Image"
+                    viewType="card"
                   />
                   <FormMessage />
                 </FormItem>

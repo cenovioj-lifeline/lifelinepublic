@@ -50,7 +50,7 @@ export function ImagePositionPicker({
           <div className="space-y-4">
             {(viewType === "banner" || viewType === "both") && (
               <div>
-                <p className="text-xs text-muted-foreground mb-2">Collection Banner (3:1 ratio):</p>
+                <p className="text-xs text-muted-foreground mb-2">Banner View (3:1 ratio):</p>
                 <div className="relative w-full aspect-[3/1] rounded-lg overflow-hidden border-2 border-primary">
                   <img
                     src={imageUrl}
@@ -70,7 +70,7 @@ export function ImagePositionPicker({
             
             {(viewType === "card" || viewType === "both") && (
               <div>
-                <p className="text-xs text-muted-foreground mb-2">Collection Card (16:9 ratio):</p>
+                <p className="text-xs text-muted-foreground mb-2">Card View (16:9 ratio):</p>
                 <div className="relative w-full max-w-md aspect-video rounded-lg overflow-hidden border-2 border-primary">
                   <img
                     src={imageUrl}

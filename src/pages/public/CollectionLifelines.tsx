@@ -53,10 +53,10 @@ export default function CollectionLifelines() {
         .from("lifelines")
         .select(`
           *,
-          cover_image:media_assets!lifelines_cover_image_id_fkey(url, alt_text),
           profile:profiles!lifelines_profile_id_fkey(
             display_name,
-            avatar_image:media_assets!profiles_avatar_image_id_fkey(url, alt_text)
+            avatar_image_url,
+            avatar_image_path
           )
         `)
         .eq("collection_id", collection.id)
@@ -79,13 +79,13 @@ export default function CollectionLifelines() {
             return { ...lifeline, hasImages: false, imagePercentage: 0 };
           }
 
-          const { data: entriesWithMedia } = await supabase
-            .from("entry_media")
+          const { data: entriesWithImages } = await supabase
+            .from("entry_images")
             .select("entry_id")
             .in("entry_id", entries?.map((e) => e.id) || []);
 
-          const uniqueEntriesWithMedia = new Set(entriesWithMedia?.map((em) => em.entry_id) || []);
-          const entriesWithImagesCount = uniqueEntriesWithMedia.size;
+          const uniqueEntriesWithImages = new Set(entriesWithImages?.map((ei) => ei.entry_id) || []);
+          const entriesWithImagesCount = uniqueEntriesWithImages.size;
           const imagePercentage = (entriesWithImagesCount / totalEntries) * 100;
 
           return {
@@ -303,10 +303,10 @@ export default function CollectionLifelines() {
                     <FavoriteButton itemId={lifeline.id} itemType="lifeline" />
                   </div>
                   <div className="aspect-video relative bg-muted overflow-hidden">
-                    {lifeline.cover_image?.url ? (
+                    {lifeline.cover_image_url ? (
                       <img
-                        src={lifeline.cover_image.url}
-                        alt={lifeline.cover_image.alt_text || lifeline.title}
+                        src={lifeline.cover_image_url}
+                        alt={lifeline.title}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                         style={{
                           objectPosition: `${lifeline.cover_image_position_x ?? 50}% ${lifeline.cover_image_position_y ?? 50}%`

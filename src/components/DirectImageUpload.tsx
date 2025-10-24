@@ -14,6 +14,7 @@ interface DirectImageUploadProps {
   initialPosition?: { x: number; y: number };
   className?: string;
   label?: string;
+  viewType?: "banner" | "card" | "both";
 }
 
 export function DirectImageUpload({
@@ -25,6 +26,7 @@ export function DirectImageUpload({
   initialPosition = { x: 50, y: 50 },
   className = "",
   label = "Upload Image",
+  viewType = "both",
 }: DirectImageUploadProps) {
   const [uploading, setUploading] = useState(false);
   const [showPositionPicker, setShowPositionPicker] = useState(false);
@@ -167,6 +169,7 @@ export function DirectImageUpload({
           onPositionChange={onPositionChange}
           open={showPositionPicker}
           onOpenChange={setShowPositionPicker}
+          viewType={viewType}
         />
       )}
     </div>
