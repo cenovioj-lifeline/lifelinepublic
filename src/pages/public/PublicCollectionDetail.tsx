@@ -370,7 +370,7 @@ export default function PublicCollectionDetail() {
                             alt={lifeline.cover_image.alt_text || lifeline.title}
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                             style={{
-                              objectPosition: `${lifeline.cover_image.position_x ?? 50}% ${lifeline.cover_image.position_y ?? 50}%`
+                              objectPosition: `${lifeline.cover_image_position_x ?? 50}% ${lifeline.cover_image_position_y ?? 50}%`
                             }}
                           />
                         ) : (
@@ -419,7 +419,7 @@ export default function PublicCollectionDetail() {
                                 alt={lifeline.cover_image.alt_text || lifeline.title}
                                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                                 style={{
-                                  objectPosition: `${lifeline.cover_image.position_x ?? 50}% ${lifeline.cover_image.position_y ?? 50}%`
+                                  objectPosition: `${lifeline.cover_image_position_x ?? 50}% ${lifeline.cover_image_position_y ?? 50}%`
                                 }}
                               />
                             ) : (
