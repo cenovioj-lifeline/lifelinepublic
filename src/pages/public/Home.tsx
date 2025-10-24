@@ -2,11 +2,16 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { StandardizedContentCard } from "@/components/StandardizedContentCard";
 import { Card, CardContent } from "@/components/ui/card";
-import { Rss, Users, Share2, Settings } from "lucide-react";
+import { Rss, FileQuestion, Share2, Settings } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { RequestLifelineDialog } from "@/components/RequestLifelineDialog";
+import { useState } from "react";
 
 export default function Home() {
+  const navigate = useNavigate();
+  const [requestDialogOpen, setRequestDialogOpen] = useState(false);
+  
   const { data: homeSettings } = useQuery({
     queryKey: ["home-settings"],
     queryFn: async () => {
@@ -140,7 +145,7 @@ export default function Home() {
 
   const quickActionCards = [
     { icon: Rss, label: "Feed", path: "/public/feed" },
-    { icon: Users, label: "Following", path: "/public/following" },
+    { icon: FileQuestion, label: "Request", onClick: () => setRequestDialogOpen(true) },
     { icon: Share2, label: "Share", path: "/public/share" },
     { icon: Settings, label: "Settings", path: "/public/settings" },
   ];
@@ -178,8 +183,24 @@ export default function Home() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {quickActionCards.map((action) => {
           const Icon = action.icon;
+          
+          if (action.onClick) {
+            return (
+              <Card
+                key={action.label}
+                className="hover:shadow-md transition-shadow cursor-pointer h-full"
+                onClick={action.onClick}
+              >
+                <CardContent className="flex flex-col items-center justify-center p-6 gap-2">
+                  <Icon className="h-8 w-8 text-muted-foreground" />
+                  <span className="text-sm font-medium">{action.label}</span>
+                </CardContent>
+              </Card>
+            );
+          }
+          
           return (
-            <Link key={action.label} to={action.path}>
+            <Link key={action.label} to={action.path!}>
               <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
                 <CardContent className="flex flex-col items-center justify-center p-6 gap-2">
                   <Icon className="h-8 w-8 text-muted-foreground" />
@@ -190,6 +211,15 @@ export default function Home() {
           );
         })}
       </div>
+      
+      <RequestLifelineDialog
+        open={requestDialogOpen}
+        onOpenChange={setRequestDialogOpen}
+        onSignInRequired={() => {
+          setRequestDialogOpen(false);
+          navigate("/auth");
+        }}
+      />
 
       {/* Featured Section */}
       <section>

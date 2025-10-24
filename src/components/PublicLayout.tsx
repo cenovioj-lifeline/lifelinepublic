@@ -5,6 +5,7 @@ import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { PublicAuthModal } from "@/components/PublicAuthModal";
 import { PublicUserMenu } from "@/components/PublicUserMenu";
+import { NotificationBell } from "@/components/NotificationBell";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
 import logo from "@/assets/logo.png";
@@ -69,7 +70,10 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
                   <span>LP</span>
                 </Link>
                 {user ? (
-                  <PublicUserMenu />
+                  <>
+                    <NotificationBell />
+                    <PublicUserMenu />
+                  </>
                 ) : (
                   <Button 
                     variant="outline" 

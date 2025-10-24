@@ -238,6 +238,9 @@ export default function PublicCollectionDetail() {
                 className="w-full h-full object-cover"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+              <div className="absolute top-4 right-4 z-10">
+                <FavoriteButton itemId={collection.id} itemType="collection" className="bg-white/80 hover:bg-white" />
+              </div>
               <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8 text-white">
                 <h1 className="text-3xl md:text-5xl font-bold mb-2">
                   {collection.title}
@@ -293,17 +296,28 @@ export default function PublicCollectionDetail() {
           </Card>
           <Card
             style={{ borderColor: collection.primary_color || undefined }}
-            className="cursor-pointer hover:shadow-lg transition-shadow"
+            className="relative cursor-pointer hover:shadow-lg transition-shadow"
           >
+            <div className="absolute top-2 right-2 z-10">
+              <FavoriteButton itemId={collection.id} itemType="collection" className="bg-white/80 hover:bg-white" />
+            </div>
             <CardContent className="pt-6 text-center">
               <Heart
                 className="h-8 w-8 mx-auto mb-2"
                 style={{ color: collection.primary_color || undefined }}
               />
-              <div className="text-2xl font-bold mb-1">
+              <div 
+                className="text-2xl font-bold mb-1"
+                style={{ color: collection.primary_color || undefined }}
+              >
                 {fanCount || 0}
               </div>
-              <div className="text-sm text-muted-foreground">Fans</div>
+              <div 
+                className="text-sm"
+                style={{ color: collection.primary_color || undefined }}
+              >
+                Fans
+              </div>
             </CardContent>
           </Card>
           <Card

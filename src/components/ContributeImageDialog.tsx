@@ -13,7 +13,8 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { uploadImage, createMediaAsset, getImageDimensions } from "@/lib/storage";
-import { Upload, X } from "lucide-react";
+import { Upload, X, Trophy } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface ContributeImageDialogProps {
   open: boolean;
@@ -142,6 +143,13 @@ export function ContributeImageDialog({
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
+          <Alert>
+            <Trophy className="h-4 w-4" />
+            <AlertDescription>
+              We will be creating a Hall of Fame to showcase our most prolific contributors!
+            </AlertDescription>
+          </Alert>
+          
           <div>
             <Label htmlFor="image">Select Image *</Label>
             {!previewUrl ? (

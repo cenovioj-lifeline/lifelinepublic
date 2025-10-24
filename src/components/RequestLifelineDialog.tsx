@@ -10,34 +10,26 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Trophy } from "lucide-react";
 
-interface ContributeEventDialogProps {
+interface RequestLifelineDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  lifelineId: string;
-  lifelineTitle: string;
   onSignInRequired: () => void;
 }
 
-export function ContributeEventDialog({
+export function RequestLifelineDialog({
   open,
   onOpenChange,
-  lifelineId,
-  lifelineTitle,
   onSignInRequired,
-}: ContributeEventDialogProps) {
+}: RequestLifelineDialogProps) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const [title, setTitle] = useState("");
-  const [score, setScore] = useState("");
-  const [description, setDescription] = useState("");
+  const [requestDetails, setRequestDetails] = useState("");
 
   const submitMutation = useMutation({
     mutationFn: async () => {
@@ -46,27 +38,23 @@ export function ContributeEventDialog({
         throw new Error("Not authenticated");
       }
 
-      const { error } = await supabase.from("fan_contributions").insert({
+      const { error } = await supabase.from("user_requests").insert({
         user_id: user.id,
-        lifeline_id: lifelineId,
-        title,
-        score: score ? parseInt(score) : null,
-        description,
+        request_type: "lifeline_collection",
+        request_details: requestDetails,
       });
 
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["user-contributions"] });
-      toast.success("Contribution submitted for review!");
-      setTitle("");
-      setScore("");
-      setDescription("");
+      queryClient.invalidateQueries({ queryKey: ["user-requests"] });
+      toast.success("Request submitted successfully! We'll email you when it's complete.");
+      setRequestDetails("");
       onOpenChange(false);
     },
     onError: (error) => {
       if (error.message !== "Not authenticated") {
-        toast.error("Failed to submit contribution");
+        toast.error("Failed to submit request");
       }
     },
   });
@@ -78,12 +66,12 @@ export function ContributeEventDialog({
           <DialogHeader>
             <DialogTitle>Sign In Required</DialogTitle>
             <DialogDescription>
-              You need to create a free account to submit events to lifelines.
+              You need to create a free account to submit requests.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              Create an account to contribute to {lifelineTitle} and other lifelines.
+              Create an account to request new lifelines and collections.
             </p>
             <Button onClick={onSignInRequired} className="w-full">
               Sign In / Create Account
@@ -98,10 +86,9 @@ export function ContributeEventDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Contribute a New Event</DialogTitle>
+          <DialogTitle>Request a Lifeline or Collection</DialogTitle>
           <DialogDescription>
-            Submit a new event for {lifelineTitle}. Your contribution will be reviewed by
-            our team.
+            Would you like to request a lifeline or collection be created for your favorite public figure? Fictional or real. Let us know what you would like to see. If we are able to make it happen we will email you back when it is complete.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
@@ -113,37 +100,12 @@ export function ContributeEventDialog({
           </Alert>
           
           <div>
-            <Label htmlFor="title">Event Title *</Label>
-            <Input
-              id="title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Enter event title"
-              required
-            />
-          </div>
-          <div>
-            <Label htmlFor="score">Rating (optional)</Label>
-            <Select value={score} onValueChange={setScore}>
-              <SelectTrigger id="score">
-                <SelectValue placeholder="Select a rating" />
-              </SelectTrigger>
-              <SelectContent>
-                {Array.from({ length: 21 }, (_, i) => i - 10).map((value) => (
-                  <SelectItem key={value} value={value.toString()}>
-                    {value > 0 ? `+${value}` : value}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <Label htmlFor="description">Description *</Label>
+            <Label htmlFor="requestDetails">Your Request *</Label>
             <Textarea
-              id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Describe the event..."
+              id="requestDetails"
+              value={requestDetails}
+              onChange={(e) => setRequestDetails(e.target.value)}
+              placeholder="Tell us about the lifeline or collection you'd like to see..."
               rows={5}
               required
             />
@@ -154,9 +116,9 @@ export function ContributeEventDialog({
             </Button>
             <Button
               onClick={() => submitMutation.mutate()}
-              disabled={!title || !description || submitMutation.isPending}
+              disabled={!requestDetails.trim() || submitMutation.isPending}
             >
-              {submitMutation.isPending ? "Submitting..." : "Submit Contribution"}
+              {submitMutation.isPending ? "Submitting..." : "Submit Request"}
             </Button>
           </div>
         </div>

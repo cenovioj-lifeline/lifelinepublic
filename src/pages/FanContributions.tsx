@@ -123,6 +123,24 @@ export default function FanContributions() {
         .eq("id", contributionId);
 
       if (updateError) throw updateError;
+
+      // Create notification for user
+      const notificationMessage = status === "approved"
+        ? `Great news! Your ${contribution.contribution_type === "image" ? "image" : "event"} contribution has been approved and is now live!`
+        : `Your ${contribution.contribution_type === "image" ? "image" : "event"} contribution has been reviewed. ${message || "Thank you for your submission."}`;
+
+      const { error: notificationError } = await supabase
+        .from("notifications")
+        .insert({
+          user_id: contribution.user_id,
+          type: "contribution_review",
+          title: status === "approved" ? "Contribution Approved!" : "Contribution Update",
+          message: notificationMessage,
+          related_id: contributionId,
+          related_type: "fan_contribution",
+        });
+
+      if (notificationError) console.error("Failed to create notification:", notificationError);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["fan-contributions-admin"] });

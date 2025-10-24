@@ -51,6 +51,7 @@ import CollectionMore from "./pages/public/CollectionMore";
 import HomeManager from "./pages/HomeManager";
 import PublicLifelinesGrid from "./pages/public/PublicLifelinesGrid";
 import PublicCollectionsGrid from "./pages/public/PublicCollectionsGrid";
+import UserRequests from "./pages/UserRequests";
 
 const queryClient = new QueryClient();
 
@@ -277,6 +278,16 @@ function AppContent() {
                 <ProtectedRoute>
                   <AdminLayout>
                     <FanContributions />
+                  </AdminLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/user-requests"
+              element={
+                <ProtectedRoute>
+                  <AdminLayout>
+                    <UserRequests />
                   </AdminLayout>
                 </ProtectedRoute>
               }
