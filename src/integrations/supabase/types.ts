@@ -810,6 +810,8 @@ export type Database = {
           collection_id: string | null
           conclusion: string | null
           cover_image_id: string | null
+          cover_image_position_x: number | null
+          cover_image_position_y: number | null
           created_at: string
           created_by: string | null
           id: string
@@ -829,6 +831,8 @@ export type Database = {
           collection_id?: string | null
           conclusion?: string | null
           cover_image_id?: string | null
+          cover_image_position_x?: number | null
+          cover_image_position_y?: number | null
           created_at?: string
           created_by?: string | null
           id?: string
@@ -848,6 +852,8 @@ export type Database = {
           collection_id?: string | null
           conclusion?: string | null
           cover_image_id?: string | null
+          cover_image_position_x?: number | null
+          cover_image_position_y?: number | null
           created_at?: string
           created_by?: string | null
           id?: string

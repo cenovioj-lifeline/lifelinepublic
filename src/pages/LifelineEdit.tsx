@@ -22,8 +22,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ArrowLeft, Plus } from "lucide-react";
+import { ArrowLeft, Plus, X } from "lucide-react";
 import { MediaPickerModal } from "@/components/MediaPickerModal";
+import { ImagePositionPicker } from "@/components/ImagePositionPicker";
 import { EntryCard } from "@/components/EntryCard";
 import { Checkbox } from "@/components/ui/checkbox";
 import { EntryForm } from "@/components/EntryForm";
@@ -52,6 +53,8 @@ type LifelineForm = {
   status: "draft" | "published";
   collection_id: string;
   cover_image_id: string;
+  cover_image_position_x: number;
+  cover_image_position_y: number;
   linked_profile_ids: string[];
   is_featured: boolean;
 };
@@ -65,6 +68,7 @@ export default function LifelineEdit() {
   const [showEntryForm, setShowEntryForm] = useState(false);
   const [editingEntry, setEditingEntry] = useState<any>(null);
   const [deletingEntryId, setDeletingEntryId] = useState<string | null>(null);
+  const [showCoverPositionPicker, setShowCoverPositionPicker] = useState(false);
 
   const form = useForm<LifelineForm>({
     defaultValues: {
@@ -79,6 +83,8 @@ export default function LifelineEdit() {
       status: "draft",
       collection_id: "",
       cover_image_id: "",
+      cover_image_position_x: 50,
+      cover_image_position_y: 50,
       linked_profile_ids: [],
       is_featured: false,
     },
@@ -92,7 +98,8 @@ export default function LifelineEdit() {
         .from("lifelines")
         .select(`
           *,
-          profile_lifelines(profile_id)
+          profile_lifelines(profile_id),
+          cover_image:media_assets!lifelines_cover_image_id_fkey(url)
         `)
         .eq("id", id)
         .maybeSingle();
@@ -159,6 +166,8 @@ export default function LifelineEdit() {
         status: lifeline.status,
         collection_id: lifeline.collection_id || "",
         cover_image_id: lifeline.cover_image_id || "",
+        cover_image_position_x: lifeline.cover_image_position_x || 50,
+        cover_image_position_y: lifeline.cover_image_position_y || 50,
         linked_profile_ids: linkedProfileIds,
         is_featured: lifeline.is_featured || false,
       });
@@ -193,6 +202,8 @@ export default function LifelineEdit() {
         status: data.status,
         collection_id: data.collection_id || null,
         cover_image_id: data.cover_image_id || null,
+        cover_image_position_x: data.cover_image_position_x,
+        cover_image_position_y: data.cover_image_position_y,
         is_featured: data.is_featured,
       };
       
@@ -525,13 +536,52 @@ export default function LifelineEdit() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Cover Image (Optional)</FormLabel>
-                  <FormControl>
-                    <MediaPickerModal
-                      value={field.value}
-                      onValueChange={field.onChange}
-                      placeholder="Select cover image"
-                    />
-                  </FormControl>
+                  <div className="space-y-2">
+                    <FormControl>
+                      <MediaPickerModal
+                        value={field.value}
+                        onValueChange={field.onChange}
+                        placeholder="Select cover image"
+                      />
+                    </FormControl>
+                    {field.value && lifeline?.cover_image?.url && (
+                      <div className="space-y-2">
+                        <div className="flex gap-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setShowCoverPositionPicker(true)}
+                          >
+                            Adjust Card Position
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              form.setValue("cover_image_id", "");
+                              form.setValue("cover_image_position_x", 50);
+                              form.setValue("cover_image_position_y", 50);
+                            }}
+                          >
+                            <X className="h-4 w-4 mr-1" />
+                            Remove Image
+                          </Button>
+                        </div>
+                        <div className="relative w-full max-w-md aspect-video rounded-lg overflow-hidden border">
+                          <img
+                            src={lifeline.cover_image.url}
+                            alt="Cover preview"
+                            className="w-full h-full object-cover"
+                            style={{
+                              objectPosition: `${form.watch("cover_image_position_x")}% ${form.watch("cover_image_position_y")}%`,
+                            }}
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
                   <FormMessage />
                 </FormItem>
               )}
@@ -732,6 +782,24 @@ export default function LifelineEdit() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {lifeline?.cover_image?.url && (
+        <ImagePositionPicker
+          imageUrl={lifeline.cover_image.url}
+          open={showCoverPositionPicker}
+          onOpenChange={setShowCoverPositionPicker}
+          initialPosition={{
+            x: form.getValues("cover_image_position_x"),
+            y: form.getValues("cover_image_position_y"),
+          }}
+          onPositionChange={(position) => {
+            form.setValue("cover_image_position_x", position.x);
+            form.setValue("cover_image_position_y", position.y);
+          }}
+          title="Adjust Cover Image Position"
+          viewType="card"
+        />
+      )}
     </div>
   );
 }

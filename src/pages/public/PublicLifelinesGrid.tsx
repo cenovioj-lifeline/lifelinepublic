@@ -34,7 +34,7 @@ export default function PublicLifelinesGrid() {
         .from("lifelines")
         .select(`
           *,
-          cover_image:media_assets!lifelines_cover_image_id_fkey(url, alt_text, position_x, position_y)
+          cover_image:media_assets!lifelines_cover_image_id_fkey(url, alt_text)
         `)
         .eq("status", "published")
         .eq("visibility", "public")
@@ -256,7 +256,7 @@ export default function PublicLifelinesGrid() {
                         alt={lifeline.cover_image.alt_text || lifeline.title}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                         style={{
-                          objectPosition: `${lifeline.cover_image.position_x ?? 50}% ${lifeline.cover_image.position_y ?? 50}%`,
+                          objectPosition: `${lifeline.cover_image_position_x ?? 50}% ${lifeline.cover_image_position_y ?? 50}%`
                         }}
                       />
                     ) : (

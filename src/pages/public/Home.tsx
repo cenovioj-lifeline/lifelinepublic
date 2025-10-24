@@ -49,6 +49,8 @@ export default function Home() {
                 title,
                 slug,
                 description,
+                card_image_position_x,
+                card_image_position_y,
                 hero_image:media_assets!collections_hero_image_id_fkey(url, alt_text)
               `)
               .eq("id", item.item_id)
@@ -63,6 +65,8 @@ export default function Home() {
                 title,
                 slug,
                 intro,
+                cover_image_position_x,
+                cover_image_position_y,
                 cover_image:media_assets!lifelines_cover_image_id_fkey(url, alt_text)
               `)
               .eq("id", item.item_id)
@@ -106,6 +110,8 @@ export default function Home() {
                 title,
                 slug,
                 description,
+                card_image_position_x,
+                card_image_position_y,
                 hero_image:media_assets!collections_hero_image_id_fkey(url, alt_text)
               `)
               .eq("id", item.item_id)
@@ -120,6 +126,8 @@ export default function Home() {
                 title,
                 slug,
                 intro,
+                cover_image_position_x,
+                cover_image_position_y,
                 cover_image:media_assets!lifelines_cover_image_id_fkey(url, alt_text)
               `)
               .eq("id", item.item_id)
@@ -245,6 +253,8 @@ export default function Home() {
                 description={item.description || item.intro}
                 imageUrl={item.hero_image?.url || item.cover_image?.url}
                 imageAlt={item.hero_image?.alt_text || item.cover_image?.alt_text}
+                imagePositionX={item.card_image_position_x || item.cover_image_position_x || 50}
+                imagePositionY={item.card_image_position_y || item.cover_image_position_y || 50}
                 linkPath={
                   item.type === "collection"
                     ? `/public/collections/${item.slug}`
@@ -283,6 +293,8 @@ export default function Home() {
                 description={item.description || item.intro}
                 imageUrl={item.hero_image?.url || item.cover_image?.url}
                 imageAlt={item.hero_image?.alt_text || item.cover_image?.alt_text}
+                imagePositionX={item.card_image_position_x || item.cover_image_position_x || 50}
+                imagePositionY={item.card_image_position_y || item.cover_image_position_y || 50}
                 linkPath={
                   item.type === "collection"
                     ? `/public/collections/${item.slug}`
