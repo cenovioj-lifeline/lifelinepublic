@@ -746,7 +746,7 @@ export default function CollectionEdit() {
             {heroImageUrl ? (
               <div className="space-y-2">
                 {/* Hero Banner Preview (4:1 aspect) */}
-                <div>
+                <div className="space-y-2">
                   <p className="text-sm text-muted-foreground mb-2">Collection Banner Preview:</p>
                   <div className="relative w-full rounded-lg overflow-hidden border" style={{ height: "200px" }}>
                     <img
@@ -758,10 +758,19 @@ export default function CollectionEdit() {
                       }}
                     />
                   </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowPositionPicker(true)}
+                  >
+                    <ImageIcon className="h-4 w-4 mr-2" />
+                    Adjust Position
+                  </Button>
                 </div>
                 
                 {/* Collection Card Preview (16:9 aspect) */}
-                <div>
+                <div className="space-y-2">
                   <p className="text-sm text-muted-foreground mb-2">Collection Card Preview:</p>
                   <div className="relative w-full max-w-md rounded-lg overflow-hidden border aspect-video">
                     <img
@@ -773,9 +782,6 @@ export default function CollectionEdit() {
                       }}
                     />
                   </div>
-                </div>
-                
-                <div className="flex gap-2">
                   <Button
                     type="button"
                     variant="outline"
@@ -785,6 +791,9 @@ export default function CollectionEdit() {
                     <ImageIcon className="h-4 w-4 mr-2" />
                     Adjust Position
                   </Button>
+                </div>
+                
+                <div>
                   <Button
                     type="button"
                     variant="outline"

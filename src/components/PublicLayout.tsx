@@ -20,7 +20,7 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
   const navItems = [
     { path: "/", label: "Home", icon: Home },
     { path: "/public/lifelines", label: "Stories", icon: BookOpen },
-    { path: "/public/profiles", label: "Profiles", icon: Users },
+    { path: "/public/profiles", label: "People", icon: Users },
     { path: "/public/elections", label: "Awards", icon: Award },
     { path: "/public/collections", label: "Collections", icon: FolderOpen },
     { path: "/public/more", label: "More", icon: MoreHorizontal },
