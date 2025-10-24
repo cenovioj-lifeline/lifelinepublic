@@ -1,0 +1,174 @@
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { uploadImage, deleteImage, getImageDimensions } from "@/lib/storage";
+import { useToast } from "@/hooks/use-toast";
+import { Upload, X, Loader2, Move } from "lucide-react";
+import { ImagePositionPicker } from "./ImagePositionPicker";
+
+interface DirectImageUploadProps {
+  currentImageUrl?: string;
+  currentImagePath?: string;
+  onUploadComplete: (url: string, path: string) => void;
+  onRemove?: () => void;
+  onPositionChange?: (position: { x: number; y: number }) => void;
+  initialPosition?: { x: number; y: number };
+  className?: string;
+  label?: string;
+}
+
+export function DirectImageUpload({
+  currentImageUrl,
+  currentImagePath,
+  onUploadComplete,
+  onRemove,
+  onPositionChange,
+  initialPosition = { x: 50, y: 50 },
+  className = "",
+  label = "Upload Image",
+}: DirectImageUploadProps) {
+  const [uploading, setUploading] = useState(false);
+  const [showPositionPicker, setShowPositionPicker] = useState(false);
+  const { toast } = useToast();
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast({
+        title: "Invalid file type",
+        description: "Please upload an image file.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      toast({
+        title: "File too large",
+        description: "Please upload an image smaller than 10MB.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const { url, path } = await uploadImage(file);
+      onUploadComplete(url, path);
+      
+      toast({
+        title: "Upload successful",
+        description: "Image has been uploaded successfully.",
+      });
+    } catch (error) {
+      console.error("Upload error:", error);
+      toast({
+        title: "Upload failed",
+        description: "There was an error uploading your image.",
+        variant: "destructive",
+      });
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleRemove = async () => {
+    if (currentImagePath && onRemove) {
+      try {
+        await deleteImage(currentImagePath);
+        onRemove();
+        toast({
+          title: "Image removed",
+          description: "Image has been removed successfully.",
+        });
+      } catch (error) {
+        console.error("Delete error:", error);
+        toast({
+          title: "Error",
+          description: "Failed to delete image.",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
+  return (
+    <div className={className}>
+      {currentImageUrl ? (
+        <div className="space-y-2">
+          <div className="relative rounded-lg overflow-hidden border">
+            <img
+              src={currentImageUrl}
+              alt="Uploaded"
+              className="w-full h-48 object-cover"
+            />
+            <div className="absolute top-2 right-2 flex gap-2">
+              {onPositionChange && (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => setShowPositionPicker(true)}
+                >
+                  <Move className="h-4 w-4" />
+                </Button>
+              )}
+              <Button
+                type="button"
+                size="sm"
+                variant="destructive"
+                onClick={handleRemove}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+          {uploading && (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Uploading...
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="border-2 border-dashed rounded-lg p-8 text-center">
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleFileChange}
+            disabled={uploading}
+            className="hidden"
+            id="image-upload"
+          />
+          <label htmlFor="image-upload" className="cursor-pointer">
+            {uploading ? (
+              <div className="flex flex-col items-center gap-2">
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                <p className="text-sm text-muted-foreground">Uploading...</p>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center gap-2">
+                <Upload className="h-8 w-8 text-muted-foreground" />
+                <p className="text-sm text-muted-foreground">{label}</p>
+                <p className="text-xs text-muted-foreground">
+                  Click to upload (max 10MB)
+                </p>
+              </div>
+            )}
+          </label>
+        </div>
+      )}
+
+      {onPositionChange && currentImageUrl && (
+        <ImagePositionPicker
+          imageUrl={currentImageUrl}
+          initialPosition={initialPosition}
+          onPositionChange={onPositionChange}
+          open={showPositionPicker}
+          onOpenChange={setShowPositionPicker}
+        />
+      )}
+    </div>
+  );
+}

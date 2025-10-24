@@ -5,9 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { Plus, Star, Image as ImageIcon } from "lucide-react";
+import { Plus, Star } from "lucide-react";
 import { ContributeEventDialog } from "@/components/ContributeEventDialog";
-import { ContributeImageDialog } from "@/components/ContributeImageDialog";
 import { useAuth } from "@/lib/auth";
 import { PublicAuthModal } from "@/components/PublicAuthModal";
 import { Link } from "react-router-dom";
@@ -34,7 +33,6 @@ export function LifelineViewer({
   const { user } = useAuth();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [contributeDialogOpen, setContributeDialogOpen] = useState(false);
-  const [contributeImageDialogOpen, setContributeImageDialogOpen] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const selectionStyle: SelectionStyle = "glow"; // Always use glow
   const timelineRef = useRef<HTMLDivElement>(null);
@@ -464,16 +462,6 @@ export function LifelineViewer({
                       {selected.title}
                     </h2>
                   </div>
-                  {!selected.media || selected.media.length === 0 && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setContributeImageDialogOpen(true)}
-                    >
-                      <ImageIcon className="h-4 w-4 mr-2" />
-                      Add Image
-                    </Button>
-                  )}
                 </div>
                 <p
                   className="leading-relaxed text-foreground"
@@ -510,18 +498,6 @@ export function LifelineViewer({
         lifelineTitle={lifeline.title}
         onSignInRequired={() => {
           setContributeDialogOpen(false);
-          setTimeout(() => setShowAuthModal(true), 0);
-        }}
-      />
-
-      <ContributeImageDialog
-        open={contributeImageDialogOpen}
-        onOpenChange={setContributeImageDialogOpen}
-        entryId={selected?.id || ""}
-        entryTitle={selected?.title || ""}
-        lifelineId={lifelineId}
-        onSignInRequired={() => {
-          setContributeImageDialogOpen(false);
           setTimeout(() => setShowAuthModal(true), 0);
         }}
       />

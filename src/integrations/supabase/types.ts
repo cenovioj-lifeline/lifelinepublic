@@ -199,8 +199,10 @@ export type Database = {
           created_by: string | null
           description: string | null
           hero_image_id: string | null
+          hero_image_path: string | null
           hero_image_position_x: number | null
           hero_image_position_y: number | null
+          hero_image_url: string | null
           id: string
           is_featured: boolean | null
           menu_active_color: string | null
@@ -234,8 +236,10 @@ export type Database = {
           created_by?: string | null
           description?: string | null
           hero_image_id?: string | null
+          hero_image_path?: string | null
           hero_image_position_x?: number | null
           hero_image_position_y?: number | null
+          hero_image_url?: string | null
           id?: string
           is_featured?: boolean | null
           menu_active_color?: string | null
@@ -269,8 +273,10 @@ export type Database = {
           created_by?: string | null
           description?: string | null
           hero_image_id?: string | null
+          hero_image_path?: string | null
           hero_image_position_x?: number | null
           hero_image_position_y?: number | null
+          hero_image_url?: string | null
           id?: string
           is_featured?: boolean | null
           menu_active_color?: string | null
@@ -489,6 +495,50 @@ export type Database = {
             columns: ["lifeline_id"]
             isOneToOne: false
             referencedRelation: "lifelines"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      entry_images: {
+        Row: {
+          alt_text: string | null
+          created_at: string | null
+          entry_id: string
+          id: string
+          image_path: string
+          image_url: string
+          order_index: number | null
+          position_x: number | null
+          position_y: number | null
+        }
+        Insert: {
+          alt_text?: string | null
+          created_at?: string | null
+          entry_id: string
+          id?: string
+          image_path: string
+          image_url: string
+          order_index?: number | null
+          position_x?: number | null
+          position_y?: number | null
+        }
+        Update: {
+          alt_text?: string | null
+          created_at?: string | null
+          entry_id?: string
+          id?: string
+          image_path?: string
+          image_url?: string
+          order_index?: number | null
+          position_x?: number | null
+          position_y?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "entry_images_entry_id_fkey"
+            columns: ["entry_id"]
+            isOneToOne: false
+            referencedRelation: "entries"
             referencedColumns: ["id"]
           },
         ]
@@ -810,8 +860,10 @@ export type Database = {
           collection_id: string | null
           conclusion: string | null
           cover_image_id: string | null
+          cover_image_path: string | null
           cover_image_position_x: number | null
           cover_image_position_y: number | null
+          cover_image_url: string | null
           created_at: string
           created_by: string | null
           id: string
@@ -831,8 +883,10 @@ export type Database = {
           collection_id?: string | null
           conclusion?: string | null
           cover_image_id?: string | null
+          cover_image_path?: string | null
           cover_image_position_x?: number | null
           cover_image_position_y?: number | null
+          cover_image_url?: string | null
           created_at?: string
           created_by?: string | null
           id?: string
@@ -852,8 +906,10 @@ export type Database = {
           collection_id?: string | null
           conclusion?: string | null
           cover_image_id?: string | null
+          cover_image_path?: string | null
           cover_image_position_x?: number | null
           cover_image_position_y?: number | null
+          cover_image_url?: string | null
           created_at?: string
           created_by?: string | null
           id?: string
@@ -1150,6 +1206,8 @@ export type Database = {
       profiles: {
         Row: {
           avatar_image_id: string | null
+          avatar_image_path: string | null
+          avatar_image_url: string | null
           birth_date: string | null
           created_at: string
           created_by: string | null
@@ -1169,6 +1227,8 @@ export type Database = {
         }
         Insert: {
           avatar_image_id?: string | null
+          avatar_image_path?: string | null
+          avatar_image_url?: string | null
           birth_date?: string | null
           created_at?: string
           created_by?: string | null
@@ -1188,6 +1248,8 @@ export type Database = {
         }
         Update: {
           avatar_image_id?: string | null
+          avatar_image_path?: string | null
+          avatar_image_url?: string | null
           birth_date?: string | null
           created_at?: string
           created_by?: string | null

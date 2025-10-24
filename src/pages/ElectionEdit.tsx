@@ -24,7 +24,6 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, Plus, Trash2, X } from "lucide-react";
-import { MediaPickerModal } from "@/components/MediaPickerModal";
 import { Badge } from "@/components/ui/badge";
 
 type ElectionResult = {

@@ -5,9 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ImageUpload } from "@/components/ImageUpload";
+import { DirectImageUpload } from "@/components/DirectImageUpload";
 import { ImagePositionPicker } from "@/components/ImagePositionPicker";
-import { MediaPicker } from "@/components/MediaPicker";
 import {
   Select,
   SelectContent,

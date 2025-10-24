@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { Upload, X, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { uploadImage, createMediaAsset, getImageDimensions } from "@/lib/storage";
+import { uploadImage, getImageDimensions } from "@/lib/storage";
 import { useToast } from "@/hooks/use-toast";
 
 interface ImageUploadProps {
-  onUploadComplete: (mediaAssetId: string, url: string) => void;
+  onUploadComplete: (url: string, path: string) => void;
   currentImageUrl?: string;
   onRemove?: () => void;
   className?: string;
@@ -47,11 +47,8 @@ export function ImageUpload({
     setPreview(URL.createObjectURL(file));
 
     try {
-      const dimensions = await getImageDimensions(file);
-      const { url } = await uploadImage(file);
-      const mediaAsset = await createMediaAsset(file, url, dimensions);
-      
-      onUploadComplete(mediaAsset.id, url);
+      const { url, path } = await uploadImage(file);
+      onUploadComplete(url, path);
       
       toast({
         title: "Success",

@@ -23,7 +23,7 @@ import { Slider } from "@/components/ui/slider";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { MediaPickerModal } from "@/components/MediaPickerModal";
+import { DirectImageUpload } from "@/components/DirectImageUpload";
 import { X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -91,28 +91,17 @@ export function EntryForm({
   }, [defaultValues, form]);
 
   // Fetch existing images for this entry
-  const { data: entryMedia } = useQuery({
-    queryKey: ["entry-media", entryId],
+  const { data: entryImages } = useQuery({
+    queryKey: ["entry-images", entryId],
     queryFn: async () => {
       if (!entryId) return [];
       const { data, error } = await supabase
-        .from("entry_media")
-        .select(`
-          id,
-          order_index,
-          media_id,
-          media_assets!inner(
-            id,
-            url,
-            alt_text,
-            type
-          )
-        `)
+        .from("entry_images")
+        .select("*")
         .eq("entry_id", entryId)
-        .order("order_index", { ascending: true });
-
+        .order("order_index");
       if (error) throw error;
-      return data;
+      return data || [];
     },
     enabled: !!entryId && isEditing,
   });

@@ -23,7 +23,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ArrowLeft, Plus, X } from "lucide-react";
-import { MediaPickerModal } from "@/components/MediaPickerModal";
+import { DirectImageUpload } from "@/components/DirectImageUpload";
 import { ImagePositionPicker } from "@/components/ImagePositionPicker";
 import { EntryCard } from "@/components/EntryCard";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -52,7 +52,8 @@ type LifelineForm = {
   lifeline_type: "person" | "list" | "voting" | "event";
   status: "draft" | "published";
   collection_id: string;
-  cover_image_id: string;
+  cover_image_url: string;
+  cover_image_path: string;
   cover_image_position_x: number;
   cover_image_position_y: number;
   linked_profile_ids: string[];
@@ -82,7 +83,8 @@ export default function LifelineEdit() {
       lifeline_type: "person",
       status: "draft",
       collection_id: "",
-      cover_image_id: "",
+      cover_image_url: "",
+      cover_image_path: "",
       cover_image_position_x: 50,
       cover_image_position_y: 50,
       linked_profile_ids: [],
@@ -96,11 +98,7 @@ export default function LifelineEdit() {
       if (isNew) return null;
       const { data, error } = await supabase
         .from("lifelines")
-        .select(`
-          *,
-          profile_lifelines(profile_id),
-          cover_image:media_assets!lifelines_cover_image_id_fkey(url)
-        `)
+        .select("*, profile:profiles(id, display_name), collection:collections(id, title)")
         .eq("id", id)
         .maybeSingle();
       if (error) throw error;

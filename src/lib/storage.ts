@@ -25,33 +25,14 @@ export const uploadImage = async (
   };
 };
 
-export const createMediaAsset = async (
-  file: File,
-  url: string,
-  dimensions?: { width: number; height: number },
-  position?: { x: number; y: number }
-) => {
-  const { data: { user } } = await supabase.auth.getUser();
-
-  const { data, error } = await supabase
-    .from("media_assets")
-    .insert({
-      filename: file.name,
-      url,
-      type: file.type.startsWith("image/") ? "image" : file.type.split("/")[0],
-      alt_text: file.name.split(".")[0].replace(/-/g, " "),
-      width: dimensions?.width || null,
-      height: dimensions?.height || null,
-      position_x: position?.x || 50,
-      position_y: position?.y || 50,
-      created_by: user?.id,
-    })
-    .select()
-    .single();
-
+export const deleteImage = async (
+  path: string,
+  bucket: string = "media-uploads"
+): Promise<void> => {
+  const { error } = await supabase.storage.from(bucket).remove([path]);
   if (error) throw error;
-  return data;
 };
+
 
 export const getImageDimensions = (file: File): Promise<{ width: number; height: number }> => {
   return new Promise((resolve, reject) => {

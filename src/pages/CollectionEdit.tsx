@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { ArrowLeft, Trash2, Image as ImageIcon } from "lucide-react";
-import { MediaPickerModal } from "@/components/MediaPickerModal";
+import { DirectImageUpload } from "@/components/DirectImageUpload";
 import { CollectionQuotesUpload } from "@/components/CollectionQuotesUpload";
 import { CollectionFeaturedProfiles } from "@/components/CollectionFeaturedProfiles";
 import { ImagePositionPicker } from "@/components/ImagePositionPicker";
@@ -51,7 +51,8 @@ type CollectionForm = {
   collection_badge_color: string;
   status: "draft" | "published";
   is_featured: boolean;
-  hero_image_id: string;
+  hero_image_url: string;
+  hero_image_path: string;
   hero_image_position_x: number;
   hero_image_position_y: number;
   card_image_position_x: number;
@@ -91,7 +92,8 @@ export default function CollectionEdit() {
       collection_badge_color: "",
       status: "draft",
       is_featured: false,
-      hero_image_id: "",
+      hero_image_url: "",
+      hero_image_path: "",
       hero_image_position_x: 50,
       hero_image_position_y: 50,
       card_image_position_x: 50,
@@ -105,10 +107,7 @@ export default function CollectionEdit() {
       if (isNew) return null;
       const { data, error } = await supabase
         .from("collections")
-        .select(`
-          *,
-          hero_image:media_assets!collections_hero_image_id_fkey(url, alt_text)
-        `)
+        .select("*")
         .eq("id", id)
         .single();
       if (error) throw error;
@@ -141,7 +140,8 @@ export default function CollectionEdit() {
         collection_badge_color: collection.collection_badge_color || "",
         status: collection.status,
         is_featured: collection.is_featured || false,
-        hero_image_id: collection.hero_image_id || "",
+        hero_image_url: collection.hero_image_url || "",
+        hero_image_path: collection.hero_image_path || "",
         hero_image_position_x: collection.hero_image_position_x || 50,
         hero_image_position_y: collection.hero_image_position_y || 50,
         card_image_position_x: collection.card_image_position_x || 50,
@@ -149,8 +149,8 @@ export default function CollectionEdit() {
       });
       
       // Set hero image URL if available
-      if (collection.hero_image?.url) {
-        setHeroImageUrl(collection.hero_image.url);
+      if (collection.hero_image_url) {
+        setHeroImageUrl(collection.hero_image_url);
       }
     }
   }, [collection, form]);
@@ -159,10 +159,11 @@ export default function CollectionEdit() {
     mutationFn: async (data: CollectionForm) => {
       const { data: { user } } = await supabase.auth.getUser();
       
-      // Convert empty strings to null for UUID fields
+      // Convert empty strings to null
       const cleanedData = {
         ...data,
-        hero_image_id: data.hero_image_id || null,
+        hero_image_url: data.hero_image_url || null,
+        hero_image_path: data.hero_image_path || null,
         web_primary: data.web_primary || null,
         web_secondary: data.web_secondary || null,
         menu_text_color: data.menu_text_color || null,
@@ -819,34 +820,20 @@ export default function CollectionEdit() {
                 </div>
               </div>
             ) : (
-              <FormField
-                control={form.control}
-                name="hero_image_id"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormControl>
-                      <MediaPickerModal
-                        value={field.value}
-                        onValueChange={(id) => {
-                          field.onChange(id);
-                          // Fetch the URL for the selected media
-                          if (id) {
-                            supabase
-                              .from("media_assets")
-                              .select("url")
-                              .eq("id", id)
-                              .single()
-                              .then(({ data }) => {
-                                if (data) setHeroImageUrl(data.url);
-                              });
-                          }
-                        }}
-                        placeholder="Select hero image"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+              <DirectImageUpload
+                currentImageUrl={heroImageUrl || undefined}
+                currentImagePath={form.watch("hero_image_path")}
+                onUploadComplete={(url, path) => {
+                  form.setValue("hero_image_url", url);
+                  form.setValue("hero_image_path", path);
+                  setHeroImageUrl(url);
+                }}
+                onRemove={() => {
+                  form.setValue("hero_image_url", "");
+                  form.setValue("hero_image_path", "");
+                  setHeroImageUrl(null);
+                }}
+                label="Upload Hero Banner Image"
               />
             )}
             

@@ -16,13 +16,11 @@ import Lifelines from "./pages/Lifelines";
 import Profiles from "./pages/Profiles";
 import Elections from "./pages/Elections";
 import Tags from "./pages/Tags";
-import Media from "./pages/Media";
 import LifelineEdit from "./pages/LifelineEdit";
 import ElectionEdit from "./pages/ElectionEdit";
 import ElectionCategoryOrder from "./pages/ElectionCategoryOrder";
 import ProfileEdit from "./pages/ProfileEdit";
 import TagEdit from "./pages/TagEdit";
-import MediaEdit from "./pages/MediaEdit";
 import Settings from "./pages/Settings";
 import LifelineColorEditor from "./pages/LifelineColorEditor";
 import LoadLifelines from "./pages/LoadLifelines";
@@ -210,26 +208,6 @@ function AppContent() {
                 <ProtectedRoute>
                   <AdminLayout>
                     <TagEdit />
-                  </AdminLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/media"
-              element={
-                <ProtectedRoute>
-                  <AdminLayout>
-                    <Media />
-                  </AdminLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/media/:id"
-              element={
-                <ProtectedRoute>
-                  <AdminLayout>
-                    <MediaEdit />
                   </AdminLayout>
                 </ProtectedRoute>
               }
