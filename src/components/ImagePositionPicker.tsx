@@ -42,20 +42,41 @@ export function ImagePositionPicker({
             Adjust the position to control which part of the image is visible in the frame.
           </div>
 
-          {/* Preview with visible frame guide */}
+          {/* Preview with visible frame guide - showing both aspect ratios */}
           <div className="space-y-4">
-            <div className="relative w-full aspect-video rounded-lg overflow-hidden border-2 border-primary">
-              <img
-                src={imageUrl}
-                alt="Position preview"
-                className="w-full h-full object-cover"
-                style={{
-                  objectPosition: `${position.x}% ${position.y}%`,
-                }}
-              />
-              <div className="absolute inset-0 pointer-events-none border-4 border-primary/30" />
-              <div className="absolute top-2 left-2 bg-background/80 px-2 py-1 rounded text-xs">
-                Visible Area
+            <div>
+              <p className="text-xs text-muted-foreground mb-2">Collection Banner (3:1 ratio):</p>
+              <div className="relative w-full aspect-[3/1] rounded-lg overflow-hidden border-2 border-primary">
+                <img
+                  src={imageUrl}
+                  alt="Banner preview"
+                  className="w-full h-full object-cover"
+                  style={{
+                    objectPosition: `${position.x}% ${position.y}%`,
+                  }}
+                />
+                <div className="absolute inset-0 pointer-events-none border-4 border-primary/30" />
+                <div className="absolute top-2 left-2 bg-background/80 px-2 py-1 rounded text-xs">
+                  Banner Visible Area
+                </div>
+              </div>
+            </div>
+            
+            <div>
+              <p className="text-xs text-muted-foreground mb-2">Collection Card (16:9 ratio):</p>
+              <div className="relative w-full max-w-md aspect-video rounded-lg overflow-hidden border-2 border-primary">
+                <img
+                  src={imageUrl}
+                  alt="Card preview"
+                  className="w-full h-full object-cover"
+                  style={{
+                    objectPosition: `${position.x}% ${position.y}%`,
+                  }}
+                />
+                <div className="absolute inset-0 pointer-events-none border-4 border-primary/30" />
+                <div className="absolute top-2 left-2 bg-background/80 px-2 py-1 rounded text-xs">
+                  Card Visible Area
+                </div>
               </div>
             </div>
 

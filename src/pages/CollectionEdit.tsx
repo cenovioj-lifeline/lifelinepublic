@@ -745,10 +745,10 @@ export default function CollectionEdit() {
             
             {heroImageUrl ? (
               <div className="space-y-2">
-                {/* Hero Banner Preview (4:1 aspect) */}
+                {/* Hero Banner Preview (3:1 aspect - matches desktop view) */}
                 <div className="space-y-2">
-                  <p className="text-sm text-muted-foreground mb-2">Collection Banner Preview:</p>
-                  <div className="relative w-full rounded-lg overflow-hidden border" style={{ height: "200px" }}>
+                  <p className="text-sm text-muted-foreground mb-2">Collection Banner Preview (Desktop 3:1 ratio):</p>
+                  <div className="relative w-full rounded-lg overflow-hidden border aspect-[3/1]">
                     <img
                       src={heroImageUrl}
                       alt="Hero banner preview"
@@ -771,7 +771,7 @@ export default function CollectionEdit() {
                 
                 {/* Collection Card Preview (16:9 aspect) */}
                 <div className="space-y-2">
-                  <p className="text-sm text-muted-foreground mb-2">Collection Card Preview:</p>
+                  <p className="text-sm text-muted-foreground mb-2">Collection Card Preview (16:9 ratio):</p>
                   <div className="relative w-full max-w-md rounded-lg overflow-hidden border aspect-video">
                     <img
                       src={heroImageUrl}
