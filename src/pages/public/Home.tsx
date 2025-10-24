@@ -253,8 +253,8 @@ export default function Home() {
                 description={item.description || item.intro}
                 imageUrl={item.hero_image?.url || item.cover_image?.url}
                 imageAlt={item.hero_image?.alt_text || item.cover_image?.alt_text}
-                imagePositionX={item.card_image_position_x || item.cover_image_position_x || 50}
-                imagePositionY={item.card_image_position_y || item.cover_image_position_y || 50}
+                imagePositionX={item.card_image_position_x ?? item.cover_image_position_x ?? 50}
+                imagePositionY={item.card_image_position_y ?? item.cover_image_position_y ?? 50}
                 linkPath={
                   item.type === "collection"
                     ? `/public/collections/${item.slug}`
@@ -293,8 +293,8 @@ export default function Home() {
                 description={item.description || item.intro}
                 imageUrl={item.hero_image?.url || item.cover_image?.url}
                 imageAlt={item.hero_image?.alt_text || item.cover_image?.alt_text}
-                imagePositionX={item.card_image_position_x || item.cover_image_position_x || 50}
-                imagePositionY={item.card_image_position_y || item.cover_image_position_y || 50}
+                imagePositionX={item.card_image_position_x ?? item.cover_image_position_x ?? 50}
+                imagePositionY={item.card_image_position_y ?? item.cover_image_position_y ?? 50}
                 linkPath={
                   item.type === "collection"
                     ? `/public/collections/${item.slug}`

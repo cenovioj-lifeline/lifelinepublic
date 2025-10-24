@@ -47,7 +47,7 @@ export function StandardizedContentCard({
         </div>
         <CardHeader>
           <div className="flex items-start justify-between gap-2">
-            <CardTitle className="text-xl group-hover:text-primary transition-colors line-clamp-2">
+            <CardTitle className="text-lg text-foreground group-hover:text-primary transition-colors line-clamp-2">
               {title}
             </CardTitle>
             {badge && <Badge variant="secondary">{badge}</Badge>}
@@ -55,7 +55,7 @@ export function StandardizedContentCard({
         </CardHeader>
         {description && (
           <CardContent>
-            <p className="text-muted-foreground line-clamp-3">{description}</p>
+            <p className="text-sm text-muted-foreground line-clamp-2">{description}</p>
           </CardContent>
         )}
       </Card>
