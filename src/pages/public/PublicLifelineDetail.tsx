@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { LifelineViewer } from "@/components/lifeline/LifelineViewer";
 import { PublicLayout } from "@/components/PublicLayout";
+import { FavoriteButton } from "@/components/FavoriteButton";
 
 export default function PublicLifelineDetail() {
   const { slug } = useParams<{ slug: string }>();
@@ -73,14 +74,16 @@ export default function PublicLifelineDetail() {
   return (
     <PublicLayout>
       <div className="space-y-6">
-        <Button
-          variant="ghost"
-          onClick={() => navigate("/public/lifelines")}
-          className="mb-4"
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Lifelines
-        </Button>
+        <div className="flex items-center justify-between mb-4">
+          <Button
+            variant="ghost"
+            onClick={() => navigate("/public/lifelines")}
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Lifelines
+          </Button>
+          <FavoriteButton itemId={lifeline.id} itemType="lifeline" />
+        </div>
         <LifelineViewer 
           lifelineId={lifeline.id}
           primaryColor={colorSettings?.lifeline_timeline_positive}

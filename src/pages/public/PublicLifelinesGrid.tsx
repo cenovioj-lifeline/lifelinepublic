@@ -17,6 +17,7 @@ export default function PublicLifelinesGrid() {
   const [sortBy, setSortBy] = useState<"name" | "type">("name");
   const [filterType, setFilterType] = useState<string>("all");
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
+  const [imageFilter, setImageFilter] = useState<"all" | "has_images" | "needs_images">("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [userId, setUserId] = useState<string | null>(null);
 
@@ -29,7 +30,7 @@ export default function PublicLifelinesGrid() {
   const { data: lifelines, isLoading } = useQuery({
     queryKey: ["public-lifelines-grid"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data: lifelinesData, error } = await supabase
         .from("lifelines")
         .select(`
           *,
@@ -40,7 +41,39 @@ export default function PublicLifelinesGrid() {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      return data;
+
+      // Calculate image completeness for each lifeline
+      const lifelinesWithImageStatus = await Promise.all(
+        (lifelinesData || []).map(async (lifeline) => {
+          const { data: entries } = await supabase
+            .from("entries")
+            .select("id")
+            .eq("lifeline_id", lifeline.id);
+
+          const totalEntries = entries?.length || 0;
+
+          if (totalEntries === 0) {
+            return { ...lifeline, hasImages: false, imagePercentage: 0 };
+          }
+
+          const { data: entriesWithMedia } = await supabase
+            .from("entry_media")
+            .select("entry_id")
+            .in("entry_id", entries?.map((e) => e.id) || []);
+
+          const uniqueEntriesWithMedia = new Set(entriesWithMedia?.map((em) => em.entry_id) || []);
+          const entriesWithImagesCount = uniqueEntriesWithMedia.size;
+          const imagePercentage = (entriesWithImagesCount / totalEntries) * 100;
+
+          return {
+            ...lifeline,
+            hasImages: imagePercentage >= 80,
+            imagePercentage,
+          };
+        })
+      );
+
+      return lifelinesWithImageStatus;
     },
   });
 
@@ -86,6 +119,12 @@ export default function PublicLifelinesGrid() {
       filtered = filtered.filter((lifeline) => favorites.includes(lifeline.id));
     }
 
+    if (imageFilter === "has_images") {
+      filtered = filtered.filter((lifeline: any) => lifeline.hasImages);
+    } else if (imageFilter === "needs_images") {
+      filtered = filtered.filter((lifeline: any) => !lifeline.hasImages);
+    }
+
     const sorted = [...filtered].sort((a, b) => {
       if (sortBy === "name") {
         return a.title.localeCompare(b.title);
@@ -95,7 +134,7 @@ export default function PublicLifelinesGrid() {
     });
 
     return sorted;
-  }, [lifelines, searchTerm, filterType, sortBy, showFavoritesOnly, favorites]);
+  }, [lifelines, searchTerm, filterType, sortBy, showFavoritesOnly, favorites, imageFilter]);
 
   const totalPages = Math.ceil(filteredAndSortedLifelines.length / ITEMS_PER_PAGE);
   const paginatedLifelines = filteredAndSortedLifelines.slice(
@@ -152,6 +191,23 @@ export default function PublicLifelinesGrid() {
                 {type.charAt(0).toUpperCase() + type.slice(1)}
               </SelectItem>
             ))}
+          </SelectContent>
+        </Select>
+
+        <Select
+          value={imageFilter}
+          onValueChange={(val: "all" | "has_images" | "needs_images") => {
+            setImageFilter(val);
+            setCurrentPage(1);
+          }}
+        >
+          <SelectTrigger className="w-full sm:w-[180px]">
+            <SelectValue placeholder="Image status..." />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Stories</SelectItem>
+            <SelectItem value="has_images">Has Images (≥80%)</SelectItem>
+            <SelectItem value="needs_images">Needs Images (&lt;80%)</SelectItem>
           </SelectContent>
         </Select>
 

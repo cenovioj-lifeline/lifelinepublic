@@ -6,6 +6,7 @@ import { ArrowLeft } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { LifelineViewer } from "@/components/lifeline/LifelineViewer";
 import { CollectionLayout } from "@/components/CollectionLayout";
+import { FavoriteButton } from "@/components/FavoriteButton";
 
 export default function CollectionLifelineDetail() {
   const { collectionSlug, lifelineSlug } = useParams<{ collectionSlug: string; lifelineSlug: string }>();
@@ -102,6 +103,9 @@ export default function CollectionLifelineDetail() {
       collectionMutedText={collection.collection_muted_text}
       collectionBadgeColor={collection.collection_badge_color}
     >
+      <div className="flex justify-end mb-4">
+        <FavoriteButton itemId={lifeline.id} itemType="lifeline" />
+      </div>
       <LifelineViewer
         lifelineId={lifeline.id}
         lifelineType={lifeline.lifeline_type}

@@ -10,6 +10,7 @@ import { useMemo, useState } from "react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ChevronDown } from "lucide-react";
 import { CollectionLayout } from "@/components/CollectionLayout";
+import { FavoriteButton } from "@/components/FavoriteButton";
 
 export default function CollectionElectionDetail() {
   const { collectionSlug, electionSlug } = useParams<{ collectionSlug: string; electionSlug: string }>();
@@ -263,6 +264,9 @@ export default function CollectionElectionDetail() {
       <div className="min-h-screen bg-background">
         <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-b">
           <div className="container max-w-4xl mx-auto px-4 py-3">
+            <div className="flex justify-end mb-2">
+              <FavoriteButton itemId={election.id} itemType="election" />
+            </div>
             <div className="flex items-center gap-3">
               <Trophy className="h-8 w-8 flex-shrink-0" style={{ color: accentColor }} />
               <div className="flex-1 min-w-0">

@@ -5,11 +5,12 @@ import { CollectionLayout } from "@/components/CollectionLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowRight, Share2, Rss, Users, Settings } from "lucide-react";
+import { ArrowRight, Share2, Rss, Users, Settings, Heart } from "lucide-react";
 import { CollectionShareModal } from "@/components/CollectionShareModal";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
+import { FavoriteButton } from "@/components/FavoriteButton";
 
 export default function PublicCollectionDetail() {
   const { slug } = useParams<{ slug: string }>();
@@ -18,6 +19,13 @@ export default function PublicCollectionDetail() {
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [voteFlipped, setVoteFlipped] = useState(false);
   const [followFlipped, setFollowFlipped] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      setUserId(data.user?.id || null);
+    });
+  }, []);
 
   const { data: collection, isLoading: collectionLoading } = useQuery({
     queryKey: ["public-collection", slug],
@@ -132,6 +140,34 @@ export default function PublicCollectionDetail() {
 
       if (error) throw error;
       return data?.map(item => item.profiles).filter(Boolean);
+    },
+    enabled: !!collection?.id,
+  });
+
+  const { data: fanCount } = useQuery({
+    queryKey: ["collection-fan-count", collection?.id],
+    queryFn: async () => {
+      if (!collection?.id) return 0;
+
+      // Get lifelines in this collection
+      const { data: collectionLifelines } = await supabase
+        .from("lifelines")
+        .select("id")
+        .eq("collection_id", collection.id);
+
+      const lifelineIds = collectionLifelines?.map((l) => l.id) || [];
+
+      // Get unique users who favorited this collection OR any lifeline in it
+      const { data: favorites, error } = await supabase
+        .from("user_favorites")
+        .select("user_id")
+        .or(`and(item_type.eq.collection,item_id.eq.${collection.id}),and(item_type.eq.lifeline,item_id.in.(${lifelineIds.join(",")}))`);
+
+      if (error) throw error;
+
+      // Count unique user_ids
+      const uniqueUsers = new Set(favorites?.map((f) => f.user_id) || []);
+      return uniqueUsers.size;
     },
     enabled: !!collection?.id,
   });
@@ -257,32 +293,17 @@ export default function PublicCollectionDetail() {
           </Card>
           <Card
             style={{ borderColor: collection.primary_color || undefined }}
-            className="cursor-pointer hover:shadow-lg transition-all perspective-1000"
-            onClick={() => {
-              setFollowFlipped(true);
-              setTimeout(() => setFollowFlipped(false), 2000);
-            }}
+            className="cursor-pointer hover:shadow-lg transition-shadow"
           >
-            <CardContent 
-              className="relative pt-6 h-24 preserve-3d transition-transform duration-500"
-              style={{
-                transformStyle: 'preserve-3d',
-                transform: followFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
-              }}
-            >
-              <div className="absolute inset-0 flex flex-col items-center justify-center backface-hidden pt-6">
-                <Users
-                  className="h-8 w-8 mb-2"
-                  style={{ color: collection.primary_color || undefined }}
-                />
-                <div className="text-sm text-muted-foreground">Following</div>
+            <CardContent className="pt-6 text-center">
+              <Heart
+                className="h-8 w-8 mx-auto mb-2"
+                style={{ color: collection.primary_color || undefined }}
+              />
+              <div className="text-2xl font-bold mb-1">
+                {fanCount || 0}
               </div>
-              <div 
-                className="absolute inset-0 flex items-center justify-center backface-hidden text-center text-sm font-medium px-4"
-                style={{ transform: 'rotateY(180deg)' }}
-              >
-                Following coming soon
-              </div>
+              <div className="text-sm text-muted-foreground">Fans</div>
             </CardContent>
           </Card>
           <Card
@@ -322,6 +343,9 @@ export default function PublicCollectionDetail() {
                     className="group"
                   >
                     <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full">
+                      <div className="absolute top-2 right-2 z-10">
+                        <FavoriteButton itemId={lifeline.id} itemType="lifeline" />
+                      </div>
                       <div className="aspect-video relative bg-muted overflow-hidden">
                         {lifeline.cover_image?.url ? (
                           <img
@@ -368,6 +392,9 @@ export default function PublicCollectionDetail() {
                         className="group block h-full"
                       >
                         <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full">
+                          <div className="absolute top-2 right-2 z-10">
+                            <FavoriteButton itemId={lifeline.id} itemType="lifeline" />
+                          </div>
                           <div className="aspect-video relative bg-muted overflow-hidden">
                             {lifeline.cover_image?.url ? (
                               <img

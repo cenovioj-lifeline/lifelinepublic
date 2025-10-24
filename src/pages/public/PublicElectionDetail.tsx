@@ -10,6 +10,7 @@ import { useMemo, useState } from "react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ChevronDown } from "lucide-react";
 import { PublicLayout } from "@/components/PublicLayout";
+import { FavoriteButton } from "@/components/FavoriteButton";
 
 export default function PublicElectionDetail() {
   const { slug } = useParams<{ slug: string }>();
@@ -181,15 +182,17 @@ export default function PublicElectionDetail() {
       <div className="min-h-screen bg-background">
         <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-b">
           <div className="container max-w-4xl mx-auto px-4 py-3">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate("/public/elections")}
-              className="mb-2"
-            >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back
-            </Button>
+            <div className="flex items-center justify-between mb-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate("/public/elections")}
+              >
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back
+              </Button>
+              <FavoriteButton itemId={election.id} itemType="election" />
+            </div>
             <div className="flex items-center gap-3">
               <Trophy className="h-8 w-8 text-primary flex-shrink-0" />
               <div className="flex-1 min-w-0">
