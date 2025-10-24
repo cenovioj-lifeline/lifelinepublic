@@ -765,15 +765,33 @@ export default function CollectionEdit() {
                       }}
                     />
                   </div>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setShowBannerPositionPicker(true)}
-                  >
-                    <ImageIcon className="h-4 w-4 mr-2" />
-                    Adjust Banner Position
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowBannerPositionPicker(true)}
+                    >
+                      <ImageIcon className="h-4 w-4 mr-2" />
+                      Adjust Banner Position
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        form.setValue("hero_image_id", "");
+                        form.setValue("hero_image_position_x", 50);
+                        form.setValue("hero_image_position_y", 50);
+                        form.setValue("card_image_position_x", 50);
+                        form.setValue("card_image_position_y", 50);
+                        setHeroImageUrl(null);
+                      }}
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Remove Image
+                    </Button>
+                  </div>
                 </div>
                 
                 {/* Collection Card Preview (16:9 aspect) */}
@@ -797,21 +815,6 @@ export default function CollectionEdit() {
                   >
                     <ImageIcon className="h-4 w-4 mr-2" />
                     Adjust Card Position
-                  </Button>
-                </div>
-                
-                <div>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      form.setValue("hero_image_id", "");
-                      setHeroImageUrl(null);
-                    }}
-                  >
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    Remove Image
                   </Button>
                 </div>
               </div>
@@ -866,6 +869,7 @@ export default function CollectionEdit() {
                 open={showBannerPositionPicker}
                 onOpenChange={setShowBannerPositionPicker}
                 title="Adjust Banner Position"
+                viewType="banner"
               />
             )}
             
@@ -888,6 +892,7 @@ export default function CollectionEdit() {
                 open={showCardPositionPicker}
                 onOpenChange={setShowCardPositionPicker}
                 title="Adjust Card Position"
+                viewType="card"
               />
             )}
           </div>

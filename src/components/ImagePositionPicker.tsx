@@ -10,6 +10,7 @@ interface ImagePositionPickerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   title?: string;
+  viewType?: "banner" | "card" | "both";
 }
 
 export function ImagePositionPicker({
@@ -19,6 +20,7 @@ export function ImagePositionPicker({
   open,
   onOpenChange,
   title = "Position Image",
+  viewType = "both",
 }: ImagePositionPickerProps) {
   const [position, setPosition] = useState(initialPosition);
 
@@ -44,43 +46,47 @@ export function ImagePositionPicker({
             Adjust the position to control which part of the image is visible in the frame.
           </div>
 
-          {/* Preview with visible frame guide - showing both aspect ratios */}
+          {/* Preview with visible frame guide */}
           <div className="space-y-4">
-            <div>
-              <p className="text-xs text-muted-foreground mb-2">Collection Banner (3:1 ratio):</p>
-              <div className="relative w-full aspect-[3/1] rounded-lg overflow-hidden border-2 border-primary">
-                <img
-                  src={imageUrl}
-                  alt="Banner preview"
-                  className="w-full h-full object-cover"
-                  style={{
-                    objectPosition: `${position.x}% ${position.y}%`,
-                  }}
-                />
-                <div className="absolute inset-0 pointer-events-none border-4 border-primary/30" />
-                <div className="absolute top-2 left-2 bg-background/80 px-2 py-1 rounded text-xs">
-                  Banner Visible Area
+            {(viewType === "banner" || viewType === "both") && (
+              <div>
+                <p className="text-xs text-muted-foreground mb-2">Collection Banner (3:1 ratio):</p>
+                <div className="relative w-full aspect-[3/1] rounded-lg overflow-hidden border-2 border-primary">
+                  <img
+                    src={imageUrl}
+                    alt="Banner preview"
+                    className="w-full h-full object-cover"
+                    style={{
+                      objectPosition: `${position.x}% ${position.y}%`,
+                    }}
+                  />
+                  <div className="absolute inset-0 pointer-events-none border-4 border-primary/30" />
+                  <div className="absolute top-2 left-2 bg-background/80 px-2 py-1 rounded text-xs">
+                    Banner Visible Area
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
             
-            <div>
-              <p className="text-xs text-muted-foreground mb-2">Collection Card (16:9 ratio):</p>
-              <div className="relative w-full max-w-md aspect-video rounded-lg overflow-hidden border-2 border-primary">
-                <img
-                  src={imageUrl}
-                  alt="Card preview"
-                  className="w-full h-full object-cover"
-                  style={{
-                    objectPosition: `${position.x}% ${position.y}%`,
-                  }}
-                />
-                <div className="absolute inset-0 pointer-events-none border-4 border-primary/30" />
-                <div className="absolute top-2 left-2 bg-background/80 px-2 py-1 rounded text-xs">
-                  Card Visible Area
+            {(viewType === "card" || viewType === "both") && (
+              <div>
+                <p className="text-xs text-muted-foreground mb-2">Collection Card (16:9 ratio):</p>
+                <div className="relative w-full max-w-md aspect-video rounded-lg overflow-hidden border-2 border-primary">
+                  <img
+                    src={imageUrl}
+                    alt="Card preview"
+                    className="w-full h-full object-cover"
+                    style={{
+                      objectPosition: `${position.x}% ${position.y}%`,
+                    }}
+                  />
+                  <div className="absolute inset-0 pointer-events-none border-4 border-primary/30" />
+                  <div className="absolute top-2 left-2 bg-background/80 px-2 py-1 rounded text-xs">
+                    Card Visible Area
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
 
             {/* Full image preview */}
             <div className="relative w-full max-h-96 rounded-lg overflow-hidden border">
