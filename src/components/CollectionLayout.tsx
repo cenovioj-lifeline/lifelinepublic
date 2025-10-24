@@ -188,7 +188,7 @@ export function CollectionLayout({
   }, [primaryColor, secondaryColor, collectionBgColor, collectionTextColor, collectionHeadingColor, collectionAccentColor, collectionCardBg, collectionBorderColor, collectionMutedText, collectionBadgeColor, webPrimary]);
 
   const handleExit = () => {
-    navigate("/public/collections");
+    navigate("/");
   };
 
   // Fetch the first election for direct navigation

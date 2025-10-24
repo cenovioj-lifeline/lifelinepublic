@@ -64,7 +64,7 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
               <div className="flex gap-1 items-center">
                 <NavLinks />
                 <Link
-                  to="/admin/login"
+                  to="/"
                   className="flex items-center gap-2 px-3 py-2 rounded-md transition-colors text-white hover:bg-[#ff6b35]"
                 >
                   <span>LP</span>

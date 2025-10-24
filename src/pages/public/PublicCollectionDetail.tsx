@@ -100,11 +100,7 @@ export default function PublicCollectionDetail() {
         .from("lifelines")
         .select(`
           *,
-          cover_image:media_assets!lifelines_cover_image_id_fkey(url, alt_text, position_x, position_y),
-          profile:profiles!lifelines_profile_id_fkey(
-            display_name,
-            avatar_image:media_assets!profiles_avatar_image_id_fkey(url, alt_text)
-          )
+          profile:profiles!lifelines_profile_id_fkey(display_name)
         `)
         .eq("collection_id", collection.id)
         .eq("status", "published")
@@ -364,10 +360,10 @@ export default function PublicCollectionDetail() {
                         <FavoriteButton itemId={lifeline.id} itemType="lifeline" />
                       </div>
                       <div className="aspect-video relative bg-muted overflow-hidden">
-                        {lifeline.cover_image?.url ? (
+                        {lifeline.cover_image_url ? (
                           <img
-                            src={lifeline.cover_image.url}
-                            alt={lifeline.cover_image.alt_text || lifeline.title}
+                            src={lifeline.cover_image_url}
+                            alt={lifeline.title}
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                             style={{
                               objectPosition: `${lifeline.cover_image_position_x ?? 50}% ${lifeline.cover_image_position_y ?? 50}%`
@@ -413,10 +409,10 @@ export default function PublicCollectionDetail() {
                             <FavoriteButton itemId={lifeline.id} itemType="lifeline" />
                           </div>
                           <div className="aspect-video relative bg-muted overflow-hidden">
-                            {lifeline.cover_image?.url ? (
+                            {lifeline.cover_image_url ? (
                               <img
-                                src={lifeline.cover_image.url}
-                                alt={lifeline.cover_image.alt_text || lifeline.title}
+                                src={lifeline.cover_image_url}
+                                alt={lifeline.title}
                                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                                 style={{
                                   objectPosition: `${lifeline.cover_image_position_x ?? 50}% ${lifeline.cover_image_position_y ?? 50}%`
