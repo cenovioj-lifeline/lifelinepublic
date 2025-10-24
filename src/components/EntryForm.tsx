@@ -108,24 +108,25 @@ export function EntryForm({
 
   // Add image to entry
   const addImageMutation = useMutation({
-    mutationFn: async (mediaId: string) => {
+    mutationFn: async ({ url, path }: { url: string; path: string }) => {
       if (!entryId) throw new Error("Entry ID is required");
       
       // Get the next order index
-      const maxOrder = entryMedia?.reduce((max, em) => Math.max(max, em.order_index || 0), 0) || 0;
+      const maxOrder = entryImages?.reduce((max, img) => Math.max(max, img.order_index || 0), 0) || 0;
       
       const { error } = await supabase
-        .from("entry_media")
+        .from("entry_images")
         .insert({
           entry_id: entryId,
-          media_id: mediaId,
+          image_url: url,
+          image_path: path,
           order_index: maxOrder + 1,
         });
 
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["entry-media", entryId] });
+      queryClient.invalidateQueries({ queryKey: ["entry-images", entryId] });
       toast({
         title: "Success",
         description: "Image added to entry",
@@ -142,16 +143,16 @@ export function EntryForm({
 
   // Remove image from entry
   const removeImageMutation = useMutation({
-    mutationFn: async (entryMediaId: string) => {
+    mutationFn: async (imageId: string) => {
       const { error } = await supabase
-        .from("entry_media")
+        .from("entry_images")
         .delete()
-        .eq("id", entryMediaId);
+        .eq("id", imageId);
 
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["entry-media", entryId] });
+      queryClient.invalidateQueries({ queryKey: ["entry-images", entryId] });
       toast({
         title: "Success",
         description: "Image removed from entry",
@@ -320,30 +321,27 @@ export function EntryForm({
               <CardTitle>Entry Images</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {entryMedia && entryMedia.length > 0 ? (
+              {entryImages && entryImages.length > 0 ? (
                 <div className="grid gap-4 md:grid-cols-2">
-                  {entryMedia.map((em) => {
-                    const media = em.media_assets as any;
-                    return (
-                      <div key={em.id} className="relative group">
-                        <img
-                          src={media.url}
-                          alt={media.alt_text || "Entry image"}
-                          className="w-full h-40 object-cover rounded-lg"
-                        />
-                        <Button
-                          type="button"
-                          variant="destructive"
-                          size="icon"
-                          className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                          onClick={() => removeImageMutation.mutate(em.id)}
-                          disabled={removeImageMutation.isPending}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    );
-                  })}
+                  {entryImages.map((img) => (
+                    <div key={img.id} className="relative group">
+                      <img
+                        src={img.image_url}
+                        alt={img.alt_text || "Entry image"}
+                        className="w-full h-40 object-cover rounded-lg"
+                      />
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="icon"
+                        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={() => removeImageMutation.mutate(img.id)}
+                        disabled={removeImageMutation.isPending}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
                 </div>
               ) : (
                 <p className="text-sm text-muted-foreground">No images attached to this entry yet.</p>
@@ -351,14 +349,11 @@ export function EntryForm({
               
               <div>
                 <FormLabel>Add Image</FormLabel>
-                <MediaPickerModal
-                  value=""
-                  onValueChange={(mediaId) => {
-                    if (mediaId) {
-                      addImageMutation.mutate(mediaId);
-                    }
+                <DirectImageUpload
+                  onUploadComplete={(url, path) => {
+                    addImageMutation.mutate({ url, path });
                   }}
-                  placeholder="Select image to add"
+                  label="Upload Entry Image"
                 />
               </div>
             </CardContent>

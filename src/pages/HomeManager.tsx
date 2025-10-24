@@ -315,32 +315,35 @@ export default function HomeManager() {
                 </div>
               </div>
             ) : (
-              <ImageUpload
-                onUploadComplete={handleImageUpload}
+              <DirectImageUpload
                 currentImageUrl={heroImageUrl || undefined}
+                onUploadComplete={(url, path) => {
+                  setHeroImageUrl(url);
+                  // Auto-save after upload
+                  supabase
+                    .from("home_page_settings")
+                    .update({
+                      hero_image_id: null,
+                      hero_image_position_x: 50,
+                      hero_image_position_y: 50,
+                    })
+                    .eq("id", settings?.id)
+                    .then(() => {
+                      setHeroImagePosition({ x: 50, y: 50 });
+                      queryClient.invalidateQueries({ queryKey: ["home-settings"] });
+                      toast.success("Hero image uploaded");
+                    });
+                }}
+                onRemove={() => {
+                  setHeroImageUrl(null);
+                }}
+                label="Upload Hero Image"
               />
             )}
             
             <div className="text-xs text-muted-foreground">
-              Or select from existing media:
+              Hero image must be 1920x480 recommended
             </div>
-            <MediaPicker
-              value={heroImageId || ""}
-              onValueChange={(id) => {
-                setHeroImageId(id);
-                // Fetch the URL for the selected media
-                if (id) {
-                  supabase
-                    .from("media_assets")
-                    .select("url")
-                    .eq("id", id)
-                    .single()
-                    .then(({ data }) => {
-                      if (data) setHeroImageUrl(data.url);
-                    });
-                }
-              }}
-            />
           </div>
           <Button onClick={() => updateSettings.mutate()}>
             Save Hero Settings

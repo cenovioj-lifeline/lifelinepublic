@@ -781,7 +781,8 @@ export default function CollectionEdit() {
                       variant="outline"
                       size="sm"
                       onClick={() => {
-                        form.setValue("hero_image_id", "");
+                        form.setValue("hero_image_url", "");
+                        form.setValue("hero_image_path", "");
                         form.setValue("hero_image_position_x", 50);
                         form.setValue("hero_image_position_y", 50);
                         form.setValue("card_image_position_x", 50);

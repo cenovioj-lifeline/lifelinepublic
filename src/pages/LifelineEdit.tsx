@@ -98,7 +98,12 @@ export default function LifelineEdit() {
       if (isNew) return null;
       const { data, error } = await supabase
         .from("lifelines")
-        .select("*, profile:profiles(id, display_name), collection:collections(id, title)")
+        .select(`
+          *,
+          profile:profiles(id, display_name),
+          collection:collections(id, title),
+          profile_lifelines!profile_lifelines_lifeline_id_fkey(profile_id)
+        `)
         .eq("id", id)
         .maybeSingle();
       if (error) throw error;
@@ -163,7 +168,8 @@ export default function LifelineEdit() {
         lifeline_type: lifeline.lifeline_type,
         status: lifeline.status,
         collection_id: lifeline.collection_id || "",
-        cover_image_id: lifeline.cover_image_id || "",
+        cover_image_url: lifeline.cover_image_url || "",
+        cover_image_path: lifeline.cover_image_path || "",
         cover_image_position_x: lifeline.cover_image_position_x || 50,
         cover_image_position_y: lifeline.cover_image_position_y || 50,
         linked_profile_ids: linkedProfileIds,
@@ -226,7 +232,8 @@ export default function LifelineEdit() {
         lifeline_type: data.lifeline_type,
         status: data.status,
         collection_id: data.collection_id || null,
-        cover_image_id: data.cover_image_id || null,
+        cover_image_url: data.cover_image_url || null,
+        cover_image_path: data.cover_image_path || null,
         cover_image_position_x: data.cover_image_position_x,
         cover_image_position_y: data.cover_image_position_y,
         is_featured: data.is_featured,
@@ -557,56 +564,34 @@ export default function LifelineEdit() {
 
             <FormField
               control={form.control}
-              name="cover_image_id"
+              name="cover_image_url"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Cover Image (Optional)</FormLabel>
-                  <div className="space-y-2">
-                    <FormControl>
-                      <MediaPickerModal
-                        value={field.value}
-                        onValueChange={field.onChange}
-                        placeholder="Select cover image"
-                      />
-                    </FormControl>
-                    {field.value && lifeline?.cover_image?.url && (
-                      <div className="space-y-2">
-                        <div className="flex gap-2">
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setShowCoverPositionPicker(true)}
-                          >
-                            Adjust Card Position
-                          </Button>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              form.setValue("cover_image_id", "");
-                              form.setValue("cover_image_position_x", 50);
-                              form.setValue("cover_image_position_y", 50);
-                            }}
-                          >
-                            <X className="h-4 w-4 mr-1" />
-                            Remove Image
-                          </Button>
-                        </div>
-                        <div className="relative w-full max-w-md aspect-video rounded-lg overflow-hidden border">
-                          <img
-                            src={lifeline.cover_image.url}
-                            alt="Cover preview"
-                            className="w-full h-full object-cover"
-                            style={{
-                              objectPosition: `${form.watch("cover_image_position_x")}% ${form.watch("cover_image_position_y")}%`,
-                            }}
-                          />
-                        </div>
-                      </div>
-                    )}
-                  </div>
+                  <DirectImageUpload
+                    currentImageUrl={field.value || undefined}
+                    onUploadComplete={(url, path) => {
+                      form.setValue("cover_image_url", url);
+                      form.setValue("cover_image_path", path);
+                    }}
+                    onRemove={() => {
+                      form.setValue("cover_image_url", "");
+                      form.setValue("cover_image_path", "");
+                      form.setValue("cover_image_position_x", 50);
+                      form.setValue("cover_image_position_y", 50);
+                    }}
+                    onPositionChange={(position) => {
+                      savePositionMutation.mutate({
+                        position_x: position.x,
+                        position_y: position.y,
+                      });
+                    }}
+                    initialPosition={{
+                      x: form.watch("cover_image_position_x"),
+                      y: form.watch("cover_image_position_y"),
+                    }}
+                    label="Upload Cover Image"
+                  />
                   <FormMessage />
                 </FormItem>
               )}
@@ -808,9 +793,9 @@ export default function LifelineEdit() {
         </AlertDialogContent>
       </AlertDialog>
 
-      {lifeline?.cover_image?.url && (
+      {lifeline?.cover_image_url && (
         <ImagePositionPicker
-          imageUrl={lifeline.cover_image.url}
+          imageUrl={lifeline.cover_image_url}
           open={showCoverPositionPicker}
           onOpenChange={setShowCoverPositionPicker}
           initialPosition={{

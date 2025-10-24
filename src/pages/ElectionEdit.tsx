@@ -612,49 +612,6 @@ export default function ElectionEdit() {
                         </div>
                       </div>
 
-                      <div className="md:col-span-2">
-                        <label className="text-sm font-medium">Images (Optional)</label>
-                        <div className="space-y-2">
-                          {(result.media_ids || []).map((mediaId, mediaIndex) => (
-                            <div key={mediaIndex} className="flex gap-2">
-                              <MediaPickerModal
-                                value={mediaId}
-                                onValueChange={(value) => {
-                                  const newMediaIds = [...(result.media_ids || [])];
-                                  newMediaIds[mediaIndex] = value;
-                                  updateResult(index, "media_ids", newMediaIds);
-                                }}
-                                placeholder="Select image"
-                                allowNone={false}
-                              />
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => {
-                                  const newMediaIds = (result.media_ids || []).filter((_, i) => i !== mediaIndex);
-                                  updateResult(index, "media_ids", newMediaIds);
-                                }}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          ))}
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              const newMediaIds = [...(result.media_ids || []), ""];
-                              updateResult(index, "media_ids", newMediaIds);
-                            }}
-                          >
-                            <Plus className="h-4 w-4 mr-2" />
-                            Add Image
-                          </Button>
-                        </div>
-                      </div>
-
                       <div>
                         <label className="text-sm font-medium">Vote Count (Optional)</label>
                         <Input
