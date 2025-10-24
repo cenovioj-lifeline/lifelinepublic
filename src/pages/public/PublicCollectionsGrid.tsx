@@ -32,7 +32,7 @@ export default function PublicCollectionsGrid() {
         .from("collections")
         .select(`
           *,
-          hero_image:media_assets!collections_hero_image_id_fkey(url, alt_text, position_x, position_y)
+          hero_image:media_assets!collections_hero_image_id_fkey(url, alt_text)
         `)
         .eq("status", "published")
         .order("is_featured", { ascending: false })
@@ -151,7 +151,7 @@ export default function PublicCollectionsGrid() {
                           alt={collection.hero_image.alt_text || collection.title}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                           style={{
-                            objectPosition: `${collection.hero_image.position_x ?? 50}% ${collection.hero_image.position_y ?? 50}%`,
+                            objectPosition: `${collection.hero_image_position_x ?? 50}% ${collection.hero_image_position_y ?? 50}%`,
                           }}
                         />
                       ) : (

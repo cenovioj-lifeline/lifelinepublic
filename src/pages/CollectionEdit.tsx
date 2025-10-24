@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -23,10 +23,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Trash2, Image as ImageIcon } from "lucide-react";
 import { MediaPickerModal } from "@/components/MediaPickerModal";
 import { CollectionQuotesUpload } from "@/components/CollectionQuotesUpload";
 import { CollectionFeaturedProfiles } from "@/components/CollectionFeaturedProfiles";
+import { ImagePositionPicker } from "@/components/ImagePositionPicker";
 
 type CollectionForm = {
   title: string;
@@ -51,6 +52,8 @@ type CollectionForm = {
   status: "draft" | "published";
   is_featured: boolean;
   hero_image_id: string;
+  hero_image_position_x: number;
+  hero_image_position_y: number;
 };
 
 export default function CollectionEdit() {
@@ -59,6 +62,8 @@ export default function CollectionEdit() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const isNew = id === "new";
+  const [heroImageUrl, setHeroImageUrl] = useState<string | null>(null);
+  const [showPositionPicker, setShowPositionPicker] = useState(false);
 
   const form = useForm<CollectionForm>({
     defaultValues: {
@@ -84,6 +89,8 @@ export default function CollectionEdit() {
       status: "draft",
       is_featured: false,
       hero_image_id: "",
+      hero_image_position_x: 50,
+      hero_image_position_y: 50,
     },
   });
 
@@ -93,7 +100,10 @@ export default function CollectionEdit() {
       if (isNew) return null;
       const { data, error } = await supabase
         .from("collections")
-        .select("*")
+        .select(`
+          *,
+          hero_image:media_assets!collections_hero_image_id_fkey(url, alt_text)
+        `)
         .eq("id", id)
         .single();
       if (error) throw error;
@@ -127,7 +137,14 @@ export default function CollectionEdit() {
         status: collection.status,
         is_featured: collection.is_featured || false,
         hero_image_id: collection.hero_image_id || "",
+        hero_image_position_x: collection.hero_image_position_x || 50,
+        hero_image_position_y: collection.hero_image_position_y || 50,
       });
+      
+      // Set hero image URL if available
+      if (collection.hero_image?.url) {
+        setHeroImageUrl(collection.hero_image.url);
+      }
     }
   }, [collection, form]);
 
@@ -723,23 +740,117 @@ export default function CollectionEdit() {
             />
           </div>
 
-          <FormField
-            control={form.control}
-            name="hero_image_id"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Hero Image (Optional)</FormLabel>
-                <FormControl>
-                  <MediaPickerModal
-                    value={field.value}
-                    onValueChange={field.onChange}
-                    placeholder="Select hero image"
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
+          <div className="space-y-4">
+            <FormLabel>Hero Image (1920x480 recommended)</FormLabel>
+            
+            {heroImageUrl ? (
+              <div className="space-y-2">
+                {/* Hero Banner Preview (4:1 aspect) */}
+                <div>
+                  <p className="text-sm text-muted-foreground mb-2">Collection Banner Preview:</p>
+                  <div className="relative w-full rounded-lg overflow-hidden border" style={{ height: "200px" }}>
+                    <img
+                      src={heroImageUrl}
+                      alt="Hero banner preview"
+                      className="w-full h-full object-cover"
+                      style={{
+                        objectPosition: `${form.watch("hero_image_position_x")}% ${form.watch("hero_image_position_y")}%`,
+                      }}
+                    />
+                  </div>
+                </div>
+                
+                {/* Collection Card Preview (16:9 aspect) */}
+                <div>
+                  <p className="text-sm text-muted-foreground mb-2">Collection Card Preview:</p>
+                  <div className="relative w-full max-w-md rounded-lg overflow-hidden border aspect-video">
+                    <img
+                      src={heroImageUrl}
+                      alt="Card preview"
+                      className="w-full h-full object-cover"
+                      style={{
+                        objectPosition: `${form.watch("hero_image_position_x")}% ${form.watch("hero_image_position_y")}%`,
+                      }}
+                    />
+                  </div>
+                </div>
+                
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowPositionPicker(true)}
+                  >
+                    <ImageIcon className="h-4 w-4 mr-2" />
+                    Adjust Position
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      form.setValue("hero_image_id", "");
+                      setHeroImageUrl(null);
+                    }}
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Remove Image
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <FormField
+                control={form.control}
+                name="hero_image_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <MediaPickerModal
+                        value={field.value}
+                        onValueChange={(id) => {
+                          field.onChange(id);
+                          // Fetch the URL for the selected media
+                          if (id) {
+                            supabase
+                              .from("media_assets")
+                              .select("url")
+                              .eq("id", id)
+                              .single()
+                              .then(({ data }) => {
+                                if (data) setHeroImageUrl(data.url);
+                              });
+                          }
+                        }}
+                        placeholder="Select hero image"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             )}
-          />
+            
+            {heroImageUrl && (
+              <ImagePositionPicker
+                imageUrl={heroImageUrl}
+                onPositionChange={(position) => {
+                  form.setValue("hero_image_position_x", position.x);
+                  form.setValue("hero_image_position_y", position.y);
+                  toast({
+                    title: "Position updated",
+                    description: "Click 'Save Collection' to apply changes",
+                  });
+                }}
+                initialPosition={{
+                  x: form.watch("hero_image_position_x"),
+                  y: form.watch("hero_image_position_y"),
+                }}
+                open={showPositionPicker}
+                onOpenChange={setShowPositionPicker}
+              />
+            )}
+          </div>
 
           <FormField
             control={form.control}

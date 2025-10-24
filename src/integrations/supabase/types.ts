@@ -197,6 +197,8 @@ export type Database = {
           created_by: string | null
           description: string | null
           hero_image_id: string | null
+          hero_image_position_x: number | null
+          hero_image_position_y: number | null
           id: string
           is_featured: boolean | null
           menu_active_color: string | null
@@ -228,6 +230,8 @@ export type Database = {
           created_by?: string | null
           description?: string | null
           hero_image_id?: string | null
+          hero_image_position_x?: number | null
+          hero_image_position_y?: number | null
           id?: string
           is_featured?: boolean | null
           menu_active_color?: string | null
@@ -259,6 +263,8 @@ export type Database = {
           created_by?: string | null
           description?: string | null
           hero_image_id?: string | null
+          hero_image_position_x?: number | null
+          hero_image_position_y?: number | null
           id?: string
           is_featured?: boolean | null
           menu_active_color?: string | null

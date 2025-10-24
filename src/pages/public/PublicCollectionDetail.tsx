@@ -236,6 +236,9 @@ export default function PublicCollectionDetail() {
                 src={collection.hero_image.url}
                 alt={collection.hero_image.alt_text || collection.title}
                 className="w-full h-full object-cover"
+                style={{
+                  objectPosition: `${collection.hero_image_position_x || 50}% ${collection.hero_image_position_y || 50}%`,
+                }}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
               <div className="absolute top-4 right-4 z-10">
