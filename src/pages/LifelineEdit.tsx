@@ -205,9 +205,38 @@ export default function LifelineEdit() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["lifeline", id] });
+      queryClient.invalidateQueries({ queryKey: ["collection-lifelines-all"] });
       toast({
         title: "Position Saved",
         description: "Card position updated successfully",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const saveImageMutation = useMutation({
+    mutationFn: async ({ url, path }: { url: string; path: string }) => {
+      const { error } = await supabase
+        .from("lifelines")
+        .update({
+          cover_image_url: url,
+          cover_image_path: path,
+        })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["lifeline", id] });
+      queryClient.invalidateQueries({ queryKey: ["collection-lifelines-all"] });
+      toast({
+        title: "Image Saved",
+        description: "Cover image uploaded successfully",
       });
     },
     onError: (error: Error) => {
@@ -280,6 +309,7 @@ export default function LifelineEdit() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["lifelines"] });
+      queryClient.invalidateQueries({ queryKey: ["collection-lifelines-all"] });
       toast({
         title: "Success",
         description: `Lifeline ${isNew ? "created" : "updated"} successfully`,
@@ -570,15 +600,30 @@ export default function LifelineEdit() {
                   <FormLabel>Cover Image (Optional)</FormLabel>
                   <DirectImageUpload
                     currentImageUrl={field.value || undefined}
+                    currentImagePath={form.watch("cover_image_path") || undefined}
                     onUploadComplete={(url, path) => {
                       form.setValue("cover_image_url", url);
                       form.setValue("cover_image_path", path);
+                      
+                      // Save the image to the database immediately
+                      if (!isNew) {
+                        saveImageMutation.mutate({ url, path });
+                      }
                     }}
                     onRemove={() => {
                       form.setValue("cover_image_url", "");
                       form.setValue("cover_image_path", "");
                       form.setValue("cover_image_position_x", 50);
                       form.setValue("cover_image_position_y", 50);
+                      
+                      // Save the removal to the database
+                      saveMutation.mutate({
+                        ...form.getValues(),
+                        cover_image_url: "",
+                        cover_image_path: "",
+                        cover_image_position_x: 50,
+                        cover_image_position_y: 50,
+                      });
                     }}
                     onPositionChange={(position) => {
                       savePositionMutation.mutate({
