@@ -149,8 +149,7 @@ export default function Home() {
     <div className="space-y-8">
       {/* Hero Section */}
       <div
-        className="relative w-full rounded-lg overflow-hidden"
-        style={{ height: "480px" }}
+        className="relative w-full rounded-lg overflow-hidden aspect-[4/1]"
       >
         {homeSettings?.hero_image?.url ? (
           <img
