@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ImageUpload } from "@/components/ImageUpload";
+import { ImagePositionPicker } from "@/components/ImagePositionPicker";
 import { MediaPicker } from "@/components/MediaPicker";
 import {
   Select,
@@ -15,20 +16,26 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Trash2, Plus } from "lucide-react";
+import { Trash2, Plus, Image as ImageIcon } from "lucide-react";
 
 export default function HomeManager() {
   const queryClient = useQueryClient();
   const [heroTitle, setHeroTitle] = useState("");
   const [heroSubtitle, setHeroSubtitle] = useState("");
   const [heroImageId, setHeroImageId] = useState<string | null>(null);
+  const [heroImageUrl, setHeroImageUrl] = useState<string | null>(null);
+  const [heroImagePosition, setHeroImagePosition] = useState({ x: 50, y: 50 });
+  const [showPositionPicker, setShowPositionPicker] = useState(false);
 
   const { data: settings } = useQuery({
     queryKey: ["home-settings"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("home_page_settings")
-        .select("*")
+        .select(`
+          *,
+          hero_image:media_assets(url, alt_text)
+        `)
         .single();
 
       if (error) throw error;
@@ -36,6 +43,11 @@ export default function HomeManager() {
       setHeroTitle(data.hero_title || "");
       setHeroSubtitle(data.hero_subtitle || "");
       setHeroImageId(data.hero_image_id);
+      setHeroImageUrl(data.hero_image?.url || null);
+      setHeroImagePosition({
+        x: data.hero_image_position_x || 50,
+        y: data.hero_image_position_y || 50,
+      });
       
       return data;
     },
@@ -117,6 +129,8 @@ export default function HomeManager() {
           hero_title: heroTitle,
           hero_subtitle: heroSubtitle,
           hero_image_id: heroImageId,
+          hero_image_position_x: heroImagePosition.x,
+          hero_image_position_y: heroImagePosition.y,
         })
         .eq("id", settings?.id);
 
@@ -130,6 +144,34 @@ export default function HomeManager() {
       toast.error("Failed to update settings");
     },
   });
+
+  const handleImageUpload = async (mediaAssetId: string, url: string) => {
+    setHeroImageId(mediaAssetId);
+    setHeroImageUrl(url);
+    
+    // Auto-save after upload
+    try {
+      await supabase
+        .from("home_page_settings")
+        .update({
+          hero_image_id: mediaAssetId,
+          hero_image_position_x: 50,
+          hero_image_position_y: 50,
+        })
+        .eq("id", settings?.id);
+      
+      setHeroImagePosition({ x: 50, y: 50 });
+      queryClient.invalidateQueries({ queryKey: ["home-settings"] });
+      toast.success("Hero image uploaded");
+    } catch (error) {
+      toast.error("Failed to save hero image");
+    }
+  };
+
+  const handlePositionSave = (position: { x: number; y: number }) => {
+    setHeroImagePosition(position);
+    toast.success("Position updated. Click 'Save Hero Settings' to apply.");
+  };
 
   const addFeaturedItem = useMutation({
     mutationFn: async ({ type, id }: { type: string; id: string }) => {
@@ -234,16 +276,86 @@ export default function HomeManager() {
               placeholder="Explore stories, profiles, and collections"
             />
           </div>
-          <div>
+          <div className="space-y-4">
             <Label>Hero Image (1920x480 recommended)</Label>
+            
+            {heroImageUrl ? (
+              <div className="space-y-2">
+                <div className="relative w-full rounded-lg overflow-hidden border" style={{ height: "240px" }}>
+                  <img
+                    src={heroImageUrl}
+                    alt="Hero preview"
+                    className="w-full h-full object-cover"
+                    style={{
+                      objectPosition: `${heroImagePosition.x}% ${heroImagePosition.y}%`,
+                    }}
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowPositionPicker(true)}
+                  >
+                    <ImageIcon className="h-4 w-4 mr-2" />
+                    Adjust Position
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setHeroImageId(null);
+                      setHeroImageUrl(null);
+                    }}
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Remove Image
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <ImageUpload
+                onUploadComplete={handleImageUpload}
+                currentImageUrl={heroImageUrl || undefined}
+              />
+            )}
+            
+            <div className="text-xs text-muted-foreground">
+              Or select from existing media:
+            </div>
             <MediaPicker
               value={heroImageId || ""}
-              onValueChange={setHeroImageId}
+              onValueChange={(id) => {
+                setHeroImageId(id);
+                // Fetch the URL for the selected media
+                if (id) {
+                  supabase
+                    .from("media_assets")
+                    .select("url")
+                    .eq("id", id)
+                    .single()
+                    .then(({ data }) => {
+                      if (data) setHeroImageUrl(data.url);
+                    });
+                }
+              }}
             />
           </div>
           <Button onClick={() => updateSettings.mutate()}>
             Save Hero Settings
           </Button>
+          
+          {heroImageUrl && (
+            <ImagePositionPicker
+              imageUrl={heroImageUrl}
+              onPositionChange={handlePositionSave}
+              initialPosition={heroImagePosition}
+              open={showPositionPicker}
+              onOpenChange={setShowPositionPicker}
+            />
+          )}
         </CardContent>
       </Card>
 

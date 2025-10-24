@@ -690,6 +690,8 @@ export type Database = {
         Row: {
           created_at: string
           hero_image_id: string | null
+          hero_image_position_x: number | null
+          hero_image_position_y: number | null
           hero_subtitle: string | null
           hero_title: string | null
           id: string
@@ -698,6 +700,8 @@ export type Database = {
         Insert: {
           created_at?: string
           hero_image_id?: string | null
+          hero_image_position_x?: number | null
+          hero_image_position_y?: number | null
           hero_subtitle?: string | null
           hero_title?: string | null
           id?: string
@@ -706,6 +710,8 @@ export type Database = {
         Update: {
           created_at?: string
           hero_image_id?: string | null
+          hero_image_position_x?: number | null
+          hero_image_position_y?: number | null
           hero_subtitle?: string | null
           hero_title?: string | null
           id?: string

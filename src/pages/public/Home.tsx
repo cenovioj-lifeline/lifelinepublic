@@ -157,6 +157,9 @@ export default function Home() {
             src={homeSettings.hero_image.url}
             alt={homeSettings.hero_image.alt_text || "Hero"}
             className="w-full h-full object-cover"
+            style={{
+              objectPosition: `${homeSettings.hero_image_position_x || 50}% ${homeSettings.hero_image_position_y || 50}%`,
+            }}
           />
         ) : (
           <div className="w-full h-full bg-[#1e3a5f] flex items-center justify-center text-white">
