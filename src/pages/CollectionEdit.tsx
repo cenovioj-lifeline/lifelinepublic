@@ -54,6 +54,8 @@ type CollectionForm = {
   hero_image_id: string;
   hero_image_position_x: number;
   hero_image_position_y: number;
+  card_image_position_x: number;
+  card_image_position_y: number;
 };
 
 export default function CollectionEdit() {
@@ -63,7 +65,8 @@ export default function CollectionEdit() {
   const queryClient = useQueryClient();
   const isNew = id === "new";
   const [heroImageUrl, setHeroImageUrl] = useState<string | null>(null);
-  const [showPositionPicker, setShowPositionPicker] = useState(false);
+  const [showBannerPositionPicker, setShowBannerPositionPicker] = useState(false);
+  const [showCardPositionPicker, setShowCardPositionPicker] = useState(false);
 
   const form = useForm<CollectionForm>({
     defaultValues: {
@@ -91,6 +94,8 @@ export default function CollectionEdit() {
       hero_image_id: "",
       hero_image_position_x: 50,
       hero_image_position_y: 50,
+      card_image_position_x: 50,
+      card_image_position_y: 50,
     },
   });
 
@@ -139,6 +144,8 @@ export default function CollectionEdit() {
         hero_image_id: collection.hero_image_id || "",
         hero_image_position_x: collection.hero_image_position_x || 50,
         hero_image_position_y: collection.hero_image_position_y || 50,
+        card_image_position_x: collection.card_image_position_x || 50,
+        card_image_position_y: collection.card_image_position_y || 50,
       });
       
       // Set hero image URL if available
@@ -762,10 +769,10 @@ export default function CollectionEdit() {
                     type="button"
                     variant="outline"
                     size="sm"
-                    onClick={() => setShowPositionPicker(true)}
+                    onClick={() => setShowBannerPositionPicker(true)}
                   >
                     <ImageIcon className="h-4 w-4 mr-2" />
-                    Adjust Position
+                    Adjust Banner Position
                   </Button>
                 </div>
                 
@@ -778,7 +785,7 @@ export default function CollectionEdit() {
                       alt="Card preview"
                       className="w-full h-full object-cover"
                       style={{
-                        objectPosition: `${form.watch("hero_image_position_x")}% ${form.watch("hero_image_position_y")}%`,
+                        objectPosition: `${form.watch("card_image_position_x")}% ${form.watch("card_image_position_y")}%`,
                       }}
                     />
                   </div>
@@ -786,10 +793,10 @@ export default function CollectionEdit() {
                     type="button"
                     variant="outline"
                     size="sm"
-                    onClick={() => setShowPositionPicker(true)}
+                    onClick={() => setShowCardPositionPicker(true)}
                   >
                     <ImageIcon className="h-4 w-4 mr-2" />
-                    Adjust Position
+                    Adjust Card Position
                   </Button>
                 </div>
                 
@@ -840,6 +847,7 @@ export default function CollectionEdit() {
               />
             )}
             
+            {/* Banner Position Picker */}
             {heroImageUrl && (
               <ImagePositionPicker
                 imageUrl={heroImageUrl}
@@ -847,7 +855,7 @@ export default function CollectionEdit() {
                   form.setValue("hero_image_position_x", position.x);
                   form.setValue("hero_image_position_y", position.y);
                   toast({
-                    title: "Position updated",
+                    title: "Banner position updated",
                     description: "Click 'Save Collection' to apply changes",
                   });
                 }}
@@ -855,8 +863,31 @@ export default function CollectionEdit() {
                   x: form.watch("hero_image_position_x"),
                   y: form.watch("hero_image_position_y"),
                 }}
-                open={showPositionPicker}
-                onOpenChange={setShowPositionPicker}
+                open={showBannerPositionPicker}
+                onOpenChange={setShowBannerPositionPicker}
+                title="Adjust Banner Position"
+              />
+            )}
+            
+            {/* Card Position Picker */}
+            {heroImageUrl && (
+              <ImagePositionPicker
+                imageUrl={heroImageUrl}
+                onPositionChange={(position) => {
+                  form.setValue("card_image_position_x", position.x);
+                  form.setValue("card_image_position_y", position.y);
+                  toast({
+                    title: "Card position updated",
+                    description: "Click 'Save Collection' to apply changes",
+                  });
+                }}
+                initialPosition={{
+                  x: form.watch("card_image_position_x"),
+                  y: form.watch("card_image_position_y"),
+                }}
+                open={showCardPositionPicker}
+                onOpenChange={setShowCardPositionPicker}
+                title="Adjust Card Position"
               />
             )}
           </div>

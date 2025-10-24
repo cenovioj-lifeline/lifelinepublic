@@ -9,6 +9,7 @@ interface ImagePositionPickerProps {
   initialPosition?: { x: number; y: number };
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  title?: string;
 }
 
 export function ImagePositionPicker({
@@ -17,6 +18,7 @@ export function ImagePositionPicker({
   initialPosition = { x: 50, y: 50 },
   open,
   onOpenChange,
+  title = "Position Image",
 }: ImagePositionPickerProps) {
   const [position, setPosition] = useState(initialPosition);
 
@@ -34,7 +36,7 @@ export function ImagePositionPicker({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl">
         <DialogHeader>
-          <DialogTitle>Position Image</DialogTitle>
+          <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6">

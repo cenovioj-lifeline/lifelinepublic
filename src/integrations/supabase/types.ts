@@ -184,6 +184,8 @@ export type Database = {
       }
       collections: {
         Row: {
+          card_image_position_x: number | null
+          card_image_position_y: number | null
           category: string | null
           collection_accent_color: string | null
           collection_badge_color: string | null
@@ -217,6 +219,8 @@ export type Database = {
           web_secondary: string | null
         }
         Insert: {
+          card_image_position_x?: number | null
+          card_image_position_y?: number | null
           category?: string | null
           collection_accent_color?: string | null
           collection_badge_color?: string | null
@@ -250,6 +254,8 @@ export type Database = {
           web_secondary?: string | null
         }
         Update: {
+          card_image_position_x?: number | null
+          card_image_position_y?: number | null
           category?: string | null
           collection_accent_color?: string | null
           collection_badge_color?: string | null

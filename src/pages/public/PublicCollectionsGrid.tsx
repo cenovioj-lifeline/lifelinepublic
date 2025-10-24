@@ -151,7 +151,7 @@ export default function PublicCollectionsGrid() {
                           alt={collection.hero_image.alt_text || collection.title}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                           style={{
-                            objectPosition: `${collection.hero_image_position_x ?? 50}% ${collection.hero_image_position_y ?? 50}%`,
+                            objectPosition: `${collection.card_image_position_x ?? 50}% ${collection.card_image_position_y ?? 50}%`,
                           }}
                         />
                       ) : (
