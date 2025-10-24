@@ -23,6 +23,7 @@ import {
 
 const items = [
   { title: "Dashboard", url: "/admin", icon: Home },
+  { title: "Home Manager", url: "/home-manager", icon: Home },
   { title: "Collections", url: "/collections", icon: Folder },
   { title: "Lifelines", url: "/lifelines", icon: Activity },
   { title: "Profiles", url: "/profiles", icon: Users },

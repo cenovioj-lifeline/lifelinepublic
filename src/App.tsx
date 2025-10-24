@@ -48,6 +48,7 @@ import UserProfile from "./pages/public/UserProfile";
 import TopContributors from "./pages/public/TopContributors";
 import PublicMore from "./pages/public/PublicMore";
 import CollectionMore from "./pages/public/CollectionMore";
+import HomeManager from "./pages/HomeManager";
 
 const queryClient = new QueryClient();
 
@@ -253,6 +254,16 @@ function AppContent() {
                 <ProtectedRoute>
                   <AdminLayout>
                     <LoadLifelines />
+                  </AdminLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/home-manager"
+              element={
+                <ProtectedRoute>
+                  <AdminLayout>
+                    <HomeManager />
                   </AdminLayout>
                 </ProtectedRoute>
               }

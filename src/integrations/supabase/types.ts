@@ -638,6 +638,89 @@ export type Database = {
           },
         ]
       }
+      home_page_featured_items: {
+        Row: {
+          created_at: string
+          id: string
+          item_id: string
+          item_type: string
+          order_index: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          item_id: string
+          item_type: string
+          order_index?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          item_id?: string
+          item_type?: string
+          order_index?: number
+        }
+        Relationships: []
+      }
+      home_page_new_content_items: {
+        Row: {
+          created_at: string
+          id: string
+          item_id: string
+          item_type: string
+          order_index: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          item_id: string
+          item_type: string
+          order_index?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          item_id?: string
+          item_type?: string
+          order_index?: number
+        }
+        Relationships: []
+      }
+      home_page_settings: {
+        Row: {
+          created_at: string
+          hero_image_id: string | null
+          hero_subtitle: string | null
+          hero_title: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          hero_image_id?: string | null
+          hero_subtitle?: string | null
+          hero_title?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          hero_image_id?: string | null
+          hero_subtitle?: string | null
+          hero_title?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "home_page_settings_hero_image_id_fkey"
+            columns: ["hero_image_id"]
+            isOneToOne: false
+            referencedRelation: "media_assets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lifeline_settings: {
         Row: {
           created_at: string | null
@@ -1150,10 +1233,7 @@ export type Database = {
         Args: { entry_uuid: string }
         Returns: number
       }
-      get_entry_vote_count: {
-        Args: { entry_uuid: string }
-        Returns: number
-      }
+      get_entry_vote_count: { Args: { entry_uuid: string }; Returns: number }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["user_role"]

@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Home, BookOpen, Users, Award, FolderOpen, Menu, Lock, MoreHorizontal } from "lucide-react";
+import { Home, BookOpen, Users, Award, FolderOpen, Menu, MoreHorizontal } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { PublicAuthModal } from "@/components/PublicAuthModal";
 import { PublicUserMenu } from "@/components/PublicUserMenu";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
+import logo from "@/assets/logo.png";
 
 export function PublicLayout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
@@ -18,11 +19,10 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
   const navItems = [
     { path: "/", label: "Home", icon: Home },
     { path: "/public/lifelines", label: "Stories", icon: BookOpen },
-    { path: "/public/collections", label: "Collections", icon: FolderOpen },
     { path: "/public/profiles", label: "Profiles", icon: Users },
     { path: "/public/elections", label: "Awards", icon: Award },
+    { path: "/public/collections", label: "Collections", icon: FolderOpen },
     { path: "/public/more", label: "More", icon: MoreHorizontal },
-    { path: "/admin/login", label: "Admin", icon: Lock },
   ];
 
   const NavLinks = ({ onClick }: { onClick?: () => void }) => (
@@ -37,8 +37,8 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
             onClick={onClick}
             className={`flex items-center gap-2 px-3 py-2 rounded-md transition-colors ${
               isActive
-                ? "bg-primary text-primary-foreground"
-                : "hover:bg-muted"
+                ? "bg-[#ff6b35] text-white"
+                : "text-white hover:bg-[#ff6b35]"
             }`}
           >
             <Icon className="h-4 w-4" />
@@ -51,17 +51,23 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b bg-card sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4">
+      <header className="border-b sticky top-0 z-50" style={{ backgroundColor: "#1e3a5f" }}>
+        <div className="container mx-auto px-4 py-3">
           <nav className="flex items-center justify-between">
-            <Link to="/" className="text-lg md:text-xl font-bold text-primary">
-              Lifeline Public
+            <Link to="/" className="flex items-center">
+              <img src={logo} alt="Lifeline Public" className="h-10" />
             </Link>
             
             {/* Desktop Navigation */}
             {!isMobile && (
-              <div className="flex gap-2 items-center">
+              <div className="flex gap-1 items-center">
                 <NavLinks />
+                <Link
+                  to="/admin/login"
+                  className="flex items-center gap-2 px-3 py-2 rounded-md transition-colors text-white hover:bg-[#ff6b35]"
+                >
+                  <span>LP</span>
+                </Link>
                 {user ? (
                   <PublicUserMenu />
                 ) : (
@@ -69,6 +75,7 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
                     variant="outline" 
                     size="sm"
                     onClick={() => setAuthModalOpen(true)}
+                    className="ml-2 border-white text-white hover:bg-white hover:text-[#1e3a5f]"
                   >
                     Sign In
                   </Button>

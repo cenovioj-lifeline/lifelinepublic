@@ -1,16 +1,269 @@
-import { TopContributorsCard } from "@/components/TopContributorsCard";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { StandardizedContentCard } from "@/components/StandardizedContentCard";
+import { Card, CardContent } from "@/components/ui/card";
+import { Rss, Users, Share2, Settings } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Link } from "react-router-dom";
 
 export default function Home() {
+  const { data: homeSettings } = useQuery({
+    queryKey: ["home-settings"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("home_page_settings")
+        .select(`
+          *,
+          hero_image:media_assets(url, alt_text)
+        `)
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: featuredItems, isLoading: loadingFeatured } = useQuery({
+    queryKey: ["home-featured"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("home_page_featured_items")
+        .select("*")
+        .order("order_index");
+
+      if (error) throw error;
+
+      // Fetch actual content for each item
+      const items = await Promise.all(
+        data.map(async (item) => {
+          if (item.item_type === "collection") {
+            const { data: collection } = await supabase
+              .from("collections")
+              .select(`
+                id,
+                title,
+                slug,
+                description,
+                hero_image:media_assets!collections_hero_image_id_fkey(url, alt_text)
+              `)
+              .eq("id", item.item_id)
+              .eq("status", "published")
+              .single();
+            return collection ? { ...collection, type: "collection" as const } : null;
+          } else if (item.item_type === "lifeline") {
+            const { data: lifeline } = await supabase
+              .from("lifelines")
+              .select(`
+                id,
+                title,
+                slug,
+                intro,
+                cover_image:media_assets!lifelines_cover_image_id_fkey(url, alt_text)
+              `)
+              .eq("id", item.item_id)
+              .eq("status", "published")
+              .single();
+            return lifeline ? { ...lifeline, type: "lifeline" as const } : null;
+          } else if (item.item_type === "election") {
+            const { data: election } = await supabase
+              .from("mock_elections")
+              .select("id, title, slug, description")
+              .eq("id", item.item_id)
+              .eq("status", "published")
+              .single();
+            return election ? { ...election, type: "election" as const } : null;
+          }
+          return null;
+        })
+      );
+
+      return items.filter((item) => item !== null);
+    },
+  });
+
+  const { data: newContentItems, isLoading: loadingNew } = useQuery({
+    queryKey: ["home-new-content"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("home_page_new_content_items")
+        .select("*")
+        .order("order_index");
+
+      if (error) throw error;
+
+      const items = await Promise.all(
+        data.map(async (item) => {
+          if (item.item_type === "collection") {
+            const { data: collection } = await supabase
+              .from("collections")
+              .select(`
+                id,
+                title,
+                slug,
+                description,
+                hero_image:media_assets!collections_hero_image_id_fkey(url, alt_text)
+              `)
+              .eq("id", item.item_id)
+              .eq("status", "published")
+              .single();
+            return collection ? { ...collection, type: "collection" as const } : null;
+          } else if (item.item_type === "lifeline") {
+            const { data: lifeline } = await supabase
+              .from("lifelines")
+              .select(`
+                id,
+                title,
+                slug,
+                intro,
+                cover_image:media_assets!lifelines_cover_image_id_fkey(url, alt_text)
+              `)
+              .eq("id", item.item_id)
+              .eq("status", "published")
+              .single();
+            return lifeline ? { ...lifeline, type: "lifeline" as const } : null;
+          } else if (item.item_type === "election") {
+            const { data: election } = await supabase
+              .from("mock_elections")
+              .select("id, title, slug, description")
+              .eq("id", item.item_id)
+              .eq("status", "published")
+              .single();
+            return election ? { ...election, type: "election" as const } : null;
+          }
+          return null;
+        })
+      );
+
+      return items.filter((item) => item !== null);
+    },
+  });
+
+  const quickActionCards = [
+    { icon: Rss, label: "Feed", path: "/public/feed" },
+    { icon: Users, label: "Following", path: "/public/following" },
+    { icon: Share2, label: "Share", path: "/public/share" },
+    { icon: Settings, label: "Settings", path: "/public/settings" },
+  ];
+
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-4xl font-bold mb-4">Welcome to Lifeline</h1>
-      <p className="text-lg text-muted-foreground mb-8">
-        Explore curated collections and lifelines
-      </p>
-      
-      <div className="max-w-md">
-        <TopContributorsCard />
+    <div className="space-y-8">
+      {/* Hero Section */}
+      <div
+        className="relative w-full rounded-lg overflow-hidden"
+        style={{ height: "480px" }}
+      >
+        {homeSettings?.hero_image?.url ? (
+          <img
+            src={homeSettings.hero_image.url}
+            alt={homeSettings.hero_image.alt_text || "Hero"}
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div className="w-full h-full bg-[#1e3a5f] flex items-center justify-center text-white">
+            <div className="text-center">
+              <h1 className="text-4xl font-bold mb-2">
+                {homeSettings?.hero_title || "Welcome to Lifeline Public"}
+              </h1>
+              <p className="text-xl">
+                {homeSettings?.hero_subtitle || "Explore stories, profiles, and collections"}
+              </p>
+            </div>
+          </div>
+        )}
       </div>
+
+      {/* Quick Action Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {quickActionCards.map((action) => {
+          const Icon = action.icon;
+          return (
+            <Link key={action.label} to={action.path}>
+              <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
+                <CardContent className="flex flex-col items-center justify-center p-6 gap-2">
+                  <Icon className="h-8 w-8 text-muted-foreground" />
+                  <span className="text-sm font-medium">{action.label}</span>
+                </CardContent>
+              </Card>
+            </Link>
+          );
+        })}
+      </div>
+
+      {/* Featured Section */}
+      <section>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-2xl font-semibold">Featured</h2>
+          <Link to="/public/collections" className="text-primary hover:underline text-sm">
+            View All
+          </Link>
+        </div>
+        {loadingFeatured ? (
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {[...Array(3)].map((_, i) => (
+              <Skeleton key={i} className="h-80" />
+            ))}
+          </div>
+        ) : (
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {featuredItems?.map((item: any) => (
+              <StandardizedContentCard
+                key={item.id}
+                id={item.id}
+                title={item.title}
+                description={item.description || item.intro}
+                imageUrl={item.hero_image?.url || item.cover_image?.url}
+                imageAlt={item.hero_image?.alt_text || item.cover_image?.alt_text}
+                linkPath={
+                  item.type === "collection"
+                    ? `/public/collections/${item.slug}`
+                    : item.type === "lifeline"
+                    ? `/public/lifelines/${item.slug}`
+                    : `/public/elections/${item.slug}`
+                }
+                type={item.type}
+              />
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* New Content Section */}
+      <section>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-2xl font-semibold">New Content</h2>
+          <Link to="/public/lifelines" className="text-primary hover:underline text-sm">
+            View All
+          </Link>
+        </div>
+        {loadingNew ? (
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {[...Array(3)].map((_, i) => (
+              <Skeleton key={i} className="h-80" />
+            ))}
+          </div>
+        ) : (
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {newContentItems?.map((item: any) => (
+              <StandardizedContentCard
+                key={item.id}
+                id={item.id}
+                title={item.title}
+                description={item.description || item.intro}
+                imageUrl={item.hero_image?.url || item.cover_image?.url}
+                imageAlt={item.hero_image?.alt_text || item.cover_image?.alt_text}
+                linkPath={
+                  item.type === "collection"
+                    ? `/public/collections/${item.slug}`
+                    : item.type === "lifeline"
+                    ? `/public/lifelines/${item.slug}`
+                    : `/public/elections/${item.slug}`
+                }
+                type={item.type}
+              />
+            ))}
+          </div>
+        )}
+      </section>
     </div>
   );
 }
