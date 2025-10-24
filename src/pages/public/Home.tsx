@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { StandardizedContentCard } from "@/components/StandardizedContentCard";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Rss, FileQuestion, Share2, Settings } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Link, useNavigate } from "react-router-dom";
@@ -246,24 +246,59 @@ export default function Home() {
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {featuredItems?.map((item: any) => (
-              <StandardizedContentCard
-                key={item.id}
-                id={item.id}
-                title={item.title}
-                description={item.description || item.intro}
-                imageUrl={item.hero_image?.url || item.cover_image?.url}
-                imageAlt={item.hero_image?.alt_text || item.cover_image?.alt_text}
-                imagePositionX={item.card_image_position_x ?? item.cover_image_position_x ?? 50}
-                imagePositionY={item.card_image_position_y ?? item.cover_image_position_y ?? 50}
-                linkPath={
-                  item.type === "collection"
-                    ? `/public/collections/${item.slug}`
-                    : item.type === "lifeline"
-                    ? `/public/lifelines/${item.slug}`
-                    : `/public/elections/${item.slug}`
-                }
-                type={item.type}
-              />
+              item.type === "lifeline" ? (
+                <Link
+                  key={item.id}
+                  to={`/public/lifelines/${item.slug}`}
+                  className="group relative"
+                >
+                  <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full">
+                    <div className="aspect-video relative bg-muted overflow-hidden">
+                      {item.cover_image?.url ? (
+                        <img
+                          src={item.cover_image.url}
+                          alt={item.cover_image.alt_text || item.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          style={{
+                            objectPosition: `${item.cover_image_position_x ?? 50}% ${item.cover_image_position_y ?? 50}%`,
+                          }}
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+                          No image
+                        </div>
+                      )}
+                    </div>
+                    <CardHeader>
+                      <CardTitle className="text-lg text-foreground transition-colors">
+                        {item.title}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-muted-foreground line-clamp-2">
+                        {item.intro || "Explore this lifeline"}
+                      </p>
+                    </CardContent>
+                  </Card>
+                </Link>
+              ) : (
+                <StandardizedContentCard
+                  key={item.id}
+                  id={item.id}
+                  title={item.title}
+                  description={item.description}
+                  imageUrl={item.hero_image?.url}
+                  imageAlt={item.hero_image?.alt_text}
+                  imagePositionX={item.card_image_position_x ?? 50}
+                  imagePositionY={item.card_image_position_y ?? 50}
+                  linkPath={
+                    item.type === "collection"
+                      ? `/public/collections/${item.slug}`
+                      : `/public/elections/${item.slug}`
+                  }
+                  type={item.type}
+                />
+              )
             ))}
           </div>
         )}
@@ -286,24 +321,59 @@ export default function Home() {
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {newContentItems?.map((item: any) => (
-              <StandardizedContentCard
-                key={item.id}
-                id={item.id}
-                title={item.title}
-                description={item.description || item.intro}
-                imageUrl={item.hero_image?.url || item.cover_image?.url}
-                imageAlt={item.hero_image?.alt_text || item.cover_image?.alt_text}
-                imagePositionX={item.card_image_position_x ?? item.cover_image_position_x ?? 50}
-                imagePositionY={item.card_image_position_y ?? item.cover_image_position_y ?? 50}
-                linkPath={
-                  item.type === "collection"
-                    ? `/public/collections/${item.slug}`
-                    : item.type === "lifeline"
-                    ? `/public/lifelines/${item.slug}`
-                    : `/public/elections/${item.slug}`
-                }
-                type={item.type}
-              />
+              item.type === "lifeline" ? (
+                <Link
+                  key={item.id}
+                  to={`/public/lifelines/${item.slug}`}
+                  className="group relative"
+                >
+                  <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full">
+                    <div className="aspect-video relative bg-muted overflow-hidden">
+                      {item.cover_image?.url ? (
+                        <img
+                          src={item.cover_image.url}
+                          alt={item.cover_image.alt_text || item.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          style={{
+                            objectPosition: `${item.cover_image_position_x ?? 50}% ${item.cover_image_position_y ?? 50}%`,
+                          }}
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+                          No image
+                        </div>
+                      )}
+                    </div>
+                    <CardHeader>
+                      <CardTitle className="text-lg text-foreground transition-colors">
+                        {item.title}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-muted-foreground line-clamp-2">
+                        {item.intro || "Explore this lifeline"}
+                      </p>
+                    </CardContent>
+                  </Card>
+                </Link>
+              ) : (
+                <StandardizedContentCard
+                  key={item.id}
+                  id={item.id}
+                  title={item.title}
+                  description={item.description}
+                  imageUrl={item.hero_image?.url}
+                  imageAlt={item.hero_image?.alt_text}
+                  imagePositionX={item.card_image_position_x ?? 50}
+                  imagePositionY={item.card_image_position_y ?? 50}
+                  linkPath={
+                    item.type === "collection"
+                      ? `/public/collections/${item.slug}`
+                      : `/public/elections/${item.slug}`
+                  }
+                  type={item.type}
+                />
+              )
             ))}
           </div>
         )}
