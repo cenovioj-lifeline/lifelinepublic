@@ -5,6 +5,7 @@ import { CollectionLayout } from "@/components/CollectionLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowRight } from "lucide-react";
+import { FavoriteButton } from "@/components/FavoriteButton";
 
 export default function CollectionElections() {
   const { slug } = useParams<{ slug: string }>();
@@ -92,7 +93,7 @@ export default function CollectionElections() {
                   <Link
                     key={election.id}
                     to={`/public/collections/${slug}/elections/${election.slug}`}
-                    className="flex items-center justify-between p-4 hover:bg-muted/50 transition-colors"
+                    className="flex items-center justify-between p-4 hover:bg-muted/50 transition-colors group"
                   >
                     <div className="flex-1">
                       <div className="font-medium">{election.title}</div>
@@ -102,7 +103,10 @@ export default function CollectionElections() {
                         </div>
                       )}
                     </div>
-                    <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                    <div className="flex items-center gap-2">
+                      <FavoriteButton itemId={election.id} itemType="election" />
+                      <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                    </div>
                   </Link>
                 ))}
               </div>

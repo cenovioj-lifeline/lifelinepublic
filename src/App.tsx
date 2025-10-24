@@ -49,6 +49,8 @@ import TopContributors from "./pages/public/TopContributors";
 import PublicMore from "./pages/public/PublicMore";
 import CollectionMore from "./pages/public/CollectionMore";
 import HomeManager from "./pages/HomeManager";
+import PublicLifelinesGrid from "./pages/public/PublicLifelinesGrid";
+import PublicCollectionsGrid from "./pages/public/PublicCollectionsGrid";
 
 const queryClient = new QueryClient();
 
@@ -64,9 +66,10 @@ function AppContent() {
             {/* Public Routes */}
           <Route path="/" element={<PublicLayout><Home /></PublicLayout>} />
           <Route path="/home" element={<Navigate to="/" replace />} />
-          <Route path="/public/lifelines" element={<PublicLayout><PublicLifelines /></PublicLayout>} />
+          <Route path="/public/lifelines" element={<PublicLayout><PublicLifelinesGrid /></PublicLayout>} />
           <Route path="/public/lifelines/:slug" element={<PublicLifelineDetail />} />
             <Route path="/public/collections" element={<PublicLayout><PublicCollections /></PublicLayout>} />
+            <Route path="/public/collections/all" element={<PublicCollectionsGrid />} />
           <Route path="/public/collections/:slug" element={<PublicCollectionDetail />} />
           <Route path="/public/collections/:slug/feed" element={<CollectionFeed />} />
           <Route path="/public/collections/:slug/settings" element={<CollectionSettings />} />

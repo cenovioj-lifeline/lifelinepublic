@@ -4,6 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+import { FavoriteButton } from "@/components/FavoriteButton";
 
 export default function PublicCollections() {
   const { data: collections, isLoading } = useQuery({
@@ -60,9 +62,12 @@ export default function PublicCollections() {
               <Link
                 key={collection.id}
                 to={`/public/collections/${collection.slug}`}
-                className="group"
+                className="group relative"
               >
                 <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full">
+                  <div className="absolute top-2 right-2 z-10">
+                    <FavoriteButton itemId={collection.id} itemType="collection" />
+                  </div>
                   <div className="aspect-video relative bg-muted overflow-hidden">
                     {collection.hero_image?.url ? (
                       <img
@@ -98,15 +103,23 @@ export default function PublicCollections() {
 
       {otherCollections.length > 0 && (
         <section>
-          <h2 className="text-2xl font-semibold mb-4">All Collections</h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-2xl font-semibold">All Collections</h2>
+            <Link to="/public/collections/all">
+              <Button variant="outline">View All</Button>
+            </Link>
+          </div>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {otherCollections.map((collection) => (
+            {otherCollections.slice(0, 6).map((collection) => (
               <Link
                 key={collection.id}
                 to={`/public/collections/${collection.slug}`}
-                className="group"
+                className="group relative"
               >
                 <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full">
+                  <div className="absolute top-2 right-2 z-10">
+                    <FavoriteButton itemId={collection.id} itemType="collection" />
+                  </div>
                   <div className="aspect-video relative bg-muted overflow-hidden">
                     {collection.hero_image?.url ? (
                       <img

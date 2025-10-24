@@ -7,6 +7,7 @@ import { Search, Award } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { FavoriteButton } from "@/components/FavoriteButton";
 
 export default function PublicElections() {
   const navigate = useNavigate();
@@ -123,11 +124,14 @@ export default function PublicElections() {
             </div>
           ) : (
             elections?.map((election: any) => (
-              <Card
-                key={election.id}
-                className="cursor-pointer hover:shadow-lg transition-shadow"
-                onClick={() => navigate(`/public/elections/${election.slug}`)}
-              >
+              <div key={election.id} className="relative">
+                <div className="absolute top-2 right-2 z-10">
+                  <FavoriteButton itemId={election.id} itemType="election" />
+                </div>
+                <Card
+                  className="cursor-pointer hover:shadow-lg transition-shadow"
+                  onClick={() => navigate(`/public/elections/${election.slug}`)}
+                >
                 <CardContent className="p-6 space-y-4">
                   <div className="space-y-2">
                     <h3 className="text-xl font-semibold line-clamp-2">
@@ -166,6 +170,7 @@ export default function PublicElections() {
                   </div>
                 </CardContent>
               </Card>
+              </div>
             ))
           )}
         </div>
