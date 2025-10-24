@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,10 +23,10 @@ interface LifelineViewerProps {
 
 type SelectionStyle = "glow" | "lifted" | "sheen" | "wave";
 
-export function LifelineViewer({ 
-  lifelineId, 
+export function LifelineViewer({
+  lifelineId,
   lifelineType,
-  primaryColor, 
+  primaryColor,
   secondaryColor,
   collectionTextColor,
   collectionHeadingColor
@@ -37,6 +37,8 @@ export function LifelineViewer({
   const [contributeImageDialogOpen, setContributeImageDialogOpen] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const selectionStyle: SelectionStyle = "glow"; // Always use glow
+  const timelineRef = useRef<HTMLDivElement>(null);
+  const entryRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
 
   // Default colors (green and red)
   const positiveColor = primaryColor || "#16a34a";
@@ -147,17 +149,53 @@ export function LifelineViewer({
     return entries.findIndex((e) => e.id === selected.id);
   }, [selected, entries]);
 
+  const scrollToEntry = (entryId: string) => {
+    const entryElement = entryRefs.current[entryId];
+    if (entryElement && timelineRef.current) {
+      const container = timelineRef.current;
+      const containerRect = container.getBoundingClientRect();
+      const elementRect = entryElement.getBoundingClientRect();
+
+      const isVisible =
+        elementRect.top >= containerRect.top &&
+        elementRect.bottom <= containerRect.bottom;
+
+      if (!isVisible) {
+        const elementTop = entryElement.offsetTop;
+        const containerHeight = container.clientHeight;
+        const elementHeight = entryElement.clientHeight;
+        const scrollTop = elementTop - (containerHeight / 2) + (elementHeight / 2);
+
+        container.scrollTo({
+          top: scrollTop,
+          behavior: 'smooth'
+        });
+      }
+    }
+  };
+
   const handlePrevious = () => {
     if (currentIndex > 0 && entries) {
-      setSelectedId(entries[currentIndex - 1].id);
+      const newId = entries[currentIndex - 1].id;
+      setSelectedId(newId);
+      scrollToEntry(newId);
     }
   };
 
   const handleNext = () => {
     if (currentIndex < (entries?.length || 0) - 1 && entries) {
-      setSelectedId(entries[currentIndex + 1].id);
+      const newId = entries[currentIndex + 1].id;
+      setSelectedId(newId);
+      scrollToEntry(newId);
     }
   };
+
+  // Scroll to selected entry when selection changes
+  useEffect(() => {
+    if (selectedId) {
+      scrollToEntry(selectedId);
+    }
+  }, [selectedId]);
 
   const getInitials = (name: string) => {
     return name
@@ -173,18 +211,18 @@ export function LifelineViewer({
   }
 
   return (
-    <Card className="p-6">
-      <CardHeader>
+    <Card className="p-6 pb-4">
+      <CardHeader className="pt-2">
         <div className="flex items-start justify-between">
           <div>
-            <CardTitle 
+            <CardTitle
               className="text-2xl"
               style={collectionHeadingColor ? { color: collectionHeadingColor } : undefined}
             >
               {lifeline.title}
             </CardTitle>
             {lifeline.subtitle && (
-              <p 
+              <p
                 style={collectionTextColor ? { color: collectionTextColor, opacity: 0.7 } : undefined}
               >
                 {lifeline.subtitle}
@@ -198,88 +236,178 @@ export function LifelineViewer({
         </div>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Left side - Timeline - Always white background */}
-          <div className="space-y-4 bg-white rounded-lg p-6">
-            <div className="relative">
-              {/* Center vertical line */}
-              <div className="absolute left-1/2 top-0 bottom-0 w-0.5 bg-gray-200 -translate-x-1/2" />
-              
-              <div className="flex flex-col gap-3 py-4">
-                {entries.map((entry) => {
-                  const isSelected = entry.id === selectedId;
-                  const positive = (entry.score || 0) >= 0;
-                  const score = entry.score || 0;
-                  const width = Math.max(20, Math.min(50, Math.abs(score) * 5));
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8" style={{ height: 'calc(100vh - 270px)' }}>
+          {/* Left side - Timeline */}
+          <div
+            ref={timelineRef}
+            className="bg-white rounded-lg p-5 overflow-y-auto h-full"
+            style={{
+              scrollbarWidth: 'thin',
+              scrollbarColor: `${positiveColor} #f0f0f0`
+            }}
+          >
+            <div className="relative min-h-full">
+              {entries.map((entry) => {
+                const isSelected = entry.id === selectedId;
+                const positive = (entry.score || 0) >= 0;
+                const score = entry.score || 0;
+                const absScore = Math.abs(score);
+                const stemWidthPercent = Math.min(absScore * 10, 100); // 10% per score point, max 100%
 
-                  const baseClasses = cn(
-                    "relative px-4 py-2 rounded-lg font-medium transition-all duration-300 cursor-pointer",
-                    "flex items-center gap-3",
-                    positive
-                      ? `text-white hover:opacity-90`
-                      : `text-white hover:opacity-90`
-                  );
-
-                  const bgStyle = positive
-                    ? { backgroundColor: positiveColor }
-                    : { backgroundColor: negativeColor };
-
-                  const selectedClasses = cn({
-                    "scale-110 shadow-lg ring-2 ring-primary": isSelected,
-                  });
-
-                  const scoreBoxClasses = cn(
-                    "px-2 py-1 rounded bg-white font-bold text-sm min-w-[2rem] text-center"
-                  );
-
-                  const scoreTextStyle = positive
-                    ? { color: positiveColor }
-                    : { color: negativeColor };
-
-                  return (
-                    <div
-                      key={entry.id}
-                      className="relative"
-                      style={{ 
-                        marginLeft: positive ? 'auto' : '50%',
-                        marginRight: positive ? '50%' : 'auto',
-                        width: `${width}%`
-                      }}
-                    >
-                      <div
-                        className={cn(baseClasses, selectedClasses, positive ? "justify-between" : "justify-between")}
-                        onClick={() => setSelectedId(entry.id)}
-                        style={bgStyle}
-                      >
-                        {positive ? (
-                          <>
-                            <span className={scoreBoxClasses} style={scoreTextStyle}>{score}</span>
-                            <span className="truncate text-right flex-1 flex items-center justify-end gap-1">
+                return (
+                  <div
+                    key={entry.id}
+                    ref={(el) => (entryRefs.current[entry.id] = el)}
+                    className={cn(
+                      "grid grid-cols-2 gap-0 cursor-pointer transition-colors duration-200",
+                      isSelected && "bg-gray-50/50"
+                    )}
+                    style={{ minHeight: '100px' }}
+                    onClick={() => setSelectedId(entry.id)}
+                  >
+                    {positive ? (
+                      <>
+                        {/* Left column - Score box at left end, stem extends to center */}
+                        <div className="flex items-center justify-end border-r-2 border-gray-200 pr-0 py-3">
+                          <div className="flex items-center justify-end" style={{ width: `${stemWidthPercent}%` }}>
+                            {/* Score box at left end - square on right side */}
+                            <div
+                              className="flex-shrink-0 w-[50px] h-[50px] rounded-l-lg flex items-center justify-center font-bold text-xl border-[3px] bg-white z-10 relative"
+                              style={{
+                                borderColor: positiveColor,
+                                color: positiveColor
+                              }}
+                            >
+                              {score}
+                            </div>
+                            {/* Horizontal stem bar extending to center */}
+                            <div
+                              className="flex-1 h-[50px]"
+                              style={{
+                                background: positiveColor
+                              }}
+                            />
+                          </div>
+                        </div>
+                        {/* Right column - Chat bubble */}
+                        <div className="flex items-center pl-4 py-3">
+                          <div
+                            className={cn(
+                              "relative bg-gray-100 rounded-2xl px-4 py-3 max-w-[90%] transition-all duration-300",
+                              isSelected && "border-[3px] shadow-lg bg-white"
+                            )}
+                            style={isSelected ? { borderColor: positiveColor } : {}}
+                          >
+                            {/* Triangle pointer */}
+                            <div
+                              className="absolute left-[-10px] top-[30px] w-0 h-0 border-t-[15px] border-b-0 border-r-[15px] border-transparent"
+                              style={{
+                                borderRightColor: isSelected ? 'white' : '#f0f0f0'
+                              }}
+                            />
+                            <div className="font-bold text-sm mb-1">
                               {entry.title}
-                              {entry.is_fan_contributed && <Star className="h-3 w-3 fill-yellow-400 text-yellow-400 flex-shrink-0" />}
-                            </span>
-                          </>
-                        ) : (
-                          <>
-                            <span className="truncate flex-1 flex items-center gap-1">
-                              {entry.is_fan_contributed && <Star className="h-3 w-3 fill-yellow-400 text-yellow-400 flex-shrink-0" />}
+                              {entry.is_fan_contributed && (
+                                <Star className="inline-block h-3 w-3 ml-1 fill-yellow-400 text-yellow-400" />
+                              )}
+                            </div>
+                            <div className="text-xs text-gray-600 line-clamp-2">
+                              {entry.summary || entry.details}
+                            </div>
+                          </div>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        {/* Left column - Chat bubble */}
+                        <div className="flex items-center justify-end pr-4 border-r-2 border-gray-200 py-3">
+                          <div
+                            className={cn(
+                              "relative bg-gray-100 rounded-2xl px-4 py-3 max-w-[90%] transition-all duration-300",
+                              isSelected && "border-[3px] shadow-lg bg-white"
+                            )}
+                            style={isSelected ? { borderColor: negativeColor } : {}}
+                          >
+                            {/* Triangle pointer */}
+                            <div
+                              className="absolute right-[-10px] top-[30px] w-0 h-0 border-t-[15px] border-b-0 border-l-[15px] border-transparent"
+                              style={{
+                                borderLeftColor: isSelected ? 'white' : '#f0f0f0'
+                              }}
+                            />
+                            <div className="font-bold text-sm mb-1">
+                              {entry.is_fan_contributed && (
+                                <Star className="inline-block h-3 w-3 mr-1 fill-yellow-400 text-yellow-400" />
+                              )}
                               {entry.title}
-                            </span>
-                            <span className={scoreBoxClasses} style={scoreTextStyle}>{score}</span>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+                            </div>
+                            <div className="text-xs text-gray-600 line-clamp-2">
+                              {entry.summary || entry.details}
+                            </div>
+                          </div>
+                        </div>
+                        {/* Right column - Stem extends from center, score box at right end */}
+                        <div className="flex items-center justify-start pl-0 py-3">
+                          <div className="flex items-center justify-start" style={{ width: `${stemWidthPercent}%` }}>
+                            {/* Horizontal stem bar extending from center */}
+                            <div
+                              className="flex-1 h-[50px]"
+                              style={{
+                                background: negativeColor
+                              }}
+                            />
+                            {/* Score box at right end - square on left side */}
+                            <div
+                              className="flex-shrink-0 w-[50px] h-[50px] rounded-r-lg flex items-center justify-center font-bold text-xl border-[3px] bg-white z-10 relative"
+                              style={{
+                                borderColor: negativeColor,
+                                color: negativeColor
+                              }}
+                            >
+                              {score}
+                            </div>
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
 
           {/* Right side - Details */}
           {selected && (
-            <Card className="shadow-lg">
-              <CardHeader className="bg-muted/50 rounded-t-xl">
+            <Card className="shadow-lg flex flex-col h-full overflow-hidden">
+              <CardHeader className="bg-muted/50 rounded-t-xl flex-shrink-0">
+                {/* Navigation buttons at very top */}
+                <div className="grid grid-cols-3 items-center mb-4">
+                  <div className="justify-self-start">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handlePrevious}
+                      disabled={currentIndex === 0}
+                      className="w-[100px]"
+                    >
+                      ← Previous
+                    </Button>
+                  </div>
+                  <div className="text-sm font-semibold text-center">
+                    Entry {currentIndex + 1} of {entries.length}
+                  </div>
+                  <div className="justify-self-end">
+                    <Button
+                      size="sm"
+                      onClick={handleNext}
+                      disabled={currentIndex === (entries?.length || 0) - 1}
+                      className="w-[100px]"
+                    >
+                      Next →
+                    </Button>
+                  </div>
+                </div>
+                {/* User info and score */}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <Avatar>
@@ -288,13 +416,13 @@ export function LifelineViewer({
                       </AvatarFallback>
                     </Avatar>
                     <div>
-                      <CardTitle 
+                      <CardTitle
                         className="text-base leading-tight"
                         style={collectionHeadingColor ? { color: collectionHeadingColor } : undefined}
                       >
                         {lifeline.profiles?.display_name || "Unknown"}
                       </CardTitle>
-                      <p 
+                      <p
                         className="text-xs"
                         style={collectionTextColor ? { color: collectionTextColor, opacity: 0.7 } : undefined}
                       >
@@ -314,7 +442,7 @@ export function LifelineViewer({
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-4 py-6">
+              <CardContent className="space-y-4 py-6 flex-1 overflow-y-auto">
                 {selected.media && selected.media.length > 0 && (
                   <div className="mb-4">
                     <img
@@ -329,7 +457,7 @@ export function LifelineViewer({
                 )}
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1">
-                    <h2 
+                    <h2
                       className="text-2xl font-bold text-foreground"
                       style={collectionHeadingColor ? { color: collectionHeadingColor } : undefined}
                     >
@@ -347,19 +475,19 @@ export function LifelineViewer({
                     </Button>
                   )}
                 </div>
-                <p 
+                <p
                   className="leading-relaxed text-foreground"
                   style={collectionTextColor ? { color: collectionTextColor } : undefined}
                 >
                   {selected.summary || selected.details}
                 </p>
                  {selected.is_fan_contributed && selected.user_profile && (
-                   <p 
+                   <p
                      className="text-sm italic"
                      style={collectionTextColor ? { color: collectionTextColor, opacity: 0.7 } : undefined}
                    >
                      Credit: Created by{" "}
-                     <Link 
+                     <Link
                        to="/top-contributors"
                        className="underline hover:opacity-80 transition-opacity"
                        style={collectionTextColor ? { color: collectionTextColor } : undefined}
@@ -369,21 +497,6 @@ export function LifelineViewer({
                      </Link>
                    </p>
                  )}
-                <div className="flex items-center justify-between pt-4">
-                  <Button
-                    variant="outline"
-                    onClick={handlePrevious}
-                    disabled={currentIndex === 0}
-                  >
-                    ← Previous
-                  </Button>
-                  <Button
-                    onClick={handleNext}
-                    disabled={currentIndex === (entries?.length || 0) - 1}
-                  >
-                    Next →
-                  </Button>
-                </div>
               </CardContent>
             </Card>
           )}
