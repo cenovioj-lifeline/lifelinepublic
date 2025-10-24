@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -12,8 +12,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
 import {
   Table,
   TableBody,
@@ -23,12 +21,34 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
+const FILTER_STORAGE_KEY = "lifelines-filters";
+
 export default function Lifelines() {
   const navigate = useNavigate();
-  const [searchTerm, setSearchTerm] = useState("");
-  const [collectionFilter, setCollectionFilter] = useState<string>("all");
-  const [needsPic, setNeedsPic] = useState(false);
-  const [lifelineTypeFilter, setLifelineTypeFilter] = useState<string>("all");
+  
+  // Load saved filters from localStorage
+  const savedFilters = localStorage.getItem(FILTER_STORAGE_KEY);
+  const initialFilters = savedFilters ? JSON.parse(savedFilters) : {
+    searchTerm: "",
+    collectionFilter: "all",
+    pictureFilter: "all",
+    lifelineTypeFilter: "all"
+  };
+
+  const [searchTerm, setSearchTerm] = useState(initialFilters.searchTerm);
+  const [collectionFilter, setCollectionFilter] = useState<string>(initialFilters.collectionFilter);
+  const [pictureFilter, setPictureFilter] = useState<string>(initialFilters.pictureFilter);
+  const [lifelineTypeFilter, setLifelineTypeFilter] = useState<string>(initialFilters.lifelineTypeFilter);
+
+  // Save filters to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem(FILTER_STORAGE_KEY, JSON.stringify({
+      searchTerm,
+      collectionFilter,
+      pictureFilter,
+      lifelineTypeFilter
+    }));
+  }, [searchTerm, collectionFilter, pictureFilter, lifelineTypeFilter]);
 
   const { data: collections } = useQuery({
     queryKey: ["collections-filter"],
@@ -43,7 +63,7 @@ export default function Lifelines() {
   });
 
   const { data: lifelines, isLoading } = useQuery({
-    queryKey: ["lifelines", searchTerm, collectionFilter, needsPic, lifelineTypeFilter],
+    queryKey: ["lifelines", searchTerm, collectionFilter, pictureFilter, lifelineTypeFilter],
     queryFn: async () => {
       let query = supabase
         .from("lifelines")
@@ -58,7 +78,9 @@ export default function Lifelines() {
         query = query.eq("collection_id", collectionFilter);
       }
 
-      if (needsPic) {
+      if (pictureFilter === "with-pic") {
+        query = query.not("cover_image_id", "is", null);
+      } else if (pictureFilter === "without-pic") {
         query = query.is("cover_image_id", null);
       }
 
@@ -121,16 +143,16 @@ export default function Lifelines() {
             <SelectItem value="voting">Voting</SelectItem>
           </SelectContent>
         </Select>
-        <div className="flex items-center gap-2">
-          <Checkbox 
-            id="needs-pic" 
-            checked={needsPic}
-            onCheckedChange={(checked) => setNeedsPic(checked === true)}
-          />
-          <Label htmlFor="needs-pic" className="cursor-pointer">
-            Needs Pic
-          </Label>
-        </div>
+        <Select value={pictureFilter} onValueChange={setPictureFilter}>
+          <SelectTrigger className="w-[200px]">
+            <SelectValue placeholder="Picture Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Pictures</SelectItem>
+            <SelectItem value="with-pic">With Picture</SelectItem>
+            <SelectItem value="without-pic">Without Picture</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="rounded-md border">

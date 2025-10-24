@@ -188,6 +188,33 @@ export default function LifelineEdit() {
     return () => subscription.unsubscribe();
   }, [form]);
 
+  const savePositionMutation = useMutation({
+    mutationFn: async ({ position_x, position_y }: { position_x: number; position_y: number }) => {
+      const { error } = await supabase
+        .from("lifelines")
+        .update({
+          cover_image_position_x: position_x,
+          cover_image_position_y: position_y,
+        })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["lifeline", id] });
+      toast({
+        title: "Position Saved",
+        description: "Card position updated successfully",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   const saveMutation = useMutation({
     mutationFn: async (data: LifelineForm) => {
       const payload = {
@@ -795,6 +822,13 @@ export default function LifelineEdit() {
           onPositionChange={(position) => {
             form.setValue("cover_image_position_x", position.x);
             form.setValue("cover_image_position_y", position.y);
+            // Auto-save position immediately
+            if (!isNew) {
+              savePositionMutation.mutate({
+                position_x: position.x,
+                position_y: position.y
+              });
+            }
           }}
           title="Adjust Cover Image Position"
           viewType="card"
