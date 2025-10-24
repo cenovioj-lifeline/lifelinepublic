@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { CollectionLayout } from "@/components/CollectionLayout";
 import { Card, CardContent } from "@/components/ui/card";
-import { Trophy } from "lucide-react";
+import { Trophy, MessageSquareQuote } from "lucide-react";
 
 export default function CollectionMore() {
   const { slug } = useParams<{ slug: string }>();
@@ -31,6 +31,13 @@ export default function CollectionMore() {
       icon: Trophy,
       path: `/public/collections/${slug}/contributors`,
       description: "View top contributors",
+    },
+    {
+      id: "quotes",
+      label: "Quotes",
+      icon: MessageSquareQuote,
+      path: `/public/collections/${slug}/quotes`,
+      description: "Browse memorable quotes",
     },
   ];
 

@@ -566,6 +566,9 @@ export type Database = {
           id: string
           lifeline_id: string
           media_id: string | null
+          quote_author: string | null
+          quote_context: string | null
+          quote_text: string | null
           reviewed_at: string | null
           reviewed_by: string | null
           score: number | null
@@ -583,6 +586,9 @@ export type Database = {
           id?: string
           lifeline_id: string
           media_id?: string | null
+          quote_author?: string | null
+          quote_context?: string | null
+          quote_text?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           score?: number | null
@@ -600,6 +606,9 @@ export type Database = {
           id?: string
           lifeline_id?: string
           media_id?: string | null
+          quote_author?: string | null
+          quote_context?: string | null
+          quote_text?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           score?: number | null

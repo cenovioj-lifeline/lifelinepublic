@@ -78,8 +78,24 @@ export default function FanContributions() {
 
       // If approving, handle based on contribution type
       let entryId = null;
+      let quoteId = null;
       if (status === "approved") {
-        if (contribution.contribution_type === "event") {
+        if (contribution.contribution_type === "quote") {
+          // Add quote to collection_quotes
+          const { data: quote, error: quoteError } = await supabase
+            .from("collection_quotes")
+            .insert({
+              collection_id: contribution.lifeline_id,
+              quote: contribution.quote_text,
+              author: contribution.quote_author,
+              context: contribution.quote_context,
+            })
+            .select()
+            .single();
+
+          if (quoteError) throw quoteError;
+          quoteId = quote.id;
+        } else if (contribution.contribution_type === "event") {
           // Create new entry
           const { data: entry, error: entryError } = await supabase
             .from("entries")
@@ -112,22 +128,29 @@ export default function FanContributions() {
       }
 
       // Update contribution status
+      const updateData: any = {
+        status,
+        admin_message: message,
+        reviewed_at: new Date().toISOString(),
+      };
+      
+      if (entryId) updateData.entry_id = entryId;
+      
       const { error: updateError } = await supabase
         .from("fan_contributions")
-        .update({
-          status,
-          admin_message: message,
-          reviewed_at: new Date().toISOString(),
-          entry_id: entryId,
-        })
+        .update(updateData)
         .eq("id", contributionId);
 
       if (updateError) throw updateError;
 
       // Create notification for user
+      const contributionTypeLabel = 
+        contribution.contribution_type === "quote" ? "quote" :
+        contribution.contribution_type === "image" ? "image" : "event";
+      
       const notificationMessage = status === "approved"
-        ? `Great news! Your ${contribution.contribution_type === "image" ? "image" : "event"} contribution has been approved and is now live!`
-        : `Your ${contribution.contribution_type === "image" ? "image" : "event"} contribution has been reviewed. ${message || "Thank you for your submission."}`;
+        ? `Great news! Your ${contributionTypeLabel} contribution has been approved and is now live!`
+        : `Your ${contributionTypeLabel} contribution has been reviewed. ${message || "Thank you for your submission."}`;
 
       const { error: notificationError } = await supabase
         .from("notifications")
@@ -188,8 +211,8 @@ export default function FanContributions() {
             <TableRow>
               <TableHead>Contributor</TableHead>
               <TableHead>Type</TableHead>
-              <TableHead>Lifeline</TableHead>
-              <TableHead>Title/Event</TableHead>
+              <TableHead>Collection/Lifeline</TableHead>
+              <TableHead>Content</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Submitted</TableHead>
               <TableHead className="w-[100px]">Actions</TableHead>
@@ -221,12 +244,18 @@ export default function FanContributions() {
                   </TableCell>
                   <TableCell>
                     <Badge variant="outline">
-                      {contribution.contribution_type === "image" ? "Image" : "Event"}
+                      {contribution.contribution_type === "image" 
+                        ? "Image" 
+                        : contribution.contribution_type === "quote"
+                        ? "Quote"
+                        : "Event"}
                     </Badge>
                   </TableCell>
-                  <TableCell>{contribution.lifelines?.title}</TableCell>
-                  <TableCell>
-                    {contribution.contribution_type === "image" 
+                  <TableCell>{contribution.lifelines?.title || "—"}</TableCell>
+                  <TableCell className="max-w-xs truncate">
+                    {contribution.contribution_type === "quote"
+                      ? contribution.quote_text
+                      : contribution.contribution_type === "image" 
                       ? contribution.entries?.title || "—"
                       : contribution.title}
                   </TableCell>
@@ -269,14 +298,39 @@ export default function FanContributions() {
               <div>
                 <Label>Type</Label>
                 <p className="text-sm">
-                  {selectedContribution.contribution_type === "image" ? "Image Contribution" : "Event Contribution"}
+                  {selectedContribution.contribution_type === "quote" 
+                    ? "Quote Contribution"
+                    : selectedContribution.contribution_type === "image" 
+                    ? "Image Contribution" 
+                    : "Event Contribution"}
                 </p>
               </div>
               <div>
-                <Label>Lifeline</Label>
-                <p className="text-sm">{selectedContribution.lifelines?.title}</p>
+                <Label>Collection/Lifeline</Label>
+                <p className="text-sm">{selectedContribution.lifelines?.title || "—"}</p>
               </div>
-              {selectedContribution.contribution_type === "event" ? (
+              {selectedContribution.contribution_type === "quote" ? (
+                <>
+                  <div>
+                    <Label>Quote</Label>
+                    <p className="text-sm italic whitespace-pre-wrap">
+                      "{selectedContribution.quote_text}"
+                    </p>
+                  </div>
+                  {selectedContribution.quote_author && (
+                    <div>
+                      <Label>Author</Label>
+                      <p className="text-sm">{selectedContribution.quote_author}</p>
+                    </div>
+                  )}
+                  {selectedContribution.quote_context && (
+                    <div>
+                      <Label>Context</Label>
+                      <p className="text-sm">{selectedContribution.quote_context}</p>
+                    </div>
+                  )}
+                </>
+              ) : selectedContribution.contribution_type === "event" ? (
                 <>
                   <div>
                     <Label>Title</Label>
