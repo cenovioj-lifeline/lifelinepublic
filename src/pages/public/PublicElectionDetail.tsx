@@ -118,7 +118,7 @@ export default function PublicElectionDetail() {
     if (!results) return {};
     
     const grouped = results.reduce((acc: Record<string, any[]>, result: any) => {
-      const category = result.category || 'Other';
+      const category = result.superlative_category || 'Other';
       if (!acc[category]) {
         acc[category] = [];
       }
@@ -275,9 +275,9 @@ export default function PublicElectionDetail() {
                                 )}
                                 
                                 <div className="flex-1 min-w-0 space-y-2">
-                                  {result.superlative_category && (
+                                  {result.category && (
                                     <h3 className="text-lg sm:text-xl font-bold line-clamp-2">
-                                      {result.superlative_category}
+                                      {result.category}
                                     </h3>
                                   )}
                                   
