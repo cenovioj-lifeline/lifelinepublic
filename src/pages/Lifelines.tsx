@@ -67,7 +67,7 @@ export default function Lifelines() {
     queryFn: async () => {
       let query = supabase
         .from("lifelines")
-        .select("*, profiles(display_name), collections(title), media_assets!lifelines_cover_image_id_fkey(url, position_x, position_y)")
+        .select("*, profiles(display_name), collections(title)")
         .order("updated_at", { ascending: false });
 
       if (searchTerm) {
@@ -79,9 +79,9 @@ export default function Lifelines() {
       }
 
       if (pictureFilter === "with-pic") {
-        query = query.not("cover_image_id", "is", null);
+        query = query.not("cover_image_url", "is", null);
       } else if (pictureFilter === "without-pic") {
-        query = query.is("cover_image_id", null);
+        query = query.is("cover_image_url", null);
       }
 
       if (lifelineTypeFilter && lifelineTypeFilter !== "all") {
@@ -188,13 +188,13 @@ export default function Lifelines() {
                 >
                   <TableCell>
                     <div className="w-20 h-20 rounded overflow-hidden bg-muted flex items-center justify-center">
-                      {lifeline.media_assets?.url ? (
+                      {lifeline.cover_image_url ? (
                         <img
-                          src={lifeline.media_assets.url}
+                          src={lifeline.cover_image_url}
                           alt={lifeline.title}
                           className="w-full h-full object-cover"
                           style={{
-                            objectPosition: `${lifeline.media_assets.position_x || 50}% ${lifeline.media_assets.position_y || 50}%`
+                            objectPosition: `${lifeline.cover_image_position_x || 50}% ${lifeline.cover_image_position_y || 50}%`
                           }}
                         />
                       ) : (
