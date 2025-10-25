@@ -25,6 +25,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, Plus, Trash2, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { ElectionResultsUpload } from "@/components/ElectionResultsUpload";
 
 type ElectionResult = {
   id?: string;
@@ -518,17 +519,25 @@ export default function ElectionEdit() {
       </Form>
 
       {!isNew && (
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle>Results</CardTitle>
-              <Button type="button" size="sm" onClick={addResult}>
-                <Plus className="h-4 w-4 mr-2" />
-                Add Result
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
+        <>
+          <ElectionResultsUpload 
+            electionId={id!} 
+            onUploadComplete={() => {
+              queryClient.invalidateQueries({ queryKey: ["election-results", id] });
+            }}
+          />
+          
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle>Manual Entry</CardTitle>
+                <Button type="button" size="sm" onClick={addResult}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Result
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
             {results.length === 0 ? (
               <p className="text-sm text-muted-foreground">
                 No results added yet. Add winners for different categories (e.g., "Most Likely to Succeed").
@@ -654,8 +663,9 @@ export default function ElectionEdit() {
                 </div>
               ))
             )}
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </>
       )}
     </div>
   );
