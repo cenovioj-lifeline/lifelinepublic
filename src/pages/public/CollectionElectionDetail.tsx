@@ -274,7 +274,7 @@ export default function CollectionElectionDetail() {
                   {election.title}
                 </h1>
                 {election.description && (
-                  <p className="text-xs sm:text-sm text-muted-foreground line-clamp-1">
+                  <p className="text-sm sm:text-base text-muted-foreground mt-2 leading-relaxed">
                     {election.description}
                   </p>
                 )}
