@@ -103,7 +103,7 @@ export default function CollectionLifelineDetail() {
       collectionMutedText={collection.collection_muted_text}
       collectionBadgeColor={collection.collection_badge_color}
     >
-      <div className="flex justify-end mb-4">
+      <div className="flex justify-end mb-1 lg:mb-4">
         <FavoriteButton itemId={lifeline.id} itemType="lifeline" />
       </div>
       <LifelineViewer

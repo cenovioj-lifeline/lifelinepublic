@@ -195,6 +195,29 @@ export function LifelineViewer({
     }
   }, [selectedId]);
 
+  // Scroll horizontal chart to selected entry (mobile)
+  useEffect(() => {
+    if (selectedId && typeof window !== 'undefined') {
+      const isMobile = window.innerWidth <= 1024;
+      if (isMobile) {
+        // Find the selected bar in the horizontal chart
+        const chartContainer = document.querySelector('.overflow-x-auto');
+        const selectedIndex = entries?.findIndex(e => e.id === selectedId);
+
+        if (chartContainer && selectedIndex !== -1) {
+          const barWidth = 16; // w-4 = 16px
+          const gap = 4; // gap-1 = 4px
+          const scrollPosition = selectedIndex * (barWidth + gap) - (chartContainer.clientWidth / 2) + (barWidth / 2);
+
+          chartContainer.scrollTo({
+            left: Math.max(0, scrollPosition),
+            behavior: 'smooth'
+          });
+        }
+      }
+    }
+  }, [selectedId, entries]);
+
   const getInitials = (name: string) => {
     return name
       .split(" ")
@@ -209,36 +232,78 @@ export function LifelineViewer({
   }
 
   return (
-    <Card className="p-6 pb-4">
-      <CardHeader className="pt-2">
-        <div className="flex items-start justify-between">
-          <div>
+    <Card className="lg:p-6 lg:pb-4 md:p-2 p-1 pb-1 lg:mt-0 mt-0" style={{ height: 'calc(100dvh - 90px)' }}>
+      <CardHeader className="lg:pt-2 pt-0 px-0">
+        <div className="flex flex-col lg:flex-row items-start lg:items-start justify-between gap-2 lg:gap-0">
+          <div className="flex-1">
             <CardTitle
-              className="text-2xl"
+              className="text-2xl lg:text-2xl md:text-xl sm:text-lg leading-tight"
               style={collectionHeadingColor ? { color: collectionHeadingColor } : undefined}
             >
               {lifeline.title}
             </CardTitle>
             {lifeline.subtitle && (
               <p
+                className="text-sm lg:text-base"
                 style={collectionTextColor ? { color: collectionTextColor, opacity: 0.7 } : undefined}
               >
                 {lifeline.subtitle}
               </p>
             )}
           </div>
-          <Button onClick={() => setContributeDialogOpen(true)}>
+          <Button onClick={() => setContributeDialogOpen(true)} size="sm" className="w-full lg:w-auto shrink-0">
             <Plus className="h-4 w-4 mr-2" />
             Contribute a new event
           </Button>
         </div>
       </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8" style={{ height: 'calc(100vh - 270px)' }}>
-          {/* Left side - Timeline */}
+      <CardContent className="px-0 lg:px-6 pt-0 h-[calc(100%-100px)] lg:h-auto flex flex-col lg:block overflow-visible">
+        {/* Mobile Horizontal Chart - Only visible on mobile */}
+        <div className="lg:hidden bg-white rounded-lg mb-1 overflow-x-auto py-1 px-0 flex-shrink-0" style={{ minHeight: '80px' }}>
+          <div className="flex items-center justify-center relative" style={{ minWidth: 'fit-content', height: '80px' }}>
+            {/* Centerline */}
+            <div className="absolute top-1/2 left-0 right-0 h-[2px] bg-gray-300 -translate-y-1/2 z-0" />
+            {/* Bars */}
+            <div className="flex items-end gap-1 h-full relative z-10">
+              {entries.map((entry) => {
+                const isSelected = entry.id === selectedId;
+                const positive = (entry.score || 0) >= 0;
+                const score = Math.abs(entry.score || 0);
+                const barHeight = Math.max(6, Math.min(35, score * 3.5)); // 3.5px per score point, max 35px
+
+                return (
+                  <div
+                    key={entry.id}
+                    className={cn(
+                      "w-4 relative cursor-pointer transition-all duration-300 rounded-t-sm",
+                      positive ? "self-end mb-[40px]" : "self-start mt-[40px] rounded-b-sm rounded-t-none",
+                      isSelected && "brightness-75 scale-y-110 shadow-lg"
+                    )}
+                    style={{
+                      height: `${barHeight}px`,
+                      backgroundColor: positive
+                        ? (isSelected ? positiveColor : positiveColor)
+                        : (isSelected ? negativeColor : negativeColor),
+                      minHeight: '6px'
+                    }}
+                    onClick={() => setSelectedId(entry.id)}
+                    title={`${entry.title} - Score: ${entry.score}`}
+                  >
+                    <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-white" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>
+                      {score}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 flex-1 lg:flex-none min-h-0 lg:h-[calc(100dvh-270px)]">
+          {/* Left side - Timeline - Hidden on mobile */}
           <div
             ref={timelineRef}
-            className="bg-white rounded-lg p-5 overflow-y-auto h-full"
+            className="hidden lg:block bg-white rounded-lg p-5 overflow-y-auto h-full"
             style={{
               scrollbarWidth: 'thin',
               scrollbarColor: `${positiveColor} #f0f0f0`
@@ -374,24 +439,24 @@ export function LifelineViewer({
             </div>
           </div>
 
-          {/* Right side - Details */}
+          {/* Right side - Details - Full width on mobile */}
           {selected && (
-            <Card className="shadow-lg flex flex-col h-full overflow-hidden">
-              <CardHeader className="bg-muted/50 rounded-t-xl flex-shrink-0">
+            <Card className="shadow-lg flex flex-col h-full overflow-hidden lg:col-span-1 col-span-1 lg:mx-0 mx-0">
+              <CardHeader className="bg-muted/50 rounded-t-xl flex-shrink-0 lg:p-6 p-1">
                 {/* Navigation buttons at very top */}
-                <div className="grid grid-cols-3 items-center mb-4">
+                <div className="grid grid-cols-3 items-center mb-1 lg:mb-4 gap-1 lg:gap-2">
                   <div className="justify-self-start">
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={handlePrevious}
                       disabled={currentIndex === 0}
-                      className="w-[100px]"
+                      className="w-[100px] lg:w-[100px] md:w-[80px] sm:w-[70px] text-xs lg:text-sm px-2"
                     >
                       ← Previous
                     </Button>
                   </div>
-                  <div className="text-sm font-semibold text-center">
+                  <div className="text-xs lg:text-sm font-semibold text-center">
                     Entry {currentIndex + 1} of {entries.length}
                   </div>
                   <div className="justify-self-end">
@@ -399,7 +464,7 @@ export function LifelineViewer({
                       size="sm"
                       onClick={handleNext}
                       disabled={currentIndex === (entries?.length || 0) - 1}
-                      className="w-[100px]"
+                      className="w-[100px] lg:w-[100px] md:w-[80px] sm:w-[70px] text-xs lg:text-sm px-2"
                     >
                       Next →
                     </Button>
@@ -440,7 +505,7 @@ export function LifelineViewer({
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-4 py-6 flex-1 overflow-y-auto">
+              <CardContent className="space-y-4 lg:py-6 py-2 flex-1 overflow-y-auto lg:px-6 px-1">
                 {selected.media && selected.media.length > 0 && (
                   <div className="mb-4">
                     <img

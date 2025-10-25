@@ -28,19 +28,24 @@ import { DirectImageUpload } from "@/components/DirectImageUpload";
 import { CollectionQuotesUpload } from "@/components/CollectionQuotesUpload";
 import { CollectionFeaturedProfiles } from "@/components/CollectionFeaturedProfiles";
 import { ImagePositionPicker } from "@/components/ImagePositionPicker";
+import { CollectionThemeEditor } from "@/components/CollectionThemeEditor";
 
 type CollectionForm = {
   title: string;
   slug: string;
   description: string;
   category: string;
+  // Lifeline graph colors
   primary_color: string;
   secondary_color: string;
+  // Navigation colors
   web_primary: string;
   web_secondary: string;
   menu_text_color: string;
   menu_hover_color: string;
   menu_active_color: string;
+  nav_button_color: string;
+  // Page colors
   collection_bg_color: string;
   collection_text_color: string;
   collection_heading_color: string;
@@ -49,6 +54,47 @@ type CollectionForm = {
   collection_border_color: string;
   collection_muted_text: string;
   collection_badge_color: string;
+  // Banner colors
+  banner_text_color: string;
+  // Action card colors
+  actions_bg_color: string;
+  actions_border_color: string;
+  actions_icon_color: string;
+  actions_text_color: string;
+  // Card colors
+  card_text_color: string;
+  // Lifeline display colors
+  lifeline_display_border: string;
+  lifeline_display_bg: string;
+  lifeline_display_title_text: string;
+  // Graph colors
+  graph_bg_color: string;
+  graph_line_color: string;
+  graph_highlight_color: string;
+  // Entry colors
+  entry_header_bg: string;
+  entry_header_text: string;
+  entry_button_color: string;
+  entry_title_text: string;
+  entry_contributor_button: string;
+  entry_bg_color: string;
+  // Award colors
+  award_heading_text: string;
+  award_heading_icon: string;
+  award_heading_tag: string;
+  award_icon_color: string;
+  award_title_text: string;
+  award_bg_color: string;
+  award_border_color: string;
+  // Profile colors
+  profile_header_bg: string;
+  profile_header_text: string;
+  profile_card_bg: string;
+  profile_card_border: string;
+  // General colors
+  default_color: string;
+  link_color: string;
+  link_hover_color: string;
   status: "draft" | "published";
   is_featured: boolean;
   hero_image_url: string;
@@ -82,6 +128,7 @@ export default function CollectionEdit() {
       menu_text_color: "",
       menu_hover_color: "",
       menu_active_color: "",
+      nav_button_color: "",
       collection_bg_color: "",
       collection_text_color: "",
       collection_heading_color: "",
@@ -90,6 +137,38 @@ export default function CollectionEdit() {
       collection_border_color: "",
       collection_muted_text: "",
       collection_badge_color: "",
+      banner_text_color: "",
+      actions_bg_color: "",
+      actions_border_color: "",
+      actions_icon_color: "",
+      actions_text_color: "",
+      card_text_color: "",
+      lifeline_display_border: "",
+      lifeline_display_bg: "",
+      lifeline_display_title_text: "",
+      graph_bg_color: "",
+      graph_line_color: "",
+      graph_highlight_color: "",
+      entry_header_bg: "",
+      entry_header_text: "",
+      entry_button_color: "",
+      entry_title_text: "",
+      entry_contributor_button: "",
+      entry_bg_color: "",
+      award_heading_text: "",
+      award_heading_icon: "",
+      award_heading_tag: "",
+      award_icon_color: "",
+      award_title_text: "",
+      award_bg_color: "",
+      award_border_color: "",
+      profile_header_bg: "",
+      profile_header_text: "",
+      profile_card_bg: "",
+      profile_card_border: "",
+      default_color: "",
+      link_color: "",
+      link_hover_color: "",
       status: "draft",
       is_featured: false,
       hero_image_url: "",
@@ -130,6 +209,7 @@ export default function CollectionEdit() {
         menu_text_color: collection.menu_text_color || "",
         menu_hover_color: collection.menu_hover_color || "",
         menu_active_color: collection.menu_active_color || "",
+        nav_button_color: collection.nav_button_color || "",
         collection_bg_color: collection.collection_bg_color || "",
         collection_text_color: collection.collection_text_color || "",
         collection_heading_color: collection.collection_heading_color || "",
@@ -138,6 +218,38 @@ export default function CollectionEdit() {
         collection_border_color: collection.collection_border_color || "",
         collection_muted_text: collection.collection_muted_text || "",
         collection_badge_color: collection.collection_badge_color || "",
+        banner_text_color: collection.banner_text_color || "",
+        actions_bg_color: collection.actions_bg_color || "",
+        actions_border_color: collection.actions_border_color || "",
+        actions_icon_color: collection.actions_icon_color || "",
+        actions_text_color: collection.actions_text_color || "",
+        card_text_color: collection.card_text_color || "",
+        lifeline_display_border: collection.lifeline_display_border || "",
+        lifeline_display_bg: collection.lifeline_display_bg || "",
+        lifeline_display_title_text: collection.lifeline_display_title_text || "",
+        graph_bg_color: collection.graph_bg_color || "",
+        graph_line_color: collection.graph_line_color || "",
+        graph_highlight_color: collection.graph_highlight_color || "",
+        entry_header_bg: collection.entry_header_bg || "",
+        entry_header_text: collection.entry_header_text || "",
+        entry_button_color: collection.entry_button_color || "",
+        entry_title_text: collection.entry_title_text || "",
+        entry_contributor_button: collection.entry_contributor_button || "",
+        entry_bg_color: collection.entry_bg_color || "",
+        award_heading_text: collection.award_heading_text || "",
+        award_heading_icon: collection.award_heading_icon || "",
+        award_heading_tag: collection.award_heading_tag || "",
+        award_icon_color: collection.award_icon_color || "",
+        award_title_text: collection.award_title_text || "",
+        award_bg_color: collection.award_bg_color || "",
+        award_border_color: collection.award_border_color || "",
+        profile_header_bg: collection.profile_header_bg || "",
+        profile_header_text: collection.profile_header_text || "",
+        profile_card_bg: collection.profile_card_bg || "",
+        profile_card_border: collection.profile_card_border || "",
+        default_color: collection.default_color || "",
+        link_color: collection.link_color || "",
+        link_hover_color: collection.link_hover_color || "",
         status: collection.status,
         is_featured: collection.is_featured || false,
         hero_image_url: collection.hero_image_url || "",
@@ -147,7 +259,7 @@ export default function CollectionEdit() {
         card_image_position_x: collection.card_image_position_x || 50,
         card_image_position_y: collection.card_image_position_y || 50,
       });
-      
+
       // Set hero image URL if available
       if (collection.hero_image_url) {
         setHeroImageUrl(collection.hero_image_url);
@@ -169,6 +281,7 @@ export default function CollectionEdit() {
         menu_text_color: data.menu_text_color || null,
         menu_hover_color: data.menu_hover_color || null,
         menu_active_color: data.menu_active_color || null,
+        nav_button_color: data.nav_button_color || null,
         collection_bg_color: data.collection_bg_color || null,
         collection_text_color: data.collection_text_color || null,
         collection_heading_color: data.collection_heading_color || null,
@@ -177,6 +290,38 @@ export default function CollectionEdit() {
         collection_border_color: data.collection_border_color || null,
         collection_muted_text: data.collection_muted_text || null,
         collection_badge_color: data.collection_badge_color || null,
+        banner_text_color: data.banner_text_color || null,
+        actions_bg_color: data.actions_bg_color || null,
+        actions_border_color: data.actions_border_color || null,
+        actions_icon_color: data.actions_icon_color || null,
+        actions_text_color: data.actions_text_color || null,
+        card_text_color: data.card_text_color || null,
+        lifeline_display_border: data.lifeline_display_border || null,
+        lifeline_display_bg: data.lifeline_display_bg || null,
+        lifeline_display_title_text: data.lifeline_display_title_text || null,
+        graph_bg_color: data.graph_bg_color || null,
+        graph_line_color: data.graph_line_color || null,
+        graph_highlight_color: data.graph_highlight_color || null,
+        entry_header_bg: data.entry_header_bg || null,
+        entry_header_text: data.entry_header_text || null,
+        entry_button_color: data.entry_button_color || null,
+        entry_title_text: data.entry_title_text || null,
+        entry_contributor_button: data.entry_contributor_button || null,
+        entry_bg_color: data.entry_bg_color || null,
+        award_heading_text: data.award_heading_text || null,
+        award_heading_icon: data.award_heading_icon || null,
+        award_heading_tag: data.award_heading_tag || null,
+        award_icon_color: data.award_icon_color || null,
+        award_title_text: data.award_title_text || null,
+        award_bg_color: data.award_bg_color || null,
+        award_border_color: data.award_border_color || null,
+        profile_header_bg: data.profile_header_bg || null,
+        profile_header_text: data.profile_header_text || null,
+        profile_card_bg: data.profile_card_bg || null,
+        profile_card_border: data.profile_card_border || null,
+        default_color: data.default_color || null,
+        link_color: data.link_color || null,
+        link_hover_color: data.link_hover_color || null,
       };
       
       if (isNew) {
@@ -801,6 +946,9 @@ export default function CollectionEdit() {
               )}
             />
           </div>
+
+          {/* New Comprehensive Theme Editor */}
+          <CollectionThemeEditor form={form} />
 
           <div className="space-y-4">
             <FormLabel>Hero Image (1920x480 recommended)</FormLabel>

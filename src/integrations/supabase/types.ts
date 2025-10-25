@@ -184,8 +184,21 @@ export type Database = {
       }
       collections: {
         Row: {
+          actions_bg_color: string | null
+          actions_border_color: string | null
+          actions_icon_color: string | null
+          actions_text_color: string | null
+          award_bg_color: string | null
+          award_border_color: string | null
+          award_heading_icon: string | null
+          award_heading_tag: string | null
+          award_heading_text: string | null
+          award_icon_color: string | null
+          award_title_text: string | null
+          banner_text_color: string | null
           card_image_position_x: number | null
           card_image_position_y: number | null
+          card_text_color: string | null
           category: string | null
           collection_accent_color: string | null
           collection_badge_color: string | null
@@ -197,7 +210,17 @@ export type Database = {
           collection_text_color: string | null
           created_at: string
           created_by: string | null
+          default_color: string | null
           description: string | null
+          entry_bg_color: string | null
+          entry_button_color: string | null
+          entry_contributor_button: string | null
+          entry_header_bg: string | null
+          entry_header_text: string | null
+          entry_title_text: string | null
+          graph_bg_color: string | null
+          graph_highlight_color: string | null
+          graph_line_color: string | null
           hero_image_id: string | null
           hero_image_path: string | null
           hero_image_position_x: number | null
@@ -205,10 +228,20 @@ export type Database = {
           hero_image_url: string | null
           id: string
           is_featured: boolean | null
+          lifeline_display_bg: string | null
+          lifeline_display_border: string | null
+          lifeline_display_title_text: string | null
+          link_color: string | null
+          link_hover_color: string | null
           menu_active_color: string | null
           menu_hover_color: string | null
           menu_text_color: string | null
+          nav_button_color: string | null
           primary_color: string | null
+          profile_card_bg: string | null
+          profile_card_border: string | null
+          profile_header_bg: string | null
+          profile_header_text: string | null
           quote_frequency: number | null
           quotes_enabled: boolean | null
           secondary_color: string | null
@@ -221,8 +254,21 @@ export type Database = {
           web_secondary: string | null
         }
         Insert: {
+          actions_bg_color?: string | null
+          actions_border_color?: string | null
+          actions_icon_color?: string | null
+          actions_text_color?: string | null
+          award_bg_color?: string | null
+          award_border_color?: string | null
+          award_heading_icon?: string | null
+          award_heading_tag?: string | null
+          award_heading_text?: string | null
+          award_icon_color?: string | null
+          award_title_text?: string | null
+          banner_text_color?: string | null
           card_image_position_x?: number | null
           card_image_position_y?: number | null
+          card_text_color?: string | null
           category?: string | null
           collection_accent_color?: string | null
           collection_badge_color?: string | null
@@ -234,7 +280,17 @@ export type Database = {
           collection_text_color?: string | null
           created_at?: string
           created_by?: string | null
+          default_color?: string | null
           description?: string | null
+          entry_bg_color?: string | null
+          entry_button_color?: string | null
+          entry_contributor_button?: string | null
+          entry_header_bg?: string | null
+          entry_header_text?: string | null
+          entry_title_text?: string | null
+          graph_bg_color?: string | null
+          graph_highlight_color?: string | null
+          graph_line_color?: string | null
           hero_image_id?: string | null
           hero_image_path?: string | null
           hero_image_position_x?: number | null
@@ -242,10 +298,20 @@ export type Database = {
           hero_image_url?: string | null
           id?: string
           is_featured?: boolean | null
+          lifeline_display_bg?: string | null
+          lifeline_display_border?: string | null
+          lifeline_display_title_text?: string | null
+          link_color?: string | null
+          link_hover_color?: string | null
           menu_active_color?: string | null
           menu_hover_color?: string | null
           menu_text_color?: string | null
+          nav_button_color?: string | null
           primary_color?: string | null
+          profile_card_bg?: string | null
+          profile_card_border?: string | null
+          profile_header_bg?: string | null
+          profile_header_text?: string | null
           quote_frequency?: number | null
           quotes_enabled?: boolean | null
           secondary_color?: string | null
@@ -258,8 +324,21 @@ export type Database = {
           web_secondary?: string | null
         }
         Update: {
+          actions_bg_color?: string | null
+          actions_border_color?: string | null
+          actions_icon_color?: string | null
+          actions_text_color?: string | null
+          award_bg_color?: string | null
+          award_border_color?: string | null
+          award_heading_icon?: string | null
+          award_heading_tag?: string | null
+          award_heading_text?: string | null
+          award_icon_color?: string | null
+          award_title_text?: string | null
+          banner_text_color?: string | null
           card_image_position_x?: number | null
           card_image_position_y?: number | null
+          card_text_color?: string | null
           category?: string | null
           collection_accent_color?: string | null
           collection_badge_color?: string | null
@@ -271,7 +350,17 @@ export type Database = {
           collection_text_color?: string | null
           created_at?: string
           created_by?: string | null
+          default_color?: string | null
           description?: string | null
+          entry_bg_color?: string | null
+          entry_button_color?: string | null
+          entry_contributor_button?: string | null
+          entry_header_bg?: string | null
+          entry_header_text?: string | null
+          entry_title_text?: string | null
+          graph_bg_color?: string | null
+          graph_highlight_color?: string | null
+          graph_line_color?: string | null
           hero_image_id?: string | null
           hero_image_path?: string | null
           hero_image_position_x?: number | null
@@ -279,10 +368,20 @@ export type Database = {
           hero_image_url?: string | null
           id?: string
           is_featured?: boolean | null
+          lifeline_display_bg?: string | null
+          lifeline_display_border?: string | null
+          lifeline_display_title_text?: string | null
+          link_color?: string | null
+          link_hover_color?: string | null
           menu_active_color?: string | null
           menu_hover_color?: string | null
           menu_text_color?: string | null
+          nav_button_color?: string | null
           primary_color?: string | null
+          profile_card_bg?: string | null
+          profile_card_border?: string | null
+          profile_header_bg?: string | null
+          profile_header_text?: string | null
           quote_frequency?: number | null
           quotes_enabled?: boolean | null
           secondary_color?: string | null

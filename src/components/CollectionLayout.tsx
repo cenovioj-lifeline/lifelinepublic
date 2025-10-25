@@ -432,7 +432,7 @@ export function CollectionLayout({
           </nav>
         </div>
       </header>
-      <main className="container mx-auto px-4 py-6 md:py-8">
+      <main className="container mx-auto px-4 py-2 lg:py-6 md:py-4">
         {children}
         {currentQuote && (
           <CollectionQuotePopup
