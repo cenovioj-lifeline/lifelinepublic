@@ -242,6 +242,21 @@ export default function HomeManager() {
     },
   });
 
+  // Helper function to get content title
+  const getContentTitle = (item: { item_type: string; item_id: string }) => {
+    if (item.item_type === 'collection') {
+      const collection = collections?.find(c => c.id === item.item_id);
+      return collection?.title || 'Unknown Collection';
+    } else if (item.item_type === 'lifeline') {
+      const lifeline = lifelines?.find(l => l.id === item.item_id);
+      return lifeline?.title || 'Unknown Lifeline';
+    } else if (item.item_type === 'election') {
+      const election = elections?.find(e => e.id === item.item_id);
+      return election?.title || 'Unknown Election';
+    }
+    return 'Unknown';
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -370,9 +385,14 @@ export default function HomeManager() {
           <div className="space-y-2">
             {featuredItems?.map((item) => (
               <div key={item.id} className="flex items-center justify-between p-2 border rounded">
-                <span className="text-sm">
-                  {item.item_type}: {item.item_id}
-                </span>
+                <div className="flex flex-col">
+                  <span className="text-sm font-medium">
+                    {getContentTitle(item)}
+                  </span>
+                  <span className="text-xs text-muted-foreground capitalize">
+                    {item.item_type}
+                  </span>
+                </div>
                 <Button
                   variant="ghost"
                   size="icon"
@@ -428,9 +448,14 @@ export default function HomeManager() {
           <div className="space-y-2">
             {newContentItems?.map((item) => (
               <div key={item.id} className="flex items-center justify-between p-2 border rounded">
-                <span className="text-sm">
-                  {item.item_type}: {item.item_id}
-                </span>
+                <div className="flex flex-col">
+                  <span className="text-sm font-medium">
+                    {getContentTitle(item)}
+                  </span>
+                  <span className="text-xs text-muted-foreground capitalize">
+                    {item.item_type}
+                  </span>
+                </div>
                 <Button
                   variant="ghost"
                   size="icon"
