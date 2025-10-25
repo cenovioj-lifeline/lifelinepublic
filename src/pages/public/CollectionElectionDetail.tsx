@@ -408,19 +408,20 @@ export default function CollectionElectionDetail() {
                                         <button
                                           key={idx}
                                           onClick={() => navigate(`/public/collections/${collectionSlug}/profiles/${profile.slug}`)}
-                                          className="text-sm sm:text-base text-muted-foreground hover:underline transition-colors text-left"
+                                          className="text-sm sm:text-base hover:underline transition-colors text-left"
                                           style={{ 
-                                            ['--hover-color' as any]: accentColor 
+                                            ['--hover-color' as any]: accentColor,
+                                            color: darkestColor
                                           }}
-                                          onMouseEnter={(e) => e.currentTarget.style.color = accentColor}
-                                          onMouseLeave={(e) => e.currentTarget.style.color = ''}
+                                          onMouseEnter={(e) => (e.currentTarget.style.color = accentColor)}
+                                          onMouseLeave={(e) => (e.currentTarget.style.color = darkestColor)}
                                         >
                                           {profile.display_name}{idx < result.profiles.length - 1 ? ',' : ''}
                                         </button>
                                       ))}
                                     </div>
                                   ) : result.winner_name ? (
-                                    <p className="text-sm sm:text-base text-muted-foreground">
+                                    <p className="text-sm sm:text-base" style={{ color: darkestColor }}>
                                       {result.winner_name}
                                     </p>
                                   ) : null}
