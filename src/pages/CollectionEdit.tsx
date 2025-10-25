@@ -195,6 +195,8 @@ export default function CollectionEdit() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["collections"] });
+      queryClient.invalidateQueries({ queryKey: ["collections-grid"] });
+      queryClient.invalidateQueries({ queryKey: ["collection-lifelines-all"] });
       toast({
         title: "Success",
         description: `Collection ${isNew ? "created" : "updated"} successfully`,
@@ -207,6 +209,58 @@ export default function CollectionEdit() {
         description: error.message,
         variant: "destructive",
       });
+    },
+  });
+
+  // Auto-save image changes immediately
+  const saveImageMutation = useMutation({
+    mutationFn: async ({ url, path }: { url: string; path: string }) => {
+      if (isNew) return; // Don't auto-save for new collections
+      
+      const { error } = await supabase
+        .from("collections")
+        .update({
+          hero_image_url: url,
+          hero_image_path: path,
+        })
+        .eq("id", id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["collection", id] });
+      queryClient.invalidateQueries({ queryKey: ["collections"] });
+      queryClient.invalidateQueries({ queryKey: ["collections-grid"] });
+      queryClient.invalidateQueries({ queryKey: ["collection-lifelines-all"] });
+      toast({
+        title: "Image saved",
+        description: "Collection image updated successfully",
+      });
+    },
+  });
+
+  // Auto-save position changes
+  const savePositionMutation = useMutation({
+    mutationFn: async (positions: {
+      hero_image_position_x?: number;
+      hero_image_position_y?: number;
+      card_image_position_x?: number;
+      card_image_position_y?: number;
+    }) => {
+      if (isNew) return;
+      
+      const { error } = await supabase
+        .from("collections")
+        .update(positions)
+        .eq("id", id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["collection", id] });
+      queryClient.invalidateQueries({ queryKey: ["collections"] });
+      queryClient.invalidateQueries({ queryKey: ["collections-grid"] });
+      queryClient.invalidateQueries({ queryKey: ["collection-lifelines-all"] });
     },
   });
 
@@ -788,6 +842,10 @@ export default function CollectionEdit() {
                         form.setValue("card_image_position_x", 50);
                         form.setValue("card_image_position_y", 50);
                         setHeroImageUrl(null);
+                        // Auto-save the removal
+                        if (!isNew) {
+                          saveImageMutation.mutate({ url: "", path: "" });
+                        }
                       }}
                     >
                       <Trash2 className="h-4 w-4 mr-2" />
@@ -828,11 +886,17 @@ export default function CollectionEdit() {
                   form.setValue("hero_image_url", url);
                   form.setValue("hero_image_path", path);
                   setHeroImageUrl(url);
+                  // Auto-save the image
+                  saveImageMutation.mutate({ url, path });
                 }}
                 onRemove={() => {
                   form.setValue("hero_image_url", "");
                   form.setValue("hero_image_path", "");
                   setHeroImageUrl(null);
+                  // Auto-save the removal
+                  if (!isNew) {
+                    saveImageMutation.mutate({ url: "", path: "" });
+                  }
                 }}
                 label="Upload Hero Banner Image"
               />
@@ -845,9 +909,13 @@ export default function CollectionEdit() {
                 onPositionChange={(position) => {
                   form.setValue("hero_image_position_x", position.x);
                   form.setValue("hero_image_position_y", position.y);
+                  savePositionMutation.mutate({
+                    hero_image_position_x: position.x,
+                    hero_image_position_y: position.y,
+                  });
                   toast({
-                    title: "Banner position updated",
-                    description: "Click 'Save Collection' to apply changes",
+                    title: "Banner position saved",
+                    description: "Position updated successfully",
                   });
                 }}
                 initialPosition={{
@@ -868,9 +936,13 @@ export default function CollectionEdit() {
                 onPositionChange={(position) => {
                   form.setValue("card_image_position_x", position.x);
                   form.setValue("card_image_position_y", position.y);
+                  savePositionMutation.mutate({
+                    card_image_position_x: position.x,
+                    card_image_position_y: position.y,
+                  });
                   toast({
-                    title: "Card position updated",
-                    description: "Click 'Save Collection' to apply changes",
+                    title: "Card position saved",
+                    description: "Position updated successfully",
                   });
                 }}
                 initialPosition={{

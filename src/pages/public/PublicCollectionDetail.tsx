@@ -32,10 +32,7 @@ export default function PublicCollectionDetail() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("collections")
-        .select(`
-          *,
-          hero_image:media_assets!collections_hero_image_id_fkey(url, alt_text)
-        `)
+        .select("*")
         .eq("slug", slug)
         .eq("status", "published")
         .single();
@@ -226,11 +223,11 @@ export default function PublicCollectionDetail() {
       <div className="space-y-8">
         {/* Hero Section */}
         <div className="relative rounded-lg overflow-hidden">
-          {collection.hero_image?.url ? (
+          {collection.hero_image_url ? (
             <div className="aspect-[21/9] md:aspect-[3/1] relative">
               <img
-                src={collection.hero_image.url}
-                alt={collection.hero_image.alt_text || collection.title}
+                src={collection.hero_image_url}
+                alt={collection.title}
                 className="w-full h-full object-cover"
                 style={{
                   objectPosition: `${collection.hero_image_position_x || 50}% ${collection.hero_image_position_y || 50}%`,

@@ -30,10 +30,7 @@ export default function PublicCollectionsGrid() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("collections")
-        .select(`
-          *,
-          hero_image:media_assets!collections_hero_image_id_fkey(url, alt_text)
-        `)
+        .select("*")
         .eq("status", "published")
         .order("is_featured", { ascending: false })
         .order("title");
@@ -145,10 +142,10 @@ export default function PublicCollectionsGrid() {
                       <FavoriteButton itemId={collection.id} itemType="collection" />
                     </div>
                     <div className="aspect-video relative bg-muted overflow-hidden">
-                      {collection.hero_image?.url ? (
+                      {collection.hero_image_url ? (
                         <img
-                          src={collection.hero_image.url}
-                          alt={collection.hero_image.alt_text || collection.title}
+                          src={collection.hero_image_url}
+                          alt={collection.title}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                           style={{
                             objectPosition: `${collection.card_image_position_x ?? 50}% ${collection.card_image_position_y ?? 50}%`,

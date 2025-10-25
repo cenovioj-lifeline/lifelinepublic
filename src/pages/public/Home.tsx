@@ -44,15 +44,7 @@ export default function Home() {
           if (item.item_type === "collection") {
             const { data: collection } = await supabase
               .from("collections")
-              .select(`
-                id,
-                title,
-                slug,
-                description,
-                card_image_position_x,
-                card_image_position_y,
-                hero_image:media_assets!collections_hero_image_id_fkey(url, alt_text)
-              `)
+              .select("id, title, slug, description, hero_image_url, card_image_position_x, card_image_position_y")
               .eq("id", item.item_id)
               .eq("status", "published")
               .single();
@@ -60,15 +52,7 @@ export default function Home() {
           } else if (item.item_type === "lifeline") {
             const { data: lifeline } = await supabase
               .from("lifelines")
-              .select(`
-                id,
-                title,
-                slug,
-                intro,
-                cover_image_position_x,
-                cover_image_position_y,
-                cover_image:media_assets!lifelines_cover_image_id_fkey(url, alt_text)
-              `)
+              .select("id, title, slug, intro, cover_image_url, cover_image_position_x, cover_image_position_y")
               .eq("id", item.item_id)
               .eq("status", "published")
               .single();
@@ -254,10 +238,10 @@ export default function Home() {
                 >
                   <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full">
                     <div className="aspect-video relative bg-muted overflow-hidden">
-                      {item.cover_image?.url ? (
+                      {item.cover_image_url ? (
                         <img
-                          src={item.cover_image.url}
-                          alt={item.cover_image.alt_text || item.title}
+                          src={item.cover_image_url}
+                          alt={item.title}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                           style={{
                             objectPosition: `${item.cover_image_position_x ?? 50}% ${item.cover_image_position_y ?? 50}%`,
@@ -287,8 +271,7 @@ export default function Home() {
                   id={item.id}
                   title={item.title}
                   description={item.description}
-                  imageUrl={item.hero_image?.url}
-                  imageAlt={item.hero_image?.alt_text}
+                  imageUrl={item.hero_image_url}
                   imagePositionX={item.card_image_position_x ?? 50}
                   imagePositionY={item.card_image_position_y ?? 50}
                   linkPath={
@@ -329,10 +312,10 @@ export default function Home() {
                 >
                   <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full">
                     <div className="aspect-video relative bg-muted overflow-hidden">
-                      {item.cover_image?.url ? (
+                      {item.cover_image_url ? (
                         <img
-                          src={item.cover_image.url}
-                          alt={item.cover_image.alt_text || item.title}
+                          src={item.cover_image_url}
+                          alt={item.title}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                           style={{
                             objectPosition: `${item.cover_image_position_x ?? 50}% ${item.cover_image_position_y ?? 50}%`,
@@ -362,8 +345,7 @@ export default function Home() {
                   id={item.id}
                   title={item.title}
                   description={item.description}
-                  imageUrl={item.hero_image?.url}
-                  imageAlt={item.hero_image?.alt_text}
+                  imageUrl={item.hero_image_url}
                   imagePositionX={item.card_image_position_x ?? 50}
                   imagePositionY={item.card_image_position_y ?? 50}
                   linkPath={
