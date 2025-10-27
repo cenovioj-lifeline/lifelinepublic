@@ -6,6 +6,7 @@ import { ArrowLeft } from "lucide-react";
 import { LifelineViewer } from "@/components/lifeline/LifelineViewer";
 import { PublicLayout } from "@/components/PublicLayout";
 import { FavoriteButton } from "@/components/FavoriteButton";
+import { useColorScheme } from "@/hooks/useColorScheme";
 
 export default function PublicLifelineDetail() {
   useColorScheme(); // Apply default color scheme
@@ -28,25 +29,6 @@ export default function PublicLifelineDetail() {
     },
   });
 
-  const { data: colorSettings } = useQuery({
-    queryKey: ["lifeline-color-settings"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("lifeline_settings")
-        .select("*")
-        .in("setting_key", [
-          "lifeline_timeline_positive",
-          "lifeline_timeline_negative",
-        ]);
-      if (error) throw error;
-      
-      const settings: Record<string, string> = {};
-      data?.forEach((s) => {
-        settings[s.setting_key] = s.setting_value || "";
-      });
-      return settings;
-    },
-  });
 
   if (isLoading) {
     return (
@@ -87,8 +69,6 @@ export default function PublicLifelineDetail() {
         </div>
         <LifelineViewer 
           lifelineId={lifeline.id}
-          primaryColor={colorSettings?.lifeline_timeline_positive}
-          secondaryColor={colorSettings?.lifeline_timeline_negative}
         />
       </div>
     </PublicLayout>
