@@ -51,6 +51,8 @@ import HomeManager from "./pages/HomeManager";
 import PublicLifelinesGrid from "./pages/public/PublicLifelinesGrid";
 import PublicCollectionsGrid from "./pages/public/PublicCollectionsGrid";
 import UserRequests from "./pages/UserRequests";
+import ColorSchemes from "./pages/ColorSchemes";
+import ColorSchemeEdit from "./pages/ColorSchemeEdit";
 
 const queryClient = new QueryClient();
 
@@ -269,6 +271,22 @@ function AppContent() {
                   <AdminLayout>
                     <UserRequests />
                   </AdminLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/color-schemes"
+              element={
+                <ProtectedRoute>
+                  <ColorSchemes />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/color-schemes/:id"
+              element={
+                <ProtectedRoute>
+                  <ColorSchemeEdit />
                 </ProtectedRoute>
               }
             />
