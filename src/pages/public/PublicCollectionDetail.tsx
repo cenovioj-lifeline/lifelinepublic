@@ -251,68 +251,58 @@ export default function PublicCollectionDetail() {
         {/* Action Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <Card
-            style={{ borderColor: collection.primary_color || undefined }}
-            className="cursor-pointer hover:shadow-lg transition-shadow"
+            className="cursor-pointer hover:shadow-lg transition-shadow bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]"
             onClick={() => navigate(`/public/collections/${collection.slug}/feed`)}
           >
             <CardContent className="pt-6 text-center">
               <Rss
-                className="h-8 w-8 mx-auto mb-2"
-                style={{ color: collection.primary_color || undefined }}
+                className="h-8 w-8 mx-auto mb-2 text-[hsl(var(--scheme-actions-icon))]"
               />
-              <div className="text-sm text-muted-foreground mt-1">Feed</div>
+              <div className="text-sm text-[hsl(var(--scheme-card-text))] mt-1">Feed</div>
             </CardContent>
           </Card>
           <Card
-            style={{ borderColor: collection.primary_color || undefined }}
-            className="cursor-pointer hover:shadow-lg transition-shadow"
+            className="cursor-pointer hover:shadow-lg transition-shadow bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]"
             onClick={() => setShareModalOpen(true)}
           >
             <CardContent className="pt-6 text-center">
               <Share2
-                className="h-8 w-8 mx-auto mb-2"
-                style={{ color: collection.primary_color || undefined }}
+                className="h-8 w-8 mx-auto mb-2 text-[hsl(var(--scheme-actions-icon))]"
               />
-              <div className="text-sm text-muted-foreground mt-1">Share</div>
+              <div className="text-sm text-[hsl(var(--scheme-card-text))] mt-1">Share</div>
             </CardContent>
           </Card>
           <Card
-            style={{ borderColor: collection.primary_color || undefined }}
-            className="relative cursor-pointer hover:shadow-lg transition-shadow"
+            className="relative cursor-pointer hover:shadow-lg transition-shadow bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]"
           >
             <div className="absolute top-2 right-2 z-10">
               <FavoriteButton itemId={collection.id} itemType="collection" className="bg-white/80 hover:bg-white" />
             </div>
             <CardContent className="pt-6 text-center">
               <Heart
-                className="h-8 w-8 mx-auto mb-2"
-                style={{ color: collection.primary_color || undefined }}
+                className="h-8 w-8 mx-auto mb-2 text-[hsl(var(--scheme-actions-icon))]"
               />
               <div 
-                className="text-2xl font-bold mb-1"
-                style={{ color: collection.primary_color || undefined }}
+                className="text-2xl font-bold mb-1 text-[hsl(var(--scheme-card-text))]"
               >
                 {fanCount || 0}
               </div>
               <div 
-                className="text-sm"
-                style={{ color: collection.primary_color || undefined }}
+                className="text-sm text-[hsl(var(--scheme-card-text))]"
               >
                 Fans
               </div>
             </CardContent>
           </Card>
           <Card
-            style={{ borderColor: collection.primary_color || undefined }}
-            className="cursor-pointer hover:shadow-lg transition-shadow"
+            className="cursor-pointer hover:shadow-lg transition-shadow bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]"
             onClick={() => navigate(`/public/collections/${collection.slug}/settings`)}
           >
             <CardContent className="pt-6 text-center">
               <Settings
-                className="h-8 w-8 mx-auto mb-2"
-                style={{ color: collection.primary_color || undefined }}
+                className="h-8 w-8 mx-auto mb-2 text-[hsl(var(--scheme-actions-icon))]"
               />
-              <div className="text-sm text-muted-foreground mt-1">Settings</div>
+              <div className="text-sm text-[hsl(var(--scheme-card-text))] mt-1">Settings</div>
             </CardContent>
           </Card>
         </div>

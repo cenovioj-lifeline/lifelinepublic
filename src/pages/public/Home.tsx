@@ -180,12 +180,12 @@ export default function Home() {
             return (
               <Card
                 key={action.label}
-                className="hover:shadow-md transition-shadow cursor-pointer h-full"
+                className="hover:shadow-md transition-shadow cursor-pointer h-full bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]"
                 onClick={action.onClick}
               >
                 <CardContent className="flex flex-col items-center justify-center p-6 gap-2">
-                  <Icon className="h-8 w-8 text-muted-foreground" />
-                  <span className="text-sm font-medium">{action.label}</span>
+                  <Icon className="h-8 w-8 text-[hsl(var(--scheme-actions-icon))]" />
+                  <span className="text-sm font-medium text-[hsl(var(--scheme-card-text))]">{action.label}</span>
                 </CardContent>
               </Card>
             );
@@ -193,10 +193,10 @@ export default function Home() {
           
           return (
             <Link key={action.label} to={action.path!}>
-              <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
+              <Card className="hover:shadow-md transition-shadow cursor-pointer h-full bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
                 <CardContent className="flex flex-col items-center justify-center p-6 gap-2">
-                  <Icon className="h-8 w-8 text-muted-foreground" />
-                  <span className="text-sm font-medium">{action.label}</span>
+                  <Icon className="h-8 w-8 text-[hsl(var(--scheme-actions-icon))]" />
+                  <span className="text-sm font-medium text-[hsl(var(--scheme-card-text))]">{action.label}</span>
                 </CardContent>
               </Card>
             </Link>
