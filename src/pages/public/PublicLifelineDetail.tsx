@@ -8,6 +8,7 @@ import { PublicLayout } from "@/components/PublicLayout";
 import { FavoriteButton } from "@/components/FavoriteButton";
 
 export default function PublicLifelineDetail() {
+  useColorScheme(); // Apply default color scheme
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
 

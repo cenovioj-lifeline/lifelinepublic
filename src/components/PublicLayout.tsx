@@ -9,8 +9,11 @@ import { NotificationBell } from "@/components/NotificationBell";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
 import logo from "@/assets/logo.png";
+import { useColorScheme } from "@/hooks/useColorScheme";
+import { cn } from "@/lib/utils";
 
 export function PublicLayout({ children }: { children: React.ReactNode }) {
+  useColorScheme(); // Apply default color scheme
   const location = useLocation();
   const { user } = useAuth();
   const [authModalOpen, setAuthModalOpen] = useState(false);
@@ -36,11 +39,12 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
             key={item.path}
             to={item.path}
             onClick={onClick}
-            className={`flex items-center gap-2 px-3 py-2 rounded-md transition-colors ${
+            className={cn(
+              "flex items-center gap-2 px-3 py-2 rounded-md transition-colors hover:bg-[hsl(var(--scheme-nav-button)/.2)]",
               isActive
-                ? "bg-[#ff6b35] text-white"
-                : "text-white hover:bg-[#ff6b35]"
-            }`}
+                ? "bg-[hsl(var(--scheme-nav-button)/.4)] text-[hsl(var(--scheme-nav-button))]"
+                : "text-[hsl(var(--scheme-nav-text))]"
+            )}
           >
             <Icon className="h-4 w-4" />
             <span>{item.label}</span>
@@ -52,7 +56,7 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b sticky top-0 z-50" style={{ backgroundColor: "#1e3a5f" }}>
+      <header className="border-b sticky top-0 z-50 bg-[hsl(var(--scheme-nav-bg))] border-[hsl(var(--scheme-nav-bg)/.8)]">
         <div className="container mx-auto px-4 py-3">
           <nav className="flex items-center justify-between">
             <Link to="/" className="flex items-center">
@@ -65,7 +69,7 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
                 <NavLinks />
                 <Link
                   to="/"
-                  className="flex items-center gap-2 px-3 py-2 rounded-md transition-colors text-white hover:bg-[#ff6b35]"
+                  className="flex items-center gap-2 px-3 py-2 rounded-md transition-colors text-[hsl(var(--scheme-nav-text))] hover:bg-[hsl(var(--scheme-nav-button)/.2)]"
                 >
                   <span>LP</span>
                 </Link>
@@ -79,7 +83,7 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
                     variant="outline" 
                     size="sm"
                     onClick={() => setAuthModalOpen(true)}
-                    className="ml-2 border-white text-white hover:bg-white hover:text-[#1e3a5f]"
+                    className="ml-2 border-[hsl(var(--scheme-nav-text))] text-[hsl(var(--scheme-nav-text))] hover:bg-[hsl(var(--scheme-nav-button)/.2)]"
                   >
                     Sign In
                   </Button>
@@ -91,13 +95,13 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
             {isMobile && (
               <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
                 <SheetTrigger asChild>
-                  <Button variant="ghost" size="icon">
+                  <Button variant="ghost" size="icon" className="text-[hsl(var(--scheme-nav-button))] hover:bg-[hsl(var(--scheme-nav-button)/.2)]">
                     <Menu className="h-5 w-5" />
                   </Button>
                 </SheetTrigger>
-                <SheetContent side="right" className="w-64">
+                <SheetContent side="right" className="w-64 bg-[hsl(var(--scheme-nav-bg))]">
                   <div className="flex flex-col gap-4">
-                    <h2 className="text-lg font-bold mt-2">Lifeline Public</h2>
+                    <h2 className="text-lg font-bold mt-2 text-[hsl(var(--scheme-nav-text))]">Lifeline Public</h2>
                     <div className="flex flex-col gap-2">
                       <NavLinks onClick={() => setMobileMenuOpen(false)} />
                       {user ? (

@@ -14,10 +14,6 @@ import { Link } from "react-router-dom";
 interface LifelineViewerProps {
   lifelineId: string;
   lifelineType?: string;
-  primaryColor?: string | null;
-  secondaryColor?: string | null;
-  collectionTextColor?: string | null;
-  collectionHeadingColor?: string | null;
 }
 
 type SelectionStyle = "glow" | "lifted" | "sheen" | "wave";
@@ -25,10 +21,6 @@ type SelectionStyle = "glow" | "lifted" | "sheen" | "wave";
 export function LifelineViewer({
   lifelineId,
   lifelineType,
-  primaryColor,
-  secondaryColor,
-  collectionTextColor,
-  collectionHeadingColor
 }: LifelineViewerProps) {
   const { user } = useAuth();
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -38,9 +30,13 @@ export function LifelineViewer({
   const timelineRef = useRef<HTMLDivElement>(null);
   const entryRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
 
-  // Default colors (green and red)
-  const positiveColor = primaryColor || "#16a34a";
-  const negativeColor = secondaryColor || "#dc2626";
+  // Get colors from CSS variables
+  const positiveColor = getComputedStyle(document.documentElement).getPropertyValue('--scheme-ll-graph-positive') 
+    ? `hsl(${getComputedStyle(document.documentElement).getPropertyValue('--scheme-ll-graph-positive')})` 
+    : "#16a34a";
+  const negativeColor = getComputedStyle(document.documentElement).getPropertyValue('--scheme-ll-graph-negative')
+    ? `hsl(${getComputedStyle(document.documentElement).getPropertyValue('--scheme-ll-graph-negative')})`
+    : "#dc2626";
 
   const { data: lifeline } = useQuery({
     queryKey: ["lifeline", lifelineId],
@@ -237,16 +233,12 @@ export function LifelineViewer({
         <div className="flex flex-col lg:flex-row items-start lg:items-start justify-between gap-2 lg:gap-0">
           <div className="flex-1">
             <CardTitle
-              className="text-2xl lg:text-2xl md:text-xl sm:text-lg leading-tight"
-              style={collectionHeadingColor ? { color: collectionHeadingColor } : undefined}
+              className="text-2xl lg:text-2xl md:text-xl sm:text-lg leading-tight text-[hsl(var(--scheme-ll-display-title))]"
             >
               {lifeline.title}
             </CardTitle>
             {lifeline.subtitle && (
-              <p
-                className="text-sm lg:text-base"
-                style={collectionTextColor ? { color: collectionTextColor, opacity: 0.7 } : undefined}
-              >
+              <p className="text-sm lg:text-base text-[hsl(var(--scheme-card-text))] opacity-70">
                 {lifeline.subtitle}
               </p>
             )}
@@ -479,16 +471,10 @@ export function LifelineViewer({
                       </AvatarFallback>
                     </Avatar>
                     <div>
-                      <CardTitle
-                        className="text-base leading-tight"
-                        style={collectionHeadingColor ? { color: collectionHeadingColor } : undefined}
-                      >
+                      <CardTitle className="text-base leading-tight text-[hsl(var(--scheme-ll-display-title))]">
                         {lifeline.profiles?.display_name || "Unknown"}
                       </CardTitle>
-                      <p
-                        className="text-xs"
-                        style={collectionTextColor ? { color: collectionTextColor, opacity: 0.7 } : undefined}
-                      >
+                      <p className="text-xs text-[hsl(var(--scheme-card-text))] opacity-70">
                         Entry details
                       </p>
                     </div>
@@ -520,36 +506,26 @@ export function LifelineViewer({
                 )}
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1">
-                    <h2
-                      className="text-2xl font-bold text-foreground"
-                      style={collectionHeadingColor ? { color: collectionHeadingColor } : undefined}
-                    >
+                    <h2 className="text-2xl font-bold text-[hsl(var(--scheme-ll-display-title))]">
                       {selected.title}
                     </h2>
                   </div>
                 </div>
-                <p
-                  className="leading-relaxed text-foreground"
-                  style={collectionTextColor ? { color: collectionTextColor } : undefined}
-                >
+                <p className="leading-relaxed text-[hsl(var(--scheme-card-text))]">
                   {selected.summary || selected.details}
                 </p>
                  {selected.is_fan_contributed && selected.user_profile && (
-                   <p
-                     className="text-sm italic"
-                     style={collectionTextColor ? { color: collectionTextColor, opacity: 0.7 } : undefined}
-                   >
-                     Credit: Created by{" "}
-                     <Link
-                       to="/top-contributors"
-                       className="underline hover:opacity-80 transition-opacity"
-                       style={collectionTextColor ? { color: collectionTextColor } : undefined}
-                     >
-                       {selected.user_profile.first_name}{" "}
-                       {selected.user_profile.last_name}
-                     </Link>
-                   </p>
-                 )}
+                   <p className="text-sm italic text-[hsl(var(--scheme-card-text))] opacity-70">
+                      Credit: Created by{" "}
+                      <Link
+                        to="/top-contributors"
+                        className="underline hover:opacity-80 transition-opacity text-[hsl(var(--scheme-card-text))]"
+                      >
+                        {selected.user_profile.first_name}{" "}
+                        {selected.user_profile.last_name}
+                      </Link>
+                    </p>
+                  )}
               </CardContent>
             </Card>
           )}

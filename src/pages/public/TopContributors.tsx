@@ -252,25 +252,11 @@ export default function TopContributors() {
 
   if (isCollectionContext && collection) {
     return (
-      <CollectionLayout
-        collectionTitle={collection.title}
-        collectionSlug={collection.slug}
-        primaryColor={collection.primary_color}
-        secondaryColor={collection.secondary_color}
-        webPrimary={collection.web_primary}
-        webSecondary={collection.web_secondary}
-        menuTextColor={collection.menu_text_color}
-        menuHoverColor={collection.menu_hover_color}
-        menuActiveColor={collection.menu_active_color}
-        collectionBgColor={collection.collection_bg_color}
-        collectionTextColor={collection.collection_text_color}
-        collectionHeadingColor={collection.collection_heading_color}
-        collectionAccentColor={collection.collection_accent_color}
-        collectionCardBg={collection.collection_card_bg}
-        collectionBorderColor={collection.collection_border_color}
-        collectionMutedText={collection.collection_muted_text}
-        collectionBadgeColor={collection.collection_badge_color}
-      >
+        <CollectionLayout
+          collectionTitle={collection.title}
+          collectionSlug={collection.slug}
+          collectionId={collection.id}
+        >
         <div className="container mx-auto px-4 py-8">{content}</div>
       </CollectionLayout>
     );
