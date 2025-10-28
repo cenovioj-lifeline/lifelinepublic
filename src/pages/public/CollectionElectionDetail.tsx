@@ -223,13 +223,13 @@ export default function CollectionElectionDetail() {
       collectionId={collectionData.id}
     >
       <div className="min-h-screen" style={{ backgroundColor: 'hsl(var(--scheme-bg))' }}>
-        <div className="sticky top-0 z-10 backdrop-blur border-b" style={{ backgroundColor: 'hsl(var(--scheme-card-bg) / 0.95)', borderColor: 'hsl(var(--scheme-card-border))' }}>
+        <div className="sticky top-0 z-10 backdrop-blur border-b" style={{ backgroundColor: '#FFFFFF', borderColor: 'hsl(var(--scheme-card-border))' }}>
           <div className="container max-w-4xl mx-auto px-4 py-3">
             <div className="flex justify-end mb-2">
               <FavoriteButton itemId={election.id} itemType="election" />
             </div>
             <div className="flex items-center gap-3">
-              <Trophy className="h-8 w-8 flex-shrink-0" style={{ color: 'hsl(var(--scheme-actions-icon))' }} />
+              <Trophy className="h-8 w-8 flex-shrink-0" style={{ color: 'hsl(var(--scheme-nav-button))' }} />
               <div className="flex-1 min-w-0">
                 <h1 className="text-lg sm:text-xl md:text-2xl font-bold truncate" style={{ color: 'hsl(var(--scheme-card-text))' }}>
                   {election.title}
@@ -248,9 +248,9 @@ export default function CollectionElectionDetail() {
                     variant="secondary" 
                     className="text-xs"
                     style={{ 
-                      backgroundColor: 'hsl(var(--scheme-actions-bg))',
-                      color: 'hsl(var(--scheme-actions-text))',
-                      borderColor: 'hsl(var(--scheme-actions-border))'
+                      borderColor: 'hsl(var(--scheme-nav-button))',
+                      backgroundColor: 'hsl(var(--scheme-nav-button) / 0.1)',
+                      color: 'hsl(var(--scheme-nav-text))'
                     }}
                   >
                     {election.collections.title}
@@ -262,8 +262,9 @@ export default function CollectionElectionDetail() {
                     variant="outline" 
                     className="text-xs"
                     style={{ 
-                      borderColor: 'hsl(var(--scheme-actions-border))',
-                      color: 'hsl(var(--scheme-actions-text))'
+                      borderColor: 'hsl(var(--scheme-nav-button))',
+                      backgroundColor: 'hsl(var(--scheme-nav-button) / 0.1)',
+                      color: 'hsl(var(--scheme-nav-text))'
                     }}
                   >
                     {et.tags.name}
@@ -294,7 +295,7 @@ export default function CollectionElectionDetail() {
                     <CollapsibleTrigger className="w-full">
                       <div className="flex items-center justify-between p-4 transition-colors hover:bg-[hsl(var(--scheme-actions-bg)/.3)]">
                         <div className="flex items-center gap-3">
-                          <Sparkles className="h-5 w-5 flex-shrink-0" style={{ color: 'hsl(var(--scheme-actions-icon))' }} />
+                          <Sparkles className="h-5 w-5 flex-shrink-0" style={{ color: 'hsl(var(--scheme-nav-button))' }} />
                           <h2 className="text-lg sm:text-xl font-bold text-left" style={{ color: 'hsl(var(--scheme-card-text))' }}>
                             {category}
                           </h2>
@@ -304,15 +305,16 @@ export default function CollectionElectionDetail() {
                             variant="secondary" 
                             className="text-xs"
                             style={{ 
-                              backgroundColor: 'hsl(var(--scheme-actions-bg))',
-                              color: 'hsl(var(--scheme-actions-text))'
+                              backgroundColor: '#FFFFFF',
+                              color: 'hsl(var(--scheme-card-text))',
+                              border: '1px solid hsl(var(--scheme-card-border))'
                             }}
                           >
                             {categoryResults.length}
                           </Badge>
                           <ChevronDown 
                             className={`h-5 w-5 transition-transform ${openCategories[category] ? 'rotate-180' : ''}`}
-                            style={{ color: 'hsl(var(--scheme-actions-icon))' }}
+                            style={{ color: 'hsl(var(--scheme-nav-button))' }}
                           />
                         </div>
                       </div>
@@ -324,9 +326,9 @@ export default function CollectionElectionDetail() {
                           <Card 
                             key={result.id} 
                             className="overflow-hidden hover:shadow-md transition-all animate-fade-in rounded-lg"
-                            style={{ backgroundColor: 'hsl(var(--scheme-card-bg))', borderColor: 'hsl(var(--scheme-card-border))' }}
+                            style={{ backgroundColor: '#FFFFFF', borderColor: 'hsl(var(--scheme-card-border))' }}
                           >
-                            <CardContent className="p-4 rounded-lg" style={{ backgroundColor: 'hsl(var(--scheme-card-bg))' }}>
+                            <CardContent className="p-4 rounded-lg" style={{ backgroundColor: '#FFFFFF' }}>
                               <div className="flex items-start gap-3">
                                 {result.profiles && result.profiles.length > 0 && result.profiles[0]?.avatar?.url ? (
                                   <Avatar 
@@ -337,8 +339,8 @@ export default function CollectionElectionDetail() {
                                     <AvatarFallback 
                                       className="text-lg sm:text-xl font-bold"
                                       style={{ 
-                                        backgroundColor: 'hsl(var(--scheme-actions-bg))',
-                                        color: 'hsl(var(--scheme-actions-icon))'
+                                        backgroundColor: '#FFFFFF',
+                                        color: 'hsl(var(--scheme-nav-button))'
                                       }}
                                     >
                                       {(result.profiles[0].display_name || result.winner_name || "?")[0]}
@@ -348,8 +350,8 @@ export default function CollectionElectionDetail() {
                                   <div 
                                     className="h-14 w-14 sm:h-16 sm:w-16 rounded-full flex items-center justify-center text-xl sm:text-2xl font-bold border-2 flex-shrink-0"
                                     style={{ 
-                                      backgroundColor: 'hsl(var(--scheme-actions-bg))',
-                                      color: 'hsl(var(--scheme-actions-icon))',
+                                      backgroundColor: '#FFFFFF',
+                                      color: 'hsl(var(--scheme-nav-button))',
                                       borderColor: 'hsl(var(--scheme-card-border))'
                                     }}
                                   >
