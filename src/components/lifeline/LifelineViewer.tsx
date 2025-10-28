@@ -255,7 +255,7 @@ export function LifelineViewer({
       </CardHeader>
       <CardContent className="px-0 lg:px-6 pt-0 h-[calc(100%-100px)] lg:h-auto flex flex-col lg:block overflow-visible">
         {/* Mobile Horizontal Chart - Only visible on mobile */}
-        <div className="lg:hidden bg-[hsl(var(--scheme-ll-graph-bg))] rounded-lg mb-1 overflow-x-auto py-1 px-0 flex-shrink-0" style={{ minHeight: '80px' }}>
+        <div className="lg:hidden bg-[hsl(var(--scheme-ll-display-bg))] rounded-lg mb-1 overflow-x-auto py-1 px-0 flex-shrink-0" style={{ minHeight: '80px' }}>
           <div className="flex items-center justify-center relative" style={{ minWidth: 'fit-content', height: '80px' }}>
             {/* Centerline */}
             <div className="absolute top-1/2 left-0 right-0 h-[2px] bg-gray-300 -translate-y-1/2 z-0" />
