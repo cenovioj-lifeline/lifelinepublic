@@ -92,8 +92,8 @@ export default function CollectionProfiles() {
                 to={`/public/collections/${slug}/profiles/${profile.slug}`}
                 className="group"
               >
-                <Card className="hover:shadow-lg transition-shadow h-full">
-                  <CardHeader>
+                <Card className="hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
+                  <CardHeader className="bg-[hsl(var(--scheme-card-bg))]">
                     <div className="flex items-center gap-4">
                       <Avatar className="h-16 w-16">
                         {profile.avatar_image?.url && (
@@ -107,19 +107,19 @@ export default function CollectionProfiles() {
                         </AvatarFallback>
                       </Avatar>
                       <div>
-                        <CardTitle className="text-lg transition-colors" style={{ color: 'hsl(var(--scheme-card-text))' }}>
+                        <CardTitle className="text-lg transition-colors text-[hsl(var(--scheme-card-text))]">
                           {profile.display_name}
                         </CardTitle>
                         {profile.occupation && (
-                          <p className="text-sm" style={{ color: 'hsl(var(--scheme-cards-text))' }}>
+                          <p className="text-sm text-[hsl(var(--scheme-cards-text))]">
                             {profile.occupation}
                           </p>
                         )}
                       </div>
                     </div>
                   </CardHeader>
-                  <CardContent>
-                    <p className="text-sm line-clamp-3" style={{ color: 'hsl(var(--scheme-cards-text))' }}>
+                  <CardContent className="bg-[hsl(var(--scheme-card-bg))]">
+                    <p className="text-sm line-clamp-3 text-[hsl(var(--scheme-cards-text))]">
                       {profile.summary || "View profile for more details"}
                     </p>
                   </CardContent>

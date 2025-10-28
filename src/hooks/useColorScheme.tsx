@@ -232,8 +232,6 @@ export function useColorScheme(collectionId?: string) {
           switch (config.cssVar) {
             case '--scheme-cards-bg':
               root.style.setProperty('--scheme-card-bg', hsl);
-              // Generic background fallback used in a few places
-              root.style.setProperty('--scheme-bg', hsl);
               break;
             case '--scheme-cards-border':
               root.style.setProperty('--scheme-card-border', hsl);
