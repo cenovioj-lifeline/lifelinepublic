@@ -18,6 +18,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
+import { useGlobalColors } from "@/hooks/useGlobalColors";
 
 interface LifelineViewerProps {
   lifelineId: string;
@@ -480,26 +488,42 @@ export function LifelineViewer({
               
               <CardContent className="space-y-4 lg:py-6 py-4 flex-1 overflow-y-auto lg:px-6 px-4">
                 {selected.media && selected.media.length > 0 && (
-                  <div className="mb-4 relative overflow-hidden rounded-lg">
-                    {isSuperFan && (
-                      <SuperFanImageDelete
-                        mediaId={selected.media[0].id}
-                        entryId={selected.id}
-                        onDeleteComplete={() => {
-                          queryClient.invalidateQueries({ queryKey: ["entries", lifelineId] });
-                        }}
-                      />
-                    )}
-                    <img
-                      src={selected.media[0].url}
-                      alt={selected.media[0].alt_text || selected.title}
-                      className="w-full aspect-video object-cover rounded-lg"
-                      style={{
-                        objectPosition: `${selected.media[0].position_x ?? 50}% ${selected.media[0].position_y ?? 50}%`,
-                        transform: `scale(${selected.media[0].scale ?? 1})`,
-                        transformOrigin: 'center'
-                      }}
-                    />
+                  <div className="mb-4 relative">
+                    <Carousel className="w-full">
+                      <CarouselContent>
+                        {selected.media.map((media) => (
+                          <CarouselItem key={media.id}>
+                            <div className="relative overflow-hidden rounded-lg">
+                              {isSuperFan && (
+                                <SuperFanImageDelete
+                                  mediaId={media.id}
+                                  entryId={selected.id}
+                                  onDeleteComplete={() => {
+                                    queryClient.invalidateQueries({ queryKey: ["entries", lifelineId] });
+                                  }}
+                                />
+                              )}
+                              <img
+                                src={media.url}
+                                alt={media.alt_text || selected.title}
+                                className="w-full aspect-video object-cover rounded-lg"
+                                style={{
+                                  objectPosition: `${media.position_x ?? 50}% ${media.position_y ?? 50}%`,
+                                  transform: `scale(${media.scale ?? 1})`,
+                                  transformOrigin: 'center'
+                                }}
+                              />
+                            </div>
+                          </CarouselItem>
+                        ))}
+                      </CarouselContent>
+                      {selected.media.length > 1 && (
+                        <>
+                          <CarouselPrevious className="left-2" />
+                          <CarouselNext className="right-2" />
+                        </>
+                      )}
+                    </Carousel>
                   </div>
                 )}
                 <div className="flex items-start gap-4">
