@@ -529,18 +529,32 @@ export function LifelineViewer({
                         Contributor menu
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="center">
-                      <DropdownMenuItem onClick={() => {
-                        setContributePictureMode(false);
-                        setContributeDialogOpen(true);
-                      }}>
+                    <DropdownMenuContent 
+                      align="center"
+                      style={{
+                        backgroundColor: "hsl(var(--scheme-card-bg))",
+                        borderColor: "hsl(var(--scheme-card-border))",
+                        color: "hsl(var(--scheme-cards-text))",
+                        zIndex: 9999
+                      }}
+                    >
+                      <DropdownMenuItem 
+                        onClick={() => {
+                          setContributePictureMode(false);
+                          setContributeDialogOpen(true);
+                        }}
+                        style={{ color: "hsl(var(--scheme-cards-text))" }}
+                      >
                         <Plus className="h-4 w-4 mr-2" />
                         Add a new event
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => {
-                        setContributePictureMode(true);
-                        setContributeDialogOpen(true);
-                      }}>
+                      <DropdownMenuItem 
+                        onClick={() => {
+                          setContributePictureMode(true);
+                          setContributeDialogOpen(true);
+                        }}
+                        style={{ color: "hsl(var(--scheme-cards-text))" }}
+                      >
                         <ImageIcon className="h-4 w-4 mr-2" />
                         Add a picture to an event
                       </DropdownMenuItem>
