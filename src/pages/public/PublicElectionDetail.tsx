@@ -306,7 +306,7 @@ export default function PublicElectionDetail() {
                                   ) : null}
 
                                   {(result.vote_count || result.percentage) && (
-                                    <div className="flex items-center gap-4 text-sm rounded-lg p-2" style={{ backgroundColor: 'hsl(var(--scheme-actions-bg))' }}>
+                                    <div className="flex items-center gap-4 text-sm rounded-lg p-2" style={{ backgroundColor: '#FFFFFF' }}>
                                       {result.percentage && (
                                         <div className="flex items-center gap-1">
                                           <span className="text-base sm:text-lg font-bold" style={{ color: 'hsl(var(--scheme-actions-icon))' }}>
