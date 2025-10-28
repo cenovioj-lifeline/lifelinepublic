@@ -1,4 +1,4 @@
-import { Home, Folder, Activity, Users, Award, Tag, Image, LogOut, Settings, Heart, Upload, FileQuestion, Palette } from "lucide-react";
+import { Home, Folder, Activity, Users, Award, Tag, Image, LogOut, Settings, Heart, Upload, FileQuestion, Palette, ImagePlus } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import {
   Sidebar,
@@ -26,6 +26,7 @@ const items = [
   { title: "Home Manager", url: "/home-manager", icon: Home },
   { title: "Collections", url: "/collections", icon: Folder },
   { title: "Lifelines", url: "/lifelines", icon: Activity },
+  { title: "Image Manager", url: "/lifeline-image-manager", icon: ImagePlus },
   { title: "Profiles", url: "/profiles", icon: Users },
   { title: "MER", fullTitle: "Mock Election Results", url: "/elections", icon: Award },
   { title: "Tags", url: "/tags", icon: Tag },

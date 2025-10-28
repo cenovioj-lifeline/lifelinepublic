@@ -54,6 +54,7 @@ import UserRequests from "./pages/UserRequests";
 import ColorSchemes from "./pages/ColorSchemes";
 import ColorSchemeEdit from "./pages/ColorSchemeEdit";
 import TestImageImport from "./pages/TestImageImport";
+import LifelineImageManager from "./pages/LifelineImageManager";
 
 const queryClient = new QueryClient();
 
@@ -298,6 +299,14 @@ function AppContent() {
                   <AdminLayout>
                     <TestImageImport />
                   </AdminLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/lifeline-image-manager"
+              element={
+                <ProtectedRoute>
+                  <LifelineImageManager />
                 </ProtectedRoute>
               }
             />
