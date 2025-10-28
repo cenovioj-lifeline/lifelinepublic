@@ -223,7 +223,7 @@ export default function PublicCollectionDetail() {
               <div className="absolute top-4 right-4 z-10">
                 <FavoriteButton itemId={collection.id} itemType="collection" className="bg-white/80 hover:bg-white" />
               </div>
-              <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8 text-white">
+              <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8" style={{ color: 'hsl(var(--scheme-ch-banner-text))' }}>
                 <h1 className="text-3xl md:text-5xl font-bold mb-2">
                   {collection.title}
                 </h1>

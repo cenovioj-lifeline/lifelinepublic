@@ -352,8 +352,8 @@ export function LifelineViewer({
                         <div className="flex items-center pl-4 py-3">
                           <div
                             className={cn(
-                              "relative bg-[hsl(var(--scheme-ll-graph-bg))] rounded-2xl px-4 py-3 max-w-[90%] transition-all duration-300",
-                              isSelected && "border-[3px] shadow-lg bg-[hsl(var(--scheme-ll-graph-bg))]"
+                              "relative bg-white rounded-2xl px-4 py-3 max-w-[90%] transition-all duration-300",
+                              isSelected && "border-[3px] shadow-lg"
                             )}
                             style={isSelected ? { borderColor: positiveColor } : {}}
                           >
@@ -361,7 +361,7 @@ export function LifelineViewer({
                             <div
                               className="absolute left-[-10px] top-[30px] w-0 h-0 border-t-[15px] border-b-0 border-r-[15px] border-transparent"
                               style={{
-                                borderRightColor: isSelected ? `hsl(var(--scheme-ll-graph-bg))` : `hsl(var(--scheme-ll-graph-bg))`
+                                borderRightColor: 'white'
                               }}
                             />
                             <div className="font-bold text-sm mb-1 text-[hsl(var(--scheme-ll-entry-title))]">
@@ -382,8 +382,8 @@ export function LifelineViewer({
                         <div className="flex items-center justify-end pr-4 border-r-2 border-gray-200 py-3">
                           <div
                             className={cn(
-                              "relative bg-[hsl(var(--scheme-ll-graph-bg))] rounded-2xl px-4 py-3 max-w-[90%] transition-all duration-300",
-                              isSelected && "border-[3px] shadow-lg bg-[hsl(var(--scheme-ll-graph-bg))]"
+                              "relative bg-white rounded-2xl px-4 py-3 max-w-[90%] transition-all duration-300",
+                              isSelected && "border-[3px] shadow-lg"
                             )}
                             style={isSelected ? { borderColor: negativeColor } : {}}
                           >
@@ -391,7 +391,7 @@ export function LifelineViewer({
                             <div
                               className="absolute right-[-10px] top-[30px] w-0 h-0 border-t-[15px] border-b-0 border-l-[15px] border-transparent"
                               style={{
-                                borderLeftColor: isSelected ? `hsl(var(--scheme-ll-graph-bg))` : `hsl(var(--scheme-ll-graph-bg))`
+                                borderLeftColor: 'white'
                               }}
                             />
                             <div className="font-bold text-sm mb-1 text-[hsl(var(--scheme-ll-entry-title))]">
@@ -437,7 +437,7 @@ export function LifelineViewer({
 
           {/* Right side - Details - Full width on mobile */}
           {selected && (
-            <Card className="shadow-lg flex flex-col h-full overflow-hidden lg:col-span-1 col-span-1 lg:mx-0 mx-0 bg-[hsl(var(--scheme-ll-graph-bg))] border-[hsl(var(--scheme-nav-bg))]">
+            <Card className="shadow-lg flex flex-col h-full overflow-hidden lg:col-span-1 col-span-1 lg:mx-0 mx-0 bg-white border-[hsl(var(--scheme-nav-bg))]">
               <CardHeader className="bg-[hsl(var(--scheme-nav-bg))] rounded-t-xl flex-shrink-0 lg:p-6 p-1">
                 {/* Navigation buttons at very top */}
                 <div className="grid grid-cols-3 items-center mb-1 lg:mb-4 gap-1 lg:gap-2">

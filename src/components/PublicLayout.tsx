@@ -35,20 +35,21 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
         const Icon = item.icon;
         const isActive = location.pathname === item.path;
         return (
-          <Link
+          <Button
             key={item.path}
-            to={item.path}
-            onClick={onClick}
+            variant="ghost"
+            size="sm"
+            asChild
             className={cn(
-              "flex items-center gap-2 px-3 py-2 rounded-md transition-colors hover:bg-[hsl(var(--scheme-nav-button)/.2)]",
-              isActive
-                ? "bg-[hsl(var(--scheme-nav-button)/.4)] text-[hsl(var(--scheme-nav-button))]"
-                : "text-[hsl(var(--scheme-nav-text))]"
+              "gap-2 transition-colors text-[hsl(var(--scheme-nav-text))] hover:bg-[hsl(var(--scheme-nav-button)/.2)]",
+              isActive && "bg-[hsl(var(--scheme-nav-button))] font-bold"
             )}
           >
-            <Icon className="h-4 w-4" />
-            <span>{item.label}</span>
-          </Link>
+            <Link to={item.path} onClick={onClick}>
+              <Icon className="h-4 w-4" />
+              {item.label}
+            </Link>
+          </Button>
         );
       })}
     </>
@@ -59,20 +60,25 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
       <header className="border-b sticky top-0 z-50 bg-[hsl(var(--scheme-nav-bg))] border-[hsl(var(--scheme-nav-bg)/.8)]">
         <div className="container mx-auto px-4 py-3">
           <nav className="flex items-center justify-between">
-            <Link to="/" className="flex items-center">
-              <img src={logo} alt="Lifeline Public" className="h-10" />
+            <Link to="/" className="flex items-center text-lg md:text-xl font-bold text-[hsl(var(--scheme-nav-text))] hover:opacity-80 transition-opacity">
+              <img src={logo} alt="Lifeline Public" className="h-10 mr-2" />
+              <span className="hidden sm:inline">Lifeline Public</span>
             </Link>
             
             {/* Desktop Navigation */}
             {!isMobile && (
-              <div className="flex gap-1 items-center">
+              <div className="flex gap-2 items-center">
                 <NavLinks />
-                <Link
-                  to="/"
-                  className="flex items-center gap-2 px-3 py-2 rounded-md transition-colors text-[hsl(var(--scheme-nav-text))] hover:bg-[hsl(var(--scheme-nav-button)/.2)]"
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  asChild
+                  className="gap-2 transition-colors text-[hsl(var(--scheme-nav-text))] hover:bg-[hsl(var(--scheme-nav-button)/.2)]"
                 >
-                  <span>LP</span>
-                </Link>
+                  <Link to="/">
+                    <span>LP</span>
+                  </Link>
+                </Button>
                 {user ? (
                   <>
                     <NotificationBell />
@@ -80,10 +86,10 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
                   </>
                 ) : (
                   <Button 
-                    variant="outline" 
+                    variant="ghost"
                     size="sm"
                     onClick={() => setAuthModalOpen(true)}
-                    className="ml-2 border-[hsl(var(--scheme-nav-text))] text-[hsl(var(--scheme-nav-text))] hover:bg-[hsl(var(--scheme-nav-button)/.2)]"
+                    className="ml-2 text-[hsl(var(--scheme-nav-text))] hover:bg-[hsl(var(--scheme-nav-button)/.2)]"
                   >
                     Sign In
                   </Button>
