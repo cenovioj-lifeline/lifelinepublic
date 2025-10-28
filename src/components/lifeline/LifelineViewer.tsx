@@ -5,11 +5,17 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { Plus, Star } from "lucide-react";
+import { Plus, Star, Menu, Image as ImageIcon } from "lucide-react";
 import { ContributeEventDialog } from "@/components/ContributeEventDialog";
 import { useAuth } from "@/lib/auth";
 import { PublicAuthModal } from "@/components/PublicAuthModal";
 import { Link } from "react-router-dom";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface LifelineViewerProps {
   lifelineId: string;
@@ -26,6 +32,7 @@ export function LifelineViewer({
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [contributeDialogOpen, setContributeDialogOpen] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [contributePictureMode, setContributePictureMode] = useState(false);
   const selectionStyle: SelectionStyle = "glow"; // Always use glow
   const timelineRef = useRef<HTMLDivElement>(null);
   const entryRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
@@ -243,14 +250,6 @@ export function LifelineViewer({
               </p>
             )}
           </div>
-          <Button 
-            onClick={() => setContributeDialogOpen(true)} 
-            size="sm" 
-            className="w-full lg:w-auto shrink-0 bg-[hsl(var(--scheme-ll-entry-contributor))] hover:bg-[hsl(var(--scheme-ll-entry-contributor)/.8)] text-white border-0"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Contribute a new event
-          </Button>
         </div>
       </CardHeader>
       <CardContent className="px-0 lg:px-6 pt-0 h-[calc(100%-100px)] lg:h-auto flex flex-col lg:block overflow-visible bg-[hsl(var(--scheme-ll-display-bg))]">
@@ -258,7 +257,9 @@ export function LifelineViewer({
         <div className="lg:hidden bg-[hsl(var(--scheme-ll-graph-bg))] rounded-lg mb-1 overflow-x-auto py-1 px-0 flex-shrink-0" style={{ minHeight: '80px' }}>
           <div className="flex items-center justify-center relative" style={{ minWidth: 'fit-content', height: '80px' }}>
             {/* Centerline */}
-            <div className="absolute top-1/2 left-0 right-0 h-[2px] -translate-y-1/2 z-0" style={{ backgroundColor: '#565D6D' }} />
+            <div className="absolute top-0 bottom-0 left-0 right-0 w-full h-full flex items-center z-0">
+              <div className="w-full h-[2px]" style={{ backgroundColor: '#565D6D' }} />
+            </div>
             {/* Bars */}
             <div className="flex items-end gap-1 h-full relative z-10">
               {entries.map((entry) => {
@@ -299,7 +300,7 @@ export function LifelineViewer({
           {/* Left side - Timeline - Hidden on mobile */}
           <div
             ref={timelineRef}
-            className="hidden lg:block bg-[hsl(var(--scheme-ll-graph-bg))] border border-[hsl(var(--scheme-nav-bg))] rounded-lg p-5 overflow-y-auto h-full"
+            className="hidden lg:block bg-[hsl(var(--scheme-ll-graph-bg))] rounded-lg p-5 overflow-y-auto h-full"
             style={{
               scrollbarWidth: 'thin',
               scrollbarColor: '#565D6D #f0f0f0'
@@ -327,7 +328,9 @@ export function LifelineViewer({
                     {positive ? (
                       <>
                         {/* Left column - Score box at left end, stem extends to center */}
-                        <div className="flex items-center justify-end border-r-2 pr-0 py-3" style={{ borderColor: '#565D6D' }}>
+                        <div className="flex items-center justify-end relative pr-0 py-3">
+                          {/* Vertical centerline extending full height */}
+                          <div className="absolute right-0 top-0 bottom-0 w-[2px]" style={{ backgroundColor: '#565D6D' }} />
                           <div className="flex items-center justify-end" style={{ width: `${stemWidthPercent}%` }}>
                             {/* Score box at left end - square on right side */}
                             <div
@@ -379,7 +382,9 @@ export function LifelineViewer({
                     ) : (
                       <>
                         {/* Left column - Chat bubble */}
-                        <div className="flex items-center justify-end pr-4 border-r-2 py-3" style={{ borderColor: '#565D6D' }}>
+                        <div className="flex items-center justify-end pr-4 relative py-3">
+                          {/* Vertical centerline extending full height */}
+                          <div className="absolute right-0 top-0 bottom-0 w-[2px]" style={{ backgroundColor: '#565D6D' }} />
                           <div
                             className={cn(
                               "relative bg-white rounded-2xl px-4 py-3 max-w-[90%] transition-all duration-300",
@@ -438,9 +443,9 @@ export function LifelineViewer({
           {/* Right side - Details - Full width on mobile */}
           {selected && (
             <Card className="shadow-lg flex flex-col h-full overflow-hidden lg:col-span-1 col-span-1 lg:mx-0 mx-0 bg-[hsl(var(--scheme-ll-graph-bg))] border-[hsl(var(--scheme-ll-graph-bg))]">
-              <CardHeader className="bg-[hsl(var(--scheme-ll-graph-bg))] rounded-t-xl flex-shrink-0 lg:p-6 p-1">
-                {/* Navigation buttons at very top */}
-                <div className="grid grid-cols-3 items-center mb-1 lg:mb-4 gap-1 lg:gap-2">
+              {/* Navigation Header */}
+              <div className="bg-[hsl(var(--scheme-nav-bg))] px-4 py-3 flex-shrink-0">
+                <div className="grid grid-cols-3 items-center gap-2">
                   <div className="justify-self-start">
                     <Button
                       variant="outline"
@@ -449,7 +454,7 @@ export function LifelineViewer({
                       disabled={currentIndex === 0}
                       className="w-[100px] lg:w-[100px] md:w-[80px] sm:w-[70px] text-xs lg:text-sm px-2 bg-[hsl(var(--scheme-nav-button))] hover:bg-[hsl(var(--scheme-nav-button)/.8)] text-[hsl(var(--scheme-nav-text))] border-[hsl(var(--scheme-nav-button))]"
                     >
-                      ← Previous
+                      ← Prev
                     </Button>
                   </div>
                   <div className="text-xs lg:text-sm font-semibold text-center text-[hsl(var(--scheme-nav-text))]">
@@ -466,36 +471,9 @@ export function LifelineViewer({
                     </Button>
                   </div>
                 </div>
-                {/* User info and score */}
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <Avatar>
-                      <AvatarFallback>
-                        {getInitials(lifeline.profiles?.display_name || "Unknown")}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <CardTitle className="text-base leading-tight text-[hsl(var(--scheme-nav-text))]">
-                        {lifeline.profiles?.display_name || "Unknown"}
-                      </CardTitle>
-                      <p className="text-xs text-[hsl(var(--scheme-nav-text))] opacity-70">
-                        Entry details
-                      </p>
-                    </div>
-                  </div>
-                  <div
-                    className={cn(
-                      "px-3 py-1 rounded-md font-bold text-white"
-                    )}
-                    style={{
-                      backgroundColor: (selected.score || 0) >= 0 ? positiveColor : negativeColor
-                    }}
-                  >
-                    {selected.score || 0}
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4 lg:py-6 py-2 flex-1 overflow-y-auto lg:px-6 px-1">
+              </div>
+              
+              <CardContent className="space-y-4 lg:py-6 py-4 flex-1 overflow-y-auto lg:px-6 px-4">
                 {selected.media && selected.media.length > 0 && (
                   <div className="mb-4">
                     <img
@@ -508,7 +486,17 @@ export function LifelineViewer({
                     />
                   </div>
                 )}
-                <div className="flex items-start justify-between gap-4">
+                <div className="flex items-start gap-4">
+                  <div
+                    className={cn(
+                      "flex-shrink-0 px-3 py-1 rounded-md font-bold text-white"
+                    )}
+                    style={{
+                      backgroundColor: (selected.score || 0) >= 0 ? positiveColor : negativeColor
+                    }}
+                  >
+                    {selected.score || 0}
+                  </div>
                   <div className="flex-1">
                     <h2 className="text-2xl font-bold text-[hsl(var(--scheme-title-text))]">
                       {selected.title}
@@ -530,6 +518,35 @@ export function LifelineViewer({
                       </Link>
                     </p>
                   )}
+                <div className="pt-4 flex justify-center">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button 
+                        size="sm"
+                        className="bg-[hsl(var(--scheme-ll-entry-contributor))] hover:bg-[hsl(var(--scheme-ll-entry-contributor)/.8)] text-white border-0"
+                      >
+                        <Menu className="h-4 w-4 mr-2" />
+                        Contributor menu
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="center">
+                      <DropdownMenuItem onClick={() => {
+                        setContributePictureMode(false);
+                        setContributeDialogOpen(true);
+                      }}>
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add a new event
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => {
+                        setContributePictureMode(true);
+                        setContributeDialogOpen(true);
+                      }}>
+                        <ImageIcon className="h-4 w-4 mr-2" />
+                        Add a picture to an event
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
               </CardContent>
             </Card>
           )}
