@@ -61,11 +61,11 @@ export default function PublicCollections() {
                 to={`/public/collections/${collection.slug}`}
                 className="group relative"
               >
-                <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full">
+                <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
                   <div className="absolute top-2 right-2 z-10">
                     <FavoriteButton itemId={collection.id} itemType="collection" />
                   </div>
-                  <div className="aspect-video relative bg-muted overflow-hidden">
+                  <div className="aspect-video relative bg-white overflow-hidden">
                     {collection.hero_image_url ? (
                       <img
                         src={collection.hero_image_url}
@@ -76,21 +76,21 @@ export default function PublicCollections() {
                         }}
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+                      <div className="w-full h-full flex items-center justify-center text-gray-400">
                         No image
                       </div>
                     )}
                   </div>
-                  <CardHeader>
+                  <CardHeader className="bg-[hsl(var(--scheme-card-bg))]">
                     <div className="flex items-start justify-between gap-2">
-                      <CardTitle className="text-xl group-hover:text-primary transition-colors">
+                      <CardTitle className="text-xl transition-colors text-[hsl(var(--scheme-card-text))]">
                         {collection.title}
                       </CardTitle>
                       <Badge variant="secondary">Featured</Badge>
                     </div>
                   </CardHeader>
-                  <CardContent>
-                    <p className="text-muted-foreground line-clamp-3">
+                  <CardContent className="bg-[hsl(var(--scheme-card-bg))]">
+                    <p className="text-[hsl(var(--scheme-cards-text))] line-clamp-3">
                       {collection.description || "Explore this collection"}
                     </p>
                   </CardContent>

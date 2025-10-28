@@ -242,11 +242,11 @@ export default function PublicLifelinesGrid() {
                 to={`/public/lifelines/${lifeline.slug}`}
                 className="group relative"
               >
-                <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full">
+                <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
                   <div className="absolute top-2 right-2 z-10">
                     <FavoriteButton itemId={lifeline.id} itemType="lifeline" />
                   </div>
-                  <div className="aspect-video relative bg-muted overflow-hidden">
+                  <div className="aspect-video relative bg-white overflow-hidden">
                     {lifeline.cover_image_url ? (
                       <img
                         src={lifeline.cover_image_url}
@@ -257,18 +257,18 @@ export default function PublicLifelinesGrid() {
                         }}
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+                      <div className="w-full h-full flex items-center justify-center text-gray-400">
                         No image
                       </div>
                     )}
                   </div>
-                  <CardHeader>
-                    <CardTitle className="text-lg group-hover:text-primary transition-colors">
+                  <CardHeader className="bg-[hsl(var(--scheme-card-bg))]">
+                    <CardTitle className="text-lg transition-colors text-[hsl(var(--scheme-card-text))]">
                       {lifeline.title}
                     </CardTitle>
                   </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground line-clamp-2">
+                  <CardContent className="bg-[hsl(var(--scheme-card-bg))]">
+                    <p className="text-sm line-clamp-2 text-[hsl(var(--scheme-cards-text))]">
                       {lifeline.subtitle || lifeline.intro || "Explore this lifeline"}
                     </p>
                   </CardContent>
