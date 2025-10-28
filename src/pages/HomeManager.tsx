@@ -15,7 +15,74 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Trash2, Plus, Image as ImageIcon } from "lucide-react";
+import { Trash2, Plus, Image as ImageIcon, GripVertical } from "lucide-react";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+
+function SortableItem({
+  id,
+  title,
+  subtitle,
+  onRemove,
+}: {
+  id: string;
+  title: string;
+  subtitle: string;
+  onRemove: () => void;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="flex items-center gap-2 p-2 border rounded bg-card"
+    >
+      <button
+        className="cursor-grab active:cursor-grabbing touch-none"
+        {...attributes}
+        {...listeners}
+      >
+        <GripVertical className="h-4 w-4 text-muted-foreground" />
+      </button>
+      <div className="flex flex-col flex-1">
+        <span className="text-sm font-medium">{title}</span>
+        <span className="text-xs text-muted-foreground capitalize">{subtitle}</span>
+      </div>
+      <Button variant="ghost" size="icon" onClick={onRemove}>
+        <Trash2 className="h-4 w-4" />
+      </Button>
+    </div>
+  );
+}
 
 export default function HomeManager() {
   const queryClient = useQueryClient();
@@ -242,6 +309,81 @@ export default function HomeManager() {
     },
   });
 
+  const reorderFeaturedItems = useMutation({
+    mutationFn: async (items: Array<{ id: string; order_index: number }>) => {
+      const updates = items.map(item => 
+        supabase
+          .from("home_page_featured_items")
+          .update({ order_index: item.order_index })
+          .eq("id", item.id)
+      );
+      
+      await Promise.all(updates);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["home-featured-items"] });
+      toast.success("Featured items reordered");
+    },
+  });
+
+  const reorderNewContentItems = useMutation({
+    mutationFn: async (items: Array<{ id: string; order_index: number }>) => {
+      const updates = items.map(item => 
+        supabase
+          .from("home_page_new_content_items")
+          .update({ order_index: item.order_index })
+          .eq("id", item.id)
+      );
+      
+      await Promise.all(updates);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["home-new-content-items"] });
+      toast.success("New content items reordered");
+    },
+  });
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const handleFeaturedDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id && featuredItems) {
+      const oldIndex = featuredItems.findIndex((item) => item.id === active.id);
+      const newIndex = featuredItems.findIndex((item) => item.id === over.id);
+
+      const newItems = arrayMove(featuredItems, oldIndex, newIndex);
+      const updates = newItems.map((item, index) => ({
+        id: item.id,
+        order_index: index,
+      }));
+
+      reorderFeaturedItems.mutate(updates);
+    }
+  };
+
+  const handleNewContentDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id && newContentItems) {
+      const oldIndex = newContentItems.findIndex((item) => item.id === active.id);
+      const newIndex = newContentItems.findIndex((item) => item.id === over.id);
+
+      const newItems = arrayMove(newContentItems, oldIndex, newIndex);
+      const updates = newItems.map((item, index) => ({
+        id: item.id,
+        order_index: index,
+      }));
+
+      reorderNewContentItems.mutate(updates);
+    }
+  };
+
   // Helper function to get content title
   const getContentTitle = (item: { item_type: string; item_id: string }) => {
     if (item.item_type === 'collection') {
@@ -382,27 +524,28 @@ export default function HomeManager() {
           <CardTitle>Featured Content</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="space-y-2">
-            {featuredItems?.map((item) => (
-              <div key={item.id} className="flex items-center justify-between p-2 border rounded">
-                <div className="flex flex-col">
-                  <span className="text-sm font-medium">
-                    {getContentTitle(item)}
-                  </span>
-                  <span className="text-xs text-muted-foreground capitalize">
-                    {item.item_type}
-                  </span>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => removeFeaturedItem.mutate(item.id)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleFeaturedDragEnd}
+          >
+            <SortableContext
+              items={featuredItems?.map((item) => item.id) || []}
+              strategy={verticalListSortingStrategy}
+            >
+              <div className="space-y-2">
+                {featuredItems?.map((item) => (
+                  <SortableItem
+                    key={item.id}
+                    id={item.id}
+                    title={getContentTitle(item)}
+                    subtitle={item.item_type}
+                    onRemove={() => removeFeaturedItem.mutate(item.id)}
+                  />
+                ))}
               </div>
-            ))}
-          </div>
+            </SortableContext>
+          </DndContext>
           
           <div className="flex gap-2">
             <Select
@@ -445,27 +588,28 @@ export default function HomeManager() {
           <CardTitle>New Content</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="space-y-2">
-            {newContentItems?.map((item) => (
-              <div key={item.id} className="flex items-center justify-between p-2 border rounded">
-                <div className="flex flex-col">
-                  <span className="text-sm font-medium">
-                    {getContentTitle(item)}
-                  </span>
-                  <span className="text-xs text-muted-foreground capitalize">
-                    {item.item_type}
-                  </span>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => removeNewContentItem.mutate(item.id)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleNewContentDragEnd}
+          >
+            <SortableContext
+              items={newContentItems?.map((item) => item.id) || []}
+              strategy={verticalListSortingStrategy}
+            >
+              <div className="space-y-2">
+                {newContentItems?.map((item) => (
+                  <SortableItem
+                    key={item.id}
+                    id={item.id}
+                    title={getContentTitle(item)}
+                    subtitle={item.item_type}
+                    onRemove={() => removeNewContentItem.mutate(item.id)}
+                  />
+                ))}
               </div>
-            ))}
-          </div>
+            </SortableContext>
+          </DndContext>
           
           <div className="flex gap-2">
             <Select
