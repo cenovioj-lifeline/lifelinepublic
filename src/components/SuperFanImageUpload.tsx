@@ -61,7 +61,7 @@ export function SuperFanImageUpload({ entryId, onUploadComplete }: SuperFanImage
     }
   };
 
-  const handlePositionSave = async (position: { x: number; y: number }) => {
+  const handlePositionSave = async (position: { x: number; y: number; scale: number }) => {
     if (!tempImage) return;
 
     setUploading(true);
@@ -75,6 +75,7 @@ export function SuperFanImageUpload({ entryId, onUploadComplete }: SuperFanImage
           type: tempImage.file.type,
           position_x: position.x,
           position_y: position.y,
+          scale: position.scale,
         })
         .select()
         .single();
@@ -152,7 +153,7 @@ export function SuperFanImageUpload({ entryId, onUploadComplete }: SuperFanImage
         <ImagePositionPicker
           imageUrl={tempImage.url}
           onPositionChange={handlePositionSave}
-          initialPosition={{ x: 50, y: 50 }}
+          initialPosition={{ x: 50, y: 50, scale: 1 }}
           open={showPositionPicker}
           onOpenChange={setShowPositionPicker}
           title="Position Your Image"

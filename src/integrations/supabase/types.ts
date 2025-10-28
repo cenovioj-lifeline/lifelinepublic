@@ -1160,6 +1160,7 @@ export type Database = {
           id: string
           position_x: number | null
           position_y: number | null
+          scale: number | null
           source_url: string | null
           type: string
           updated_at: string
@@ -1177,6 +1178,7 @@ export type Database = {
           id?: string
           position_x?: number | null
           position_y?: number | null
+          scale?: number | null
           source_url?: string | null
           type: string
           updated_at?: string
@@ -1194,6 +1196,7 @@ export type Database = {
           id?: string
           position_x?: number | null
           position_y?: number | null
+          scale?: number | null
           source_url?: string | null
           type?: string
           updated_at?: string

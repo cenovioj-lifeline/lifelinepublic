@@ -5,8 +5,8 @@ import { Slider } from "@/components/ui/slider";
 
 interface ImagePositionPickerProps {
   imageUrl: string;
-  onPositionChange: (position: { x: number; y: number }) => void;
-  initialPosition?: { x: number; y: number };
+  onPositionChange: (position: { x: number; y: number; scale: number }) => void;
+  initialPosition?: { x: number; y: number; scale?: number };
   open: boolean;
   onOpenChange: (open: boolean) => void;
   title?: string;
@@ -16,17 +16,25 @@ interface ImagePositionPickerProps {
 export function ImagePositionPicker({
   imageUrl,
   onPositionChange,
-  initialPosition = { x: 50, y: 50 },
+  initialPosition = { x: 50, y: 50, scale: 1 },
   open,
   onOpenChange,
   title = "Position Image",
   viewType = "both",
 }: ImagePositionPickerProps) {
-  const [position, setPosition] = useState(initialPosition);
+  const [position, setPosition] = useState({ 
+    x: initialPosition.x, 
+    y: initialPosition.y,
+    scale: initialPosition.scale || 1 
+  });
 
   const handlePositionChange = (axis: 'x' | 'y', value: number[]) => {
     const newPosition = { ...position, [axis]: value[0] };
     setPosition(newPosition);
+  };
+
+  const handleScaleChange = (value: number[]) => {
+    setPosition({ ...position, scale: value[0] });
   };
 
   const handleSave = () => {
@@ -58,6 +66,7 @@ export function ImagePositionPicker({
                     className="w-full h-full object-cover"
                     style={{
                       objectPosition: `${position.x}% ${position.y}%`,
+                      transform: `scale(${position.scale})`,
                     }}
                   />
                   <div className="absolute inset-0 pointer-events-none border-4 border-primary/30" />
@@ -78,6 +87,7 @@ export function ImagePositionPicker({
                     className="w-full h-full object-cover"
                     style={{
                       objectPosition: `${position.x}% ${position.y}%`,
+                      transform: `scale(${position.scale})`,
                     }}
                   />
                   <div className="absolute inset-0 pointer-events-none border-4 border-primary/30" />
@@ -117,6 +127,17 @@ export function ImagePositionPicker({
 
           {/* Position controls */}
           <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Zoom: {position.scale.toFixed(2)}x</label>
+              <Slider
+                value={[position.scale]}
+                onValueChange={handleScaleChange}
+                min={0.5}
+                max={3}
+                step={0.1}
+              />
+            </div>
+
             <div className="space-y-2">
               <label className="text-sm font-medium">Horizontal Position: {position.x}%</label>
               <Slider
