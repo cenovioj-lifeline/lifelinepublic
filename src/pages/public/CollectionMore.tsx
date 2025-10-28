@@ -57,8 +57,8 @@ export default function CollectionMore() {
     >
       <div className="space-y-8">
         <div>
-          <h1 className="text-4xl font-bold mb-4">More Features</h1>
-          <p className="text-lg text-muted-foreground">
+          <h1 className="text-4xl font-bold mb-4 text-[hsl(var(--scheme-title-text))]">More Features</h1>
+          <p className="text-lg text-[hsl(var(--scheme-cards-text))]">
             Explore additional features and options
           </p>
         </div>
@@ -67,17 +67,15 @@ export default function CollectionMore() {
           {features.map((feature) => (
             <Card
               key={feature.id}
-              style={{ borderColor: collection.primary_color || undefined }}
-              className="cursor-pointer hover:shadow-lg transition-shadow"
+              className="cursor-pointer hover:shadow-lg transition-shadow bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]"
               onClick={() => navigate(feature.path)}
             >
-              <CardContent className="pt-6 text-center">
+              <CardContent className="pt-6 text-center bg-[hsl(var(--scheme-card-bg))]">
                 <feature.icon
-                  className="h-8 w-8 mx-auto mb-2"
-                  style={{ color: collection.primary_color || undefined }}
+                  className="h-8 w-8 mx-auto mb-2 text-[hsl(var(--scheme-cards-text))]"
                 />
-                <div className="text-sm font-medium mb-1">{feature.label}</div>
-                <div className="text-xs text-muted-foreground">
+                <div className="text-sm font-medium mb-1 text-[hsl(var(--scheme-card-text))]">{feature.label}</div>
+                <div className="text-xs text-[hsl(var(--scheme-cards-text))]">
                   {feature.description}
                 </div>
               </CardContent>

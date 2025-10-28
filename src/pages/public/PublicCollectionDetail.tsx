@@ -321,7 +321,7 @@ export default function PublicCollectionDetail() {
         {lifelines && lifelines.length > 0 && (
           <section>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl font-bold">Featured Lifelines</h2>
+              <h2 className="text-2xl font-bold text-[hsl(var(--scheme-title-text))]">Featured Lifelines</h2>
               <Link
                 to={`/public/collections/${collection.slug}/lifelines`}
                 className="text-sm flex items-center gap-1 hover:underline"
@@ -433,7 +433,7 @@ export default function PublicCollectionDetail() {
         {profiles && profiles.length > 0 && (
           <section>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl font-bold">Featured Profiles</h2>
+              <h2 className="text-2xl font-bold text-[hsl(var(--scheme-title-text))]">Featured Profiles</h2>
               <Link
                 to={`/public/collections/${collection.slug}/profiles`}
                 className="text-sm flex items-center gap-1 hover:underline"

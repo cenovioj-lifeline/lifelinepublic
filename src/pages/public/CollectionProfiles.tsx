@@ -72,8 +72,8 @@ export default function CollectionProfiles() {
     >
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold mb-2" style={{ color: 'hsl(var(--scheme-title-text))' }}>Profiles</h1>
-          <p className="text-muted-foreground" style={{ color: 'hsl(var(--scheme-cards-text))' }}>
+          <h1 className="text-3xl font-bold mb-2 text-[hsl(var(--scheme-title-text))]">Profiles</h1>
+          <p className="text-muted-foreground text-[hsl(var(--scheme-cards-text))]">
             People featured in {collection.title}
           </p>
         </div>
@@ -128,9 +128,9 @@ export default function CollectionProfiles() {
             ))}
           </div>
         ) : (
-          <Card style={{ backgroundColor: 'hsl(var(--scheme-card-bg))', borderColor: 'hsl(var(--scheme-card-border))' }}>
-            <CardContent className="py-12 text-center">
-              <p style={{ color: 'hsl(var(--scheme-cards-text))' }}>
+          <Card className="bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
+            <CardContent className="py-12 text-center bg-[hsl(var(--scheme-card-bg))]">
+              <p className="text-[hsl(var(--scheme-cards-text))]">
                 No profiles found in this collection.
               </p>
             </CardContent>
