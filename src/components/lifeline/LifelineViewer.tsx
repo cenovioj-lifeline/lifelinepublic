@@ -255,7 +255,7 @@ export function LifelineViewer({
       </CardHeader>
       <CardContent className="px-0 lg:px-6 pt-0 h-[calc(100%-100px)] lg:h-auto flex flex-col lg:block overflow-visible">
         {/* Mobile Horizontal Chart - Only visible on mobile */}
-        <div className="lg:hidden bg-[hsl(var(--scheme-ll-display-bg))] rounded-lg mb-1 overflow-x-auto py-1 px-0 flex-shrink-0" style={{ minHeight: '80px' }}>
+        <div className="lg:hidden bg-[hsl(var(--scheme-ll-graph-bg))] rounded-lg mb-1 overflow-x-auto py-1 px-0 flex-shrink-0" style={{ minHeight: '80px' }}>
           <div className="flex items-center justify-center relative" style={{ minWidth: 'fit-content', height: '80px' }}>
             {/* Centerline */}
             <div className="absolute top-1/2 left-0 right-0 h-[2px] bg-gray-300 -translate-y-1/2 z-0" />
@@ -299,7 +299,7 @@ export function LifelineViewer({
           {/* Left side - Timeline - Hidden on mobile */}
           <div
             ref={timelineRef}
-            className="hidden lg:block bg-[hsl(var(--scheme-ll-display-bg))] border border-[hsl(var(--scheme-nav-bg))] rounded-lg p-5 overflow-y-auto h-full"
+            className="hidden lg:block bg-[hsl(var(--scheme-ll-graph-bg))] border border-[hsl(var(--scheme-nav-bg))] rounded-lg p-5 overflow-y-auto h-full"
             style={{
               scrollbarWidth: 'thin',
               scrollbarColor: `${positiveColor} #f0f0f0`
@@ -437,8 +437,8 @@ export function LifelineViewer({
 
           {/* Right side - Details - Full width on mobile */}
           {selected && (
-            <Card className="shadow-lg flex flex-col h-full overflow-hidden lg:col-span-1 col-span-1 lg:mx-0 mx-0 bg-[hsl(var(--scheme-ll-graph-bg))] border-[hsl(var(--scheme-ll-graph-bg))]">
-              <CardHeader className="bg-[hsl(var(--scheme-ll-graph-bg))] rounded-t-xl flex-shrink-0 lg:p-6 p-1">
+            <Card className="shadow-lg flex flex-col h-full overflow-hidden lg:col-span-1 col-span-1 lg:mx-0 mx-0 bg-[hsl(var(--scheme-ll-display-bg))] border-[hsl(var(--scheme-ll-display-bg))]">
+              <CardHeader className="bg-[hsl(var(--scheme-ll-display-bg))] rounded-t-xl flex-shrink-0 lg:p-6 p-1">
                 {/* Navigation buttons at very top */}
                 <div className="grid grid-cols-3 items-center mb-1 lg:mb-4 gap-1 lg:gap-2">
                   <div className="justify-self-start">
