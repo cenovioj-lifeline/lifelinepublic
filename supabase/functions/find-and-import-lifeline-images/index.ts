@@ -10,7 +10,8 @@ const corsHeaders = {
 interface Entry {
   id: string;
   title: string;
-  description: string | null;
+  summary: string | null;
+  details: string | null;
   occurred_on: string;
 }
 
@@ -37,7 +38,7 @@ serve(async (req) => {
     // Fetch all entries for this lifeline
     const { data: entries, error: entriesError } = await supabase
       .from('entries')
-      .select('id, title, description, occurred_on')
+      .select('id, title, summary, details, occurred_on')
       .eq('lifeline_id', lifelineId)
       .order('occurred_on', { ascending: true });
 
@@ -85,7 +86,7 @@ serve(async (req) => {
         console.log(`Processing entry: ${entry.title}`);
         
         // Search for Mad Men images related to this event
-        const searchQuery = `Mad Men TV show ${entry.title} ${entry.description || ''}`;
+        const searchQuery = `Mad Men TV show ${entry.title} ${entry.summary || entry.details || ''}`;
         const searchUrl = `https://search.brave.com/api/search?q=${encodeURIComponent(searchQuery)}&search_type=images`;
         
         const searchResponse = await fetch(searchUrl, {
