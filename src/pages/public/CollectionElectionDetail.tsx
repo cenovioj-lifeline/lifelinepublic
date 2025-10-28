@@ -192,10 +192,10 @@ export default function CollectionElectionDetail() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <div className="min-h-screen flex items-center justify-center p-4" style={{ backgroundColor: 'hsl(var(--scheme-bg))' }}>
         <div className="text-center space-y-3">
-          <Trophy className="h-12 w-12 text-primary mx-auto animate-pulse" />
-          <p className="text-base text-muted-foreground">Loading results...</p>
+          <Trophy className="h-12 w-12 mx-auto animate-pulse" style={{ color: 'hsl(var(--scheme-actions-icon))' }} />
+          <p className="text-base" style={{ color: 'hsl(var(--scheme-cards-text))' }}>Loading results...</p>
         </div>
       </div>
     );
@@ -203,9 +203,9 @@ export default function CollectionElectionDetail() {
 
   if (!election) {
     return (
-      <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4 p-4">
-        <Trophy className="h-16 w-16 text-muted-foreground/50" />
-        <p className="text-base text-muted-foreground text-center">Mock election not found</p>
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4 p-4" style={{ backgroundColor: 'hsl(var(--scheme-bg))' }}>
+        <Trophy className="h-16 w-16" style={{ color: 'hsl(var(--scheme-actions-icon) / 0.5)' }} />
+        <p className="text-base text-center" style={{ color: 'hsl(var(--scheme-cards-text))' }}>Mock election not found</p>
         <Button onClick={() => navigate(`/public/collections/${collectionSlug}/elections`)}>
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Elections
@@ -222,8 +222,8 @@ export default function CollectionElectionDetail() {
       collectionSlug={collectionData.slug}
       collectionId={collectionData.id}
     >
-      <div className="min-h-screen bg-background">
-        <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-b">
+      <div className="min-h-screen" style={{ backgroundColor: 'hsl(var(--scheme-bg))' }}>
+        <div className="sticky top-0 z-10 backdrop-blur border-b" style={{ backgroundColor: 'hsl(var(--scheme-card-bg) / 0.95)', borderColor: 'hsl(var(--scheme-card-border))' }}>
           <div className="container max-w-4xl mx-auto px-4 py-3">
             <div className="flex justify-end mb-2">
               <FavoriteButton itemId={election.id} itemType="election" />
@@ -235,7 +235,7 @@ export default function CollectionElectionDetail() {
                   {election.title}
                 </h1>
                 {election.description && (
-                  <p className="text-sm sm:text-base text-muted-foreground mt-2 leading-relaxed">
+                  <p className="text-sm sm:text-base mt-2 leading-relaxed" style={{ color: 'hsl(var(--scheme-cards-text))' }}>
                     {election.description}
                   </p>
                 )}
@@ -276,10 +276,10 @@ export default function CollectionElectionDetail() {
 
         <div className="container max-w-4xl mx-auto px-4 py-6">
           {!results || results.length === 0 ? (
-            <Card className="mt-8">
+            <Card className="mt-8" style={{ backgroundColor: 'hsl(var(--scheme-card-bg))', borderColor: 'hsl(var(--scheme-card-border))' }}>
               <CardContent className="py-12 text-center">
-                <Award className="h-12 w-12 mx-auto text-muted-foreground/50 mb-3" />
-                <p className="text-muted-foreground">No results available yet</p>
+                <Award className="h-12 w-12 mx-auto mb-3" style={{ color: 'hsl(var(--scheme-actions-icon) / 0.5)' }} />
+                <p style={{ color: 'hsl(var(--scheme-cards-text))' }}>No results available yet</p>
               </CardContent>
             </Card>
           ) : (
@@ -292,7 +292,7 @@ export default function CollectionElectionDetail() {
                 >
                   <Card style={{ backgroundColor: 'hsl(var(--scheme-card-bg))', borderColor: 'hsl(var(--scheme-card-border))' }}>
                     <CollapsibleTrigger className="w-full">
-                      <div className="flex items-center justify-between p-4 hover:bg-muted/50 transition-colors">
+                      <div className="flex items-center justify-between p-4 transition-colors hover:bg-[hsl(var(--scheme-actions-bg)/.3)]">
                         <div className="flex items-center gap-3">
                           <Sparkles className="h-5 w-5 flex-shrink-0" style={{ color: 'hsl(var(--scheme-actions-icon))' }} />
                           <h2 className="text-lg sm:text-xl font-bold text-left" style={{ color: 'hsl(var(--scheme-card-text))' }}>

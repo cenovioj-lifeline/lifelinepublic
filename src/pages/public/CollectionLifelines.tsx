@@ -288,18 +288,18 @@ export default function CollectionLifelines() {
                   <div className="absolute top-2 right-2 z-10">
                     <FavoriteButton itemId={lifeline.id} itemType="lifeline" />
                   </div>
-                  <div className="aspect-video relative bg-muted overflow-hidden">
+                  <div className="aspect-video relative overflow-hidden" style={{ backgroundColor: 'hsl(var(--scheme-ll-display-bg))' }}>
                     {lifeline.cover_image_url ? (
                       <img
                         src={lifeline.cover_image_url}
                         alt={lifeline.title}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                         style={{
-                          objectPosition: `${lifeline.cover_image_position_x ?? 50}% ${lifeline.cover_image_position_y ?? 50}%`
+                          objectPosition: `${lifeline.cover_image_position_x ?? 50}% ${lifeline.cover_image_position_y ?? 50}%`,
                         }}
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+                      <div className="w-full h-full flex items-center justify-center" style={{ color: 'hsl(var(--scheme-cards-text))' }}>
                         No image
                       </div>
                     )}
@@ -310,7 +310,7 @@ export default function CollectionLifelines() {
                       </CardTitle>
                     </CardHeader>
                   <CardContent>
-                    <p className="text-sm text-muted-foreground line-clamp-2">
+                    <p className="text-sm line-clamp-2" style={{ color: 'hsl(var(--scheme-cards-text))' }}>
                       {lifeline.subtitle || lifeline.intro || "Explore this lifeline"}
                     </p>
                   </CardContent>
@@ -350,9 +350,9 @@ export default function CollectionLifelines() {
           )}
         </>
         ) : (
-          <Card>
+          <Card style={{ backgroundColor: 'hsl(var(--scheme-card-bg))', borderColor: 'hsl(var(--scheme-card-border))' }}>
             <CardContent className="py-12 text-center">
-              <p className="text-muted-foreground">
+              <p style={{ color: 'hsl(var(--scheme-cards-text))' }}>
                 {showFavoritesOnly
                   ? "No favorite lifelines found."
                   : lifelines && lifelines.length > 0 

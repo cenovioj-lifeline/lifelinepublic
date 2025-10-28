@@ -27,9 +27,9 @@ export function StandardizedContentCard({
 }: StandardizedContentCardProps) {
   return (
     <Link to={linkPath} className="group">
-      <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full">
+      <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full" style={{ backgroundColor: 'hsl(var(--scheme-card-bg))', borderColor: 'hsl(var(--scheme-card-border))' }}>
         {/* Standardized 16:9 aspect ratio image */}
-        <div className="aspect-video relative bg-muted overflow-hidden">
+        <div className="aspect-video relative overflow-hidden" style={{ backgroundColor: 'hsl(var(--scheme-ll-display-bg))' }}>
           {imageUrl ? (
             <img
               src={imageUrl}
@@ -40,7 +40,7 @@ export function StandardizedContentCard({
               }}
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+            <div className="w-full h-full flex items-center justify-center" style={{ color: 'hsl(var(--scheme-cards-text))' }}>
               No image
             </div>
           )}
@@ -55,7 +55,7 @@ export function StandardizedContentCard({
         </CardHeader>
         {description && (
           <CardContent>
-            <p className="text-sm text-muted-foreground line-clamp-2">{description}</p>
+            <p className="text-sm line-clamp-2" style={{ color: 'hsl(var(--scheme-cards-text))' }}>{description}</p>
           </CardContent>
         )}
       </Card>

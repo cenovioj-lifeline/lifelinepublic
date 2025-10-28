@@ -236,8 +236,8 @@ export default function Home() {
                   to={`/public/lifelines/${item.slug}`}
                   className="group relative"
                 >
-                  <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full">
-                    <div className="aspect-video relative bg-muted overflow-hidden">
+                  <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full" style={{ backgroundColor: 'hsl(var(--scheme-card-bg))', borderColor: 'hsl(var(--scheme-card-border))' }}>
+                    <div className="aspect-video relative overflow-hidden" style={{ backgroundColor: 'hsl(var(--scheme-ll-display-bg))' }}>
                       {item.cover_image_url ? (
                         <img
                           src={item.cover_image_url}
@@ -248,7 +248,7 @@ export default function Home() {
                           }}
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+                        <div className="w-full h-full flex items-center justify-center" style={{ color: 'hsl(var(--scheme-cards-text))' }}>
                           No image
                         </div>
                       )}
@@ -259,7 +259,7 @@ export default function Home() {
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <p className="text-sm text-muted-foreground line-clamp-2">
+                      <p className="text-sm line-clamp-2" style={{ color: 'hsl(var(--scheme-cards-text))' }}>
                         {item.intro || "Explore this lifeline"}
                       </p>
                     </CardContent>
@@ -310,8 +310,8 @@ export default function Home() {
                   to={`/public/lifelines/${item.slug}`}
                   className="group relative"
                 >
-                  <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full">
-                    <div className="aspect-video relative bg-muted overflow-hidden">
+                  <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full" style={{ backgroundColor: 'hsl(var(--scheme-card-bg))', borderColor: 'hsl(var(--scheme-card-border))' }}>
+                    <div className="aspect-video relative overflow-hidden" style={{ backgroundColor: 'hsl(var(--scheme-ll-display-bg))' }}>
                       {item.cover_image_url ? (
                         <img
                           src={item.cover_image_url}
@@ -322,7 +322,7 @@ export default function Home() {
                           }}
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+                        <div className="w-full h-full flex items-center justify-center" style={{ color: 'hsl(var(--scheme-cards-text))' }}>
                           No image
                         </div>
                       )}
@@ -333,7 +333,7 @@ export default function Home() {
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <p className="text-sm text-muted-foreground line-clamp-2">
+                      <p className="text-sm line-clamp-2" style={{ color: 'hsl(var(--scheme-cards-text))' }}>
                         {item.intro || "Explore this lifeline"}
                       </p>
                     </CardContent>

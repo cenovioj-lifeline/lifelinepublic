@@ -128,9 +128,9 @@ export default function CollectionProfiles() {
             ))}
           </div>
         ) : (
-          <Card>
+          <Card style={{ backgroundColor: 'hsl(var(--scheme-card-bg))', borderColor: 'hsl(var(--scheme-card-border))' }}>
             <CardContent className="py-12 text-center">
-              <p className="text-muted-foreground">
+              <p style={{ color: 'hsl(var(--scheme-cards-text))' }}>
                 No profiles found in this collection.
               </p>
             </CardContent>

@@ -343,7 +343,7 @@ export default function PublicCollectionDetail() {
                             }}
                           />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+                          <div className="w-full h-full flex items-center justify-center" style={{ color: 'hsl(var(--scheme-cards-text))' }}>
                             No image
                           </div>
                         )}
@@ -354,7 +354,7 @@ export default function PublicCollectionDetail() {
                         </CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <p className="text-sm text-muted-foreground line-clamp-2">
+                        <p className="text-sm line-clamp-2" style={{ color: 'hsl(var(--scheme-cards-text))' }}>
                           {lifeline.subtitle || lifeline.intro || "Explore this lifeline"}
                         </p>
                       </CardContent>
@@ -392,7 +392,7 @@ export default function PublicCollectionDetail() {
                                 }}
                               />
                             ) : (
-                              <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+                              <div className="w-full h-full flex items-center justify-center" style={{ color: 'hsl(var(--scheme-cards-text))' }}>
                                 No image
                               </div>
                             )}
@@ -403,7 +403,7 @@ export default function PublicCollectionDetail() {
                             </CardTitle>
                           </CardHeader>
                           <CardContent>
-                            <p className="text-sm text-muted-foreground line-clamp-2">
+                            <p className="text-sm line-clamp-2" style={{ color: 'hsl(var(--scheme-cards-text))' }}>
                               {lifeline.subtitle || lifeline.intro || "Explore this lifeline"}
                             </p>
                           </CardContent>
@@ -452,7 +452,7 @@ export default function PublicCollectionDetail() {
                             }}
                           />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+                          <div className="w-full h-full flex items-center justify-center" style={{ color: 'hsl(var(--scheme-cards-text))' }}>
                             No image
                           </div>
                         )}
@@ -463,7 +463,7 @@ export default function PublicCollectionDetail() {
                         </CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <p className="text-sm text-muted-foreground line-clamp-2">
+                        <p className="text-sm line-clamp-2" style={{ color: 'hsl(var(--scheme-cards-text))' }}>
                           {profile.summary || "View this profile"}
                         </p>
                       </CardContent>
@@ -498,7 +498,7 @@ export default function PublicCollectionDetail() {
                                 }}
                               />
                             ) : (
-                              <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+                              <div className="w-full h-full flex items-center justify-center" style={{ color: 'hsl(var(--scheme-cards-text))' }}>
                                 No image
                               </div>
                             )}
@@ -509,7 +509,7 @@ export default function PublicCollectionDetail() {
                             </CardTitle>
                           </CardHeader>
                           <CardContent>
-                            <p className="text-sm text-muted-foreground line-clamp-2">
+                            <p className="text-sm line-clamp-2" style={{ color: 'hsl(var(--scheme-cards-text))' }}>
                               {profile.summary || "View this profile"}
                             </p>
                           </CardContent>

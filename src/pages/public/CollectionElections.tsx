@@ -79,8 +79,8 @@ export default function CollectionElections() {
                   <Link
                     key={election.id}
                     to={`/public/collections/${slug}/elections/${election.slug}`}
-                    className="flex items-center justify-between p-4 hover:bg-muted/50 transition-colors group"
-                  >
+                  className="flex items-center justify-between p-4 hover:bg-[hsl(var(--scheme-actions-bg)/.2)] transition-colors group"
+                >
                     <div className="flex-1">
                       <div className="font-medium" style={{ color: 'hsl(var(--scheme-card-text))' }}>{election.title}</div>
                       {election.description && (
@@ -99,9 +99,9 @@ export default function CollectionElections() {
             </CardContent>
           </Card>
         ) : (
-          <Card>
+          <Card style={{ backgroundColor: 'hsl(var(--scheme-card-bg))', borderColor: 'hsl(var(--scheme-card-border))' }}>
             <CardContent className="py-12 text-center">
-              <p className="text-muted-foreground">
+              <p style={{ color: 'hsl(var(--scheme-cards-text))' }}>
                 No mock elections found in this collection.
               </p>
             </CardContent>

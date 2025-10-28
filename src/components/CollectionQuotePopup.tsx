@@ -30,8 +30,8 @@ export function CollectionQuotePopup({ quote, author, context, onDismiss }: Coll
         isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
       }`}
     >
-      <Card className="shadow-lg border-2 bg-white rounded-lg">
-        <CardContent className="pt-6 pb-4 relative bg-white rounded-lg">
+      <Card className="shadow-lg border-2 rounded-lg" style={{ backgroundColor: 'hsl(var(--scheme-card-bg))', borderColor: 'hsl(var(--scheme-card-border))' }}>
+        <CardContent className="pt-6 pb-4 relative rounded-lg" style={{ backgroundColor: 'hsl(var(--scheme-card-bg))' }}>
           <Button
             variant="ghost"
             size="icon"
@@ -42,14 +42,14 @@ export function CollectionQuotePopup({ quote, author, context, onDismiss }: Coll
           </Button>
           
           <div className="pr-6">
-            <p className="text-sm italic mb-2 text-foreground">"{quote}"</p>
+            <p className="text-sm italic mb-2" style={{ color: 'hsl(var(--scheme-card-text))' }}>"{quote}"</p>
             {author && (
-              <p className="text-xs text-muted-foreground font-semibold">
+              <p className="text-xs font-semibold" style={{ color: 'hsl(var(--scheme-cards-text))' }}>
                 — {author}
               </p>
             )}
             {context && (
-              <p className="text-xs text-muted-foreground mt-1">
+              <p className="text-xs mt-1" style={{ color: 'hsl(var(--scheme-cards-text))' }}>
                 {context}
               </p>
             )}
