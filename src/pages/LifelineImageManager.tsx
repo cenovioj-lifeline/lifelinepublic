@@ -119,17 +119,36 @@ export default function LifelineImageManager() {
   });
 
   const handleFindImages = async () => {
-    if (!selectedLifelineId) return;
-    
+    if (!selectedLifelineId) {
+      toast.error("Please select a lifeline first");
+      return;
+    }
+
     setIsSearching(true);
-    toast.info("Searching for images... This may take a moment");
-    
-    // Here you would implement the AI search logic
-    // For now, just a placeholder
-    setTimeout(() => {
+    toast.info("Finding and importing images... This may take a minute");
+
+    try {
+      const { data, error } = await supabase.functions.invoke('find-and-import-lifeline-images', {
+        body: { lifelineId: selectedLifelineId }
+      });
+
+      if (error) {
+        console.error('Error finding images:', error);
+        toast.error(error.message || "Failed to find images");
+        return;
+      }
+
+      // Refetch entries to show newly imported images
+      await queryClient.invalidateQueries({ queryKey: ['lifeline-entries-with-media', selectedLifelineId] });
+
+      const { imported, failed, skipped, processed } = data;
+      toast.success(`Import complete: ${imported} images imported, ${failed} failed, ${skipped} already had images`);
+    } catch (error) {
+      console.error('Error:', error);
+      toast.error("An unexpected error occurred");
+    } finally {
       setIsSearching(false);
-      toast.success("Image search complete - ready to review");
-    }, 2000);
+    }
   };
 
   const handlePositionSave = (position: { x: number; y: number; scale: number }) => {
