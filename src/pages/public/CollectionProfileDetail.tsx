@@ -158,7 +158,7 @@ export default function CollectionProfileDetail() {
       collectionId={collection.id}
     >
       <div className="container max-w-4xl mx-auto py-8 px-4">
-        <Card>
+        <Card className="bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
           <CardContent className="pt-6">
             <div className="flex flex-col md:flex-row gap-6">
               <Avatar className="h-32 w-32 mx-auto md:mx-0">
@@ -170,19 +170,19 @@ export default function CollectionProfileDetail() {
 
               <div className="flex-1 space-y-4">
                 <div>
-                  <h1 className="text-3xl font-bold">{profile.display_name}</h1>
+                  <h1 className="text-3xl font-bold text-[hsl(var(--scheme-title-text))]">{profile.display_name}</h1>
                   {profile.occupation && (
-                    <p className="text-lg text-muted-foreground">{profile.occupation}</p>
+                    <p className="text-lg text-[hsl(var(--scheme-cards-text))]">{profile.occupation}</p>
                   )}
                 </div>
 
                 {profile.summary && (
-                  <p className="text-base leading-relaxed">{profile.summary}</p>
+                  <p className="text-base leading-relaxed text-[hsl(var(--scheme-card-text))]">{profile.summary}</p>
                 )}
 
                 {profile.long_bio && (
                   <div className="prose prose-sm max-w-none">
-                    <p>{profile.long_bio}</p>
+                    <p className="text-[hsl(var(--scheme-card-text))]">{profile.long_bio}</p>
                   </div>
                 )}
 
@@ -205,9 +205,9 @@ export default function CollectionProfileDetail() {
         {(lifelinesData?.length ?? associatedLifelines.length) > 0 && (
           <>
             <Separator className="my-8" />
-            <Card>
+            <Card className="bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
               <CardHeader>
-                <CardTitle>Associated Lifelines</CardTitle>
+                <CardTitle className="text-[hsl(var(--scheme-title-text))]">Associated Lifelines</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid gap-4 md:grid-cols-2">
@@ -216,11 +216,11 @@ export default function CollectionProfileDetail() {
                     return (
                       <Card
                         key={lifeline.id}
-                        className="overflow-hidden cursor-pointer hover:shadow-lg transition-shadow"
+                        className="overflow-hidden cursor-pointer hover:shadow-lg transition-shadow bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]"
                         onClick={() => navigate(`/public/collections/${collectionSlug}/lifelines/${lifeline.slug}`)}
                       >
                         {lifeline.cover_image && (
-                          <div className="aspect-video w-full overflow-hidden">
+                          <div className="aspect-video w-full overflow-hidden bg-white">
                             <img
                               src={lifeline.cover_image.url}
                               alt={lifeline.cover_image.alt_text || lifeline.title}
@@ -230,8 +230,8 @@ export default function CollectionProfileDetail() {
                         )}
                         <CardContent className="p-4">
                           <div className="flex items-center gap-2">
-                            <Icon className="h-5 w-5" style={{ color: 'hsl(var(--scheme-actions-icon))' }} />
-                            <h3 className="font-semibold" style={{ color: 'hsl(var(--scheme-card-text))' }}>{lifeline.title}</h3>
+                            <Icon className="h-5 w-5 text-[hsl(var(--scheme-actions-icon))]" />
+                            <h3 className="font-semibold text-[hsl(var(--scheme-card-text))]">{lifeline.title}</h3>
                           </div>
                         </CardContent>
                       </Card>

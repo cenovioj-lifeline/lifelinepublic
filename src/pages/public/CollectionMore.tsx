@@ -70,7 +70,7 @@ export default function CollectionMore() {
               className="cursor-pointer hover:shadow-lg transition-shadow bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]"
               onClick={() => navigate(feature.path)}
             >
-              <CardContent className="pt-6 text-center bg-[hsl(var(--scheme-card-bg))]">
+              <CardContent className="pt-6 text-center">
                 <feature.icon
                   className="h-8 w-8 mx-auto mb-2 text-[hsl(var(--scheme-cards-text))]"
                 />

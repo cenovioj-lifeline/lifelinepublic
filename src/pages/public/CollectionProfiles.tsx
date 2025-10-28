@@ -93,7 +93,7 @@ export default function CollectionProfiles() {
                 className="group"
               >
                 <Card className="hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
-                  <CardHeader className="bg-[hsl(var(--scheme-card-bg))]">
+                  <CardHeader>
                     <div className="flex items-center gap-4">
                       <Avatar className="h-16 w-16">
                         {profile.avatar_image?.url && (
@@ -118,7 +118,7 @@ export default function CollectionProfiles() {
                       </div>
                     </div>
                   </CardHeader>
-                  <CardContent className="bg-[hsl(var(--scheme-card-bg))]">
+                  <CardContent>
                     <p className="text-sm line-clamp-3 text-[hsl(var(--scheme-cards-text))]">
                       {profile.summary || "View profile for more details"}
                     </p>
@@ -129,7 +129,7 @@ export default function CollectionProfiles() {
           </div>
         ) : (
           <Card className="bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
-            <CardContent className="py-12 text-center bg-[hsl(var(--scheme-card-bg))]">
+            <CardContent className="py-12 text-center">
               <p className="text-[hsl(var(--scheme-cards-text))]">
                 No profiles found in this collection.
               </p>
