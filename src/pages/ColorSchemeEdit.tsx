@@ -28,23 +28,23 @@ type ColorSchemeForm = {
   nav_bg_color: string;
   nav_text_color: string;
   nav_button_color: string;
-  banner_text_color: string;
-  actions_bg_color: string;
-  actions_border_color: string;
-  actions_icon_color: string;
-  actions_text_color: string;
-  card_bg_color: string;
-  card_border_color: string;
-  card_text_color: string;
-  ll_display_border: string;
   ll_display_bg: string;
-  ll_display_title_text: string;
   ll_graph_positive: string;
   ll_graph_negative: string;
-  ll_graph_line: string;
-  ll_entry_header: string;
-  ll_entry_button: string;
+  ll_entry_title_text: string;
   ll_entry_contributor_button: string;
+  ll_graph_bg: string;
+  ch_banner_text: string;
+  ch_actions_bg: string;
+  ch_actions_border: string;
+  ch_actions_icon: string;
+  ch_actions_text: string;
+  cards_bg: string;
+  cards_border: string;
+  cards_text: string;
+  title_text: string;
+  award_bg: string;
+  award_border: string;
 };
 
 export default function ColorSchemeEdit() {
@@ -60,24 +60,24 @@ export default function ColorSchemeEdit() {
       description: "",
       nav_bg_color: "#1a1a1a",
       nav_text_color: "#ffffff",
-      nav_button_color: "#ffffff",
-      banner_text_color: "#ffffff",
-      actions_bg_color: "#f5f5f5",
-      actions_border_color: "#e0e0e0",
-      actions_icon_color: "#333333",
-      actions_text_color: "#333333",
-      card_bg_color: "#ffffff",
-      card_border_color: "#e0e0e0",
-      card_text_color: "#1f2937",
-      ll_display_border: "#565D6D",
-      ll_display_bg: "#ffffff",
-      ll_display_title_text: "#000000",
+      nav_button_color: "#FF6B35",
+      ll_display_bg: "#F5E6D3",
       ll_graph_positive: "#22C55E",
       ll_graph_negative: "#EF4444",
-      ll_graph_line: "#565D6D",
-      ll_entry_header: "#f5f5f5",
-      ll_entry_button: "#3B82F6",
+      ll_entry_title_text: "#1a1a1a",
       ll_entry_contributor_button: "#8B5CF6",
+      ll_graph_bg: "#FFFFFF",
+      ch_banner_text: "#FFFFFF",
+      ch_actions_bg: "#F5E6D3",
+      ch_actions_border: "#E0D4C0",
+      ch_actions_icon: "#1a1a1a",
+      ch_actions_text: "#1a1a1a",
+      cards_bg: "#FFFFFF",
+      cards_border: "#E0E0E0",
+      cards_text: "#1a1a1a",
+      title_text: "#1a1a1a",
+      award_bg: "#F5E6D3",
+      award_border: "#E0D4C0",
     },
   });
 
@@ -249,38 +249,44 @@ export default function ColorSchemeEdit() {
                     </AccordionContent>
                   </AccordionItem>
 
-                  <AccordionItem value="collection-home">
-                    <AccordionTrigger>Collection Home Colors (8)</AccordionTrigger>
-                    <AccordionContent className="space-y-4 pt-4">
-                      {renderColorField("banner_text_color")}
-                      {renderColorField("actions_bg_color")}
-                      {renderColorField("actions_border_color")}
-                      {renderColorField("actions_icon_color")}
-                      {renderColorField("actions_text_color")}
-                      {renderColorField("card_bg_color")}
-                      {renderColorField("card_border_color")}
-                      {renderColorField("card_text_color")}
-                    </AccordionContent>
-                  </AccordionItem>
-
                   <AccordionItem value="lifeline-display">
                     <AccordionTrigger>Lifeline Display Colors (6)</AccordionTrigger>
                     <AccordionContent className="space-y-4 pt-4">
-                      {renderColorField("ll_display_border")}
                       {renderColorField("ll_display_bg")}
-                      {renderColorField("ll_display_title_text")}
                       {renderColorField("ll_graph_positive")}
                       {renderColorField("ll_graph_negative")}
-                      {renderColorField("ll_graph_line")}
+                      {renderColorField("ll_entry_title_text")}
+                      {renderColorField("ll_entry_contributor_button")}
+                      {renderColorField("ll_graph_bg")}
                     </AccordionContent>
                   </AccordionItem>
 
-                  <AccordionItem value="lifeline-entry">
-                    <AccordionTrigger>Lifeline Entry Colors (3)</AccordionTrigger>
+                  <AccordionItem value="collection-home">
+                    <AccordionTrigger>Collection Home Colors (5)</AccordionTrigger>
                     <AccordionContent className="space-y-4 pt-4">
-                      {renderColorField("ll_entry_header")}
-                      {renderColorField("ll_entry_button")}
-                      {renderColorField("ll_entry_contributor_button")}
+                      {renderColorField("ch_banner_text")}
+                      {renderColorField("ch_actions_bg")}
+                      {renderColorField("ch_actions_border")}
+                      {renderColorField("ch_actions_icon")}
+                      {renderColorField("ch_actions_text")}
+                    </AccordionContent>
+                  </AccordionItem>
+
+                  <AccordionItem value="cards">
+                    <AccordionTrigger>Cards Colors (3)</AccordionTrigger>
+                    <AccordionContent className="space-y-4 pt-4">
+                      {renderColorField("cards_bg")}
+                      {renderColorField("cards_border")}
+                      {renderColorField("cards_text")}
+                    </AccordionContent>
+                  </AccordionItem>
+
+                  <AccordionItem value="awards">
+                    <AccordionTrigger>Award/Title Colors (3)</AccordionTrigger>
+                    <AccordionContent className="space-y-4 pt-4">
+                      {renderColorField("title_text")}
+                      {renderColorField("award_bg")}
+                      {renderColorField("award_border")}
                     </AccordionContent>
                   </AccordionItem>
                 </Accordion>

@@ -415,87 +415,90 @@ export type Database = {
       }
       color_schemes: {
         Row: {
-          actions_bg_color: string
-          actions_border_color: string
-          actions_icon_color: string
-          actions_text_color: string
-          banner_text_color: string
-          card_bg_color: string
-          card_border_color: string
-          card_text_color: string
+          award_bg: string | null
+          award_border: string | null
+          cards_bg: string | null
+          cards_border: string | null
+          cards_text: string | null
+          ch_actions_bg: string | null
+          ch_actions_border: string | null
+          ch_actions_icon: string | null
+          ch_actions_text: string | null
+          ch_banner_text: string | null
           created_at: string | null
           description: string | null
           id: string
           is_default: boolean | null
           ll_display_bg: string
-          ll_display_border: string
           ll_display_title_text: string
-          ll_entry_button: string
           ll_entry_contributor_button: string
-          ll_entry_header: string
-          ll_graph_line: string
+          ll_entry_title_text: string | null
+          ll_graph_bg: string | null
           ll_graph_negative: string
           ll_graph_positive: string
           name: string
           nav_bg_color: string
           nav_button_color: string
           nav_text_color: string
+          title_text: string | null
           updated_at: string | null
         }
         Insert: {
-          actions_bg_color?: string
-          actions_border_color?: string
-          actions_icon_color?: string
-          actions_text_color?: string
-          banner_text_color?: string
-          card_bg_color?: string
-          card_border_color?: string
-          card_text_color?: string
+          award_bg?: string | null
+          award_border?: string | null
+          cards_bg?: string | null
+          cards_border?: string | null
+          cards_text?: string | null
+          ch_actions_bg?: string | null
+          ch_actions_border?: string | null
+          ch_actions_icon?: string | null
+          ch_actions_text?: string | null
+          ch_banner_text?: string | null
           created_at?: string | null
           description?: string | null
           id?: string
           is_default?: boolean | null
           ll_display_bg?: string
-          ll_display_border?: string
           ll_display_title_text?: string
-          ll_entry_button?: string
           ll_entry_contributor_button?: string
-          ll_entry_header?: string
-          ll_graph_line?: string
+          ll_entry_title_text?: string | null
+          ll_graph_bg?: string | null
           ll_graph_negative?: string
           ll_graph_positive?: string
           name: string
           nav_bg_color?: string
           nav_button_color?: string
           nav_text_color?: string
+          title_text?: string | null
           updated_at?: string | null
         }
         Update: {
-          actions_bg_color?: string
-          actions_border_color?: string
-          actions_icon_color?: string
-          actions_text_color?: string
-          banner_text_color?: string
-          card_bg_color?: string
-          card_border_color?: string
-          card_text_color?: string
+          award_bg?: string | null
+          award_border?: string | null
+          cards_bg?: string | null
+          cards_border?: string | null
+          cards_text?: string | null
+          ch_actions_bg?: string | null
+          ch_actions_border?: string | null
+          ch_actions_icon?: string | null
+          ch_actions_text?: string | null
+          ch_banner_text?: string | null
           created_at?: string | null
           description?: string | null
           id?: string
           is_default?: boolean | null
           ll_display_bg?: string
-          ll_display_border?: string
           ll_display_title_text?: string
-          ll_entry_button?: string
           ll_entry_contributor_button?: string
-          ll_entry_header?: string
-          ll_graph_line?: string
+          ll_entry_title_text?: string | null
+          ll_graph_bg?: string | null
           ll_graph_negative?: string
           ll_graph_positive?: string
           name?: string
           nav_bg_color?: string
           nav_button_color?: string
           nav_text_color?: string
+          title_text?: string | null
           updated_at?: string | null
         }
         Relationships: []
