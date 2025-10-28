@@ -20,13 +20,24 @@ interface EntryCardProps {
 }
 
 export function EntryCard({ entry, onEdit, onDelete, lifelineType }: EntryCardProps) {
-  const getRatingColor = (score?: number) => {
-    if (!score) return "bg-muted text-muted-foreground";
-    if (score >= 6) return "bg-green-600 text-white";
-    if (score >= 1) return "bg-green-400 text-white";
-    if (score === 0) return "bg-muted text-muted-foreground";
-    if (score >= -5) return "bg-orange-500 text-white";
-    return "bg-red-600 text-white";
+  // Get colors from CSS variables (same as LifelineViewer)
+  const positiveColor = getComputedStyle(document.documentElement).getPropertyValue('--scheme-ll-graph-positive') 
+    ? `hsl(${getComputedStyle(document.documentElement).getPropertyValue('--scheme-ll-graph-positive')})` 
+    : "#16a34a";
+  const negativeColor = getComputedStyle(document.documentElement).getPropertyValue('--scheme-ll-graph-negative')
+    ? `hsl(${getComputedStyle(document.documentElement).getPropertyValue('--scheme-ll-graph-negative')})`
+    : "#dc2626";
+
+  const getRatingStyle = (score?: number) => {
+    if (!score || score === 0) {
+      return { backgroundColor: 'hsl(var(--muted))', color: 'hsl(var(--muted-foreground))' };
+    }
+    
+    if (score > 0) {
+      return { backgroundColor: positiveColor, color: 'white' };
+    } else {
+      return { backgroundColor: negativeColor, color: 'white' };
+    }
   };
 
   const getRatingPrefix = (score?: number) => {
@@ -59,9 +70,8 @@ export function EntryCard({ entry, onEdit, onDelete, lifelineType }: EntryCardPr
       <CardContent className="p-4">
         <div className="flex gap-4">
           <div
-            className={`flex items-center justify-center w-12 h-12 rounded-full flex-shrink-0 ${getRatingColor(
-              entry.score
-            )}`}
+            className="flex items-center justify-center w-12 h-12 rounded-full flex-shrink-0"
+            style={getRatingStyle(entry.score)}
           >
             <span className="font-bold text-lg">{getRatingPrefix(entry.score)}</span>
           </div>
