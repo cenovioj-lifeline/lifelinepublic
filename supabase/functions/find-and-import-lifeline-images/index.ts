@@ -85,73 +85,75 @@ serve(async (req) => {
       try {
         console.log(`Processing entry: ${entry.title}`);
         
-        // Search for Mad Men images related to this event
-        const searchQuery = `Mad Men TV show ${entry.title} ${entry.summary || entry.details || ''}`;
-        const searchUrl = `https://search.brave.com/api/search?q=${encodeURIComponent(searchQuery)}&search_type=images`;
+        // Generate an image using Lovable AI
+        const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
+        if (!lovableApiKey) {
+          console.error('LOVABLE_API_KEY not found');
+          failed++;
+          results.push({ entryId: entry.id, title: entry.title, success: false, error: 'API key not configured' });
+          continue;
+        }
+
+        const imagePrompt = `Generate a cinematic, dramatic image for this Game of Thrones moment: "${entry.title}". ${entry.summary || entry.details || ''}. Style: dark fantasy, HBO production quality, atmospheric lighting.`;
         
-        const searchResponse = await fetch(searchUrl, {
+        const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+          method: 'POST',
           headers: {
-            'Accept': 'application/json',
-          }
+            'Authorization': `Bearer ${lovableApiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'google/gemini-2.5-flash-image-preview',
+            messages: [{
+              role: 'user',
+              content: imagePrompt
+            }],
+            modalities: ['image', 'text']
+          })
         });
 
-        if (!searchResponse.ok) {
-          console.error(`Search failed for "${entry.title}":`, searchResponse.status);
+        if (!aiResponse.ok) {
+          const errorText = await aiResponse.text();
+          console.error(`AI generation failed for "${entry.title}":`, aiResponse.status, errorText);
           failed++;
-          results.push({ entryId: entry.id, title: entry.title, success: false, error: 'Search failed' });
+          results.push({ entryId: entry.id, title: entry.title, success: false, error: 'Image generation failed' });
           continue;
         }
 
-        const searchData = await searchResponse.json();
-        const images = searchData?.results || [];
+        const aiData = await aiResponse.json();
+        const generatedImageUrl = aiData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
 
-        if (images.length === 0) {
-          console.log(`No images found for "${entry.title}"`);
+        if (!generatedImageUrl) {
+          console.log(`No image generated for "${entry.title}"`);
           failed++;
-          results.push({ entryId: entry.id, title: entry.title, success: false, error: 'No images found' });
+          results.push({ entryId: entry.id, title: entry.title, success: false, error: 'No image in response' });
           continue;
         }
 
-        // Try to import the first valid image
-        let imageImported = false;
-        for (const img of images.slice(0, 3)) { // Try up to 3 images
-          const imageUrl = img.properties?.url || img.thumbnail?.src;
-          if (!imageUrl) continue;
-
-          try {
-            // Call the import-image-from-url function
-            const importResponse = await fetch(`${supabaseUrl}/functions/v1/import-image-from-url`, {
-              method: 'POST',
-              headers: {
-                'Authorization': `Bearer ${supabaseKey}`,
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                entryId: entry.id,
-                imageUrl: imageUrl,
-                altText: entry.title,
-                position: { x: 50, y: 50, scale: 1.0 }
-              })
-            });
-
-            if (importResponse.ok) {
-              console.log(`Successfully imported image for "${entry.title}"`);
-              imported++;
-              imageImported = true;
-              results.push({ entryId: entry.id, title: entry.title, success: true, imageUrl });
-              break;
-            } else {
-              const errorText = await importResponse.text();
-              console.error(`Import failed for image:`, errorText);
+        // Import the generated image
+        try {
+          const importResponse = await supabase.functions.invoke('import-image-from-url', {
+            body: {
+              entryId: entry.id,
+              imageUrl: generatedImageUrl,
+              altText: entry.title,
+              position: { x: 50, y: 50, scale: 1.0 }
             }
-          } catch (importError) {
-            console.error(`Error importing image:`, importError);
-          }
-        }
+          });
 
-        if (!imageImported) {
+          if (importResponse.error) {
+            console.error(`Import failed for "${entry.title}":`, importResponse.error);
+            failed++;
+            results.push({ entryId: entry.id, title: entry.title, success: false, error: 'Import failed' });
+          } else {
+            console.log(`Successfully generated and imported image for "${entry.title}"`);
+            imported++;
+            results.push({ entryId: entry.id, title: entry.title, success: true, imageUrl: generatedImageUrl });
+          }
+        } catch (importError) {
+          console.error(`Error importing generated image:`, importError);
           failed++;
-          results.push({ entryId: entry.id, title: entry.title, success: false, error: 'Failed to import any images' });
+          results.push({ entryId: entry.id, title: entry.title, success: false, error: 'Import error' });
         }
 
         // Add a small delay to avoid rate limiting
