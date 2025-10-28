@@ -3,6 +3,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -10,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -22,88 +25,29 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
-import { ArrowLeft, Trash2, Image as ImageIcon } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { DirectImageUpload } from "@/components/DirectImageUpload";
 import { CollectionQuotesUpload } from "@/components/CollectionQuotesUpload";
 import { CollectionFeaturedProfiles } from "@/components/CollectionFeaturedProfiles";
 import { ImagePositionPicker } from "@/components/ImagePositionPicker";
-import { CollectionThemeEditor } from "@/components/CollectionThemeEditor";
 
-type CollectionForm = {
-  title: string;
-  slug: string;
-  description: string;
-  category: string;
-  // Lifeline graph colors
-  primary_color: string;
-  secondary_color: string;
-  // Navigation colors
-  web_primary: string;
-  web_secondary: string;
-  menu_text_color: string;
-  menu_hover_color: string;
-  menu_active_color: string;
-  nav_button_color: string;
-  // Page colors
-  collection_bg_color: string;
-  collection_text_color: string;
-  collection_heading_color: string;
-  collection_accent_color: string;
-  collection_card_bg: string;
-  collection_border_color: string;
-  collection_muted_text: string;
-  collection_badge_color: string;
-  // Banner colors
-  banner_text_color: string;
-  // Action card colors
-  actions_bg_color: string;
-  actions_border_color: string;
-  actions_icon_color: string;
-  actions_text_color: string;
-  // Card colors
-  card_text_color: string;
-  // Lifeline display colors
-  lifeline_display_border: string;
-  lifeline_display_bg: string;
-  lifeline_display_title_text: string;
-  // Graph colors
-  graph_bg_color: string;
-  graph_line_color: string;
-  graph_highlight_color: string;
-  // Entry colors
-  entry_header_bg: string;
-  entry_header_text: string;
-  entry_button_color: string;
-  entry_title_text: string;
-  entry_contributor_button: string;
-  entry_bg_color: string;
-  // Award colors
-  award_heading_text: string;
-  award_heading_icon: string;
-  award_heading_tag: string;
-  award_icon_color: string;
-  award_title_text: string;
-  award_bg_color: string;
-  award_border_color: string;
-  // Profile colors
-  profile_header_bg: string;
-  profile_header_text: string;
-  profile_card_bg: string;
-  profile_card_border: string;
-  // General colors
-  default_color: string;
-  link_color: string;
-  link_hover_color: string;
-  status: "draft" | "published";
-  is_featured: boolean;
-  hero_image_url: string;
-  hero_image_path: string;
-  hero_image_position_x: number;
-  hero_image_position_y: number;
-  card_image_position_x: number;
-  card_image_position_y: number;
-};
+const collectionFormSchema = z.object({
+  title: z.string().min(1, "Title is required"),
+  slug: z.string().min(1, "Slug is required"),
+  description: z.string().optional(),
+  category: z.string().optional(),
+  status: z.enum(["draft", "published"]),
+  is_featured: z.boolean(),
+  color_scheme_id: z.string().nullable(),
+  hero_image_url: z.string(),
+  hero_image_path: z.string(),
+  hero_image_position_x: z.number(),
+  hero_image_position_y: z.number(),
+  card_image_position_x: z.number(),
+  card_image_position_y: z.number(),
+});
+
+type CollectionForm = z.infer<typeof collectionFormSchema>;
 
 export default function CollectionEdit() {
   const { id } = useParams();
@@ -112,65 +56,33 @@ export default function CollectionEdit() {
   const queryClient = useQueryClient();
   const isNew = id === "new";
   const [heroImageUrl, setHeroImageUrl] = useState<string | null>(null);
-  const [showBannerPositionPicker, setShowBannerPositionPicker] = useState(false);
-  const [showCardPositionPicker, setShowCardPositionPicker] = useState(false);
+
+  const { data: colorSchemes } = useQuery({
+    queryKey: ["color-schemes"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("color_schemes")
+        .select("*")
+        .order("is_default", { ascending: false })
+        .order("name");
+
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const defaultScheme = colorSchemes?.find(scheme => scheme.is_default);
 
   const form = useForm<CollectionForm>({
+    resolver: zodResolver(collectionFormSchema),
     defaultValues: {
       title: "",
       slug: "",
       description: "",
       category: "",
-      primary_color: "#16a34a",
-      secondary_color: "#dc2626",
-      web_primary: "",
-      web_secondary: "",
-      menu_text_color: "",
-      menu_hover_color: "",
-      menu_active_color: "",
-      nav_button_color: "",
-      collection_bg_color: "",
-      collection_text_color: "",
-      collection_heading_color: "",
-      collection_accent_color: "",
-      collection_card_bg: "",
-      collection_border_color: "",
-      collection_muted_text: "",
-      collection_badge_color: "",
-      banner_text_color: "",
-      actions_bg_color: "",
-      actions_border_color: "",
-      actions_icon_color: "",
-      actions_text_color: "",
-      card_text_color: "",
-      lifeline_display_border: "",
-      lifeline_display_bg: "",
-      lifeline_display_title_text: "",
-      graph_bg_color: "",
-      graph_line_color: "",
-      graph_highlight_color: "",
-      entry_header_bg: "",
-      entry_header_text: "",
-      entry_button_color: "",
-      entry_title_text: "",
-      entry_contributor_button: "",
-      entry_bg_color: "",
-      award_heading_text: "",
-      award_heading_icon: "",
-      award_heading_tag: "",
-      award_icon_color: "",
-      award_title_text: "",
-      award_bg_color: "",
-      award_border_color: "",
-      profile_header_bg: "",
-      profile_header_text: "",
-      profile_card_bg: "",
-      profile_card_border: "",
-      default_color: "",
-      link_color: "",
-      link_hover_color: "",
       status: "draft",
       is_featured: false,
+      color_scheme_id: null,
       hero_image_url: "",
       hero_image_path: "",
       hero_image_position_x: 50,
@@ -198,142 +110,56 @@ export default function CollectionEdit() {
   useEffect(() => {
     if (collection) {
       form.reset({
-        title: collection.title,
-        slug: collection.slug,
+        title: collection.title || "",
+        slug: collection.slug || "",
         description: collection.description || "",
         category: collection.category || "",
-        primary_color: collection.primary_color || "#16a34a",
-        secondary_color: collection.secondary_color || "#dc2626",
-        web_primary: collection.web_primary || "",
-        web_secondary: collection.web_secondary || "",
-        menu_text_color: collection.menu_text_color || "",
-        menu_hover_color: collection.menu_hover_color || "",
-        menu_active_color: collection.menu_active_color || "",
-        nav_button_color: collection.nav_button_color || "",
-        collection_bg_color: collection.collection_bg_color || "",
-        collection_text_color: collection.collection_text_color || "",
-        collection_heading_color: collection.collection_heading_color || "",
-        collection_accent_color: collection.collection_accent_color || "",
-        collection_card_bg: collection.collection_card_bg || "",
-        collection_border_color: collection.collection_border_color || "",
-        collection_muted_text: collection.collection_muted_text || "",
-        collection_badge_color: collection.collection_badge_color || "",
-        banner_text_color: collection.banner_text_color || "",
-        actions_bg_color: collection.actions_bg_color || "",
-        actions_border_color: collection.actions_border_color || "",
-        actions_icon_color: collection.actions_icon_color || "",
-        actions_text_color: collection.actions_text_color || "",
-        card_text_color: collection.card_text_color || "",
-        lifeline_display_border: collection.lifeline_display_border || "",
-        lifeline_display_bg: collection.lifeline_display_bg || "",
-        lifeline_display_title_text: collection.lifeline_display_title_text || "",
-        graph_bg_color: collection.graph_bg_color || "",
-        graph_line_color: collection.graph_line_color || "",
-        graph_highlight_color: collection.graph_highlight_color || "",
-        entry_header_bg: collection.entry_header_bg || "",
-        entry_header_text: collection.entry_header_text || "",
-        entry_button_color: collection.entry_button_color || "",
-        entry_title_text: collection.entry_title_text || "",
-        entry_contributor_button: collection.entry_contributor_button || "",
-        entry_bg_color: collection.entry_bg_color || "",
-        award_heading_text: collection.award_heading_text || "",
-        award_heading_icon: collection.award_heading_icon || "",
-        award_heading_tag: collection.award_heading_tag || "",
-        award_icon_color: collection.award_icon_color || "",
-        award_title_text: collection.award_title_text || "",
-        award_bg_color: collection.award_bg_color || "",
-        award_border_color: collection.award_border_color || "",
-        profile_header_bg: collection.profile_header_bg || "",
-        profile_header_text: collection.profile_header_text || "",
-        profile_card_bg: collection.profile_card_bg || "",
-        profile_card_border: collection.profile_card_border || "",
-        default_color: collection.default_color || "",
-        link_color: collection.link_color || "",
-        link_hover_color: collection.link_hover_color || "",
-        status: collection.status,
+        status: collection.status || "draft",
         is_featured: collection.is_featured || false,
+        color_scheme_id: collection.color_scheme_id || defaultScheme?.id || null,
         hero_image_url: collection.hero_image_url || "",
         hero_image_path: collection.hero_image_path || "",
-        hero_image_position_x: collection.hero_image_position_x || 50,
-        hero_image_position_y: collection.hero_image_position_y || 50,
-        card_image_position_x: collection.card_image_position_x || 50,
-        card_image_position_y: collection.card_image_position_y || 50,
+        hero_image_position_x: collection.hero_image_position_x ?? 50,
+        hero_image_position_y: collection.hero_image_position_y ?? 50,
+        card_image_position_x: collection.card_image_position_x ?? 50,
+        card_image_position_y: collection.card_image_position_y ?? 50,
       });
-
-      // Set hero image URL if available
-      if (collection.hero_image_url) {
-        setHeroImageUrl(collection.hero_image_url);
-      }
+      setHeroImageUrl(collection.hero_image_url || "");
+    } else if (isNew && defaultScheme) {
+      form.setValue("color_scheme_id", defaultScheme.id);
     }
-  }, [collection, form]);
+  }, [collection, isNew, defaultScheme, form]);
 
   const saveMutation = useMutation({
     mutationFn: async (data: CollectionForm) => {
       const { data: { user } } = await supabase.auth.getUser();
       
-      // Convert empty strings to null
-      const cleanedData = {
-        ...data,
+      const payload = {
+        title: data.title,
+        slug: data.slug,
+        description: data.description || null,
+        category: data.category || null,
+        status: data.status,
+        is_featured: data.is_featured,
+        color_scheme_id: data.color_scheme_id,
         hero_image_url: data.hero_image_url || null,
         hero_image_path: data.hero_image_path || null,
-        web_primary: data.web_primary || null,
-        web_secondary: data.web_secondary || null,
-        menu_text_color: data.menu_text_color || null,
-        menu_hover_color: data.menu_hover_color || null,
-        menu_active_color: data.menu_active_color || null,
-        nav_button_color: data.nav_button_color || null,
-        collection_bg_color: data.collection_bg_color || null,
-        collection_text_color: data.collection_text_color || null,
-        collection_heading_color: data.collection_heading_color || null,
-        collection_accent_color: data.collection_accent_color || null,
-        collection_card_bg: data.collection_card_bg || null,
-        collection_border_color: data.collection_border_color || null,
-        collection_muted_text: data.collection_muted_text || null,
-        collection_badge_color: data.collection_badge_color || null,
-        banner_text_color: data.banner_text_color || null,
-        actions_bg_color: data.actions_bg_color || null,
-        actions_border_color: data.actions_border_color || null,
-        actions_icon_color: data.actions_icon_color || null,
-        actions_text_color: data.actions_text_color || null,
-        card_text_color: data.card_text_color || null,
-        lifeline_display_border: data.lifeline_display_border || null,
-        lifeline_display_bg: data.lifeline_display_bg || null,
-        lifeline_display_title_text: data.lifeline_display_title_text || null,
-        graph_bg_color: data.graph_bg_color || null,
-        graph_line_color: data.graph_line_color || null,
-        graph_highlight_color: data.graph_highlight_color || null,
-        entry_header_bg: data.entry_header_bg || null,
-        entry_header_text: data.entry_header_text || null,
-        entry_button_color: data.entry_button_color || null,
-        entry_title_text: data.entry_title_text || null,
-        entry_contributor_button: data.entry_contributor_button || null,
-        entry_bg_color: data.entry_bg_color || null,
-        award_heading_text: data.award_heading_text || null,
-        award_heading_icon: data.award_heading_icon || null,
-        award_heading_tag: data.award_heading_tag || null,
-        award_icon_color: data.award_icon_color || null,
-        award_title_text: data.award_title_text || null,
-        award_bg_color: data.award_bg_color || null,
-        award_border_color: data.award_border_color || null,
-        profile_header_bg: data.profile_header_bg || null,
-        profile_header_text: data.profile_header_text || null,
-        profile_card_bg: data.profile_card_bg || null,
-        profile_card_border: data.profile_card_border || null,
-        default_color: data.default_color || null,
-        link_color: data.link_color || null,
-        link_hover_color: data.link_hover_color || null,
+        hero_image_position_x: data.hero_image_position_x,
+        hero_image_position_y: data.hero_image_position_y,
+        card_image_position_x: data.card_image_position_x,
+        card_image_position_y: data.card_image_position_y,
       };
       
       if (isNew) {
         const { error } = await supabase.from("collections").insert({
-          ...cleanedData,
+          ...payload,
           created_by: user?.id,
         });
         if (error) throw error;
       } else {
         const { error } = await supabase
           .from("collections")
-          .update(cleanedData)
+          .update(payload)
           .eq("id", id);
         if (error) throw error;
       }
@@ -360,7 +186,7 @@ export default function CollectionEdit() {
   // Auto-save image changes immediately
   const saveImageMutation = useMutation({
     mutationFn: async ({ url, path }: { url: string; path: string }) => {
-      if (isNew) return; // Don't auto-save for new collections
+      if (isNew) return;
       
       const { error } = await supabase
         .from("collections")
@@ -509,600 +335,6 @@ export default function CollectionEdit() {
                 </FormItem>
               )}
             />
-
-            <FormField
-              control={form.control}
-              name="primary_color"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Primary Color (green bar)</FormLabel>
-                  <div className="flex gap-2">
-                    <FormControl>
-                      <Input 
-                        {...field} 
-                        type="text"
-                        placeholder="#16a34a"
-                        pattern="^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"
-                        className="flex-1"
-                      />
-                    </FormControl>
-                    <Input 
-                      type="color" 
-                      value={field.value || "#16a34a"}
-                      onChange={(e) => field.onChange(e.target.value)}
-                      className="w-16 h-10 cursor-pointer"
-                    />
-                  </div>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="secondary_color"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Secondary Color (red bar)</FormLabel>
-                  <div className="flex gap-2">
-                    <FormControl>
-                      <Input 
-                        {...field} 
-                        type="text"
-                        placeholder="#dc2626"
-                        pattern="^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"
-                        className="flex-1"
-                      />
-                    </FormControl>
-                    <Input 
-                      type="color" 
-                      value={field.value || "#dc2626"}
-                      onChange={(e) => field.onChange(e.target.value)}
-                      className="w-16 h-10 cursor-pointer"
-                    />
-                  </div>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="web_primary"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Web Primary Color (Optional)</FormLabel>
-                  <div className="flex gap-2">
-                    <FormControl>
-                      <Input 
-                        {...field} 
-                        type="text"
-                        placeholder="#000000"
-                        pattern="^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"
-                        className="flex-1"
-                      />
-                    </FormControl>
-                    <Input 
-                      type="color" 
-                      value={field.value || "#000000"}
-                      onChange={(e) => field.onChange(e.target.value)}
-                      className="w-16 h-10 cursor-pointer"
-                    />
-                  </div>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="web_secondary"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Web Secondary Color (Optional)</FormLabel>
-                  <div className="flex gap-2">
-                    <FormControl>
-                      <Input 
-                        {...field} 
-                        type="text"
-                        placeholder="#ffffff"
-                        pattern="^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"
-                        className="flex-1"
-                      />
-                    </FormControl>
-                    <Input 
-                      type="color" 
-                      value={field.value || "#ffffff"}
-                      onChange={(e) => field.onChange(e.target.value)}
-                      className="w-16 h-10 cursor-pointer"
-                    />
-                  </div>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <h3 className="text-lg font-semibold">Menu Appearance (Optional)</h3>
-            <p className="text-sm text-muted-foreground">
-              Customize navigation menu colors. If not set, smart defaults will be used.
-            </p>
-          </div>
-
-          <div className="grid gap-6 md:grid-cols-3">
-            <FormField
-              control={form.control}
-              name="menu_text_color"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Menu Text Color (Optional)</FormLabel>
-                  <div className="flex gap-2">
-                    <FormControl>
-                      <Input 
-                        {...field} 
-                        type="text"
-                        placeholder="#ffffff"
-                        pattern="^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"
-                        className="flex-1"
-                      />
-                    </FormControl>
-                    <Input 
-                      type="color" 
-                      value={field.value || "#ffffff"}
-                      onChange={(e) => field.onChange(e.target.value)}
-                      className="w-16 h-10 cursor-pointer"
-                    />
-                  </div>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="menu_hover_color"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Menu Hover Color (Optional)</FormLabel>
-                  <div className="flex gap-2">
-                    <FormControl>
-                      <Input 
-                        {...field} 
-                        type="text"
-                        placeholder="#rgba(255,255,255,0.1)"
-                        className="flex-1"
-                      />
-                    </FormControl>
-                    <Input 
-                      type="color" 
-                      value={field.value || "#ffffff"}
-                      onChange={(e) => field.onChange(e.target.value)}
-                      className="w-16 h-10 cursor-pointer"
-                    />
-                  </div>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="menu_active_color"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Menu Active Color (Optional)</FormLabel>
-                  <div className="flex gap-2">
-                    <FormControl>
-                      <Input 
-                        {...field} 
-                        type="text"
-                        placeholder="#rgba(255,255,255,0.2)"
-                        className="flex-1"
-                      />
-                    </FormControl>
-                    <Input 
-                      type="color" 
-                      value={field.value || "#ffffff"}
-                      onChange={(e) => field.onChange(e.target.value)}
-                      className="w-16 h-10 cursor-pointer"
-                    />
-                  </div>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <h3 className="text-lg font-semibold">Collection Page Colors (Optional)</h3>
-            <p className="text-sm text-muted-foreground">
-              Customize the colors for all pages within this collection. If not set, global colors will be used.
-            </p>
-          </div>
-
-          <div className="grid gap-6 md:grid-cols-2">
-            <FormField
-              control={form.control}
-              name="collection_bg_color"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Background Color</FormLabel>
-                  <div className="flex gap-2">
-                    <FormControl>
-                      <Input 
-                        {...field} 
-                        type="text"
-                        placeholder="#ffffff"
-                        pattern="^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"
-                        className="flex-1"
-                      />
-                    </FormControl>
-                    <Input 
-                      type="color" 
-                      value={field.value || "#ffffff"}
-                      onChange={(e) => field.onChange(e.target.value)}
-                      className="w-16 h-10 cursor-pointer"
-                    />
-                  </div>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="collection_text_color"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Primary Text Color</FormLabel>
-                  <div className="flex gap-2">
-                    <FormControl>
-                      <Input 
-                        {...field} 
-                        type="text"
-                        placeholder="#000000"
-                        pattern="^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"
-                        className="flex-1"
-                      />
-                    </FormControl>
-                    <Input 
-                      type="color" 
-                      value={field.value || "#000000"}
-                      onChange={(e) => field.onChange(e.target.value)}
-                      className="w-16 h-10 cursor-pointer"
-                    />
-                  </div>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="collection_heading_color"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Heading Color</FormLabel>
-                  <div className="flex gap-2">
-                    <FormControl>
-                      <Input 
-                        {...field} 
-                        type="text"
-                        placeholder="#000000"
-                        pattern="^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"
-                        className="flex-1"
-                      />
-                    </FormControl>
-                    <Input 
-                      type="color" 
-                      value={field.value || "#000000"}
-                      onChange={(e) => field.onChange(e.target.value)}
-                      className="w-16 h-10 cursor-pointer"
-                    />
-                  </div>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="collection_accent_color"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Accent Color (Buttons)</FormLabel>
-                  <div className="flex gap-2">
-                    <FormControl>
-                      <Input 
-                        {...field} 
-                        type="text"
-                        placeholder="#16a34a"
-                        pattern="^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"
-                        className="flex-1"
-                      />
-                    </FormControl>
-                    <Input 
-                      type="color" 
-                      value={field.value || "#16a34a"}
-                      onChange={(e) => field.onChange(e.target.value)}
-                      className="w-16 h-10 cursor-pointer"
-                    />
-                  </div>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="collection_card_bg"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Card Background</FormLabel>
-                  <div className="flex gap-2">
-                    <FormControl>
-                      <Input 
-                        {...field} 
-                        type="text"
-                        placeholder="#f9fafb"
-                        pattern="^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"
-                        className="flex-1"
-                      />
-                    </FormControl>
-                    <Input 
-                      type="color" 
-                      value={field.value || "#f9fafb"}
-                      onChange={(e) => field.onChange(e.target.value)}
-                      className="w-16 h-10 cursor-pointer"
-                    />
-                  </div>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="collection_border_color"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Border Color</FormLabel>
-                  <div className="flex gap-2">
-                    <FormControl>
-                      <Input 
-                        {...field} 
-                        type="text"
-                        placeholder="#e5e7eb"
-                        pattern="^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"
-                        className="flex-1"
-                      />
-                    </FormControl>
-                    <Input 
-                      type="color" 
-                      value={field.value || "#e5e7eb"}
-                      onChange={(e) => field.onChange(e.target.value)}
-                      className="w-16 h-10 cursor-pointer"
-                    />
-                  </div>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="collection_muted_text"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Muted Text Color</FormLabel>
-                  <div className="flex gap-2">
-                    <FormControl>
-                      <Input 
-                        {...field} 
-                        type="text"
-                        placeholder="#6b7280"
-                        pattern="^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"
-                        className="flex-1"
-                      />
-                    </FormControl>
-                    <Input 
-                      type="color" 
-                      value={field.value || "#6b7280"}
-                      onChange={(e) => field.onChange(e.target.value)}
-                      className="w-16 h-10 cursor-pointer"
-                    />
-                  </div>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="collection_badge_color"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Badge Color</FormLabel>
-                  <div className="flex gap-2">
-                    <FormControl>
-                      <Input 
-                        {...field} 
-                        type="text"
-                        placeholder="#f3f4f6"
-                        pattern="^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"
-                        className="flex-1"
-                      />
-                    </FormControl>
-                    <Input 
-                      type="color" 
-                      value={field.value || "#f3f4f6"}
-                      onChange={(e) => field.onChange(e.target.value)}
-                      className="w-16 h-10 cursor-pointer"
-                    />
-                  </div>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-
-          {/* New Comprehensive Theme Editor */}
-          <CollectionThemeEditor form={form} />
-
-          <div className="space-y-4">
-            <FormLabel>Hero Image (1920x480 recommended)</FormLabel>
-            
-            {heroImageUrl ? (
-              <div className="space-y-2">
-                {/* Hero Banner Preview (3:1 aspect - matches desktop view) */}
-                <div className="space-y-2">
-                  <p className="text-sm text-muted-foreground mb-2">Collection Banner Preview (Desktop 3:1 ratio):</p>
-                  <div className="relative w-full rounded-lg overflow-hidden border aspect-[3/1]">
-                    <img
-                      src={heroImageUrl}
-                      alt="Hero banner preview"
-                      className="w-full h-full object-cover"
-                      style={{
-                        objectPosition: `${form.watch("hero_image_position_x")}% ${form.watch("hero_image_position_y")}%`,
-                      }}
-                    />
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setShowBannerPositionPicker(true)}
-                    >
-                      <ImageIcon className="h-4 w-4 mr-2" />
-                      Adjust Banner Position
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        form.setValue("hero_image_url", "");
-                        form.setValue("hero_image_path", "");
-                        form.setValue("hero_image_position_x", 50);
-                        form.setValue("hero_image_position_y", 50);
-                        form.setValue("card_image_position_x", 50);
-                        form.setValue("card_image_position_y", 50);
-                        setHeroImageUrl(null);
-                        // Auto-save the removal
-                        if (!isNew) {
-                          saveImageMutation.mutate({ url: "", path: "" });
-                        }
-                      }}
-                    >
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      Remove Image
-                    </Button>
-                  </div>
-                </div>
-                
-                {/* Collection Card Preview (16:9 aspect) */}
-                <div className="space-y-2">
-                  <p className="text-sm text-muted-foreground mb-2">Collection Card Preview (16:9 ratio):</p>
-                  <div className="relative w-full max-w-md rounded-lg overflow-hidden border aspect-video">
-                    <img
-                      src={heroImageUrl}
-                      alt="Card preview"
-                      className="w-full h-full object-cover"
-                      style={{
-                        objectPosition: `${form.watch("card_image_position_x")}% ${form.watch("card_image_position_y")}%`,
-                      }}
-                    />
-                  </div>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setShowCardPositionPicker(true)}
-                  >
-                    <ImageIcon className="h-4 w-4 mr-2" />
-                    Adjust Card Position
-                  </Button>
-                </div>
-              </div>
-            ) : (
-              <DirectImageUpload
-                currentImageUrl={heroImageUrl || undefined}
-                currentImagePath={form.watch("hero_image_path")}
-                onUploadComplete={(url, path) => {
-                  form.setValue("hero_image_url", url);
-                  form.setValue("hero_image_path", path);
-                  setHeroImageUrl(url);
-                  // Auto-save the image
-                  saveImageMutation.mutate({ url, path });
-                }}
-                onRemove={() => {
-                  form.setValue("hero_image_url", "");
-                  form.setValue("hero_image_path", "");
-                  setHeroImageUrl(null);
-                  // Auto-save the removal
-                  if (!isNew) {
-                    saveImageMutation.mutate({ url: "", path: "" });
-                  }
-                }}
-                label="Upload Hero Banner Image"
-              />
-            )}
-            
-            {/* Banner Position Picker */}
-            {heroImageUrl && (
-              <ImagePositionPicker
-                imageUrl={heroImageUrl}
-                onPositionChange={(position) => {
-                  form.setValue("hero_image_position_x", position.x);
-                  form.setValue("hero_image_position_y", position.y);
-                  savePositionMutation.mutate({
-                    hero_image_position_x: position.x,
-                    hero_image_position_y: position.y,
-                  });
-                  toast({
-                    title: "Banner position saved",
-                    description: "Position updated successfully",
-                  });
-                }}
-                initialPosition={{
-                  x: form.watch("hero_image_position_x"),
-                  y: form.watch("hero_image_position_y"),
-                }}
-                open={showBannerPositionPicker}
-                onOpenChange={setShowBannerPositionPicker}
-                title="Adjust Banner Position"
-                viewType="banner"
-              />
-            )}
-            
-            {/* Card Position Picker */}
-            {heroImageUrl && (
-              <ImagePositionPicker
-                imageUrl={heroImageUrl}
-                onPositionChange={(position) => {
-                  form.setValue("card_image_position_x", position.x);
-                  form.setValue("card_image_position_y", position.y);
-                  savePositionMutation.mutate({
-                    card_image_position_x: position.x,
-                    card_image_position_y: position.y,
-                  });
-                  toast({
-                    title: "Card position saved",
-                    description: "Position updated successfully",
-                  });
-                }}
-                initialPosition={{
-                  x: form.watch("card_image_position_x"),
-                  y: form.watch("card_image_position_y"),
-                }}
-                open={showCardPositionPicker}
-                onOpenChange={setShowCardPositionPicker}
-                title="Adjust Card Position"
-                viewType="card"
-              />
-            )}
           </div>
 
           <FormField
@@ -1112,11 +344,7 @@ export default function CollectionEdit() {
               <FormItem>
                 <FormLabel>Description</FormLabel>
                 <FormControl>
-                  <Textarea
-                    {...field}
-                    placeholder="Collection description"
-                    rows={4}
-                  />
+                  <Textarea {...field} placeholder="Collection description" rows={4} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -1127,20 +355,102 @@ export default function CollectionEdit() {
             control={form.control}
             name="is_featured"
             render={({ field }) => (
-              <FormItem className="flex items-center gap-4">
-                <FormLabel>Featured Collection</FormLabel>
+              <FormItem className="flex items-center gap-2">
                 <FormControl>
-                  <Switch checked={field.value} onCheckedChange={field.onChange} />
+                  <input
+                    type="checkbox"
+                    checked={field.value}
+                    onChange={field.onChange}
+                    className="h-4 w-4"
+                  />
                 </FormControl>
+                <FormLabel className="!mt-0">Featured Collection</FormLabel>
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="color_scheme_id"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Color Scheme</FormLabel>
+                <Select 
+                  onValueChange={field.onChange} 
+                  value={field.value || undefined}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a color scheme" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {colorSchemes?.map((scheme) => (
+                      <SelectItem key={scheme.id} value={scheme.id}>
+                        {scheme.name} {scheme.is_default ? "(Default)" : ""}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormDescription>
+                  Choose a color scheme for this collection. Manage color schemes in the Color Schemes section.
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
           />
 
-          {!isNew && collection && (
+          <div className="space-y-6 mt-8">
+            <h3 className="text-lg font-medium">Hero Image</h3>
+            <DirectImageUpload
+              currentImageUrl={form.watch("hero_image_url")}
+              currentImagePath={form.watch("hero_image_path")}
+              onUploadComplete={(url, path) => {
+                form.setValue("hero_image_url", url);
+                form.setValue("hero_image_path", path);
+                setHeroImageUrl(url);
+                if (!isNew) {
+                  saveImageMutation.mutate({ url, path });
+                }
+              }}
+              onRemove={() => {
+                form.setValue("hero_image_url", "");
+                form.setValue("hero_image_path", "");
+                setHeroImageUrl(null);
+                if (!isNew) {
+                  saveImageMutation.mutate({ url: "", path: "" });
+                }
+              }}
+              onPositionChange={(position) => {
+                form.setValue("hero_image_position_x", position.x);
+                form.setValue("hero_image_position_y", position.y);
+                if (!isNew) {
+                  savePositionMutation.mutate({
+                    hero_image_position_x: position.x,
+                    hero_image_position_y: position.y,
+                  });
+                }
+              }}
+              initialPosition={{
+                x: form.watch("hero_image_position_x"),
+                y: form.watch("hero_image_position_y"),
+              }}
+              viewType="banner"
+              label="Upload Collection Hero Image"
+            />
+          </div>
+
+          {!isNew && (
             <>
-              <CollectionQuotesUpload collectionId={collection.id} />
-              <CollectionFeaturedProfiles collectionId={collection.id} />
+              <div className="mt-8">
+                <h3 className="text-lg font-medium mb-4">Collection Quotes</h3>
+                <CollectionQuotesUpload collectionId={id!} />
+              </div>
+
+              <div className="mt-8">
+                <h3 className="text-lg font-medium mb-4">Featured Profiles</h3>
+                <CollectionFeaturedProfiles collectionId={id!} />
+              </div>
             </>
           )}
 
