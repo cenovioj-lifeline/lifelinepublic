@@ -479,7 +479,7 @@ export function LifelineViewer({
               
               <CardContent className="space-y-4 lg:py-6 py-4 flex-1 overflow-y-auto lg:px-6 px-4">
                 {selected.media && selected.media.length > 0 && (
-                  <div className="mb-4 relative">
+                  <div className="mb-4 relative overflow-hidden rounded-lg">
                     {isSuperFan && (
                       <SuperFanImageDelete
                         mediaId={selected.media[0].id}
