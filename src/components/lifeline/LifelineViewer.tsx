@@ -228,8 +228,8 @@ export function LifelineViewer({
   }
 
   return (
-    <Card className="lg:p-6 lg:pb-4 md:p-2 p-1 pb-1 lg:mt-0 mt-0 border-[hsl(var(--scheme-nav-bg))]" style={{ height: 'calc(100dvh - 90px)' }}>
-      <CardHeader className="lg:pt-2 pt-0 px-0">
+    <Card className="lg:p-6 lg:pb-4 md:p-2 p-1 pb-1 lg:mt-0 mt-0 border-[hsl(var(--scheme-nav-bg))] bg-[hsl(var(--scheme-ll-display-bg))]" style={{ height: 'calc(100dvh - 90px)' }}>
+      <CardHeader className="lg:pt-2 pt-0 px-0 bg-[hsl(var(--scheme-ll-display-bg))]">
         <div className="flex flex-col lg:flex-row items-start lg:items-start justify-between gap-2 lg:gap-0">
           <div className="flex-1">
             <CardTitle
