@@ -216,8 +216,8 @@ export default function Home() {
       {/* Featured Section */}
       <section>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-2xl font-semibold">Featured</h2>
-          <Link to="/public/collections" className="text-primary hover:underline text-sm">
+          <h2 className="text-2xl font-semibold" style={{ color: 'hsl(var(--scheme-title-text))' }}>Featured</h2>
+          <Link to="/public/collections" className="hover:underline text-sm" style={{ color: 'hsl(var(--scheme-actions-icon))' }}>
             View All
           </Link>
         </div>
@@ -254,7 +254,7 @@ export default function Home() {
                       )}
                     </div>
                     <CardHeader>
-                      <CardTitle className="text-lg text-foreground transition-colors">
+                      <CardTitle className="text-lg transition-colors" style={{ color: 'hsl(var(--scheme-card-text))' }}>
                         {item.title}
                       </CardTitle>
                     </CardHeader>
@@ -290,8 +290,8 @@ export default function Home() {
       {/* New Content Section */}
       <section>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-2xl font-semibold">New Content</h2>
-          <Link to="/public/lifelines" className="text-primary hover:underline text-sm">
+          <h2 className="text-2xl font-semibold" style={{ color: 'hsl(var(--scheme-title-text))' }}>New Content</h2>
+          <Link to="/public/lifelines" className="hover:underline text-sm" style={{ color: 'hsl(var(--scheme-actions-icon))' }}>
             View All
           </Link>
         </div>
@@ -328,7 +328,7 @@ export default function Home() {
                       )}
                     </div>
                     <CardHeader>
-                      <CardTitle className="text-lg text-foreground transition-colors">
+                      <CardTitle className="text-lg transition-colors" style={{ color: 'hsl(var(--scheme-card-text))' }}>
                         {item.title}
                       </CardTitle>
                     </CardHeader>

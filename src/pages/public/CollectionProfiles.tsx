@@ -72,8 +72,8 @@ export default function CollectionProfiles() {
     >
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold mb-2">Profiles</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-3xl font-bold mb-2" style={{ color: 'hsl(var(--scheme-title-text))' }}>Profiles</h1>
+          <p className="text-muted-foreground" style={{ color: 'hsl(var(--scheme-cards-text))' }}>
             People featured in {collection.title}
           </p>
         </div>
@@ -107,11 +107,11 @@ export default function CollectionProfiles() {
                         </AvatarFallback>
                       </Avatar>
                       <div>
-                        <CardTitle className="text-lg text-foreground transition-colors">
+                        <CardTitle className="text-lg transition-colors" style={{ color: 'hsl(var(--scheme-card-text))' }}>
                           {profile.display_name}
                         </CardTitle>
                         {profile.occupation && (
-                          <p className="text-sm text-muted-foreground">
+                          <p className="text-sm" style={{ color: 'hsl(var(--scheme-cards-text))' }}>
                             {profile.occupation}
                           </p>
                         )}
@@ -119,7 +119,7 @@ export default function CollectionProfiles() {
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-sm text-muted-foreground line-clamp-3">
+                    <p className="text-sm line-clamp-3" style={{ color: 'hsl(var(--scheme-cards-text))' }}>
                       {profile.summary || "View profile for more details"}
                     </p>
                   </CardContent>

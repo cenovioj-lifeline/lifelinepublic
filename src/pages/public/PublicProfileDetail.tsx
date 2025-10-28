@@ -69,16 +69,8 @@ export default function PublicProfileDetail() {
   };
 
   const getLifelineTypeColor = (type: string) => {
-    switch (type) {
-      case "person":
-        return "bg-blue-500/10 text-blue-500 border-blue-500/20";
-      case "list":
-        return "bg-green-500/10 text-green-500 border-green-500/20";
-      case "voting":
-        return "bg-purple-500/10 text-purple-500 border-purple-500/20";
-      default:
-        return "bg-muted";
-    }
+    // Use color scheme variables instead of hardcoded colors
+    return ""; // Styling will be applied inline with color scheme variables
   };
 
   const { data: stats } = useQuery({
@@ -250,14 +242,26 @@ export default function PublicProfileDetail() {
                               alt={lifeline.title}
                               className="w-full h-full object-cover"
                             />
-                            <div className={`absolute top-2 right-2 p-2 rounded-full border ${getLifelineTypeColor(lifeline.lifeline_type)}`}>
-                              <TypeIcon className="h-4 w-4" />
+                            <div 
+                              className="absolute top-2 right-2 p-2 rounded-full border"
+                              style={{ 
+                                backgroundColor: 'hsl(var(--scheme-actions-bg))',
+                                borderColor: 'hsl(var(--scheme-actions-border))'
+                              }}
+                            >
+                              <TypeIcon className="h-4 w-4" style={{ color: 'hsl(var(--scheme-actions-icon))' }} />
                             </div>
                           </div>
                         )}
                         {!lifeline.cover?.url && (
-                          <div className={`aspect-video overflow-hidden rounded-t-lg flex items-center justify-center border ${getLifelineTypeColor(lifeline.lifeline_type)}`}>
-                            <TypeIcon className="h-12 w-12" />
+                          <div 
+                            className="aspect-video overflow-hidden rounded-t-lg flex items-center justify-center border"
+                            style={{ 
+                              backgroundColor: 'hsl(var(--scheme-actions-bg))',
+                              borderColor: 'hsl(var(--scheme-actions-border))'
+                            }}
+                          >
+                            <TypeIcon className="h-12 w-12" style={{ color: 'hsl(var(--scheme-actions-icon))' }} />
                           </div>
                         )}
                         <CardHeader className="p-4">

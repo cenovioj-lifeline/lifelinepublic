@@ -349,7 +349,7 @@ export default function PublicCollectionDetail() {
                         )}
                       </div>
                       <CardHeader>
-                        <CardTitle className="text-lg text-foreground transition-colors">
+                        <CardTitle className="text-lg transition-colors" style={{ color: 'hsl(var(--scheme-card-text))' }}>
                           {lifeline.title}
                         </CardTitle>
                       </CardHeader>
@@ -398,7 +398,7 @@ export default function PublicCollectionDetail() {
                             )}
                           </div>
                           <CardHeader>
-                            <CardTitle className="text-lg text-foreground transition-colors">
+                            <CardTitle className="text-lg transition-colors" style={{ color: 'hsl(var(--scheme-card-text))' }}>
                               {lifeline.title}
                             </CardTitle>
                           </CardHeader>
@@ -458,7 +458,7 @@ export default function PublicCollectionDetail() {
                         )}
                       </div>
                       <CardHeader>
-                        <CardTitle className="text-lg text-foreground transition-colors">
+                        <CardTitle className="text-lg transition-colors" style={{ color: 'hsl(var(--scheme-card-text))' }}>
                           {profile.display_name}
                         </CardTitle>
                       </CardHeader>
@@ -504,7 +504,7 @@ export default function PublicCollectionDetail() {
                             )}
                           </div>
                           <CardHeader>
-                            <CardTitle className="text-lg text-foreground transition-colors">
+                            <CardTitle className="text-lg transition-colors" style={{ color: 'hsl(var(--scheme-card-text))' }}>
                               {profile.display_name}
                             </CardTitle>
                           </CardHeader>

@@ -89,18 +89,8 @@ export default function CollectionProfileDetail() {
   };
 
   const getLifelineTypeColor = (type: string) => {
-    switch (type) {
-      case "family":
-        return "text-blue-500";
-      case "person":
-        return "text-green-500";
-      case "list":
-        return "text-purple-500";
-      case "election":
-        return "text-orange-500";
-      default:
-        return "text-gray-500";
-    }
+    // Use color scheme variables instead of hardcoded colors
+    return ""; // Styling will be applied inline with color scheme variables
   };
 
   const { data: lifelinesData } = useQuery({
@@ -240,8 +230,8 @@ export default function CollectionProfileDetail() {
                         )}
                         <CardContent className="p-4">
                           <div className="flex items-center gap-2">
-                            <Icon className={`h-5 w-5 ${getLifelineTypeColor(lifeline.lifeline_type)}`} />
-                            <h3 className="font-semibold">{lifeline.title}</h3>
+                            <Icon className="h-5 w-5" style={{ color: 'hsl(var(--scheme-actions-icon))' }} />
+                            <h3 className="font-semibold" style={{ color: 'hsl(var(--scheme-card-text))' }}>{lifeline.title}</h3>
                           </div>
                         </CardContent>
                       </Card>

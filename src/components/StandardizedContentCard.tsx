@@ -47,7 +47,7 @@ export function StandardizedContentCard({
         </div>
         <CardHeader>
           <div className="flex items-start justify-between gap-2">
-            <CardTitle className="text-lg text-foreground group-hover:text-primary transition-colors line-clamp-2">
+            <CardTitle className="text-lg line-clamp-2 transition-colors" style={{ color: 'hsl(var(--scheme-card-text))' }}>
               {title}
             </CardTitle>
             {badge && <Badge variant="secondary">{badge}</Badge>}

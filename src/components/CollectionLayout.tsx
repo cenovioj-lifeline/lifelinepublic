@@ -135,8 +135,8 @@ export function CollectionLayout({
                         size="sm"
                         asChild
                         className={cn(
-                          "gap-2 transition-colors text-[hsl(var(--scheme-nav-text))] hover:bg-[hsl(var(--scheme-nav-button)/.2)]",
-                          isActive && "bg-[hsl(var(--scheme-nav-button)/.4)]"
+                          "gap-2 transition-colors text-[hsl(var(--scheme-nav-text))] hover:bg-[hsl(var(--scheme-nav-button))]",
+                          isActive && "bg-[hsl(var(--scheme-nav-button))] font-bold"
                         )}
                       >
                         <Link to={item.to}>

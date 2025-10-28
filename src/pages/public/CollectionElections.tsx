@@ -59,8 +59,8 @@ export default function CollectionElections() {
     >
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold mb-2">Mock Elections & Results</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-3xl font-bold mb-2" style={{ color: 'hsl(var(--scheme-title-text))' }}>Mock Elections & Results</h1>
+          <p style={{ color: 'hsl(var(--scheme-cards-text))' }}>
             All elections in {collection.title}
           </p>
         </div>
@@ -82,16 +82,16 @@ export default function CollectionElections() {
                     className="flex items-center justify-between p-4 hover:bg-muted/50 transition-colors group"
                   >
                     <div className="flex-1">
-                      <div className="font-medium">{election.title}</div>
+                      <div className="font-medium" style={{ color: 'hsl(var(--scheme-card-text))' }}>{election.title}</div>
                       {election.description && (
-                        <div className="text-sm text-muted-foreground line-clamp-1">
+                        <div className="text-sm line-clamp-1" style={{ color: 'hsl(var(--scheme-cards-text))' }}>
                           {election.description}
                         </div>
                       )}
                     </div>
                     <div className="flex items-center gap-2">
                       <FavoriteButton itemId={election.id} itemType="election" />
-                      <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                      <ArrowRight className="h-4 w-4" style={{ color: 'hsl(var(--scheme-actions-icon))' }} />
                     </div>
                   </Link>
                 ))}

@@ -184,8 +184,8 @@ export default function CollectionLifelines() {
     >
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold mb-2">Lifelines</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-3xl font-bold mb-2" style={{ color: 'hsl(var(--scheme-title-text))' }}>Lifelines</h1>
+          <p className="text-muted-foreground" style={{ color: 'hsl(var(--scheme-cards-text))' }}>
             All lifelines in {collection.title}
           </p>
         </div>
@@ -304,8 +304,8 @@ export default function CollectionLifelines() {
                       </div>
                     )}
                   </div>
-                    <CardHeader>
-                      <CardTitle className="text-lg text-foreground transition-colors">
+                  <CardHeader>
+                      <CardTitle className="text-lg transition-colors" style={{ color: 'hsl(var(--scheme-card-text))' }}>
                         {lifeline.title}
                       </CardTitle>
                     </CardHeader>
