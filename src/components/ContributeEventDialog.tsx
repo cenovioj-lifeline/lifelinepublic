@@ -218,15 +218,23 @@ export function ContributeEventDialog({
               <div>
                 <Label htmlFor="event-select" style={{ color: "#333333" }}>Select Event *</Label>
                 <Select value={selectedEntryId} onValueChange={setSelectedEntryId}>
-                  <SelectTrigger id="event-select" style={{ backgroundColor: "#FFFFFF", color: "#333333" }}>
+                  <SelectTrigger id="event-select" style={{ 
+                    backgroundColor: "hsl(var(--scheme-card-bg))", 
+                    color: "hsl(var(--scheme-cards-text))",
+                    borderColor: "hsl(var(--scheme-card-border))"
+                  }}>
                     <SelectValue placeholder="Choose an event..." />
                   </SelectTrigger>
-                  <SelectContent style={{ backgroundColor: "#FFFFFF", zIndex: 9999 }}>
+                  <SelectContent style={{ 
+                    backgroundColor: "hsl(var(--scheme-card-bg))", 
+                    borderColor: "hsl(var(--scheme-card-border))",
+                    zIndex: 9999 
+                  }}>
                     {entries?.map((entry) => (
                       <SelectItem 
                         key={entry.id} 
                         value={entry.id}
-                        style={{ color: "#333333" }}
+                        style={{ color: "hsl(var(--scheme-cards-text))" }}
                       >
                         {entry.title}
                       </SelectItem>
@@ -282,15 +290,23 @@ export function ContributeEventDialog({
               <div>
                 <Label htmlFor="score" style={{ color: "#333333" }}>Rating (optional)</Label>
                 <Select value={score} onValueChange={setScore}>
-                  <SelectTrigger id="score" style={{ backgroundColor: "#FFFFFF", color: "#333333" }}>
+                  <SelectTrigger id="score" style={{ 
+                    backgroundColor: "hsl(var(--scheme-card-bg))", 
+                    color: "hsl(var(--scheme-cards-text))",
+                    borderColor: "hsl(var(--scheme-card-border))"
+                  }}>
                     <SelectValue placeholder="Select a rating" />
                   </SelectTrigger>
-                  <SelectContent style={{ backgroundColor: "#FFFFFF", zIndex: 9999 }}>
+                  <SelectContent style={{ 
+                    backgroundColor: "hsl(var(--scheme-card-bg))", 
+                    borderColor: "hsl(var(--scheme-card-border))",
+                    zIndex: 9999 
+                  }}>
                     {Array.from({ length: 21 }, (_, i) => i - 10).map((value) => (
                       <SelectItem 
                         key={value} 
                         value={value.toString()}
-                        style={{ color: "#333333" }}
+                        style={{ color: "hsl(var(--scheme-cards-text))" }}
                       >
                         {value > 0 ? `+${value}` : value}
                       </SelectItem>
