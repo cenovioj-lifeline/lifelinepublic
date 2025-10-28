@@ -492,10 +492,11 @@ export function LifelineViewer({
                     <img
                       src={selected.media[0].url}
                       alt={selected.media[0].alt_text || selected.title}
-                      className="w-full h-64 object-cover rounded-lg"
+                      className="w-full aspect-video object-cover rounded-lg"
                       style={{
                         objectPosition: `${selected.media[0].position_x ?? 50}% ${selected.media[0].position_y ?? 50}%`,
-                        transform: `scale(${selected.media[0].scale ?? 1})`
+                        transform: `scale(${selected.media[0].scale ?? 1})`,
+                        transformOrigin: 'center'
                       }}
                     />
                   </div>
