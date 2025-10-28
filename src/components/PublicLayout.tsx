@@ -41,7 +41,7 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
             size="sm"
             asChild
             className={cn(
-              "gap-2 transition-colors text-[hsl(var(--scheme-nav-text))] hover:bg-[hsl(var(--scheme-nav-button)/.2)]",
+              "gap-2 transition-colors text-[hsl(var(--scheme-nav-text))] hover:bg-[hsl(var(--scheme-nav-button))]",
               isActive && "bg-[hsl(var(--scheme-nav-button))] font-bold"
             )}
           >
@@ -62,7 +62,7 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
           <nav className="flex items-center justify-between">
             <Link to="/" className="flex items-center text-lg md:text-xl font-bold text-[hsl(var(--scheme-nav-text))] hover:opacity-80 transition-opacity">
               <img src={logo} alt="Lifeline Public" className="h-10 mr-2" />
-              <span className="hidden sm:inline">Lifeline Public</span>
+              
             </Link>
             
             {/* Desktop Navigation */}
@@ -73,7 +73,7 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
                   variant="ghost"
                   size="sm"
                   asChild
-                  className="gap-2 transition-colors text-[hsl(var(--scheme-nav-text))] hover:bg-[hsl(var(--scheme-nav-button)/.2)]"
+                  className="gap-2 transition-colors text-[hsl(var(--scheme-nav-text))] hover:bg-[hsl(var(--scheme-nav-button))]"
                 >
                   <Link to="/">
                     <span>LP</span>
@@ -89,7 +89,7 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
                     variant="ghost"
                     size="sm"
                     onClick={() => setAuthModalOpen(true)}
-                    className="ml-2 text-[hsl(var(--scheme-nav-text))] hover:bg-[hsl(var(--scheme-nav-button)/.2)]"
+                    className="ml-2 text-[hsl(var(--scheme-nav-text))] hover:bg-[hsl(var(--scheme-nav-button))]"
                   >
                     Sign In
                   </Button>

@@ -437,8 +437,8 @@ export function LifelineViewer({
 
           {/* Right side - Details - Full width on mobile */}
           {selected && (
-            <Card className="shadow-lg flex flex-col h-full overflow-hidden lg:col-span-1 col-span-1 lg:mx-0 mx-0 bg-white border-[hsl(var(--scheme-nav-bg))]">
-              <CardHeader className="bg-[hsl(var(--scheme-nav-bg))] rounded-t-xl flex-shrink-0 lg:p-6 p-1">
+            <Card className="shadow-lg flex flex-col h-full overflow-hidden lg:col-span-1 col-span-1 lg:mx-0 mx-0 bg-[hsl(var(--scheme-ll-graph-bg))] border-[hsl(var(--scheme-ll-graph-bg))]">
+              <CardHeader className="bg-[hsl(var(--scheme-ll-graph-bg))] rounded-t-xl flex-shrink-0 lg:p-6 p-1">
                 {/* Navigation buttons at very top */}
                 <div className="grid grid-cols-3 items-center mb-1 lg:mb-4 gap-1 lg:gap-2">
                   <div className="justify-self-start">

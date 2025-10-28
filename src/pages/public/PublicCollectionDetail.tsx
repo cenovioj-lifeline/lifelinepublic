@@ -277,36 +277,42 @@ export default function PublicCollectionDetail() {
             </CardContent>
           </Card>
           <Card
-            className="relative cursor-pointer hover:shadow-lg transition-shadow bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]"
+            className="relative cursor-pointer hover:shadow-lg transition-shadow"
+            style={{ backgroundColor: 'hsl(var(--scheme-ch-actions-bg))', borderColor: 'hsl(var(--scheme-ch-actions-border))' }}
           >
             <div className="absolute top-2 right-2 z-10">
               <FavoriteButton itemId={collection.id} itemType="collection" className="bg-white/80 hover:bg-white" />
             </div>
             <CardContent className="pt-6 text-center">
               <Heart
-                className="h-8 w-8 mx-auto mb-2 text-[hsl(var(--scheme-actions-icon))]"
+                className="h-8 w-8 mx-auto mb-2"
+                style={{ color: 'hsl(var(--scheme-ch-actions-icon))' }}
               />
               <div 
-                className="text-2xl font-bold mb-1 text-[hsl(var(--scheme-card-text))]"
+                className="text-2xl font-bold mb-1"
+                style={{ color: 'hsl(var(--scheme-ch-actions-text))' }}
               >
                 {fanCount || 0}
               </div>
               <div 
-                className="text-sm text-[hsl(var(--scheme-card-text))]"
+                className="text-sm"
+                style={{ color: 'hsl(var(--scheme-ch-actions-text))' }}
               >
                 Fans
               </div>
             </CardContent>
           </Card>
           <Card
-            className="cursor-pointer hover:shadow-lg transition-shadow bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]"
+            className="cursor-pointer hover:shadow-lg transition-shadow"
+            style={{ backgroundColor: 'hsl(var(--scheme-ch-actions-bg))', borderColor: 'hsl(var(--scheme-ch-actions-border))' }}
             onClick={() => navigate(`/public/collections/${collection.slug}/settings`)}
           >
             <CardContent className="pt-6 text-center">
               <Settings
-                className="h-8 w-8 mx-auto mb-2 text-[hsl(var(--scheme-actions-icon))]"
+                className="h-8 w-8 mx-auto mb-2"
+                style={{ color: 'hsl(var(--scheme-ch-actions-icon))' }}
               />
-              <div className="text-sm text-[hsl(var(--scheme-card-text))] mt-1">Settings</div>
+              <div className="text-sm mt-1" style={{ color: 'hsl(var(--scheme-ch-actions-text))' }}>Settings</div>
             </CardContent>
           </Card>
         </div>
