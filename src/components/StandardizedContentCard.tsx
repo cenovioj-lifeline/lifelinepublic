@@ -27,9 +27,9 @@ export function StandardizedContentCard({
 }: StandardizedContentCardProps) {
   return (
     <Link to={linkPath} className="group">
-      <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full" style={{ backgroundColor: 'hsl(var(--scheme-card-bg))', borderColor: 'hsl(var(--scheme-card-border))' }}>
+      <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
         {/* Standardized 16:9 aspect ratio image */}
-        <div className="aspect-video relative overflow-hidden" style={{ backgroundColor: 'hsl(var(--scheme-ll-display-bg))' }}>
+        <div className="aspect-video relative overflow-hidden bg-white">
           {imageUrl ? (
             <img
               src={imageUrl}
@@ -40,22 +40,22 @@ export function StandardizedContentCard({
               }}
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center" style={{ color: 'hsl(var(--scheme-cards-text))' }}>
+            <div className="w-full h-full flex items-center justify-center text-gray-400">
               No image
             </div>
           )}
         </div>
-        <CardHeader>
+        <CardHeader className="bg-[hsl(var(--scheme-card-bg))]">
           <div className="flex items-start justify-between gap-2">
-            <CardTitle className="text-lg line-clamp-2 transition-colors" style={{ color: 'hsl(var(--scheme-card-text))' }}>
+            <CardTitle className="text-lg line-clamp-2 transition-colors text-[hsl(var(--scheme-card-text))]">
               {title}
             </CardTitle>
             {badge && <Badge variant="secondary">{badge}</Badge>}
           </div>
         </CardHeader>
         {description && (
-          <CardContent>
-            <p className="text-sm line-clamp-2" style={{ color: 'hsl(var(--scheme-cards-text))' }}>{description}</p>
+          <CardContent className="bg-[hsl(var(--scheme-card-bg))]">
+            <p className="text-sm line-clamp-2 text-[hsl(var(--scheme-cards-text))]">{description}</p>
           </CardContent>
         )}
       </Card>
