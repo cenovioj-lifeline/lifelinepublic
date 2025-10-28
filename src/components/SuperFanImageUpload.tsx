@@ -16,6 +16,7 @@ export function SuperFanImageUpload({ entryId, onUploadComplete }: SuperFanImage
   const [uploading, setUploading] = useState(false);
   const [tempImage, setTempImage] = useState<{ url: string; path: string; file: File } | null>(null);
   const [showPositionPicker, setShowPositionPicker] = useState(false);
+  const [imageUrl, setImageUrl] = useState("");
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -57,6 +58,34 @@ export function SuperFanImageUpload({ entryId, onUploadComplete }: SuperFanImage
       console.error("Upload error:", error);
       toast.error("Failed to upload image");
     } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleUrlLoad = async () => {
+    if (!imageUrl.trim()) {
+      toast.error("Please enter an image URL");
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const response = await fetch(imageUrl);
+      if (!response.ok) throw new Error("Failed to fetch image");
+
+      const blob = await response.blob();
+      if (!blob.type.startsWith('image/')) {
+        throw new Error("URL does not point to an image");
+      }
+
+      const filename = imageUrl.split('/').pop() || 'image.jpg';
+      const file = new File([blob], filename, { type: blob.type });
+
+      await handleImageFile(file);
+      setImageUrl("");
+    } catch (error) {
+      console.error("URL load error:", error);
+      toast.error("Failed to load image from URL");
       setUploading(false);
     }
   };
@@ -107,45 +136,93 @@ export function SuperFanImageUpload({ entryId, onUploadComplete }: SuperFanImage
 
   return (
     <>
-      <div
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
-        className={`
-          border-2 border-dashed rounded-lg p-4 transition-colors
-          ${isDragging 
-            ? 'border-primary bg-primary/5' 
-            : 'border-muted-foreground/25 hover:border-primary/50'
-          }
-        `}
-        style={{
-          borderColor: isDragging 
-            ? 'hsl(var(--scheme-nav-bg))' 
-            : undefined,
-          backgroundColor: isDragging 
-            ? 'hsl(var(--scheme-card-bg))' 
-            : 'transparent'
-        }}
-      >
-        <div className="flex flex-col items-center justify-center gap-2 text-center">
-          {uploading ? (
-            <>
-              <Loader2 className="h-8 w-8 animate-spin" style={{ color: 'hsl(var(--scheme-cards-text))' }} />
-              <p className="text-sm" style={{ color: 'hsl(var(--scheme-cards-text))' }}>
-                Uploading...
-              </p>
-            </>
-          ) : (
-            <>
-              <Upload className="h-8 w-8" style={{ color: 'hsl(var(--scheme-cards-text))' }} />
-              <p className="text-sm font-medium" style={{ color: 'hsl(var(--scheme-cards-text))' }}>
-                Drag & drop an image here
-              </p>
-              <p className="text-xs" style={{ color: 'hsl(var(--scheme-cards-text))' }}>
-                Super Fan Quick Upload
-              </p>
-            </>
-          )}
+      <div className="space-y-4">
+        <div
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+          className={`
+            border-2 border-dashed rounded-lg p-4 transition-colors
+            ${isDragging 
+              ? 'border-primary bg-primary/5' 
+              : 'border-muted-foreground/25 hover:border-primary/50'
+            }
+          `}
+          style={{
+            borderColor: isDragging 
+              ? 'hsl(var(--scheme-nav-bg))' 
+              : undefined,
+            backgroundColor: isDragging 
+              ? 'hsl(var(--scheme-card-bg))' 
+              : 'transparent'
+          }}
+        >
+          <div className="flex flex-col items-center justify-center gap-2 text-center">
+            {uploading ? (
+              <>
+                <Loader2 className="h-8 w-8 animate-spin" style={{ color: 'hsl(var(--scheme-cards-text))' }} />
+                <p className="text-sm" style={{ color: 'hsl(var(--scheme-cards-text))' }}>
+                  Uploading...
+                </p>
+              </>
+            ) : (
+              <>
+                <Upload className="h-8 w-8" style={{ color: 'hsl(var(--scheme-cards-text))' }} />
+                <p className="text-sm font-medium" style={{ color: 'hsl(var(--scheme-cards-text))' }}>
+                  Drag & drop an image here
+                </p>
+                <p className="text-xs" style={{ color: 'hsl(var(--scheme-cards-text))' }}>
+                  Super Fan Quick Upload
+                </p>
+              </>
+            )}
+          </div>
+        </div>
+
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t" style={{ borderColor: 'hsl(var(--scheme-cards-text) / 0.2)' }} />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="px-2" style={{ 
+              backgroundColor: 'hsl(var(--scheme-card-bg))',
+              color: 'hsl(var(--scheme-cards-text) / 0.6)'
+            }}>
+              Or
+            </span>
+          </div>
+        </div>
+
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={imageUrl}
+            onChange={(e) => setImageUrl(e.target.value)}
+            placeholder="Paste image URL"
+            disabled={uploading}
+            className="flex-1 px-3 py-2 rounded-lg border text-sm"
+            style={{
+              backgroundColor: 'hsl(var(--scheme-card-bg))',
+              borderColor: 'hsl(var(--scheme-cards-text) / 0.2)',
+              color: 'hsl(var(--scheme-cards-text))'
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !uploading) {
+                handleUrlLoad();
+              }
+            }}
+          />
+          <Button
+            onClick={handleUrlLoad}
+            disabled={uploading || !imageUrl.trim()}
+            size="sm"
+            style={{
+              backgroundColor: 'hsl(var(--scheme-nav-bg))',
+              color: 'hsl(var(--scheme-nav-text))'
+            }}
+          >
+            Load
+          </Button>
         </div>
       </div>
 
