@@ -28,6 +28,8 @@ export default function FanContributions() {
   const queryClient = useQueryClient();
   const [selectedContribution, setSelectedContribution] = useState<any>(null);
   const [adminMessage, setAdminMessage] = useState("");
+  const [expandedUserId, setExpandedUserId] = useState<string | null>(null);
+  const [superFanStates, setSuperFanStates] = useState<Record<string, boolean>>({});
 
   const { data: contributions, isLoading } = useQuery({
     queryKey: ["fan-contributions-admin"],
@@ -44,13 +46,28 @@ export default function FanContributions() {
 
       if (error) throw error;
       
-      // Fetch user profiles separately
+      // Fetch user profiles and super fan status
       if (data) {
         const userIds = data.map((c: any) => c.user_id);
         const { data: profiles } = await supabase
           .from("user_profiles")
           .select("*")
           .in("user_id", userIds);
+        
+        // Check super fan status for each user
+        const superFanPromises = userIds.map(async (userId: string) => {
+          const { data: isSuperFan } = await supabase.rpc('is_super_fan', {
+            check_user_id: userId
+          });
+          return { userId, isSuperFan: !!isSuperFan };
+        });
+        
+        const superFanResults = await Promise.all(superFanPromises);
+        const superFanMap: Record<string, boolean> = {};
+        superFanResults.forEach(({ userId, isSuperFan }) => {
+          superFanMap[userId] = isSuperFan;
+        });
+        setSuperFanStates(superFanMap);
         
         // Attach profiles to contributions
         return data.map((contribution: any) => ({
@@ -60,6 +77,26 @@ export default function FanContributions() {
       }
       
       return data;
+    },
+  });
+
+  const toggleSuperFanMutation = useMutation({
+    mutationFn: async ({ userId, isSuperFan }: { userId: string; isSuperFan: boolean }) => {
+      const { error } = await supabase.rpc('toggle_super_fan', {
+        target_user_id: userId,
+        is_super_fan: isSuperFan
+      });
+      if (error) throw error;
+    },
+    onSuccess: (_, variables) => {
+      setSuperFanStates(prev => ({
+        ...prev,
+        [variables.userId]: variables.isSuperFan
+      }));
+      toast.success(variables.isSuperFan ? "User promoted to Super Fan" : "Super Fan status removed");
+    },
+    onError: () => {
+      toast.error("Failed to update Super Fan status");
     },
   });
 
@@ -233,15 +270,45 @@ export default function FanContributions() {
               </TableRow>
             ) : (
               contributions?.map((contribution) => (
-                <TableRow key={contribution.id}>
-                  <TableCell>
-                    {contribution.user_profile?.first_name ||
-                      contribution.user_profile?.last_name
-                      ? `${contribution.user_profile?.first_name || ""} ${
-                          contribution.user_profile?.last_name || ""
-                        }`.trim()
-                      : "Anonymous User"}
-                  </TableCell>
+                <>
+                  <TableRow key={contribution.id}>
+                    <TableCell>
+                      <div className="space-y-2">
+                        <button
+                          onClick={() => setExpandedUserId(
+                            expandedUserId === contribution.user_id ? null : contribution.user_id
+                          )}
+                          className="text-left hover:underline cursor-pointer"
+                        >
+                          {contribution.user_profile?.first_name ||
+                            contribution.user_profile?.last_name
+                            ? `${contribution.user_profile?.first_name || ""} ${
+                                contribution.user_profile?.last_name || ""
+                              }`.trim()
+                            : "Anonymous User"}
+                        </button>
+                        {expandedUserId === contribution.user_id && (
+                          <div className="flex items-center gap-2 pl-2">
+                            <input
+                              type="checkbox"
+                              id={`super-fan-${contribution.user_id}`}
+                              checked={superFanStates[contribution.user_id] || false}
+                              onChange={(e) => toggleSuperFanMutation.mutate({
+                                userId: contribution.user_id,
+                                isSuperFan: e.target.checked
+                              })}
+                              className="cursor-pointer"
+                            />
+                            <label 
+                              htmlFor={`super-fan-${contribution.user_id}`}
+                              className="text-sm cursor-pointer"
+                            >
+                              Super Fan
+                            </label>
+                          </div>
+                        )}
+                      </div>
+                    </TableCell>
                   <TableCell>
                     <Badge variant="outline">
                       {contribution.contribution_type === "image" 
@@ -274,8 +341,9 @@ export default function FanContributions() {
                     >
                       <Eye className="h-4 w-4" />
                     </Button>
-                  </TableCell>
-                </TableRow>
+                    </TableCell>
+                  </TableRow>
+                </>
               ))
             )}
           </TableBody>

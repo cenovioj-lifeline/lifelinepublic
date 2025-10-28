@@ -1654,6 +1654,11 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_super_fan: { Args: { check_user_id: string }; Returns: boolean }
+      toggle_super_fan: {
+        Args: { is_super_fan: boolean; target_user_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       content_status: "draft" | "published"
@@ -1664,7 +1669,7 @@ export type Database = {
         | "entity"
         | "organization"
       sentiment_type: "positive" | "negative" | "neutral" | "mixed"
-      user_role: "admin" | "editor" | "viewer" | "public_user"
+      user_role: "admin" | "editor" | "viewer" | "public_user" | "super_fan"
       visibility_type: "public" | "unlisted" | "private"
     }
     CompositeTypes: {
@@ -1802,7 +1807,7 @@ export const Constants = {
         "organization",
       ],
       sentiment_type: ["positive", "negative", "neutral", "mixed"],
-      user_role: ["admin", "editor", "viewer", "public_user"],
+      user_role: ["admin", "editor", "viewer", "public_user", "super_fan"],
       visibility_type: ["public", "unlisted", "private"],
     },
   },

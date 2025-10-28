@@ -1,6 +1,7 @@
 import { useMemo, useState, useEffect, useRef } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useSuperFan } from "@/hooks/useSuperFan";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -9,6 +10,7 @@ import { Plus, Star, Menu, Image as ImageIcon } from "lucide-react";
 import { ContributeEventDialog } from "@/components/ContributeEventDialog";
 import { useAuth } from "@/lib/auth";
 import { PublicAuthModal } from "@/components/PublicAuthModal";
+import { SuperFanImageUpload, SuperFanImageDelete } from "@/components/SuperFanImageUpload";
 import { Link } from "react-router-dom";
 import {
   DropdownMenu,
@@ -28,7 +30,9 @@ export function LifelineViewer({
   lifelineId,
   lifelineType,
 }: LifelineViewerProps) {
+  const queryClient = useQueryClient();
   const { user } = useAuth();
+  const { isSuperFan } = useSuperFan();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [contributeDialogOpen, setContributeDialogOpen] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -475,7 +479,16 @@ export function LifelineViewer({
               
               <CardContent className="space-y-4 lg:py-6 py-4 flex-1 overflow-y-auto lg:px-6 px-4">
                 {selected.media && selected.media.length > 0 && (
-                  <div className="mb-4">
+                  <div className="mb-4 relative">
+                    {isSuperFan && (
+                      <SuperFanImageDelete
+                        mediaId={selected.media[0].id}
+                        entryId={selected.id}
+                        onDeleteComplete={() => {
+                          queryClient.invalidateQueries({ queryKey: ["entries", lifelineId] });
+                        }}
+                      />
+                    )}
                     <img
                       src={selected.media[0].url}
                       alt={selected.media[0].alt_text || selected.title}
@@ -558,9 +571,20 @@ export function LifelineViewer({
                         <ImageIcon className="h-4 w-4 mr-2" />
                         Add a picture to an event
                       </DropdownMenuItem>
-                    </DropdownMenuContent>
+                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
+
+                {isSuperFan && (
+                  <div className="mt-4">
+                    <SuperFanImageUpload 
+                      entryId={selected.id}
+                      onUploadComplete={() => {
+                        queryClient.invalidateQueries({ queryKey: ["entries", lifelineId] });
+                      }}
+                    />
+                  </div>
+                )}
               </CardContent>
             </Card>
           )}
