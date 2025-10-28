@@ -251,14 +251,16 @@ export default function PublicCollectionDetail() {
         {/* Action Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <Card
-            className="cursor-pointer hover:shadow-lg transition-shadow bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]"
+            className="cursor-pointer hover:shadow-lg transition-shadow"
+            style={{ backgroundColor: 'hsl(var(--scheme-actions-bg))', borderColor: 'hsl(var(--scheme-actions-border))' }}
             onClick={() => navigate(`/public/collections/${collection.slug}/feed`)}
           >
             <CardContent className="pt-6 text-center">
               <Rss
-                className="h-8 w-8 mx-auto mb-2 text-[hsl(var(--scheme-actions-icon))]"
+                className="h-8 w-8 mx-auto mb-2"
+                style={{ color: 'hsl(var(--scheme-actions-icon))' }}
               />
-              <div className="text-sm text-[hsl(var(--scheme-card-text))] mt-1">Feed</div>
+              <div className="text-sm mt-1" style={{ color: 'hsl(var(--scheme-actions-text))' }}>Feed</div>
             </CardContent>
           </Card>
           <Card
@@ -328,7 +330,7 @@ export default function PublicCollectionDetail() {
                     to={`/public/collections/${collection.slug}/lifelines/${lifeline.slug}`}
                     className="group"
                   >
-                    <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full">
+                    <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full" style={{ backgroundColor: 'hsl(var(--scheme-card-bg))', borderColor: 'hsl(var(--scheme-card-border))' }}>
                       <div className="absolute top-2 right-2 z-10">
                         <FavoriteButton itemId={lifeline.id} itemType="lifeline" />
                       </div>
@@ -377,7 +379,7 @@ export default function PublicCollectionDetail() {
                         to={`/public/collections/${collection.slug}/lifelines/${lifeline.slug}`}
                         className="group block h-full"
                       >
-                        <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full">
+                        <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full" style={{ backgroundColor: 'hsl(var(--scheme-card-bg))', borderColor: 'hsl(var(--scheme-card-border))' }}>
                           <div className="absolute top-2 right-2 z-10">
                             <FavoriteButton itemId={lifeline.id} itemType="lifeline" />
                           </div>

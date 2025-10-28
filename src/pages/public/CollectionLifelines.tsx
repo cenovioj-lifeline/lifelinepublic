@@ -284,7 +284,7 @@ export default function CollectionLifelines() {
                 to={`/public/collections/${slug}/lifelines/${lifeline.slug}`}
                 className="group relative"
               >
-                <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full">
+                <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full" style={{ backgroundColor: 'hsl(var(--scheme-card-bg))', borderColor: 'hsl(var(--scheme-card-border))' }}>
                   <div className="absolute top-2 right-2 z-10">
                     <FavoriteButton itemId={lifeline.id} itemType="lifeline" />
                   </div>
