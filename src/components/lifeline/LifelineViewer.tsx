@@ -228,22 +228,26 @@ export function LifelineViewer({
   }
 
   return (
-    <Card className="lg:p-6 lg:pb-4 md:p-2 p-1 pb-1 lg:mt-0 mt-0" style={{ height: 'calc(100dvh - 90px)' }}>
+    <Card className="lg:p-6 lg:pb-4 md:p-2 p-1 pb-1 lg:mt-0 mt-0 border-[hsl(var(--scheme-nav-bg))]" style={{ height: 'calc(100dvh - 90px)' }}>
       <CardHeader className="lg:pt-2 pt-0 px-0">
         <div className="flex flex-col lg:flex-row items-start lg:items-start justify-between gap-2 lg:gap-0">
           <div className="flex-1">
             <CardTitle
-              className="text-2xl lg:text-2xl md:text-xl sm:text-lg leading-tight text-[hsl(var(--scheme-ll-display-title))]"
+              className="text-2xl lg:text-2xl md:text-xl sm:text-lg leading-tight text-[hsl(var(--scheme-title-text))]"
             >
               {lifeline.title}
             </CardTitle>
             {lifeline.subtitle && (
-              <p className="text-sm lg:text-base text-[hsl(var(--scheme-card-text))] opacity-70">
+              <p className="text-sm lg:text-base text-[hsl(var(--scheme-cards-text))] opacity-70">
                 {lifeline.subtitle}
               </p>
             )}
           </div>
-          <Button onClick={() => setContributeDialogOpen(true)} size="sm" className="w-full lg:w-auto shrink-0">
+          <Button 
+            onClick={() => setContributeDialogOpen(true)} 
+            size="sm" 
+            className="w-full lg:w-auto shrink-0 bg-[hsl(var(--scheme-ll-entry-contributor))] hover:bg-[hsl(var(--scheme-ll-entry-contributor)/.8)] text-white border-0"
+          >
             <Plus className="h-4 w-4 mr-2" />
             Contribute a new event
           </Button>
@@ -251,7 +255,7 @@ export function LifelineViewer({
       </CardHeader>
       <CardContent className="px-0 lg:px-6 pt-0 h-[calc(100%-100px)] lg:h-auto flex flex-col lg:block overflow-visible">
         {/* Mobile Horizontal Chart - Only visible on mobile */}
-        <div className="lg:hidden bg-white rounded-lg mb-1 overflow-x-auto py-1 px-0 flex-shrink-0" style={{ minHeight: '80px' }}>
+        <div className="lg:hidden bg-[hsl(var(--scheme-ll-graph-bg))] rounded-lg mb-1 overflow-x-auto py-1 px-0 flex-shrink-0" style={{ minHeight: '80px' }}>
           <div className="flex items-center justify-center relative" style={{ minWidth: 'fit-content', height: '80px' }}>
             {/* Centerline */}
             <div className="absolute top-1/2 left-0 right-0 h-[2px] bg-gray-300 -translate-y-1/2 z-0" />
@@ -295,7 +299,7 @@ export function LifelineViewer({
           {/* Left side - Timeline - Hidden on mobile */}
           <div
             ref={timelineRef}
-            className="hidden lg:block bg-white rounded-lg p-5 overflow-y-auto h-full"
+            className="hidden lg:block bg-[hsl(var(--scheme-ll-display-bg))] border border-[hsl(var(--scheme-nav-bg))] rounded-lg p-5 overflow-y-auto h-full"
             style={{
               scrollbarWidth: 'thin',
               scrollbarColor: `${positiveColor} #f0f0f0`
@@ -348,8 +352,8 @@ export function LifelineViewer({
                         <div className="flex items-center pl-4 py-3">
                           <div
                             className={cn(
-                              "relative bg-gray-100 rounded-2xl px-4 py-3 max-w-[90%] transition-all duration-300",
-                              isSelected && "border-[3px] shadow-lg bg-white"
+                              "relative bg-[hsl(var(--scheme-ll-graph-bg))] rounded-2xl px-4 py-3 max-w-[90%] transition-all duration-300",
+                              isSelected && "border-[3px] shadow-lg bg-[hsl(var(--scheme-ll-graph-bg))]"
                             )}
                             style={isSelected ? { borderColor: positiveColor } : {}}
                           >
@@ -357,16 +361,16 @@ export function LifelineViewer({
                             <div
                               className="absolute left-[-10px] top-[30px] w-0 h-0 border-t-[15px] border-b-0 border-r-[15px] border-transparent"
                               style={{
-                                borderRightColor: isSelected ? 'white' : '#f0f0f0'
+                                borderRightColor: isSelected ? `hsl(var(--scheme-ll-graph-bg))` : `hsl(var(--scheme-ll-graph-bg))`
                               }}
                             />
-                            <div className="font-bold text-sm mb-1">
+                            <div className="font-bold text-sm mb-1 text-[hsl(var(--scheme-ll-entry-title))]">
                               {entry.title}
                               {entry.is_fan_contributed && (
                                 <Star className="inline-block h-3 w-3 ml-1 fill-yellow-400 text-yellow-400" />
                               )}
                             </div>
-                            <div className="text-xs text-gray-600 line-clamp-2">
+                            <div className="text-xs text-[hsl(var(--scheme-cards-text))] line-clamp-2">
                               {entry.summary || entry.details}
                             </div>
                           </div>
@@ -378,8 +382,8 @@ export function LifelineViewer({
                         <div className="flex items-center justify-end pr-4 border-r-2 border-gray-200 py-3">
                           <div
                             className={cn(
-                              "relative bg-gray-100 rounded-2xl px-4 py-3 max-w-[90%] transition-all duration-300",
-                              isSelected && "border-[3px] shadow-lg bg-white"
+                              "relative bg-[hsl(var(--scheme-ll-graph-bg))] rounded-2xl px-4 py-3 max-w-[90%] transition-all duration-300",
+                              isSelected && "border-[3px] shadow-lg bg-[hsl(var(--scheme-ll-graph-bg))]"
                             )}
                             style={isSelected ? { borderColor: negativeColor } : {}}
                           >
@@ -387,16 +391,16 @@ export function LifelineViewer({
                             <div
                               className="absolute right-[-10px] top-[30px] w-0 h-0 border-t-[15px] border-b-0 border-l-[15px] border-transparent"
                               style={{
-                                borderLeftColor: isSelected ? 'white' : '#f0f0f0'
+                                borderLeftColor: isSelected ? `hsl(var(--scheme-ll-graph-bg))` : `hsl(var(--scheme-ll-graph-bg))`
                               }}
                             />
-                            <div className="font-bold text-sm mb-1">
+                            <div className="font-bold text-sm mb-1 text-[hsl(var(--scheme-ll-entry-title))]">
                               {entry.is_fan_contributed && (
                                 <Star className="inline-block h-3 w-3 mr-1 fill-yellow-400 text-yellow-400" />
                               )}
                               {entry.title}
                             </div>
-                            <div className="text-xs text-gray-600 line-clamp-2">
+                            <div className="text-xs text-[hsl(var(--scheme-cards-text))] line-clamp-2">
                               {entry.summary || entry.details}
                             </div>
                           </div>
@@ -433,8 +437,8 @@ export function LifelineViewer({
 
           {/* Right side - Details - Full width on mobile */}
           {selected && (
-            <Card className="shadow-lg flex flex-col h-full overflow-hidden lg:col-span-1 col-span-1 lg:mx-0 mx-0">
-              <CardHeader className="bg-muted/50 rounded-t-xl flex-shrink-0 lg:p-6 p-1">
+            <Card className="shadow-lg flex flex-col h-full overflow-hidden lg:col-span-1 col-span-1 lg:mx-0 mx-0 bg-[hsl(var(--scheme-ll-graph-bg))] border-[hsl(var(--scheme-nav-bg))]">
+              <CardHeader className="bg-[hsl(var(--scheme-nav-bg))] rounded-t-xl flex-shrink-0 lg:p-6 p-1">
                 {/* Navigation buttons at very top */}
                 <div className="grid grid-cols-3 items-center mb-1 lg:mb-4 gap-1 lg:gap-2">
                   <div className="justify-self-start">
@@ -443,12 +447,12 @@ export function LifelineViewer({
                       size="sm"
                       onClick={handlePrevious}
                       disabled={currentIndex === 0}
-                      className="w-[100px] lg:w-[100px] md:w-[80px] sm:w-[70px] text-xs lg:text-sm px-2"
+                      className="w-[100px] lg:w-[100px] md:w-[80px] sm:w-[70px] text-xs lg:text-sm px-2 bg-[hsl(var(--scheme-nav-button))] hover:bg-[hsl(var(--scheme-nav-button)/.8)] text-[hsl(var(--scheme-nav-text))] border-[hsl(var(--scheme-nav-button))]"
                     >
                       ← Previous
                     </Button>
                   </div>
-                  <div className="text-xs lg:text-sm font-semibold text-center">
+                  <div className="text-xs lg:text-sm font-semibold text-center text-[hsl(var(--scheme-nav-text))]">
                     Entry {currentIndex + 1} of {entries.length}
                   </div>
                   <div className="justify-self-end">
@@ -456,7 +460,7 @@ export function LifelineViewer({
                       size="sm"
                       onClick={handleNext}
                       disabled={currentIndex === (entries?.length || 0) - 1}
-                      className="w-[100px] lg:w-[100px] md:w-[80px] sm:w-[70px] text-xs lg:text-sm px-2"
+                      className="w-[100px] lg:w-[100px] md:w-[80px] sm:w-[70px] text-xs lg:text-sm px-2 bg-[hsl(var(--scheme-nav-button))] hover:bg-[hsl(var(--scheme-nav-button)/.8)] text-[hsl(var(--scheme-nav-text))] border-[hsl(var(--scheme-nav-button))]"
                     >
                       Next →
                     </Button>
@@ -471,10 +475,10 @@ export function LifelineViewer({
                       </AvatarFallback>
                     </Avatar>
                     <div>
-                      <CardTitle className="text-base leading-tight text-[hsl(var(--scheme-ll-display-title))]">
+                      <CardTitle className="text-base leading-tight text-[hsl(var(--scheme-nav-text))]">
                         {lifeline.profiles?.display_name || "Unknown"}
                       </CardTitle>
-                      <p className="text-xs text-[hsl(var(--scheme-card-text))] opacity-70">
+                      <p className="text-xs text-[hsl(var(--scheme-nav-text))] opacity-70">
                         Entry details
                       </p>
                     </div>
@@ -506,20 +510,20 @@ export function LifelineViewer({
                 )}
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1">
-                    <h2 className="text-2xl font-bold text-[hsl(var(--scheme-ll-display-title))]">
+                    <h2 className="text-2xl font-bold text-[hsl(var(--scheme-title-text))]">
                       {selected.title}
                     </h2>
                   </div>
                 </div>
-                <p className="leading-relaxed text-[hsl(var(--scheme-card-text))]">
+                <p className="leading-relaxed text-[hsl(var(--scheme-cards-text))]">
                   {selected.summary || selected.details}
                 </p>
                  {selected.is_fan_contributed && selected.user_profile && (
-                   <p className="text-sm italic text-[hsl(var(--scheme-card-text))] opacity-70">
+                   <p className="text-sm italic text-[hsl(var(--scheme-cards-text))] opacity-70">
                       Credit: Created by{" "}
                       <Link
                         to="/top-contributors"
-                        className="underline hover:opacity-80 transition-opacity text-[hsl(var(--scheme-card-text))]"
+                        className="underline hover:opacity-80 transition-opacity text-[hsl(var(--scheme-cards-text))]"
                       >
                         {selected.user_profile.first_name}{" "}
                         {selected.user_profile.last_name}
