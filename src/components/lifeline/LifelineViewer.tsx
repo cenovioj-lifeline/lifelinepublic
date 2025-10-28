@@ -512,6 +512,10 @@ export function LifelineViewer({
                                   transform: `scale(${media.scale ?? 1})`,
                                   transformOrigin: 'center'
                                 }}
+                                onError={(e) => {
+                                  e.currentTarget.src = '/placeholder.svg';
+                                  e.currentTarget.alt = 'Image failed to load';
+                                }}
                               />
                             </div>
                           </CarouselItem>

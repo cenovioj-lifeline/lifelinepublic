@@ -70,22 +70,32 @@ export function SuperFanImageUpload({ entryId, onUploadComplete }: SuperFanImage
 
     setUploading(true);
     try {
-      const response = await fetch(imageUrl);
-      if (!response.ok) throw new Error("Failed to fetch image");
+      // Call the backend function to import the image
+      const { data, error } = await supabase.functions.invoke('import-image-from-url', {
+        body: {
+          entryId,
+          imageUrl: imageUrl.trim(),
+          altText: '',
+          orderIndex: 0,
+          position: {
+            x: 50,
+            y: 50,
+            scale: 1.0,
+          },
+        },
+      });
 
-      const blob = await response.blob();
-      if (!blob.type.startsWith('image/')) {
-        throw new Error("URL does not point to an image");
+      if (error) {
+        throw new Error(error.message || 'Failed to import image');
       }
 
-      const filename = imageUrl.split('/').pop() || 'image.jpg';
-      const file = new File([blob], filename, { type: blob.type });
-
-      await handleImageFile(file);
-      setImageUrl("");
+      toast.success('Image imported successfully');
+      setImageUrl('');
+      onUploadComplete();
     } catch (error) {
-      console.error("URL load error:", error);
-      toast.error("Failed to load image from URL");
+      console.error('Error loading image from URL:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to load image from URL');
+    } finally {
       setUploading(false);
     }
   };
