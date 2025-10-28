@@ -258,7 +258,7 @@ export function LifelineViewer({
         <div className="lg:hidden bg-[hsl(var(--scheme-ll-graph-bg))] rounded-lg mb-1 overflow-x-auto py-1 px-0 flex-shrink-0" style={{ minHeight: '80px' }}>
           <div className="flex items-center justify-center relative" style={{ minWidth: 'fit-content', height: '80px' }}>
             {/* Centerline */}
-            <div className="absolute top-1/2 left-0 right-0 h-[2px] bg-gray-300 -translate-y-1/2 z-0" />
+            <div className="absolute top-1/2 left-0 right-0 h-[2px] -translate-y-1/2 z-0" style={{ backgroundColor: '#565D6D' }} />
             {/* Bars */}
             <div className="flex items-end gap-1 h-full relative z-10">
               {entries.map((entry) => {
@@ -302,7 +302,7 @@ export function LifelineViewer({
             className="hidden lg:block bg-[hsl(var(--scheme-ll-graph-bg))] border border-[hsl(var(--scheme-nav-bg))] rounded-lg p-5 overflow-y-auto h-full"
             style={{
               scrollbarWidth: 'thin',
-              scrollbarColor: `${positiveColor} #f0f0f0`
+              scrollbarColor: '#565D6D #f0f0f0'
             }}
           >
             <div className="relative min-h-full">
@@ -327,7 +327,7 @@ export function LifelineViewer({
                     {positive ? (
                       <>
                         {/* Left column - Score box at left end, stem extends to center */}
-                        <div className="flex items-center justify-end border-r-2 border-gray-200 pr-0 py-3">
+                        <div className="flex items-center justify-end border-r-2 pr-0 py-3" style={{ borderColor: '#565D6D' }}>
                           <div className="flex items-center justify-end" style={{ width: `${stemWidthPercent}%` }}>
                             {/* Score box at left end - square on right side */}
                             <div
@@ -379,7 +379,7 @@ export function LifelineViewer({
                     ) : (
                       <>
                         {/* Left column - Chat bubble */}
-                        <div className="flex items-center justify-end pr-4 border-r-2 border-gray-200 py-3">
+                        <div className="flex items-center justify-end pr-4 border-r-2 py-3" style={{ borderColor: '#565D6D' }}>
                           <div
                             className={cn(
                               "relative bg-white rounded-2xl px-4 py-3 max-w-[90%] transition-all duration-300",
