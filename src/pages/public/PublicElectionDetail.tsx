@@ -11,8 +11,10 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { ChevronDown } from "lucide-react";
 import { PublicLayout } from "@/components/PublicLayout";
 import { FavoriteButton } from "@/components/FavoriteButton";
+import { useColorScheme } from "@/hooks/useColorScheme";
 
 export default function PublicElectionDetail() {
+  useColorScheme();
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
 
@@ -234,20 +236,20 @@ export default function PublicElectionDetail() {
                   open={openCategories[category] ?? true}
                   onOpenChange={(open) => setOpenCategories(prev => ({ ...prev, [category]: open }))}
                 >
-                  <Card>
+                  <Card style={{ backgroundColor: 'hsl(var(--scheme-card-bg))', borderColor: 'hsl(var(--scheme-card-border))' }}>
                     <CollapsibleTrigger className="w-full">
                       <div className="flex items-center justify-between p-4 hover:bg-muted/50 transition-colors">
                         <div className="flex items-center gap-3">
-                          <Sparkles className="h-5 w-5 text-primary flex-shrink-0" />
-                          <h2 className="text-lg sm:text-xl font-bold text-primary text-left">
+                          <Sparkles className="h-5 w-5 flex-shrink-0" style={{ color: 'hsl(var(--scheme-actions-icon))' }} />
+                          <h2 className="text-lg sm:text-xl font-bold text-left" style={{ color: 'hsl(var(--scheme-card-text))' }}>
                             {category}
                           </h2>
                         </div>
                         <div className="flex items-center gap-2">
-                          <Badge variant="secondary" className="text-xs">
+                          <Badge variant="secondary" className="text-xs" style={{ backgroundColor: 'hsl(var(--scheme-actions-bg))', color: 'hsl(var(--scheme-actions-text))' }}>
                             {categoryResults.length}
                           </Badge>
-                          <ChevronDown className={`h-5 w-5 transition-transform ${openCategories[category] ? 'rotate-180' : ''}`} />
+                          <ChevronDown className={`h-5 w-5 transition-transform ${openCategories[category] ? 'rotate-180' : ''}`} style={{ color: 'hsl(var(--scheme-actions-icon))' }} />
                         </div>
                       </div>
                     </CollapsibleTrigger>
@@ -258,25 +260,26 @@ export default function PublicElectionDetail() {
                           <Card 
                             key={result.id} 
                             className="overflow-hidden hover:shadow-md transition-all animate-fade-in"
+                            style={{ backgroundColor: 'hsl(var(--scheme-card-bg))', borderColor: 'hsl(var(--scheme-card-border))' }}
                           >
-                            <CardContent className="p-4">
+                            <CardContent className="p-4" style={{ backgroundColor: 'hsl(var(--scheme-card-bg))' }}>
                               <div className="flex items-start gap-3">
                                 {result.profiles && result.profiles.length > 0 && result.profiles[0]?.avatar?.url ? (
-                                  <Avatar className="h-14 w-14 sm:h-16 sm:w-16 border-2 border-primary/20 flex-shrink-0">
+                                  <Avatar className="h-14 w-14 sm:h-16 sm:w-16 border-2 flex-shrink-0" style={{ borderColor: 'hsl(var(--scheme-card-border))' }}>
                                     <AvatarImage src={result.profiles[0].avatar.url} />
-                                    <AvatarFallback className="text-lg sm:text-xl font-bold">
+                                    <AvatarFallback className="text-lg sm:text-xl font-bold" style={{ backgroundColor: 'hsl(var(--scheme-actions-bg))', color: 'hsl(var(--scheme-actions-icon))' }}>
                                       {(result.profiles[0].display_name || result.winner_name || "?")[0]}
                                     </AvatarFallback>
                                   </Avatar>
                                 ) : (
-                                  <div className="h-14 w-14 sm:h-16 sm:w-16 rounded-full bg-primary/10 flex items-center justify-center text-xl sm:text-2xl font-bold text-primary border-2 border-primary/20 flex-shrink-0">
+                                  <div className="h-14 w-14 sm:h-16 sm:w-16 rounded-full flex items-center justify-center text-xl sm:text-2xl font-bold border-2 flex-shrink-0" style={{ backgroundColor: 'hsl(var(--scheme-actions-bg))', color: 'hsl(var(--scheme-actions-icon))', borderColor: 'hsl(var(--scheme-card-border))' }}>
                                     {(result.profiles?.[0]?.display_name || result.winner_name || "?")[0]}
                                   </div>
                                 )}
                                 
                                 <div className="flex-1 min-w-0 space-y-2">
                                   {result.category && (
-                                    <h3 className="text-lg sm:text-xl font-bold line-clamp-2">
+                                    <h3 className="text-lg sm:text-xl font-bold line-clamp-2" style={{ color: 'hsl(var(--scheme-card-text))' }}>
                                       {result.category}
                                     </h3>
                                   )}
@@ -287,29 +290,32 @@ export default function PublicElectionDetail() {
                                         <button
                                           key={idx}
                                           onClick={() => navigate(`/public/profiles/${profile.slug}`)}
-                                          className="text-sm sm:text-base text-muted-foreground hover:text-primary hover:underline transition-colors text-left"
+                                          className="text-sm sm:text-base hover:underline transition-colors text-left"
+                                          style={{ color: 'hsl(var(--scheme-card-text))' }}
+                                          onMouseEnter={(e) => (e.currentTarget.style.color = 'hsl(var(--scheme-actions-icon))')}
+                                          onMouseLeave={(e) => (e.currentTarget.style.color = 'hsl(var(--scheme-card-text))')}
                                         >
                                           {profile.display_name}{idx < result.profiles.length - 1 ? ',' : ''}
                                         </button>
                                       ))}
                                     </div>
                                   ) : result.winner_name ? (
-                                    <p className="text-sm sm:text-base text-muted-foreground">
+                                    <p className="text-sm sm:text-base" style={{ color: 'hsl(var(--scheme-card-text))' }}>
                                       {result.winner_name}
                                     </p>
                                   ) : null}
 
                                   {(result.vote_count || result.percentage) && (
-                                    <div className="flex items-center gap-4 text-sm bg-muted/50 rounded-lg p-2">
+                                    <div className="flex items-center gap-4 text-sm rounded-lg p-2" style={{ backgroundColor: 'hsl(var(--scheme-actions-bg))' }}>
                                       {result.percentage && (
                                         <div className="flex items-center gap-1">
-                                          <span className="text-base sm:text-lg font-bold text-primary">
+                                          <span className="text-base sm:text-lg font-bold" style={{ color: 'hsl(var(--scheme-actions-icon))' }}>
                                             {result.percentage}%
                                           </span>
                                         </div>
                                       )}
                                       {result.vote_count && (
-                                        <div className="text-muted-foreground">
+                                        <div style={{ color: 'hsl(var(--scheme-actions-text))' }}>
                                           {result.vote_count.toLocaleString()} votes
                                         </div>
                                       )}

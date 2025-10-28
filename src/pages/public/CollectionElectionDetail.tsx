@@ -11,10 +11,25 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { ChevronDown } from "lucide-react";
 import { CollectionLayout } from "@/components/CollectionLayout";
 import { FavoriteButton } from "@/components/FavoriteButton";
+import { useColorScheme } from "@/hooks/useColorScheme";
 
 export default function CollectionElectionDetail() {
   const { collectionSlug, electionSlug } = useParams<{ collectionSlug: string; electionSlug: string }>();
   const navigate = useNavigate();
+  
+  const { data: collection } = useQuery({
+    queryKey: ["collection", collectionSlug],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("collections")
+        .select("id")
+        .eq("slug", collectionSlug)
+        .single();
+      return data;
+    },
+  });
+  
+  useColorScheme(collection?.id);
 
   const { data: election, isLoading } = useQuery({
     queryKey: ["collection-election", collectionSlug, electionSlug],
@@ -199,53 +214,13 @@ export default function CollectionElectionDetail() {
     );
   }
 
-  const collection = election.collections as any;
-  
-  const getDarkestColor = () => {
-    if (!collection) return '#000000';
-    
-    const colors = [
-      collection.primary_color,
-      collection.secondary_color,
-      collection.web_primary,
-      collection.web_secondary,
-      collection.menu_text_color,
-      collection.menu_hover_color,
-      collection.menu_active_color
-    ].filter(Boolean);
-    
-    const getLuminance = (hex: string) => {
-      const rgb = parseInt(hex.replace('#', ''), 16);
-      const r = (rgb >> 16) & 0xff;
-      const g = (rgb >> 8) & 0xff;
-      const b = (rgb >> 0) & 0xff;
-      return 0.299 * r + 0.587 * g + 0.114 * b;
-    };
-    
-    let darkest = '#000000';
-    let minLuminance = 255;
-    
-    colors.forEach(color => {
-      const luminance = getLuminance(color);
-      if (luminance < minLuminance) {
-        minLuminance = luminance;
-        darkest = color;
-      }
-    });
-    
-    return darkest;
-  };
-  
-  const darkestColor = getDarkestColor();
-  const badgeColor = collection?.web_primary || collection?.primary_color;
-  const accentColor = collection?.menu_hover_color || collection?.secondary_color;
-  const borderColor = collection?.menu_active_color || collection?.primary_color;
+  const collectionData = election.collections as any;
 
   return (
     <CollectionLayout
-      collectionTitle={collection.title}
-      collectionSlug={collection.slug}
-      collectionId={collection.id}
+      collectionTitle={collectionData.title}
+      collectionSlug={collectionData.slug}
+      collectionId={collectionData.id}
     >
       <div className="min-h-screen bg-background">
         <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-b">
@@ -254,9 +229,9 @@ export default function CollectionElectionDetail() {
               <FavoriteButton itemId={election.id} itemType="election" />
             </div>
             <div className="flex items-center gap-3">
-              <Trophy className="h-8 w-8 flex-shrink-0" style={{ color: accentColor }} />
+              <Trophy className="h-8 w-8 flex-shrink-0" style={{ color: 'hsl(var(--scheme-actions-icon))' }} />
               <div className="flex-1 min-w-0">
-                <h1 className="text-lg sm:text-xl md:text-2xl font-bold truncate" style={{ color: darkestColor }}>
+                <h1 className="text-lg sm:text-xl md:text-2xl font-bold truncate" style={{ color: 'hsl(var(--scheme-card-text))' }}>
                   {election.title}
                 </h1>
                 {election.description && (
@@ -273,9 +248,9 @@ export default function CollectionElectionDetail() {
                     variant="secondary" 
                     className="text-xs"
                     style={{ 
-                      backgroundColor: `${badgeColor}20`,
-                      color: badgeColor,
-                      borderColor: badgeColor
+                      backgroundColor: 'hsl(var(--scheme-actions-bg))',
+                      color: 'hsl(var(--scheme-actions-text))',
+                      borderColor: 'hsl(var(--scheme-actions-border))'
                     }}
                   >
                     {election.collections.title}
@@ -287,8 +262,8 @@ export default function CollectionElectionDetail() {
                     variant="outline" 
                     className="text-xs"
                     style={{ 
-                      borderColor: accentColor,
-                      color: accentColor
+                      borderColor: 'hsl(var(--scheme-actions-border))',
+                      color: 'hsl(var(--scheme-actions-text))'
                     }}
                   >
                     {et.tags.name}
@@ -315,12 +290,12 @@ export default function CollectionElectionDetail() {
                   open={openCategories[category] ?? true}
                   onOpenChange={(open) => setOpenCategories(prev => ({ ...prev, [category]: open }))}
                 >
-                  <Card>
+                  <Card style={{ backgroundColor: 'hsl(var(--scheme-card-bg))', borderColor: 'hsl(var(--scheme-card-border))' }}>
                     <CollapsibleTrigger className="w-full">
                       <div className="flex items-center justify-between p-4 hover:bg-muted/50 transition-colors">
                         <div className="flex items-center gap-3">
-                          <Sparkles className="h-5 w-5 flex-shrink-0" style={{ color: accentColor }} />
-                          <h2 className="text-lg sm:text-xl font-bold text-left" style={{ color: darkestColor }}>
+                          <Sparkles className="h-5 w-5 flex-shrink-0" style={{ color: 'hsl(var(--scheme-actions-icon))' }} />
+                          <h2 className="text-lg sm:text-xl font-bold text-left" style={{ color: 'hsl(var(--scheme-card-text))' }}>
                             {category}
                           </h2>
                         </div>
@@ -329,15 +304,15 @@ export default function CollectionElectionDetail() {
                             variant="secondary" 
                             className="text-xs"
                             style={{ 
-                              backgroundColor: `${badgeColor}20`,
-                              color: badgeColor
+                              backgroundColor: 'hsl(var(--scheme-actions-bg))',
+                              color: 'hsl(var(--scheme-actions-text))'
                             }}
                           >
                             {categoryResults.length}
                           </Badge>
                           <ChevronDown 
                             className={`h-5 w-5 transition-transform ${openCategories[category] ? 'rotate-180' : ''}`}
-                            style={{ color: accentColor }}
+                            style={{ color: 'hsl(var(--scheme-actions-icon))' }}
                           />
                         </div>
                       </div>
@@ -348,21 +323,22 @@ export default function CollectionElectionDetail() {
                         {categoryResults.map((result: any) => (
                           <Card 
                             key={result.id} 
-                            className="overflow-hidden hover:shadow-md transition-all animate-fade-in bg-white rounded-lg"
+                            className="overflow-hidden hover:shadow-md transition-all animate-fade-in rounded-lg"
+                            style={{ backgroundColor: 'hsl(var(--scheme-card-bg))', borderColor: 'hsl(var(--scheme-card-border))' }}
                           >
-                            <CardContent className="p-4 bg-white rounded-lg">
+                            <CardContent className="p-4 rounded-lg" style={{ backgroundColor: 'hsl(var(--scheme-card-bg))' }}>
                               <div className="flex items-start gap-3">
                                 {result.profiles && result.profiles.length > 0 && result.profiles[0]?.avatar?.url ? (
                                   <Avatar 
                                     className="h-14 w-14 sm:h-16 sm:w-16 border-2 flex-shrink-0"
-                                    style={{ borderColor: `${borderColor}40` }}
+                                    style={{ borderColor: 'hsl(var(--scheme-card-border))' }}
                                   >
                                     <AvatarImage src={result.profiles[0].avatar.url} />
                                     <AvatarFallback 
                                       className="text-lg sm:text-xl font-bold"
                                       style={{ 
-                                        backgroundColor: `${accentColor}20`,
-                                        color: accentColor
+                                        backgroundColor: 'hsl(var(--scheme-actions-bg))',
+                                        color: 'hsl(var(--scheme-actions-icon))'
                                       }}
                                     >
                                       {(result.profiles[0].display_name || result.winner_name || "?")[0]}
@@ -372,9 +348,9 @@ export default function CollectionElectionDetail() {
                                   <div 
                                     className="h-14 w-14 sm:h-16 sm:w-16 rounded-full flex items-center justify-center text-xl sm:text-2xl font-bold border-2 flex-shrink-0"
                                     style={{ 
-                                      backgroundColor: `${accentColor}20`,
-                                      color: accentColor,
-                                      borderColor: `${borderColor}40`
+                                      backgroundColor: 'hsl(var(--scheme-actions-bg))',
+                                      color: 'hsl(var(--scheme-actions-icon))',
+                                      borderColor: 'hsl(var(--scheme-card-border))'
                                     }}
                                   >
                                     {(result.profiles?.[0]?.display_name || result.winner_name || "?")[0]}
@@ -383,7 +359,7 @@ export default function CollectionElectionDetail() {
                                 
                                 <div className="flex-1 min-w-0 space-y-2">
                                   {result.category && (
-                                    <h3 className="text-lg sm:text-xl font-bold line-clamp-2" style={{ color: darkestColor }}>
+                                    <h3 className="text-lg sm:text-xl font-bold line-clamp-2" style={{ color: 'hsl(var(--scheme-card-text))' }}>
                                       {result.category}
                                     </h3>
                                   )}
@@ -395,34 +371,31 @@ export default function CollectionElectionDetail() {
                                           key={idx}
                                           onClick={() => navigate(`/public/collections/${collectionSlug}/profiles/${profile.slug}`)}
                                           className="text-sm sm:text-base hover:underline transition-colors text-left"
-                                          style={{ 
-                                            ['--hover-color' as any]: accentColor,
-                                            color: darkestColor
-                                          }}
-                                          onMouseEnter={(e) => (e.currentTarget.style.color = accentColor)}
-                                          onMouseLeave={(e) => (e.currentTarget.style.color = darkestColor)}
+                                          style={{ color: 'hsl(var(--scheme-card-text))' }}
+                                          onMouseEnter={(e) => (e.currentTarget.style.color = 'hsl(var(--scheme-actions-icon))')}
+                                          onMouseLeave={(e) => (e.currentTarget.style.color = 'hsl(var(--scheme-card-text))')}
                                         >
                                           {profile.display_name}{idx < result.profiles.length - 1 ? ',' : ''}
                                         </button>
                                       ))}
                                     </div>
                                   ) : result.winner_name ? (
-                                    <p className="text-sm sm:text-base" style={{ color: darkestColor }}>
+                                    <p className="text-sm sm:text-base" style={{ color: 'hsl(var(--scheme-card-text))' }}>
                                       {result.winner_name}
                                     </p>
                                   ) : null}
 
                                   {(result.vote_count || result.percentage) && (
-                                    <div className="flex items-center gap-4 text-sm bg-muted/50 rounded-lg p-2">
+                                    <div className="flex items-center gap-4 text-sm rounded-lg p-2" style={{ backgroundColor: 'hsl(var(--scheme-actions-bg))' }}>
                                       {result.percentage && (
                                         <div className="flex items-center gap-1">
-                                          <span className="text-base sm:text-lg font-bold" style={{ color: accentColor }}>
+                                          <span className="text-base sm:text-lg font-bold" style={{ color: 'hsl(var(--scheme-actions-icon))' }}>
                                             {result.percentage}%
                                           </span>
                                         </div>
                                       )}
                                       {result.vote_count && (
-                                        <div className="text-muted-foreground">
+                                        <div style={{ color: 'hsl(var(--scheme-actions-text))' }}>
                                           {result.vote_count.toLocaleString()} votes
                                         </div>
                                       )}
