@@ -338,11 +338,11 @@ export default function PublicCollectionDetail() {
                     to={`/public/collections/${collection.slug}/lifelines/${lifeline.slug}`}
                     className="group"
                   >
-                    <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full" style={{ backgroundColor: 'hsl(var(--scheme-card-bg))', borderColor: 'hsl(var(--scheme-card-border))' }}>
+                    <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
                       <div className="absolute top-2 right-2 z-10">
                         <FavoriteButton itemId={lifeline.id} itemType="lifeline" />
                       </div>
-                      <div className="aspect-video relative bg-muted overflow-hidden">
+                      <div className="aspect-video relative bg-white overflow-hidden">
                         {lifeline.cover_image_url ? (
                           <img
                             src={lifeline.cover_image_url}
@@ -353,18 +353,18 @@ export default function PublicCollectionDetail() {
                             }}
                           />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center" style={{ color: 'hsl(var(--scheme-cards-text))' }}>
+                          <div className="w-full h-full flex items-center justify-center text-gray-400">
                             No image
                           </div>
                         )}
                       </div>
-                      <CardHeader>
-                        <CardTitle className="text-lg transition-colors" style={{ color: 'hsl(var(--scheme-card-text))' }}>
+                      <CardHeader className="bg-[hsl(var(--scheme-card-bg))]">
+                        <CardTitle className="text-lg transition-colors text-[hsl(var(--scheme-card-text))]">
                           {lifeline.title}
                         </CardTitle>
                       </CardHeader>
-                      <CardContent>
-                        <p className="text-sm line-clamp-2" style={{ color: 'hsl(var(--scheme-cards-text))' }}>
+                      <CardContent className="bg-[hsl(var(--scheme-card-bg))]">
+                        <p className="text-sm line-clamp-2 text-[hsl(var(--scheme-cards-text))]">
                           {lifeline.subtitle || lifeline.intro || "Explore this lifeline"}
                         </p>
                       </CardContent>
@@ -387,11 +387,11 @@ export default function PublicCollectionDetail() {
                         to={`/public/collections/${collection.slug}/lifelines/${lifeline.slug}`}
                         className="group block h-full"
                       >
-                        <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full" style={{ backgroundColor: 'hsl(var(--scheme-card-bg))', borderColor: 'hsl(var(--scheme-card-border))' }}>
+                        <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
                           <div className="absolute top-2 right-2 z-10">
                             <FavoriteButton itemId={lifeline.id} itemType="lifeline" />
                           </div>
-                          <div className="aspect-video relative bg-muted overflow-hidden">
+                          <div className="aspect-video relative bg-white overflow-hidden">
                             {lifeline.cover_image_url ? (
                               <img
                                 src={lifeline.cover_image_url}
@@ -402,18 +402,18 @@ export default function PublicCollectionDetail() {
                                 }}
                               />
                             ) : (
-                              <div className="w-full h-full flex items-center justify-center" style={{ color: 'hsl(var(--scheme-cards-text))' }}>
+                              <div className="w-full h-full flex items-center justify-center text-gray-400">
                                 No image
                               </div>
                             )}
                           </div>
-                          <CardHeader>
-                            <CardTitle className="text-lg transition-colors" style={{ color: 'hsl(var(--scheme-card-text))' }}>
+                          <CardHeader className="bg-[hsl(var(--scheme-card-bg))]">
+                            <CardTitle className="text-lg transition-colors text-[hsl(var(--scheme-card-text))]">
                               {lifeline.title}
                             </CardTitle>
                           </CardHeader>
-                          <CardContent>
-                            <p className="text-sm line-clamp-2" style={{ color: 'hsl(var(--scheme-cards-text))' }}>
+                          <CardContent className="bg-[hsl(var(--scheme-card-bg))]">
+                            <p className="text-sm line-clamp-2 text-[hsl(var(--scheme-cards-text))]">
                               {lifeline.subtitle || lifeline.intro || "Explore this lifeline"}
                             </p>
                           </CardContent>
@@ -450,8 +450,8 @@ export default function PublicCollectionDetail() {
                     to={`/public/collections/${collection.slug}/profiles/${profile.slug}`}
                     className="group"
                   >
-                    <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full">
-                      <div className="aspect-video relative bg-muted overflow-hidden">
+                    <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
+                      <div className="aspect-video relative bg-white overflow-hidden">
                         {profile.avatar_image?.url ? (
                           <img
                             src={profile.avatar_image.url}
@@ -462,18 +462,18 @@ export default function PublicCollectionDetail() {
                             }}
                           />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center" style={{ color: 'hsl(var(--scheme-cards-text))' }}>
+                          <div className="w-full h-full flex items-center justify-center text-gray-400">
                             No image
                           </div>
                         )}
                       </div>
-                      <CardHeader>
-                        <CardTitle className="text-lg transition-colors" style={{ color: 'hsl(var(--scheme-card-text))' }}>
+                      <CardHeader className="bg-[hsl(var(--scheme-card-bg))]">
+                        <CardTitle className="text-lg transition-colors text-[hsl(var(--scheme-card-text))]">
                           {profile.display_name}
                         </CardTitle>
                       </CardHeader>
-                      <CardContent>
-                        <p className="text-sm line-clamp-2" style={{ color: 'hsl(var(--scheme-cards-text))' }}>
+                      <CardContent className="bg-[hsl(var(--scheme-card-bg))]">
+                        <p className="text-sm line-clamp-2 text-[hsl(var(--scheme-cards-text))]">
                           {profile.summary || "View this profile"}
                         </p>
                       </CardContent>
@@ -496,8 +496,8 @@ export default function PublicCollectionDetail() {
                         to={`/public/collections/${collection.slug}/profiles/${profile.slug}`}
                         className="group block h-full"
                       >
-                        <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full">
-                          <div className="aspect-video relative bg-muted overflow-hidden">
+                        <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
+                          <div className="aspect-video relative bg-white overflow-hidden">
                             {profile.avatar_image?.url ? (
                               <img
                                 src={profile.avatar_image.url}
@@ -508,18 +508,18 @@ export default function PublicCollectionDetail() {
                                 }}
                               />
                             ) : (
-                              <div className="w-full h-full flex items-center justify-center" style={{ color: 'hsl(var(--scheme-cards-text))' }}>
+                              <div className="w-full h-full flex items-center justify-center text-gray-400">
                                 No image
                               </div>
                             )}
                           </div>
-                          <CardHeader>
-                            <CardTitle className="text-lg transition-colors" style={{ color: 'hsl(var(--scheme-card-text))' }}>
+                          <CardHeader className="bg-[hsl(var(--scheme-card-bg))]">
+                            <CardTitle className="text-lg transition-colors text-[hsl(var(--scheme-card-text))]">
                               {profile.display_name}
                             </CardTitle>
                           </CardHeader>
-                          <CardContent>
-                            <p className="text-sm line-clamp-2" style={{ color: 'hsl(var(--scheme-cards-text))' }}>
+                          <CardContent className="bg-[hsl(var(--scheme-card-bg))]">
+                            <p className="text-sm line-clamp-2 text-[hsl(var(--scheme-cards-text))]">
                               {profile.summary || "View this profile"}
                             </p>
                           </CardContent>

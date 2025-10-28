@@ -236,8 +236,8 @@ export default function Home() {
                   to={`/public/lifelines/${item.slug}`}
                   className="group relative"
                 >
-                  <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full" style={{ backgroundColor: 'hsl(var(--scheme-card-bg))', borderColor: 'hsl(var(--scheme-card-border))' }}>
-                    <div className="aspect-video relative overflow-hidden" style={{ backgroundColor: 'hsl(var(--scheme-ll-display-bg))' }}>
+                  <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
+                    <div className="aspect-video relative overflow-hidden bg-white">
                       {item.cover_image_url ? (
                         <img
                           src={item.cover_image_url}
@@ -248,18 +248,18 @@ export default function Home() {
                           }}
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center" style={{ color: 'hsl(var(--scheme-cards-text))' }}>
+                        <div className="w-full h-full flex items-center justify-center text-gray-400">
                           No image
                         </div>
                       )}
                     </div>
-                    <CardHeader>
-                      <CardTitle className="text-lg transition-colors" style={{ color: 'hsl(var(--scheme-card-text))' }}>
+                    <CardHeader className="bg-[hsl(var(--scheme-card-bg))]">
+                      <CardTitle className="text-lg transition-colors text-[hsl(var(--scheme-card-text))]">
                         {item.title}
                       </CardTitle>
                     </CardHeader>
-                    <CardContent>
-                      <p className="text-sm line-clamp-2" style={{ color: 'hsl(var(--scheme-cards-text))' }}>
+                    <CardContent className="bg-[hsl(var(--scheme-card-bg))]">
+                      <p className="text-sm line-clamp-2 text-[hsl(var(--scheme-cards-text))]">
                         {item.intro || "Explore this lifeline"}
                       </p>
                     </CardContent>
@@ -310,8 +310,8 @@ export default function Home() {
                   to={`/public/lifelines/${item.slug}`}
                   className="group relative"
                 >
-                  <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full" style={{ backgroundColor: 'hsl(var(--scheme-card-bg))', borderColor: 'hsl(var(--scheme-card-border))' }}>
-                    <div className="aspect-video relative overflow-hidden" style={{ backgroundColor: 'hsl(var(--scheme-ll-display-bg))' }}>
+                  <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
+                    <div className="aspect-video relative overflow-hidden bg-white">
                       {item.cover_image_url ? (
                         <img
                           src={item.cover_image_url}
@@ -322,18 +322,18 @@ export default function Home() {
                           }}
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center" style={{ color: 'hsl(var(--scheme-cards-text))' }}>
+                        <div className="w-full h-full flex items-center justify-center text-gray-400">
                           No image
                         </div>
                       )}
                     </div>
-                    <CardHeader>
-                      <CardTitle className="text-lg transition-colors" style={{ color: 'hsl(var(--scheme-card-text))' }}>
+                    <CardHeader className="bg-[hsl(var(--scheme-card-bg))]">
+                      <CardTitle className="text-lg transition-colors text-[hsl(var(--scheme-card-text))]">
                         {item.title}
                       </CardTitle>
                     </CardHeader>
-                    <CardContent>
-                      <p className="text-sm line-clamp-2" style={{ color: 'hsl(var(--scheme-cards-text))' }}>
+                    <CardContent className="bg-[hsl(var(--scheme-card-bg))]">
+                      <p className="text-sm line-clamp-2 text-[hsl(var(--scheme-cards-text))]">
                         {item.intro || "Explore this lifeline"}
                       </p>
                     </CardContent>
