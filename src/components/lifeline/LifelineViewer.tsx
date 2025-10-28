@@ -557,7 +557,9 @@ export function LifelineViewer({
         open={contributeDialogOpen}
         onOpenChange={setContributeDialogOpen}
         lifelineId={lifelineId}
-        lifelineTitle={lifeline.title}
+        lifelineTitle={lifeline?.title || ""}
+        contributePictureMode={contributePictureMode}
+        initialEntryId={contributePictureMode ? selectedId || undefined : undefined}
         onSignInRequired={() => {
           setContributeDialogOpen(false);
           setTimeout(() => setShowAuthModal(true), 0);

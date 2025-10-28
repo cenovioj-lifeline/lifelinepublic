@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import {
@@ -17,6 +17,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Trophy } from "lucide-react";
+import { uploadImage } from "@/lib/storage";
+import { Loader2 } from "lucide-react";
 
 interface ContributeEventDialogProps {
   open: boolean;
@@ -24,6 +26,8 @@ interface ContributeEventDialogProps {
   lifelineId: string;
   lifelineTitle: string;
   onSignInRequired: () => void;
+  contributePictureMode?: boolean;
+  initialEntryId?: string;
 }
 
 export function ContributeEventDialog({
@@ -32,12 +36,46 @@ export function ContributeEventDialog({
   lifelineId,
   lifelineTitle,
   onSignInRequired,
+  contributePictureMode = false,
+  initialEntryId,
 }: ContributeEventDialogProps) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [title, setTitle] = useState("");
   const [score, setScore] = useState("");
   const [description, setDescription] = useState("");
+  const [selectedEntryId, setSelectedEntryId] = useState(initialEntryId || "");
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
+
+  // Fetch entries for the lifeline when in picture mode
+  const { data: entries } = useQuery({
+    queryKey: ["lifeline-entries", lifelineId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("entries")
+        .select("id, title")
+        .eq("lifeline_id", lifelineId)
+        .order("order_index");
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: contributePictureMode && !!lifelineId,
+  });
+
+  // Reset form when dialog opens/closes or mode changes
+  useEffect(() => {
+    if (open) {
+      setSelectedEntryId(initialEntryId || "");
+    } else {
+      setTitle("");
+      setScore("");
+      setDescription("");
+      setImageFile(null);
+      setSelectedEntryId("");
+    }
+  }, [open, initialEntryId]);
 
   const submitMutation = useMutation({
     mutationFn: async () => {
@@ -46,15 +84,54 @@ export function ContributeEventDialog({
         throw new Error("Not authenticated");
       }
 
-      const { error } = await supabase.from("fan_contributions").insert({
-        user_id: user.id,
-        lifeline_id: lifelineId,
-        title,
-        score: score ? parseInt(score) : null,
-        description,
-      });
+      if (contributePictureMode) {
+        // Upload image first
+        if (!imageFile) {
+          throw new Error("Please select an image");
+        }
+        if (!selectedEntryId) {
+          throw new Error("Please select an event");
+        }
 
-      if (error) throw error;
+        setUploading(true);
+        const { url, path } = await uploadImage(imageFile);
+        
+        // Create media asset
+        const { data: mediaAsset, error: mediaError } = await supabase
+          .from("media_assets")
+          .insert({
+            url,
+            filename: imageFile.name,
+            type: "image",
+          })
+          .select()
+          .single();
+
+        if (mediaError) throw mediaError;
+
+        // Create contribution
+        const { error } = await supabase.from("fan_contributions").insert({
+          user_id: user.id,
+          lifeline_id: lifelineId,
+          contribution_type: "image",
+          entry_ref: selectedEntryId,
+          media_id: mediaAsset.id,
+        });
+
+        if (error) throw error;
+      } else {
+        // Event contribution
+        const { error } = await supabase.from("fan_contributions").insert({
+          user_id: user.id,
+          lifeline_id: lifelineId,
+          contribution_type: "event",
+          title,
+          score: score ? parseInt(score) : null,
+          description,
+        });
+
+        if (error) throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["user-contributions"] });
@@ -62,11 +139,15 @@ export function ContributeEventDialog({
       setTitle("");
       setScore("");
       setDescription("");
+      setImageFile(null);
+      setSelectedEntryId("");
+      setUploading(false);
       onOpenChange(false);
     },
     onError: (error) => {
+      setUploading(false);
       if (error.message !== "Not authenticated") {
-        toast.error("Failed to submit contribution");
+        toast.error(error.message || "Failed to submit contribution");
       }
     },
   });
@@ -96,67 +177,166 @@ export function ContributeEventDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl" style={{ backgroundColor: "#FFFFFF" }}>
         <DialogHeader>
-          <DialogTitle>Contribute a New Event</DialogTitle>
-          <DialogDescription>
-            Submit a new event for {lifelineTitle}. Your contribution will be reviewed by
-            our team.
+          <DialogTitle style={{ color: "#333333" }}>
+            {contributePictureMode ? "Add a Picture to an Event" : "Contribute a New Event"}
+          </DialogTitle>
+          <DialogDescription style={{ color: "#666666" }}>
+            {contributePictureMode 
+              ? `Submit an image for an event in ${lifelineTitle}. Your contribution will be reviewed by our team.`
+              : `Submit a new event for ${lifelineTitle}. Your contribution will be reviewed by our team.`
+            }
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
-          <Alert>
-            <Trophy className="h-4 w-4" />
-            <AlertDescription>
+          <Alert style={{ backgroundColor: "#F5F5F5", borderColor: "#E0E0E0" }}>
+            <Trophy className="h-4 w-4" style={{ color: "#333333" }} />
+            <AlertDescription style={{ color: "#333333" }}>
               We will be creating a Hall of Fame to showcase our most prolific contributors!
             </AlertDescription>
           </Alert>
           
           <div>
-            <Label htmlFor="title">Event Title *</Label>
+            <Label htmlFor="lifeline" style={{ color: "#333333" }}>
+              {contributePictureMode ? "Lifeline" : "Contributing to Lifeline"}
+            </Label>
             <Input
-              id="title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Enter event title"
-              required
+              id="lifeline"
+              value={lifelineTitle}
+              disabled
+              style={{ 
+                backgroundColor: "#F5F5F5", 
+                color: "#666666",
+                cursor: "not-allowed"
+              }}
             />
           </div>
-          <div>
-            <Label htmlFor="score">Rating (optional)</Label>
-            <Select value={score} onValueChange={setScore}>
-              <SelectTrigger id="score">
-                <SelectValue placeholder="Select a rating" />
-              </SelectTrigger>
-              <SelectContent>
-                {Array.from({ length: 21 }, (_, i) => i - 10).map((value) => (
-                  <SelectItem key={value} value={value.toString()}>
-                    {value > 0 ? `+${value}` : value}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <Label htmlFor="description">Description *</Label>
-            <Textarea
-              id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Describe the event..."
-              rows={5}
-              required
-            />
-          </div>
+
+          {contributePictureMode ? (
+            <>
+              <div>
+                <Label htmlFor="event-select" style={{ color: "#333333" }}>Select Event *</Label>
+                <Select value={selectedEntryId} onValueChange={setSelectedEntryId}>
+                  <SelectTrigger id="event-select" style={{ backgroundColor: "#FFFFFF", color: "#333333" }}>
+                    <SelectValue placeholder="Choose an event..." />
+                  </SelectTrigger>
+                  <SelectContent style={{ backgroundColor: "#FFFFFF", zIndex: 9999 }}>
+                    {entries?.map((entry) => (
+                      <SelectItem 
+                        key={entry.id} 
+                        value={entry.id}
+                        style={{ color: "#333333" }}
+                      >
+                        {entry.title}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div>
+                <Label htmlFor="image-upload" style={{ color: "#333333" }}>Upload Image *</Label>
+                <div className="border-2 border-dashed rounded-lg p-8 text-center" style={{ borderColor: "#E0E0E0" }}>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => setImageFile(e.target.files?.[0] || null)}
+                    disabled={uploading}
+                    className="hidden"
+                    id="image-upload"
+                  />
+                  <label htmlFor="image-upload" className="cursor-pointer">
+                    {imageFile ? (
+                      <div className="flex flex-col items-center gap-2">
+                        <p className="text-sm" style={{ color: "#333333" }}>{imageFile.name}</p>
+                        <p className="text-xs" style={{ color: "#666666" }}>
+                          ({(imageFile.size / 1024 / 1024).toFixed(2)} MB)
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center gap-2">
+                        <p className="text-sm" style={{ color: "#666666" }}>Click to select an image</p>
+                        <p className="text-xs" style={{ color: "#999999" }}>
+                          Max 10MB
+                        </p>
+                      </div>
+                    )}
+                  </label>
+                </div>
+              </div>
+            </>
+          ) : (
+            <>
+              <div>
+                <Label htmlFor="title" style={{ color: "#333333" }}>Event Title *</Label>
+                <Input
+                  id="title"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="Enter event title"
+                  required
+                  style={{ backgroundColor: "#FFFFFF", color: "#333333" }}
+                />
+              </div>
+              <div>
+                <Label htmlFor="score" style={{ color: "#333333" }}>Rating (optional)</Label>
+                <Select value={score} onValueChange={setScore}>
+                  <SelectTrigger id="score" style={{ backgroundColor: "#FFFFFF", color: "#333333" }}>
+                    <SelectValue placeholder="Select a rating" />
+                  </SelectTrigger>
+                  <SelectContent style={{ backgroundColor: "#FFFFFF", zIndex: 9999 }}>
+                    {Array.from({ length: 21 }, (_, i) => i - 10).map((value) => (
+                      <SelectItem 
+                        key={value} 
+                        value={value.toString()}
+                        style={{ color: "#333333" }}
+                      >
+                        {value > 0 ? `+${value}` : value}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="description" style={{ color: "#333333" }}>Description *</Label>
+                <Textarea
+                  id="description"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Describe the event..."
+                  rows={5}
+                  required
+                  style={{ backgroundColor: "#FFFFFF", color: "#333333" }}
+                />
+              </div>
+            </>
+          )}
+          
           <div className="flex gap-2 justify-end">
-            <Button variant="outline" onClick={() => onOpenChange(false)}>
+            <Button 
+              variant="outline" 
+              onClick={() => onOpenChange(false)}
+              style={{ color: "#333333" }}
+            >
               Cancel
             </Button>
             <Button
               onClick={() => submitMutation.mutate()}
-              disabled={!title || !description || submitMutation.isPending}
+              disabled={
+                contributePictureMode 
+                  ? !selectedEntryId || !imageFile || submitMutation.isPending || uploading
+                  : !title || !description || submitMutation.isPending
+              }
             >
-              {submitMutation.isPending ? "Submitting..." : "Submit Contribution"}
+              {submitMutation.isPending || uploading ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  {uploading ? "Uploading..." : "Submitting..."}
+                </>
+              ) : (
+                "Submit Contribution"
+              )}
             </Button>
           </div>
         </div>
