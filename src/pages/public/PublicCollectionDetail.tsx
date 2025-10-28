@@ -264,14 +264,16 @@ export default function PublicCollectionDetail() {
             </CardContent>
           </Card>
           <Card
-            className="cursor-pointer hover:shadow-lg transition-shadow bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]"
+            className="cursor-pointer hover:shadow-lg transition-shadow"
+            style={{ backgroundColor: 'hsl(var(--scheme-ch-actions-bg))', borderColor: 'hsl(var(--scheme-ch-actions-border))' }}
             onClick={() => setShareModalOpen(true)}
           >
             <CardContent className="pt-6 text-center">
               <Share2
-                className="h-8 w-8 mx-auto mb-2 text-[hsl(var(--scheme-actions-icon))]"
+                className="h-8 w-8 mx-auto mb-2"
+                style={{ color: 'hsl(var(--scheme-ch-actions-icon))' }}
               />
-              <div className="text-sm text-[hsl(var(--scheme-card-text))] mt-1">Share</div>
+              <div className="text-sm mt-1" style={{ color: 'hsl(var(--scheme-ch-actions-text))' }}>Share</div>
             </CardContent>
           </Card>
           <Card

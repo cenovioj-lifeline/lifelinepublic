@@ -13,7 +13,7 @@ export function useCollectionQuote(collectionId: string, quotesEnabled: boolean,
   const [dismissedQuote, setDismissedQuote] = useState(false);
 
   useEffect(() => {
-    if (!quotesEnabled || dismissedQuote) return;
+    if (!quotesEnabled || dismissedQuote || !collectionId) return;
 
     const fetchRandomQuote = async () => {
       try {

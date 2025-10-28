@@ -225,7 +225,35 @@ export function useColorScheme(collectionId?: string) {
       Object.entries(COLOR_MAPPINGS).forEach(([key, config]) => {
         const colorValue = colorScheme[key as keyof ColorScheme];
         if (typeof colorValue === 'string' && colorValue.startsWith('#')) {
-          root.style.setProperty(config.cssVar, hexToHSL(colorValue));
+          const hsl = hexToHSL(colorValue);
+          root.style.setProperty(config.cssVar, hsl);
+
+          // Backwards-compatible aliases for older component usage
+          switch (config.cssVar) {
+            case '--scheme-cards-bg':
+              root.style.setProperty('--scheme-card-bg', hsl);
+              // Generic background fallback used in a few places
+              root.style.setProperty('--scheme-bg', hsl);
+              break;
+            case '--scheme-cards-border':
+              root.style.setProperty('--scheme-card-border', hsl);
+              break;
+            case '--scheme-cards-text':
+              root.style.setProperty('--scheme-card-text', hsl);
+              break;
+            case '--scheme-ch-actions-bg':
+              root.style.setProperty('--scheme-actions-bg', hsl);
+              break;
+            case '--scheme-ch-actions-border':
+              root.style.setProperty('--scheme-actions-border', hsl);
+              break;
+            case '--scheme-ch-actions-icon':
+              root.style.setProperty('--scheme-actions-icon', hsl);
+              break;
+            case '--scheme-ch-actions-text':
+              root.style.setProperty('--scheme-actions-text', hsl);
+              break;
+          }
         }
       });
     }
