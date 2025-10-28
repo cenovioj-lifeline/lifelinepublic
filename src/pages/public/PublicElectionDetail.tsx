@@ -217,7 +217,7 @@ export default function PublicElectionDetail() {
                     className="text-xs"
                     style={{ 
                       borderColor: 'hsl(var(--scheme-nav-button))',
-                      backgroundColor: 'hsl(var(--scheme-nav-button) / 0.1)',
+                      backgroundColor: 'hsl(var(--scheme-nav-button))',
                       color: 'hsl(var(--scheme-nav-text))'
                     }}
                   >

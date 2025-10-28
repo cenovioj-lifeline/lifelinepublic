@@ -148,8 +148,8 @@ export default function TopContributors() {
 
   const content = (
     <>
-      <h1 className="text-4xl font-bold mb-8">Top Contributors</h1>
-      <p className="text-lg text-muted-foreground mb-8">
+      <h1 className="text-4xl font-bold mb-8" style={{ color: "hsl(var(--scheme-title-text))" }}>Top Contributors</h1>
+      <p className="text-lg mb-8" style={{ color: "hsl(var(--scheme-cards-text))" }}>
         {isCollectionContext
           ? `Celebrating community members who contribute to ${collection?.title || "this collection"}`
           : "Celebrating our community members who help make our lifelines better"}
@@ -162,32 +162,34 @@ export default function TopContributors() {
           {contributors?.map((contributor: any, index: number) => (
             <Card
               key={contributor.user_id}
-              className="cursor-pointer hover:border-primary transition-colors"
+              className="cursor-pointer transition-colors"
               onClick={() => setSelectedContributor(contributor)}
-              style={
-                collection
-                  ? { borderColor: collection.primary_color || undefined }
-                  : undefined
-              }
+              style={{
+                borderColor: "hsl(var(--scheme-card-border))",
+                backgroundColor: "#FFFFFF",
+              }}
             >
               <CardContent className="flex items-center gap-4 p-6">
-                <div className="text-3xl font-bold text-muted-foreground w-12">
+                <div className="text-3xl font-bold w-12" style={{ color: "hsl(var(--scheme-cards-text))" }}>
                   #{index + 1}
                 </div>
-                <Avatar className="h-16 w-16">
+                <Avatar className="h-16 w-16" style={{ backgroundColor: "#FFFFFF" }}>
                   <AvatarImage
                     src={contributor.profile?.avatar_url}
                     alt={getDisplayName(contributor.profile)}
                   />
-                  <AvatarFallback>
+                  <AvatarFallback style={{ 
+                    backgroundColor: "#FFFFFF",
+                    color: "hsl(var(--scheme-cards-border))",
+                  }}>
                     {getInitials(contributor.profile)}
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1">
-                  <h3 className="text-xl font-semibold">
+                  <h3 className="text-xl font-semibold" style={{ color: "hsl(var(--scheme-title-text))" }}>
                     {getDisplayName(contributor.profile)}
                   </h3>
-                  <p className="text-muted-foreground">
+                  <p style={{ color: "hsl(var(--scheme-cards-text))" }}>
                     {contributor.count} approved contribution
                     {contributor.count !== 1 ? "s" : ""}
                   </p>
@@ -195,14 +197,10 @@ export default function TopContributors() {
                 <Badge
                   variant="secondary"
                   className="text-lg px-4 py-2"
-                  style={
-                    collection
-                      ? {
-                          backgroundColor: collection.collection_badge_color || undefined,
-                          color: collection.collection_text_color || undefined,
-                        }
-                      : undefined
-                  }
+                  style={{
+                    backgroundColor: "hsl(var(--scheme-card-bg))",
+                    color: "hsl(var(--scheme-cards-text))",
+                  }}
                 >
                   {contributor.count}
                 </Badge>
@@ -229,18 +227,24 @@ export default function TopContributors() {
           </DialogHeader>
           <div className="space-y-4 mt-4">
             {selectedContributions?.map((contribution) => (
-              <Card key={contribution.id}>
+              <Card 
+                key={contribution.id}
+                style={{
+                  borderColor: "hsl(var(--scheme-card-border))",
+                  backgroundColor: "hsl(var(--scheme-card-bg))",
+                }}
+              >
                 <CardHeader>
-                  <CardTitle className="text-lg">
+                  <CardTitle className="text-lg" style={{ color: "hsl(var(--scheme-title-text))" }}>
                     {contribution.title}
                   </CardTitle>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm" style={{ color: "hsl(var(--scheme-cards-text))" }}>
                     {contribution.lifelines?.title}
                     {contribution.score && ` • Score: ${contribution.score}`}
                   </p>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-sm">{contribution.description}</p>
+                  <p className="text-sm" style={{ color: "hsl(var(--scheme-cards-text))" }}>{contribution.description}</p>
                 </CardContent>
               </Card>
             ))}

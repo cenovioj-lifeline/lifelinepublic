@@ -78,7 +78,7 @@ export function TopContributorsCard({ collectionId }: TopContributorsCardProps) 
     if (profile?.first_name && profile?.last_name) {
       return `${profile.first_name[0]}${profile.last_name[0]}`.toUpperCase();
     }
-    return "F";
+    return "3";
   };
 
   if (isLoading || !topContributors || topContributors.length === 0) {
@@ -93,12 +93,15 @@ export function TopContributorsCard({ collectionId }: TopContributorsCardProps) 
       <CardContent className="space-y-4">
         {topContributors.map((contributor: any) => (
           <div key={contributor.user_id} className="flex items-center gap-3">
-            <Avatar>
+            <Avatar style={{ backgroundColor: "#FFFFFF" }}>
               <AvatarImage
                 src={contributor.profile?.avatar_url}
                 alt={getDisplayName(contributor.profile)}
               />
-              <AvatarFallback>{getInitials(contributor.profile)}</AvatarFallback>
+              <AvatarFallback style={{
+                backgroundColor: "#FFFFFF",
+                color: "hsl(var(--scheme-cards-border))",
+              }}>{getInitials(contributor.profile)}</AvatarFallback>
             </Avatar>
             <div className="flex-1">
               <p className="font-medium">{getDisplayName(contributor.profile)}</p>

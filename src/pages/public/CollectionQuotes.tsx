@@ -78,8 +78,8 @@ export default function CollectionQuotes() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-4xl font-bold mb-2">Quotes</h1>
-            <p className="text-lg text-muted-foreground">
+            <h1 className="text-4xl font-bold mb-2" style={{ color: "hsl(var(--scheme-title-text))" }}>Quotes</h1>
+            <p className="text-lg" style={{ color: "hsl(var(--scheme-cards-text))" }}>
               Memorable quotes from {collection.title}
             </p>
           </div>
@@ -94,7 +94,7 @@ export default function CollectionQuotes() {
 
         {/* Filter */}
         <div className="flex gap-4 items-center">
-          <label className="text-sm font-medium">Filter by:</label>
+          <label className="text-sm font-medium" style={{ color: "hsl(var(--scheme-cards-text))" }}>Filter by:</label>
           <Select value={selectedAuthor} onValueChange={setSelectedAuthor}>
             <SelectTrigger className="w-[200px]">
               <SelectValue placeholder="All authors" />
@@ -118,30 +118,38 @@ export default function CollectionQuotes() {
             {quotes.map((quote) => (
               <Card
                 key={quote.id}
-                style={{ borderColor: collection.primary_color || undefined }}
+                style={{
+                  borderColor: "hsl(var(--scheme-card-border))",
+                  backgroundColor: "hsl(var(--scheme-card-bg))",
+                }}
                 className="hover:shadow-lg transition-shadow"
               >
                 <CardContent className="pt-6">
-                  <p className="text-lg italic mb-3">"{quote.quote}"</p>
+                  <p className="text-lg italic mb-3" style={{ color: "hsl(var(--scheme-cards-text))" }}>"{quote.quote}"</p>
                   {quote.author && (
                     <p
                       className="text-sm font-semibold mb-1"
-                      style={{ color: collection.primary_color || undefined }}
+                      style={{ color: "hsl(var(--scheme-title-text))" }}
                     >
                       — {quote.author}
                     </p>
                   )}
                   {quote.context && (
-                    <p className="text-xs text-muted-foreground">{quote.context}</p>
+                    <p className="text-xs" style={{ color: "hsl(var(--scheme-cards-text))" }}>{quote.context}</p>
                   )}
                 </CardContent>
               </Card>
             ))}
           </div>
         ) : (
-          <Card>
+          <Card
+            style={{
+              borderColor: "hsl(var(--scheme-card-border))",
+              backgroundColor: "hsl(var(--scheme-card-bg))",
+            }}
+          >
             <CardContent className="pt-6 text-center py-12">
-              <p className="text-muted-foreground">
+              <p style={{ color: "hsl(var(--scheme-cards-text))" }}>
                 No quotes found. Be the first to submit one!
               </p>
             </CardContent>
