@@ -53,6 +53,7 @@ import PublicCollectionsGrid from "./pages/public/PublicCollectionsGrid";
 import UserRequests from "./pages/UserRequests";
 import ColorSchemes from "./pages/ColorSchemes";
 import ColorSchemeEdit from "./pages/ColorSchemeEdit";
+import TestImageImport from "./pages/TestImageImport";
 
 const queryClient = new QueryClient();
 
@@ -287,6 +288,16 @@ function AppContent() {
               element={
                 <ProtectedRoute>
                   <ColorSchemeEdit />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/test-image-import"
+              element={
+                <ProtectedRoute>
+                  <AdminLayout>
+                    <TestImageImport />
+                  </AdminLayout>
                 </ProtectedRoute>
               }
             />
