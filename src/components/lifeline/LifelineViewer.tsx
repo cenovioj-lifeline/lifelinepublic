@@ -32,7 +32,8 @@ export function LifelineViewer({
 }: LifelineViewerProps) {
   const queryClient = useQueryClient();
   const { user } = useAuth();
-  const { isSuperFan } = useSuperFan();
+  // Super fan upload is now available to everyone
+  const isSuperFan = true;
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [contributeDialogOpen, setContributeDialogOpen] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
