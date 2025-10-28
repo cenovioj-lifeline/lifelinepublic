@@ -49,6 +49,7 @@ export default function Home() {
                 title,
                 slug,
                 description,
+                hero_image_url,
                 card_image_position_x,
                 card_image_position_y,
                 hero_image:media_assets!collections_hero_image_id_fkey(url, alt_text)
@@ -110,6 +111,7 @@ export default function Home() {
                 title,
                 slug,
                 description,
+                hero_image_url,
                 card_image_position_x,
                 card_image_position_y,
                 hero_image:media_assets!collections_hero_image_id_fkey(url, alt_text)
@@ -287,7 +289,7 @@ export default function Home() {
                   id={item.id}
                   title={item.title}
                   description={item.description}
-                  imageUrl={item.type === "collection" ? item.hero_image?.url : null}
+                  imageUrl={item.type === "collection" ? (item.hero_image?.url || item.hero_image_url) : null}
                   imageAlt={item.type === "collection" ? item.hero_image?.alt_text : null}
                   imagePositionX={item.card_image_position_x ?? 50}
                   imagePositionY={item.card_image_position_y ?? 50}
@@ -362,7 +364,7 @@ export default function Home() {
                   id={item.id}
                   title={item.title}
                   description={item.description}
-                  imageUrl={item.type === "collection" ? item.hero_image?.url : null}
+                  imageUrl={item.type === "collection" ? (item.hero_image?.url || item.hero_image_url) : null}
                   imageAlt={item.type === "collection" ? item.hero_image?.alt_text : null}
                   imagePositionX={item.card_image_position_x ?? 50}
                   imagePositionY={item.card_image_position_y ?? 50}
