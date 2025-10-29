@@ -36,134 +36,12 @@ const PRONOUNS = new Set([
 
 const DENY = new Set(["romance","lover","intimate moment"]);
 
-function findProfile(collectionTitle: string): Profile | undefined {
-  return PROFILES.find(p => p.match(collectionTitle));
-}
-
-// Possessive handling: "Fiyero's Arrival" -> "Fiyero Arrival"
-function stripPossessives(s: string): string {
-  return s.replace(/(\p{L}+)'s\b/gu, "$1").replace(/(\p{L}+)'s\b/gu, "$1");
-}
-
-const TRIGGERS: Record<string, RegExp> = {
-  combat:   /\b(trial|combat|fight|duel|battle|skirmish|attack)\b/i,
-  // PATCH 5: make death stricter (explicit words only)
-  death:    /\b(die[sd]?|death|killed|slain|funeral|corpse|grave)\b/i,
-  magic:    /\b(vision|spell|magic|enchanted|warg|greenseer|dream|power|raven|weirwood|godswood|broom|wand|bubble)\b/i,
-  politics: /\b(king|queen|council|throne|ruler|elect|election|coronation|dragonpit|mayor|leadership|address)\b/i,
-  allies:   /\b(meeting|friend|ally|companion|protect|reunion|group|companions?|duet)\b/i,
-  travel:   /\b(journey|travel|beyond|arriv|explor|road)\b/i,
-  religion: /\b(god|faith|ritual|temple|prophec|vision|church)\b/i,
-  betrayal: /\b(betray|revenge|vengeance|frame|accuse)\b/i
-};
-
-function tokenize(text: string): string[] {
-  return text
-    .replace(/[^\p{L}\p{N}\s'-]/gu, " ")
-    .split(/\s+/)
-    .filter(Boolean);
-}
-
-function sanitizeTokens(tokens: string[], extraStop: string[] = []): string[] {
-  const EX = new Set(extraStop.map(s => s.toLowerCase()));
-  return tokens
-    .map(t => t.trim())
-    // lowercase check for scrubs
-    .filter(t => !STOPWORDS.has(t.toLowerCase()))
-    .filter(t => !PRONOUNS.has(t.toLowerCase()))
-    .filter(t => !EX.has(t.toLowerCase()));
-}
-
-function findThemes(text: string): string[] {
-  return Object.keys(TRIGGERS).filter(k => TRIGGERS[k].test(text));
-}
-
-function pickThemeCues(themes: string[], themeMap: Record<string, string[]>): string[] {
-  const list: string[] = [];
-  for (const th of themes) {
-    for (const c of themeMap[th] || []) {
-      if (!list.includes(c)) list.push(c);
-    }
-  }
-  return list.slice(0, 6);
-}
-
-function harvestEntityAnchors(text: string, anchors: string[]): string[] {
-  const found: string[] = [];
-  for (const a of anchors) {
-    const rx = new RegExp(`\\b${a.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")}\\b`, "i");
-    if (rx.test(text) && !found.includes(a)) found.push(a);
-  }
-  return found;
-}
-
-function enforceMinimumAnchors(anchors: string[], extraText: string, min = 2): string[] {
-  if (anchors.length >= min) return anchors;
-  // fallback: pull capitalized phrases
-  const caps = (extraText.match(/\b([A-Z][a-z]+(?:\s[A-Z][a-z]+)*)\b/g) || []);
-  for (const c of caps) {
-    if (!anchors.includes(c)) anchors.push(c);
-    if (anchors.length >= min) break;
-  }
-  return anchors;
-}
-
-function removeDenied(texts: string[]): string[] {
-  return texts.filter(t => !DENY.has(t.toLowerCase()));
-}
-
-function normalizeSpaces(s: string) {
-  return s.replace(/\s+/g, " ").trim();
-}
-
-function dedupeWordsPreserveOrder(words: string[]): string[] {
-  const seen = new Set<string>();
-  const out: string[] = [];
-  for (const w of words) {
-    if (!seen.has(w)) { seen.add(w); out.push(w); }
-  }
-  return out;
-}
-
-// PATCH 6: soft musical cues for certain title keywords
-const TITLE_SOFT_CUES: { rx: RegExp; cues: string[] }[] = [
-  { rx: /\b(popular|born to shine|for good|defy|defying|dance|dancing|song|duet)\b/i, cues: ["stage","duet","song","spotlight"] },
-  { rx: /\b(invitation|address|speech)\b/i, cues: ["public address","stage"] },
-];
-
-function maybeAddTitleSoftCues(title: string, cues: string[]): string[] {
-  const out = cues.slice();
-  for (const rule of TITLE_SOFT_CUES) {
-    if (rule.rx.test(title)) {
-      for (const c of rule.cues) if (!out.includes(c)) out.push(c);
-    }
-  }
-  return out;
-}
-
-// pick 2 "strongest" anchors, prefer place/object + person
-function pickStrongAnchors(anchors: string[], kinds?: Profile["anchorKinds"]): string[] {
-  if (!anchors.length) return [];
-  if (!kinds) return anchors.slice(0, 2);
-
-  const place = anchors.find(a => kinds.place?.includes(a));
-  const obj   = anchors.find(a => kinds.object?.includes(a));
-  const person= anchors.find(a => kinds.person?.includes(a));
-  const result: string[] = [];
-
-  if (place && person) return [place, person];
-  if (obj && person)   return [obj, person];
-
-  // otherwise, just take first two available
-  return anchors.slice(0, 2);
-}
-
 // ============================================================
 // QA VALIDATION
 // ============================================================
 
 interface QAWarning {
-  type: 'anchor_count' | 'pronoun_present' | 'duplicate_words' | 'denied_term' | 'missing_character';
+  type: 'pronoun_present' | 'duplicate_words' | 'denied_term' | 'missing_character';
   severity: 'error' | 'warning';
   message: string;
   query: string;
@@ -171,10 +49,7 @@ interface QAWarning {
 
 function validateQuery(
   query: string,
-  characterName: string,
-  collectionTitle: string,
-  anchors: string[],
-  cueWords: string[]
+  characterName: string
 ): QAWarning[] {
   const warnings: QAWarning[] = [];
   const queryLower = query.toLowerCase();
@@ -190,18 +65,7 @@ function validateQuery(
     });
   }
   
-  // Check 2: Anchor count (should have at least 2 for context queries)
-  const anchorCount = anchors.filter(a => queryLower.includes(a.toLowerCase())).length;
-  if (anchorCount < 2 && query.includes('scene still')) {
-    warnings.push({
-      type: 'anchor_count',
-      severity: 'warning',
-      message: `Only ${anchorCount} anchors found in query (expected ≥2)`,
-      query
-    });
-  }
-  
-  // Check 3: Pronouns present
+  // Check 2: Pronouns present
   const foundPronouns = tokens.filter(t => PRONOUNS.has(t.toLowerCase()));
   if (foundPronouns.length > 0) {
     warnings.push({
@@ -212,7 +76,7 @@ function validateQuery(
     });
   }
   
-  // Check 4: Duplicate words
+  // Check 3: Duplicate words
   const uniqueTokens = new Set(tokens.map(t => t.toLowerCase()));
   if (uniqueTokens.size < tokens.length) {
     const duplicates = tokens.filter((t, i) => 
@@ -226,7 +90,7 @@ function validateQuery(
     });
   }
   
-  // Check 5: Denied terms
+  // Check 4: Denied terms
   const foundDenied = Array.from(DENY).filter(d => queryLower.includes(d));
   if (foundDenied.length > 0) {
     warnings.push({
@@ -263,16 +127,6 @@ function buildQueries(
     collectionDomains
   });
 
-  // Extract basic info for QA validation
-  const baseText = `${entry.title} ${entry.summary || entry.details || ''}`;
-  
-  // For QA purposes, extract proper nouns as anchors
-  const properNouns = (baseText.match(/\b([A-Z][a-z]+(?:\s[A-Z][a-z]+)*)\b/g) || []).slice(0, 5);
-  const anchors = properNouns.length > 0 ? properNouns : [characterName];
-  const cueWords: string[] = []; // v4.2 handles cues internally
-
-  console.log(`  Extracted ${anchors.length} anchors for QA validation`);
-
   // Run QA validation and log warnings
   const allQueries = [
     { name: 'Broad', query: queries[0] },
@@ -281,7 +135,7 @@ function buildQueries(
   ];
 
   for (const { name, query } of allQueries) {
-    const warnings = validateQuery(query, characterName, collectionTitle, anchors, cueWords);
+    const warnings = validateQuery(query, characterName);
     if (warnings.length > 0) {
       console.warn(`⚠️  QA warnings for ${name} query "${entry.title}":`);
       warnings.forEach(w => {
@@ -577,20 +431,11 @@ serve(async (req) => {
     if (dryRun) {
       // Generate QA report for dry run
       const qaReport = queryPreview.map(preview => {
-        const entry = entries.find(e => e.title === preview.entryTitle)!;
-        const baseText = `${entry.title} ${entry.summary || entry.details || ''}`;
-        const themes = findThemes(baseText);
-        const profile = findProfile(collectionTitle);
-        const anchorUniverse = [...(profile?.anchors ?? []), ...DEFAULT_ENTITY_ANCHORS];
-        const anchors = harvestEntityAnchors(baseText, anchorUniverse);
-        const effectiveThemeMap = { ...DEFAULT_THEME_MAP, ...(profile?.themeMap ?? {}) } as Record<string, string[]>;
-        const cueWords = pickThemeCues(themes, effectiveThemeMap);
-        
         return {
           entryTitle: preview.entryTitle,
           queries: preview.queries.map((q, idx) => {
             const type = ['Broad', 'Context', 'Domain-biased'][idx];
-            const warnings = validateQuery(q, characterName, collectionTitle, anchors, cueWords);
+            const warnings = validateQuery(q, characterName);
             return {
               type,
               query: q,
