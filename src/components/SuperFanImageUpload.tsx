@@ -195,8 +195,8 @@ export function SuperFanImageUpload({ entryId, onUploadComplete }: SuperFanImage
           </div>
           <div className="relative flex justify-center text-xs uppercase">
             <span className="px-2" style={{ 
-              backgroundColor: 'hsl(var(--scheme-card-bg))',
-              color: 'hsl(var(--scheme-cards-text) / 0.6)'
+              backgroundColor: 'transparent',
+              color: '#6B7280'
             }}>
               Or
             </span>
@@ -212,7 +212,7 @@ export function SuperFanImageUpload({ entryId, onUploadComplete }: SuperFanImage
             disabled={uploading}
             className="flex-1 px-3 py-2 rounded-lg border text-sm"
             style={{
-              backgroundColor: 'hsl(var(--scheme-card-bg))',
+              backgroundColor: 'white',
               borderColor: 'hsl(var(--scheme-cards-text) / 0.2)',
               color: 'hsl(var(--scheme-cards-text))'
             }}

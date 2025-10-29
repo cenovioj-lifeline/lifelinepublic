@@ -319,7 +319,7 @@ export function LifelineViewer({
               scrollbarColor: '#565D6D #f0f0f0'
             }}
           >
-            <div className="relative min-h-full">
+            <div className="relative min-h-full" style={{ paddingTop: '2px', paddingBottom: '2px' }}>
               {entries.map((entry) => {
                 const isSelected = entry.id === selectedId;
                 const positive = (entry.score || 0) >= 0;
@@ -453,11 +453,11 @@ export function LifelineViewer({
             </div>
           </div>
 
-          {/* Right side - Details - Full width on mobile */}
+           {/* Right side - Details - Full width on mobile */}
           {selected && (
-            <Card className="shadow-lg flex flex-col h-full overflow-hidden lg:col-span-1 col-span-1 lg:mx-0 mx-0 bg-[hsl(var(--scheme-ll-graph-bg))] border-[hsl(var(--scheme-ll-graph-bg))]">
+            <Card className="shadow-lg flex flex-col h-full overflow-hidden lg:col-span-1 col-span-1 lg:mx-0 mx-0 bg-[hsl(var(--scheme-ll-graph-bg))] border-0">
               {/* Navigation Header */}
-              <div className="bg-[hsl(var(--scheme-nav-bg))] px-4 py-3 flex-shrink-0">
+              <div className="bg-[hsl(var(--scheme-nav-bg))] px-4 py-3 flex-shrink-0 border-0">
                 <div className="grid grid-cols-3 items-center gap-2">
                   <div className="justify-self-start">
                     <Button
