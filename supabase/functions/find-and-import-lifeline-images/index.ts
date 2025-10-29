@@ -24,45 +24,92 @@ interface ImageResult {
   original_height?: number;
 }
 
-// ===== V4 IMAGE SEARCH LOGIC =====
-// Based on Lovable-SerpApi-Image-Query-Guide-v4
+// ===== V4.1 IMAGE SEARCH LOGIC =====
+// Collection-aware query builder - fixes universe-specific issues (no more GoT terms in Wicked)
 
-// buildSerpQueries v4 logic
 const STOPWORDS = new Set([
   "born","the","a","an","we","when","everything","giving"
 ]);
 
 const DENY = new Set(["romance","lover","intimate moment"]);
 
-const ENTITY_ANCHORS = [
-  // places
-  "Winterfell","godswood","Dragonpit","Tower of Joy","Craster's Keep","weirwood","cave",
-  // people
-  "Hodor","Jojen Reed","Meera Reed","Three-Eyed Raven","Night King","Arya Stark","Jon Snow","Tyrion","Cersei","Jaime",
-  // objects
-  "Valyrian steel dagger","ravens","spear"
+// ---------- DEFAULT (fallback) ANCHORS & THEMES ----------
+const DEFAULT_ENTITY_ANCHORS = [
+  "council","throne room","castle","tournament","arena","champion",
+  "vision","prophecy","ritual","forest","ravens","dagger","sword"
 ];
 
-const THEME_MAP: Record<string, string[]> = {
-  combat: ["trial by combat","duel","arena","battle scene","weapon"],
-  death: ["death scene","falling","final moments"],
-  magic: ["visions","magic","transformation","weirwood","raven","warging","godswood"],
-  politics: ["council","throne room","court","Dragonpit","coronation"],
-  allies: ["companions","journey","group","reunion"],
-  travel: ["journey","traveling","exploration","landscape"],
+const DEFAULT_THEME_MAP: Record<string, string[]> = {
+  combat:   ["trial by combat","duel","arena","battle scene","weapon"],
+  death:    ["death scene","falling","final moments"],
+  magic:    ["visions","magic","transformation","ritual","prophecy"],
+  politics: ["council","throne room","court","coronation"],
+  allies:   ["companions","journey","group","reunion"],
+  travel:   ["journey","traveling","exploration","landscape"],
   religion: ["ritual","vision","temple","prophecy"],
   betrayal: ["betrayal","revenge scene"]
 };
 
+const DEFAULT_BIASED_DOMAINS = ["imdb.com","fandom.com"];
+
+// ---------- COLLECTION PROFILES ----------
+type Profile = {
+  match: (collectionTitle: string) => boolean;
+  domains: string[];
+  anchors: string[];
+  themeMap?: Partial<Record<string, string[]>>;
+  extraStop?: string[];
+};
+
+// Game of Thrones (Westeros)
+const PROFILE_GOT: Profile = {
+  match: t => /game\s*of\s*thrones|westeros|asoiaf/i.test(t),
+  domains: ["hbo.com","imdb.com","fandom.com"],
+  anchors: [
+    "Winterfell","godswood","Dragonpit","Tower of Joy","Craster's Keep","weirwood","cave",
+    "Hodor","Jojen Reed","Meera Reed","Three-Eyed Raven","Night King","Arya Stark","Jon Snow","Tyrion","Cersei","Jaime",
+    "Valyrian steel dagger","ravens","dragons","The Wall","King's Landing"
+  ],
+  themeMap: {
+    magic: ["visions","magic","weirwood","raven","warging","godswood"]
+  }
+};
+
+// Wicked (Oz / Musical)
+const PROFILE_WICKED: Profile = {
+  match: t => /wicked|oz|emerald\s*city/i.test(t),
+  domains: [
+    "wickedthemusical.com","broadway.com","playbill.com","imdb.com","fandom.com","universalpictures.com"
+  ],
+  anchors: [
+    "Emerald City","Shiz University","Ozdust Ballroom","Munchkinland","Yellow Brick Road","Glinda's Bubble",
+    "Glinda","Elphaba","Fiyero","Nessarose","Madame Morrible","The Wizard of Oz",
+    "wand","broom","spellbook","throne","bubble","stage","duet","song"
+  ],
+  themeMap: {
+    magic:     ["spell","wand","broom","bubble","stage effect","transformation"],
+    politics:  ["council","public address","leadership","throne","Emerald City"],
+    allies:    ["companions","duet","friendship","reunion"],
+    travel:    ["journey","Yellow Brick Road","arrival","Emerald City"],
+  },
+  extraStop: [":"]
+};
+
+const PROFILES: Profile[] = [PROFILE_GOT, PROFILE_WICKED];
+
+function findProfile(collectionTitle: string): Profile | undefined {
+  return PROFILES.find(p => p.match(collectionTitle));
+}
+
 const TRIGGERS: Record<string, RegExp> = {
-  combat: /\b(trial|combat|fight|duel|battle)\b/i,
-  death: /\b(fall|pushed?|killed|wound|poison|death)\b/i,
-  magic: /\b(vision|prophec|magic|warg|greenseer|dream|power|raven|weirwood|godswood)\b/i,
-  politics: /\b(king|queen|council|throne|ruler|elect|election|coronation|dragonpit)\b/i,
-  allies: /\b(meeting|friend|ally|companion|protect|reunion|group|companions?)\b/i,
-  travel: /\b(journey|travel|beyond|arriv|explor)\b/i,
-  religion: /\b(god|faith|ritual|temple|prophec|vision)\b/i,
-  betrayal: /\b(betray|revenge|vengeance)\b/i
+  combat:   /\b(trial|combat|fight|duel|battle|skirmish|attack)\b/i,
+  death:    /\b(fall|pushed?|killed|wound|poison|death|dies?)\b/i,
+  magic:    /\b(vision|spell|magic|enchanted|warg|greenseer|dream|power|raven|weirwood|godswood|broom|wand|bubble)\b/i,
+  politics: /\b(king|queen|council|throne|ruler|elect|election|coronation|dragonpit|mayor|leadership|address)\b/i,
+  allies:   /\b(meeting|friend|ally|companion|protect|reunion|group|companions?|duet)\b/i,
+  travel:   /\b(journey|travel|beyond|arriv|explor|road)\b/i,
+  religion: /\b(god|faith|ritual|temple|prophec|vision|church)\b/i,
+  betrayal: /\b(betray|revenge|vengeance|frame|accuse)\b/i
 };
 
 function tokenize(text: string): string[] {
@@ -72,29 +119,31 @@ function tokenize(text: string): string[] {
     .filter(Boolean);
 }
 
-function sanitizeTokens(tokens: string[]): string[] {
+function sanitizeTokens(tokens: string[], extraStop: string[] = []): string[] {
+  const EX = new Set(extraStop.map(s => s.toLowerCase()));
   return tokens
     .map(t => t.trim())
-    .filter(t => !STOPWORDS.has(t.toLowerCase()));
+    .filter(t => !STOPWORDS.has(t.toLowerCase()))
+    .filter(t => !EX.has(t.toLowerCase()));
 }
 
 function findThemes(text: string): string[] {
   return Object.keys(TRIGGERS).filter(k => TRIGGERS[k].test(text));
 }
 
-function pickThemeCues(themes: string[]): string[] {
+function pickThemeCues(themes: string[], themeMap: Record<string, string[]>): string[] {
   const list: string[] = [];
   for (const th of themes) {
-    for (const c of THEME_MAP[th] || []) {
+    for (const c of themeMap[th] || []) {
       if (!list.includes(c)) list.push(c);
     }
   }
   return list.slice(0, 6);
 }
 
-function harvestEntityAnchors(text: string): string[] {
+function harvestEntityAnchors(text: string, anchors: string[]): string[] {
   const found: string[] = [];
-  for (const a of ENTITY_ANCHORS) {
+  for (const a of anchors) {
     const rx = new RegExp(`\\b${a.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")}\\b`, "i");
     if (rx.test(text) && !found.includes(a)) found.push(a);
   }
@@ -103,8 +152,7 @@ function harvestEntityAnchors(text: string): string[] {
 
 function enforceMinimumAnchors(anchors: string[], extraText: string, min = 2): string[] {
   if (anchors.length >= min) return anchors;
-  const caps = (extraText.match(/\b([A-Z][a-z]+(?:\s[A-Z][a-z]+)*)\b/g) || [])
-    .filter(w => !STOPWORDS.has(w.toLowerCase()));
+  const caps = (extraText.match(/\b([A-Z][a-z]+(?:\s[A-Z][a-z]+)*)\b/g) || []);
   for (const c of caps) {
     if (!anchors.includes(c)) anchors.push(c);
     if (anchors.length >= min) break;
@@ -120,6 +168,14 @@ function normalizeSpaces(s: string) {
   return s.replace(/\s+/g, " ").trim();
 }
 
+function dedupeWords(s: string) {
+  const uniq: string[] = [];
+  for (const w of s.split(/\s+/)) {
+    if (!uniq.includes(w)) uniq.push(w);
+  }
+  return uniq.join(" ");
+}
+
 function buildQueries(
   entry: Entry, 
   characterName?: string, 
@@ -127,23 +183,39 @@ function buildQueries(
   actorName?: string
 ): string[] {
   if (!characterName || !collectionTitle) {
-    console.log('  WARNING: Missing characterName or collectionTitle, cannot build v4 queries');
+    console.log('  WARNING: Missing characterName or collectionTitle, cannot build v4.1 queries');
     return [];
   }
 
-  const subject = [characterName, collectionTitle, actorName].filter(Boolean).join(" ");
+  const profile = findProfile(collectionTitle);
+  const extraStops = profile?.extraStop ?? [];
+
+  // Subject string: strip odd punctuation (colon becomes space)
+  const cleanCollection = collectionTitle.replace(/[:]/g, " ");
+  const subject = [characterName, cleanCollection, actorName]
+    .filter(Boolean)
+    .join(" ");
+
   const baseText = `${entry.title} ${entry.summary || entry.details || ''}`;
 
-  // 1) Themes & cues
+  // Theme cues: use profile.themeMap overrides where present; otherwise default
+  const effectiveThemeMap = {
+    ...DEFAULT_THEME_MAP,
+    ...(profile?.themeMap ?? {})
+  } as Record<string, string[]>;
   const themes = findThemes(baseText);
-  let cueWords = pickThemeCues(themes);
+  let cueWords = pickThemeCues(themes, effectiveThemeMap);
 
-  // 2) Anchors from text
-  let anchors = harvestEntityAnchors(baseText);
+  // Anchors: profile anchors + default fallback
+  const anchorUniverse = [
+    ...(profile?.anchors ?? []),
+    ...DEFAULT_ENTITY_ANCHORS
+  ];
+  let anchors = harvestEntityAnchors(baseText, anchorUniverse);
   anchors = enforceMinimumAnchors(anchors, baseText, 2);
 
-  // 3) Sanitize and deny-list
-  const titleTokens = sanitizeTokens(tokenize(entry.title));
+  // Sanitize & deny-list
+  const titleTokens = sanitizeTokens(tokenize(entry.title), extraStops);
   cueWords = removeDenied(cueWords);
   const cleanedTitle = titleTokens.filter(t => t.length > 2 && /^[a-zA-Z'-]+$/.test(t));
 
@@ -152,17 +224,17 @@ function buildQueries(
   const genericTail = "scene still screenshot";
 
   // Variant 1: Broad
-  const broad = normalizeSpaces(
-    `${subject} ${[...new Set([...cleanedTitle, ...cueWords, ...anchors])].join(" ")} ${genericTail}`
-  );
+  const broadRaw = `${subject} ${[...new Set([...cleanedTitle, ...cueWords, ...anchors])].join(" ")} ${genericTail}`;
+  const broad = normalizeSpaces(dedupeWords(broadRaw));
 
   // Variant 2: Context-focused
   const strong2 = anchors.slice(0, 2).join(" ");
   const context = normalizeSpaces(`${subject} ${strong2} scene still`);
 
   // Variant 3: Domain-biased
-  const domains = "site:hbo.com OR site:imdb.com OR site:fandom.com";
-  const domainBiased = normalizeSpaces(`${subject} ${strong2} ${domains}`);
+  const domains = (profile?.domains ?? DEFAULT_BIASED_DOMAINS).join(" OR site:");
+  const domainExpr = `site:${domains}`;
+  const domainBiased = normalizeSpaces(`${subject} ${strong2} ${domainExpr}`);
 
   return [broad, context, domainBiased];
 }
