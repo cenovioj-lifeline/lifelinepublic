@@ -8,8 +8,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ImagePositionPicker } from "@/components/ImagePositionPicker";
 import { toast } from "sonner";
 import { Loader2, Image as ImageIcon, Search, FileText } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface LifelineEntry {
   id: string;
@@ -33,7 +31,7 @@ export default function LifelineImageManager() {
   const [selectedLifelineId, setSelectedLifelineId] = useState<string>("");
   const [isSearching, setIsSearching] = useState(false);
   const [isGeneratingQueries, setIsGeneratingQueries] = useState(false);
-  const [queryPreview, setQueryPreview] = useState<any>(null);
+  const [isExporting, setIsExporting] = useState(false);
   const [editingImage, setEditingImage] = useState<{
     mediaAssetId: string;
     url: string;
@@ -175,13 +173,145 @@ export default function LifelineImageManager() {
         return;
       }
 
-      setQueryPreview(data);
-      toast.success("Query preview generated");
+      // Create MD file content
+      let mdContent = `# SerpAPI Query Preview\n\n`;
+      mdContent += `## Lifeline Metadata\n\n`;
+      mdContent += `- **Character:** ${data.lifeline?.characterName || 'N/A'}\n`;
+      mdContent += `- **Collection:** ${data.lifeline?.collectionTitle || 'N/A'}\n`;
+      if (data.lifeline?.actorName) {
+        mdContent += `- **Actor:** ${data.lifeline.actorName}\n`;
+      }
+      mdContent += `- **Type:** ${data.lifeline?.type || 'N/A'}\n\n`;
+      
+      mdContent += `## Generated Queries\n\n`;
+      data.queryPreview?.forEach((item: any, index: number) => {
+        mdContent += `### ${index + 1}. ${item.entryTitle}\n\n`;
+        item.queries.forEach((query: string, qIndex: number) => {
+          const variantLabel = qIndex === 0 ? "Broad" : qIndex === 1 ? "Context-focused" : "Domain-biased";
+          mdContent += `**Variant ${qIndex + 1} (${variantLabel}):**\n\`\`\`\n${query}\n\`\`\`\n\n`;
+        });
+      });
+
+      // Download the file
+      const blob = new Blob([mdContent], { type: 'text/markdown' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `query-preview-${Date.now()}.md`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      toast.success("Query preview downloaded");
     } catch (error) {
       console.error('Error:', error);
       toast.error("An unexpected error occurred");
     } finally {
       setIsGeneratingQueries(false);
+    }
+  };
+
+  const handleExportLifeline = async () => {
+    if (!selectedLifelineId) {
+      toast.error("Please select a lifeline first");
+      return;
+    }
+
+    setIsExporting(true);
+    toast.info("Exporting lifeline data...");
+
+    try {
+      // Fetch lifeline with collection
+      const { data: lifeline, error: lifelineError } = await supabase
+        .from("lifelines")
+        .select(`
+          *,
+          collections (
+            id,
+            title,
+            description,
+            category
+          )
+        `)
+        .eq("id", selectedLifelineId)
+        .single();
+
+      if (lifelineError) throw lifelineError;
+
+      // Fetch entries
+      const { data: entries, error: entriesError } = await supabase
+        .from("entries")
+        .select("*")
+        .eq("lifeline_id", selectedLifelineId)
+        .order("occurred_on");
+
+      if (entriesError) throw entriesError;
+
+      // Build MD content
+      let mdContent = ``;
+      
+      // Add collection info if exists
+      if (lifeline.collections) {
+        const collection = lifeline.collections as any;
+        mdContent += `# Collection: ${collection.title}\n\n`;
+        if (collection.description) {
+          mdContent += `${collection.description}\n\n`;
+        }
+        if (collection.category) {
+          mdContent += `**Category:** ${collection.category}\n\n`;
+        }
+        mdContent += `---\n\n`;
+      }
+
+      // Add lifeline info
+      mdContent += `# Lifeline: ${lifeline.title}\n\n`;
+      if (lifeline.subtitle) {
+        mdContent += `**${lifeline.subtitle}**\n\n`;
+      }
+      if (lifeline.intro) {
+        mdContent += `## Introduction\n\n${lifeline.intro}\n\n`;
+      }
+
+      // Add entries
+      if (entries && entries.length > 0) {
+        mdContent += `## Timeline Events\n\n`;
+        entries.forEach((entry: any, index: number) => {
+          mdContent += `### ${index + 1}. ${entry.title}\n\n`;
+          if (entry.occurred_on) {
+            mdContent += `**Date:** ${new Date(entry.occurred_on).toLocaleDateString()}\n\n`;
+          }
+          if (entry.summary) {
+            mdContent += `${entry.summary}\n\n`;
+          }
+          if (entry.details) {
+            mdContent += `**Details:**\n\n${entry.details}\n\n`;
+          }
+          mdContent += `---\n\n`;
+        });
+      }
+
+      if (lifeline.conclusion) {
+        mdContent += `## Conclusion\n\n${lifeline.conclusion}\n\n`;
+      }
+
+      // Download the file
+      const blob = new Blob([mdContent], { type: 'text/markdown' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${lifeline.slug}-lifeline-${Date.now()}.md`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      toast.success("Lifeline data exported");
+    } catch (error) {
+      console.error('Error:', error);
+      toast.error("Failed to export lifeline");
+    } finally {
+      setIsExporting(false);
     }
   };
 
@@ -210,23 +340,24 @@ export default function LifelineImageManager() {
             <CardDescription>Choose which lifeline you want to add or manage images for</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex gap-4">
-              <Select value={selectedLifelineId} onValueChange={setSelectedLifelineId}>
-                <SelectTrigger className="flex-1">
-                  <SelectValue placeholder="Select a lifeline..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {lifelines?.map((lifeline) => (
-                    <SelectItem key={lifeline.id} value={lifeline.id}>
-                      {lifeline.title}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              
+            <Select value={selectedLifelineId} onValueChange={setSelectedLifelineId}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select a lifeline..." />
+              </SelectTrigger>
+              <SelectContent>
+                {lifelines?.map((lifeline) => (
+                  <SelectItem key={lifeline.id} value={lifeline.id}>
+                    {lifeline.title}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            
+            <div className="flex gap-2">
               <Button
                 onClick={handleLoadImages}
                 disabled={!selectedLifelineId || isSearching}
+                className="flex-1"
               >
                 {isSearching ? (
                   <>
@@ -245,6 +376,7 @@ export default function LifelineImageManager() {
                 onClick={handleReturnQuery}
                 disabled={!selectedLifelineId || isGeneratingQueries}
                 variant="outline"
+                className="flex-1"
               >
                 {isGeneratingQueries ? (
                   <>
@@ -255,6 +387,25 @@ export default function LifelineImageManager() {
                   <>
                     <FileText className="mr-2 h-4 w-4" />
                     Return Query
+                  </>
+                )}
+              </Button>
+
+              <Button
+                onClick={handleExportLifeline}
+                disabled={!selectedLifelineId || isExporting}
+                variant="outline"
+                className="flex-1"
+              >
+                {isExporting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Exporting...
+                  </>
+                ) : (
+                  <>
+                    <FileText className="mr-2 h-4 w-4" />
+                    Export Lifeline as MD
                   </>
                 )}
               </Button>
@@ -357,49 +508,6 @@ export default function LifelineImageManager() {
         />
       )}
 
-      {queryPreview && (
-        <Dialog open={!!queryPreview} onOpenChange={(open) => !open && setQueryPreview(null)}>
-          <DialogContent className="max-w-4xl">
-            <DialogHeader>
-              <DialogTitle>Query Preview</DialogTitle>
-            </DialogHeader>
-            <ScrollArea className="max-h-[70vh]">
-              <div className="space-y-6 pr-4">
-                <div className="space-y-2">
-                  <h3 className="font-semibold">Lifeline Metadata</h3>
-                  <div className="bg-muted p-4 rounded-md space-y-1 text-sm">
-                    <div><strong>Character:</strong> {queryPreview.lifeline?.characterName}</div>
-                    <div><strong>Collection:</strong> {queryPreview.lifeline?.collectionTitle}</div>
-                    {queryPreview.lifeline?.actorName && (
-                      <div><strong>Actor:</strong> {queryPreview.lifeline?.actorName}</div>
-                    )}
-                    <div><strong>Type:</strong> {queryPreview.lifeline?.type}</div>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <h3 className="font-semibold">Queries for Each Event</h3>
-                  {queryPreview.queryPreview?.map((item: any, index: number) => (
-                    <div key={index} className="border rounded-md p-4 space-y-3">
-                      <h4 className="font-medium text-primary">{item.entryTitle}</h4>
-                      <div className="space-y-2">
-                        {item.queries.map((query: string, qIndex: number) => (
-                          <div key={qIndex} className="bg-muted p-3 rounded text-sm font-mono">
-                            <div className="text-xs text-muted-foreground mb-1">
-                              Variant {qIndex + 1} {qIndex === 0 ? "(Broad)" : qIndex === 1 ? "(Context-focused)" : "(Domain-biased)"}
-                            </div>
-                            {query}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </ScrollArea>
-          </DialogContent>
-        </Dialog>
-      )}
     </AdminLayout>
   );
 }
