@@ -24,55 +24,79 @@ interface ImageResult {
   original_height?: number;
 }
 
-// Extract context cues from event text based on keyword families
+// Extract context cues from event text based on v3 guide cue dictionary
 function extractContextCues(eventTitle: string, eventDetails: string): string[] {
   const text = `${eventTitle} ${eventDetails}`.toLowerCase();
   const cues: string[] = [];
+  const denyList = new Set(['romance', 'lover', 'intimate moment']);
 
-  // Combat/fight keywords
-  if (/combat|duel|fight|trial|battle|arena/.test(text)) {
-    cues.push("trial by combat", "duel", "arena", "spear", "battle");
+  // Combat/duel/fight/trial
+  if (/trial|combat|fight|duel|battle/.test(text)) {
+    cues.push("trial by combat", "duel", "arena", "battle scene", "weapon");
   }
   
-  // Love/romance keywords
-  if (/love|affair|romance|lover|intimate/.test(text)) {
-    cues.push("romance", "lover", "intimate moment");
+  // Injury/death/fall/poison
+  if (/fall|push|killed|wounded|poisoned|death/.test(text)) {
+    cues.push("death scene", "falling", "final moments");
   }
   
-  // Death keywords
-  if (/death|killed|poison|wound|dying|murder/.test(text)) {
-    cues.push("death scene", "final moments");
+  // Magic/power/vision
+  if (/vision|prophecy|magic|warg|greenseer|dream|power/.test(text)) {
+    cues.push("visions", "magic", "transformation", "weirwood", "raven");
   }
   
-  // Court/politics keywords
-  if (/court|politics|king|queen|throne|council/.test(text)) {
-    cues.push("throne room", "council");
+  // Politics/royalty/court
+  if (/king|queen|council|throne|ruler|election/.test(text)) {
+    cues.push("council", "throne room", "court", "Dragonpit", "coronation");
   }
   
-  // Travel/meeting keywords
-  if (/travel|arrival|meeting|came to/.test(text)) {
-    cues.push("meeting", "council room");
+  // Friendship/allies
+  if (/meeting|friend|ally|companion|protect/.test(text)) {
+    cues.push("companions", "journey", "group", "reunion");
   }
   
-  // Celebration keywords
-  if (/celebration|feast|party|wedding|banquet/.test(text)) {
-    cues.push("banquet", "feast");
-  }
-  
-  // Betrayal/revenge keywords
-  if (/betrayal|revenge|vengeance/.test(text)) {
+  // Betrayal/revenge
+  if (/betrayed|revenge|vengeance/.test(text)) {
     cues.push("betrayal", "revenge scene");
   }
   
-  // Conversation keywords
-  if (/conversation|confession|spoke|said/.test(text)) {
-    cues.push("conversation", "confession", "close up");
+  // Romance/intimacy (only if explicit)
+  if (/\b(love|lover|kiss|affair)\b/.test(text)) {
+    const explicitRomanceCues = ["romance", "intimate moment"];
+    // Only add if really explicit in text
+    if (text.includes("kiss") || text.includes("affair")) {
+      cues.push(...explicitRomanceCues.filter(c => !denyList.has(c)));
+    }
+  }
+  
+  // Travel/discovery
+  if (/journey|travel|beyond|arrive|explore/.test(text)) {
+    cues.push("journey", "traveling", "exploration", "landscape");
+  }
+  
+  // Religion/ritual/prophecy
+  if (/gods|faith|prophecy|vision/.test(text)) {
+    cues.push("ritual", "vision", "temple", "prophecy");
   }
 
-  return cues;
+  // Fallback entity anchors (Fantasy/Drama specific)
+  const entities = [
+    "Winterfell", "Hodor", "Jojen", "Meera", "Craster", "Children of the Forest",
+    "Three-Eyed Raven", "Night King", "Arya", "Sansa", "Jon Snow", "Tyrion",
+    "Cersei", "Jaime", "Valyrian steel dagger", "Tower of Joy", "Dragonpit"
+  ];
+  
+  for (const entity of entities) {
+    if (text.includes(entity.toLowerCase())) {
+      cues.push(entity);
+    }
+  }
+
+  // Remove any cues that are in deny-list (unless explicitly mentioned)
+  return cues.filter(cue => !denyList.has(cue.toLowerCase()));
 }
 
-// Build query variants following the new SerpAPI guide for Person lifelines
+// Build query variants following v3 guide for Person lifelines
 function buildQueries(
   entry: Entry, 
   characterName?: string, 
@@ -81,35 +105,49 @@ function buildQueries(
 ): string[] {
   const queries: string[] = [];
   
-  // Step 1: Build base subject string
+  // Step 1: Build base subject string (always include character + collection)
   const subjectParts: string[] = [];
   if (characterName) subjectParts.push(characterName);
   if (collectionTitle) subjectParts.push(collectionTitle);
-  if (actorName) subjectParts.push(actorName);
+  if (actorName) subjectParts.push(actorName); // Optional fallback
   
   const subject = subjectParts.join(" ");
   
-  // Step 2: Extract context cues from event
-  const contextCues = extractContextCues(entry.title, entry.summary || entry.details || '');
-  
-  // Always add generic visual cues
-  const visualCues = ["scene", "still", "screenshot", "episode photo"];
-  
-  // Step 3: Build the 3 variants
-  
-  // Variant 1: Broad (subject + context cues + visual cues)
-  const broadCues = [...contextCues.slice(0, 5), ...visualCues.slice(0, 2)];
-  queries.push(`${subject} ${broadCues.join(" ")}`);
-  
-  // Variant 2: Context-focused (subject + 2 strongest cues + scene still)
-  if (contextCues.length > 0) {
-    queries.push(`${subject} ${contextCues.slice(0, 2).join(" ")} scene still`);
+  if (!subject.trim()) {
+    return []; // Can't build queries without a subject
   }
   
-  // Variant 3: Domain-biased (subject + 2 strongest cues + domain filters)
-  if (contextCues.length > 0 && collectionTitle) {
+  // Step 2: Extract context cues from event (using v3 cue dictionary)
+  const contextCues = extractContextCues(entry.title, entry.summary || entry.details || '');
+  
+  // Generic visual anchors (always append to broad variant)
+  const visualAnchors = "scene still screenshot episode photo";
+  
+  // Step 3: Build the 3 variants per v3 guide
+  
+  // Variant 1: Broad (subject + cue words + visual anchors)
+  if (contextCues.length > 0) {
+    const broadCues = contextCues.slice(0, 6).join(" "); // Use up to 6 cues
+    queries.push(`${subject} ${broadCues} ${visualAnchors}`);
+  } else {
+    // Fallback if no cues extracted
+    queries.push(`${subject} ${visualAnchors}`);
+  }
+  
+  // Variant 2: Context-focused (subject + 2 strongest cues + "scene still")
+  if (contextCues.length >= 2) {
+    queries.push(`${subject} ${contextCues[0]} ${contextCues[1]} scene still`);
+  } else if (contextCues.length === 1) {
+    queries.push(`${subject} ${contextCues[0]} scene still`);
+  }
+  
+  // Variant 3: Domain-biased (subject + 2 strongest cues + site filters)
+  if (contextCues.length >= 2) {
     const domains = "site:hbo.com OR site:imdb.com OR site:fandom.com";
-    queries.push(`${subject} ${contextCues.slice(0, 2).join(" ")} ${domains}`);
+    queries.push(`${subject} ${contextCues[0]} ${contextCues[1]} ${domains}`);
+  } else if (contextCues.length === 1) {
+    const domains = "site:hbo.com OR site:imdb.com OR site:fandom.com";
+    queries.push(`${subject} ${contextCues[0]} ${domains}`);
   }
   
   return queries.filter(q => q.trim().length > 0);
