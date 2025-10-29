@@ -258,10 +258,10 @@ serve(async (req) => {
       );
     }
 
-    // Check which entries already have images
+    // Check which entries already have images AND collect existing image URLs
     const { data: existingMedia, error: mediaError } = await supabase
       .from('entry_media')
-      .select('entry_id')
+      .select('entry_id, storage_path')
       .in('entry_id', entries.map(e => e.id));
 
     if (mediaError) {
@@ -269,6 +269,19 @@ serve(async (req) => {
     }
 
     const entriesWithMedia = new Set(existingMedia?.map(m => m.entry_id) || []);
+    
+    // Track already-used image URLs/paths to prevent duplicates across entries
+    const usedImageUrls = new Set<string>();
+    if (existingMedia) {
+      for (const media of existingMedia) {
+        if (media.storage_path) {
+          // Extract the original URL if stored in path, or just track the path
+          usedImageUrls.add(media.storage_path);
+        }
+      }
+    }
+    console.log(`Tracking ${usedImageUrls.size} existing image URLs to prevent duplicates`);
+    
     const entriesToProcess = dryRun ? entries : entries.filter(e => !entriesWithMedia.has(e.id));
 
     console.log(`Total entries: ${entries.length}, Already have images: ${entriesWithMedia.size}, To process: ${entriesToProcess.length}`);
@@ -339,10 +352,15 @@ serve(async (req) => {
           const searchData = await searchResponse.json();
           const imageResults = (searchData.images_results || []) as ImageResult[];
 
-          // Score and collect unique images
+          // Score and collect unique images (checking both current search and already-used images)
           for (const img of imageResults) {
             const url = img.original;
-            if (!url || seenUrls.has(url)) continue;
+            if (!url || seenUrls.has(url) || usedImageUrls.has(url)) {
+              if (usedImageUrls.has(url)) {
+                console.log(`  Skipping duplicate image already used in lifeline: ${url.substring(0, 60)}...`);
+              }
+              continue;
+            }
             
             seenUrls.add(url);
             const score = scoreImage(img, characterName, collectionTitle);
@@ -401,6 +419,8 @@ serve(async (req) => {
             results.push({ entryId: entry.id, title: entry.title, success: false, error: 'Import failed' });
           } else {
             console.log(`Successfully found and imported image for "${entry.title}"`);
+            // Track this URL to prevent duplicates in subsequent entries
+            usedImageUrls.add(selectedImageUrl);
             imported++;
             results.push({ 
               entryId: entry.id, 
