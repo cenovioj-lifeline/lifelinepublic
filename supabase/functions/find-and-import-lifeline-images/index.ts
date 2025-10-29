@@ -24,224 +24,196 @@ interface ImageResult {
   original_height?: number;
 }
 
-// Extract context cues from event text based on v3 guide with strict deny-list enforcement
-function extractContextCues(eventTitle: string, eventDetails: string): string[] {
-  const text = `${eventTitle} ${eventDetails}`.toLowerCase();
-  const originalText = `${eventTitle} ${eventDetails}`;
-  const cues: string[] = [];
-  
-  // HARD BLOCK: Deny-list (never add unless explicitly present as exact phrase)
-  const denyList = ['romance', 'lover', 'intimate moment'];
-  const hasExplicitRomance = text.includes('kiss') || text.includes('affair') || text.includes('romantic');
+// ===== V4 IMAGE SEARCH LOGIC =====
+// Based on Lovable-SerpApi-Image-Query-Guide-v4
 
-  // Priority 1: Fantasy-specific proper nouns and scene anchors (extract first)
-  const fantasyAnchors: { [key: string]: string[] } = {
-    'three-eyed raven': ['Three-Eyed Raven', 'visions', 'weirwood'],
-    'children of the forest': ['Children of the Forest', 'cave', 'weirwood'],
-    'night king': ['Night King', 'wights', 'battle'],
-    'warg': ['warging', 'ravens', 'wolves', 'greenseer'],
-    'greenseer': ['greenseer', 'visions', 'weirwood'],
-    'hodor': ['Hodor', 'hold the door'],
-    'jojen': ['Jojen Reed', 'greenseer'],
-    'meera': ['Meera Reed'],
-    "craster's keep": ["Craster's Keep", "Night's Watch", "mutineers"],
-    'tower of joy': ['Tower of Joy', 'Lyanna', 'Rhaegar'],
-    'valyrian steel': ['Valyrian steel dagger'],
-    'dragonpit': ['Dragonpit', 'council'],
-    'winterfell': ['Winterfell'],
-    'godswood': ['godswood', 'weirwood'],
-    'battle of winterfell': ['Battle of Winterfell', 'Night King'],
-  };
+// buildSerpQueries v4 logic
+const STOPWORDS = new Set([
+  "born","the","a","an","we","when","everything","giving"
+]);
 
-  // Extract fantasy anchors first (priority)
-  for (const [key, anchors] of Object.entries(fantasyAnchors)) {
-    if (text.includes(key)) {
-      cues.push(...anchors);
-    }
-  }
+const DENY = new Set(["romance","lover","intimate moment"]);
 
-  // Extract character names as proper nouns
-  const characterNames = ['Arya', 'Sansa', 'Jon Snow', 'Tyrion', 'Cersei', 'Jaime', 'Rhaegar', 'Lyanna'];
-  for (const name of characterNames) {
-    if (originalText.includes(name)) {
-      cues.push(name);
-    }
-  }
+const ENTITY_ANCHORS = [
+  // places
+  "Winterfell","godswood","Dragonpit","Tower of Joy","Craster's Keep","weirwood","cave",
+  // people
+  "Hodor","Jojen Reed","Meera Reed","Three-Eyed Raven","Night King","Arya Stark","Jon Snow","Tyrion","Cersei","Jaime",
+  // objects
+  "Valyrian steel dagger","ravens","spear"
+];
 
-  // Priority 2: Theme-based cues (only if no fantasy anchors matched strongly)
-  const strongFantasyMatch = cues.length >= 2;
-  
-  if (!strongFantasyMatch) {
-    // Magic/power/vision (avoid if already have fantasy anchors)
-    if (/vision|prophecy|magic|dream|power/.test(text) && !text.includes('warg')) {
-      cues.push('visions', 'magic', 'weirwood');
-    }
-    
-    // Combat/duel/fight/trial (only if NOT warging/visions)
-    if (/trial|combat|fight|duel|battle/.test(text) && !text.includes('warg') && !text.includes('vision')) {
-      cues.push('battle scene', 'weapon');
-    }
-    
-    // Injury/death/fall/poison
-    if (/\b(fall|push|killed|wounded|poisoned|death)\b/.test(text)) {
-      if (text.includes('fall') || text.includes('push')) {
-        cues.push('falling', 'pushed');
-      } else {
-        cues.push('death scene');
-      }
-    }
-    
-    // Politics/royalty/court (only for actual council/election scenes)
-    if (/(elected|council|vote|coronation)/.test(text)) {
-      cues.push('council', 'Dragonpit', 'vote');
-    } else if (/\b(king|queen|throne)\b/.test(text) && !text.includes('night king')) {
-      cues.push('throne room');
-    }
-    
-    // Travel/discovery
-    if (/journey|travel|beyond|trek|snow/.test(text)) {
-      cues.push('journey', 'traveling', 'snow');
-    }
-    
-    // Meeting/reunion
-    if (/meeting|reunion|return/.test(text)) {
-      cues.push('reunion', 'meeting');
-    }
-    
-    // Gifting/giving
-    if (/giving|gift|dagger/.test(text)) {
-      cues.push('gifting');
-    }
-  }
+const THEME_MAP: Record<string, string[]> = {
+  combat: ["trial by combat","duel","arena","battle scene","weapon"],
+  death: ["death scene","falling","final moments"],
+  magic: ["visions","magic","transformation","weirwood","raven","warging","godswood"],
+  politics: ["council","throne room","court","Dragonpit","coronation"],
+  allies: ["companions","journey","group","reunion"],
+  travel: ["journey","traveling","exploration","landscape"],
+  religion: ["ritual","vision","temple","prophecy"],
+  betrayal: ["betrayal","revenge scene"]
+};
 
-  // Priority 3: Extract additional proper nouns from event text as anchors
-  const properNounPatterns = [
-    /\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)\b/g, // Capitalized words
-  ];
-  
-  for (const pattern of properNounPatterns) {
-    const matches = originalText.match(pattern);
-    if (matches) {
-      for (const match of matches) {
-        // Skip common words and already added terms
-        if (match.length > 2 && !['The', 'His', 'Her', 'Their', 'During', 'After', 'Before'].includes(match)) {
-          const lower = match.toLowerCase();
-          if (!cues.some(c => c.toLowerCase().includes(lower))) {
-            cues.push(match);
-          }
-        }
-      }
-    }
-  }
+const TRIGGERS: Record<string, RegExp> = {
+  combat: /\b(trial|combat|fight|duel|battle)\b/i,
+  death: /\b(fall|pushed?|killed|wound|poison|death)\b/i,
+  magic: /\b(vision|prophec|magic|warg|greenseer|dream|power|raven|weirwood|godswood)\b/i,
+  politics: /\b(king|queen|council|throne|ruler|elect|election|coronation|dragonpit)\b/i,
+  allies: /\b(meeting|friend|ally|companion|protect|reunion|group|companions?)\b/i,
+  travel: /\b(journey|travel|beyond|arriv|explor)\b/i,
+  religion: /\b(god|faith|ritual|temple|prophec|vision)\b/i,
+  betrayal: /\b(betray|revenge|vengeance)\b/i
+};
 
-  // CRITICAL: Remove deny-list terms UNLESS explicitly present
-  const filtered = cues.filter(cue => {
-    const lower = cue.toLowerCase();
-    if (denyList.includes(lower)) {
-      return hasExplicitRomance;
-    }
-    return true;
-  });
-
-  // Ensure uniqueness
-  return [...new Set(filtered)];
+function tokenize(text: string): string[] {
+  return text
+    .replace(/[^\p{L}\p{N}\s'-]/gu, " ")
+    .split(/\s+/)
+    .filter(Boolean);
 }
 
-// Build query variants following v3 guide for Person lifelines
+function sanitizeTokens(tokens: string[]): string[] {
+  return tokens
+    .map(t => t.trim())
+    .filter(t => !STOPWORDS.has(t.toLowerCase()));
+}
+
+function findThemes(text: string): string[] {
+  return Object.keys(TRIGGERS).filter(k => TRIGGERS[k].test(text));
+}
+
+function pickThemeCues(themes: string[]): string[] {
+  const list: string[] = [];
+  for (const th of themes) {
+    for (const c of THEME_MAP[th] || []) {
+      if (!list.includes(c)) list.push(c);
+    }
+  }
+  return list.slice(0, 6);
+}
+
+function harvestEntityAnchors(text: string): string[] {
+  const found: string[] = [];
+  for (const a of ENTITY_ANCHORS) {
+    const rx = new RegExp(`\\b${a.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")}\\b`, "i");
+    if (rx.test(text) && !found.includes(a)) found.push(a);
+  }
+  return found;
+}
+
+function enforceMinimumAnchors(anchors: string[], extraText: string, min = 2): string[] {
+  if (anchors.length >= min) return anchors;
+  const caps = (extraText.match(/\b([A-Z][a-z]+(?:\s[A-Z][a-z]+)*)\b/g) || [])
+    .filter(w => !STOPWORDS.has(w.toLowerCase()));
+  for (const c of caps) {
+    if (!anchors.includes(c)) anchors.push(c);
+    if (anchors.length >= min) break;
+  }
+  return anchors;
+}
+
+function removeDenied(texts: string[]): string[] {
+  return texts.filter(t => !DENY.has(t.toLowerCase()));
+}
+
+function normalizeSpaces(s: string) {
+  return s.replace(/\s+/g, " ").trim();
+}
+
 function buildQueries(
   entry: Entry, 
   characterName?: string, 
   collectionTitle?: string,
   actorName?: string
 ): string[] {
-  const queries: string[] = [];
-  
-  // Step 1: Build base subject string (always include character + collection)
-  const subjectParts: string[] = [];
-  if (characterName) subjectParts.push(characterName);
-  if (collectionTitle) subjectParts.push(collectionTitle);
-  if (actorName) subjectParts.push(actorName); // Optional fallback
-  
-  const subject = subjectParts.join(" ");
-  
-  if (!subject.trim()) {
-    return []; // Can't build queries without a subject
+  if (!characterName || !collectionTitle) {
+    console.log('  WARNING: Missing characterName or collectionTitle, cannot build v4 queries');
+    return [];
   }
-  
-  // Step 2: Extract context cues from event (using v3 cue dictionary with proper noun extraction)
-  const contextCues = extractContextCues(entry.title, entry.summary || entry.details || '');
-  
-  console.log(`  Extracted ${contextCues.length} cues: ${contextCues.slice(0, 8).join(', ')}`);
-  
-  // Step 3: Build the 3 variants per v3 guide
-  // REQUIREMENT: Need ≥2 event-specific anchors for meaningful queries
-  
-  if (contextCues.length < 2) {
-    console.log(`  WARNING: Only ${contextCues.length} cues extracted, query may be too generic`);
-  }
-  
-  // Variant 1: Broad (subject + up to 6 best cues + "scene still")
-  if (contextCues.length >= 2) {
-    const broadCues = contextCues.slice(0, 6).join(" ");
-    queries.push(`${subject} ${broadCues} scene still`);
-  } else if (contextCues.length === 1) {
-    queries.push(`${subject} ${contextCues[0]} scene still`);
-  } else {
-    // Last resort fallback
-    queries.push(`${subject} ${entry.title} scene still`);
-  }
-  
-  // Variant 2: Context-focused (subject + 2-3 strongest cues + "scene still")
-  if (contextCues.length >= 3) {
-    queries.push(`${subject} ${contextCues[0]} ${contextCues[1]} ${contextCues[2]} scene still`);
-  } else if (contextCues.length === 2) {
-    queries.push(`${subject} ${contextCues[0]} ${contextCues[1]} scene still`);
-  }
-  
-  // Variant 3: Domain-biased (subject + 2-3 strongest cues + site filters)
-  if (contextCues.length >= 3) {
-    const domains = "site:hbo.com OR site:imdb.com OR site:gameofthrones.fandom.com";
-    queries.push(`${subject} ${contextCues[0]} ${contextCues[1]} ${contextCues[2]} ${domains}`);
-  } else if (contextCues.length === 2) {
-    const domains = "site:hbo.com OR site:imdb.com OR site:gameofthrones.fandom.com";
-    queries.push(`${subject} ${contextCues[0]} ${contextCues[1]} ${domains}`);
-  }
-  
-  return queries.filter(q => q.trim().length > 0);
+
+  const subject = [characterName, collectionTitle, actorName].filter(Boolean).join(" ");
+  const baseText = `${entry.title} ${entry.summary || entry.details || ''}`;
+
+  // 1) Themes & cues
+  const themes = findThemes(baseText);
+  let cueWords = pickThemeCues(themes);
+
+  // 2) Anchors from text
+  let anchors = harvestEntityAnchors(baseText);
+  anchors = enforceMinimumAnchors(anchors, baseText, 2);
+
+  // 3) Sanitize and deny-list
+  const titleTokens = sanitizeTokens(tokenize(entry.title));
+  cueWords = removeDenied(cueWords);
+  const cleanedTitle = titleTokens.filter(t => t.length > 2 && /^[a-zA-Z'-]+$/.test(t));
+
+  console.log(`  Extracted ${anchors.length} anchors, ${cueWords.length} theme cues, ${cleanedTitle.length} title tokens`);
+
+  const genericTail = "scene still screenshot";
+
+  // Variant 1: Broad
+  const broad = normalizeSpaces(
+    `${subject} ${[...new Set([...cleanedTitle, ...cueWords, ...anchors])].join(" ")} ${genericTail}`
+  );
+
+  // Variant 2: Context-focused
+  const strong2 = anchors.slice(0, 2).join(" ");
+  const context = normalizeSpaces(`${subject} ${strong2} scene still`);
+
+  // Variant 3: Domain-biased
+  const domains = "site:hbo.com OR site:imdb.com OR site:fandom.com";
+  const domainBiased = normalizeSpaces(`${subject} ${strong2} ${domains}`);
+
+  return [broad, context, domainBiased];
 }
 
-// Score an image based on quality signals
-function scoreImage(
-  img: ImageResult, 
-  characterName?: string, 
-  showTitle?: string
-): number {
-  const title = (img.title || "").toLowerCase();
-  const source = (img.source || img.displayed_link || "").toLowerCase();
-  const width = img.original_width || 0;
-  const height = img.original_height || 0;
-  const aspectRatio = width && height ? width / height : 0;
+// rankResults v4 logic
+type ScoredImageResult = ImageResult & { _score: number };
 
+const GOOD_DOMAINS = [
+  "hbo.com","imdb.com","fandom.com","vulture.com","vanityfair.com","nytimes.com"
+];
+const BAD_DOMAINS = ["pinterest.com","shutterstock.com","aliexpress.com"];
+
+function domainOf(url?: string): string | undefined {
+  if (!url) return undefined;
+  try {
+    const u = new URL(url);
+    return u.hostname.replace(/^www\./, "");
+  } catch { return undefined; }
+}
+
+function aspectScore(w?: number, h?: number): number {
+  if (!w || !h) return 0;
+  const r = w / h;
+  return r >= 1.3 && r <= 2.0 ? 1 : 0;
+}
+
+function scoreImage(
+  img: ImageResult,
+  characterName?: string,
+  collectionTitle?: string
+): number {
+  const dom = domainOf(img.source || img.displayed_link);
   let score = 0;
 
-  // Subject match boosts
-  if (characterName && title.includes(characterName.toLowerCase())) score += 30;
-  if (showTitle && title.includes(showTitle.toLowerCase())) score += 20;
-
-  // Domain trust
-  const goodDomains = ["amc", "imdb", "fandom", "hbo", "vanityfair", "esquire", "vulture", "nytimes"];
-  if (goodDomains.some(d => source.includes(d))) score += 15;
+  // Domain trust (highest priority)
+  if (dom && GOOD_DOMAINS.some(d => dom.endsWith(d))) score += 3;
+  if (dom && BAD_DOMAINS.some(d => dom.endsWith(d))) score -= 2;
 
   // Resolution quality
-  if (width >= 1200 && height >= 700) score += 15;
-  else if (width >= 800 && height >= 500) score += 8;
+  if ((img.original_width || 0) >= 1200) score += 2;
 
-  // Aspect ratio sanity (landscape-ish)
-  if (aspectRatio >= 1.3 && aspectRatio <= 2.0) score += 5;
+  // Title relevance
+  const title = (img.title || "").toLowerCase();
+  const subjectTokens = [characterName, collectionTitle]
+    .filter(Boolean)
+    .flatMap(s => s!.split(/\s+/));
+  const hitTokens = subjectTokens.filter(t => title.includes(t.toLowerCase())).length;
+  score += Math.min(hitTokens, 3);
 
-  // Penalize weak sources
-  const weakDomains = ["pinterest", "aliexpress", "shutterstock", "instagram"];
-  if (weakDomains.some(d => source.includes(d))) score -= 15;
+  // Aspect ratio sanity
+  score += aspectScore(img.original_width, img.original_height);
 
   return score;
 }
@@ -392,14 +364,14 @@ serve(async (req) => {
             if (!url || seenUrls.has(url)) continue;
             
             seenUrls.add(url);
-            const score = scoreImage(img);
+            const score = scoreImage(img, characterName, collectionTitle);
             allImages.push({ ...img, _score: score });
           }
 
-          // Early stop if we found a strong candidate
+          // Early stop if we found a strong candidate (v4 scoring: max ~10)
           if (allImages.length > 0) {
             const topScore = Math.max(...allImages.map(img => img._score));
-            if (topScore >= 50) {
+            if (topScore >= 8) {
               console.log(`  Found strong candidate (score: ${topScore}), stopping search`);
               break;
             }
