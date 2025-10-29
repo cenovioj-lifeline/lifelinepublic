@@ -24,76 +24,127 @@ interface ImageResult {
   original_height?: number;
 }
 
-// Extract context cues from event text based on v3 guide cue dictionary
+// Extract context cues from event text based on v3 guide with strict deny-list enforcement
 function extractContextCues(eventTitle: string, eventDetails: string): string[] {
   const text = `${eventTitle} ${eventDetails}`.toLowerCase();
+  const originalText = `${eventTitle} ${eventDetails}`;
   const cues: string[] = [];
-  const denyList = new Set(['romance', 'lover', 'intimate moment']);
+  
+  // HARD BLOCK: Deny-list (never add unless explicitly present as exact phrase)
+  const denyList = ['romance', 'lover', 'intimate moment'];
+  const hasExplicitRomance = text.includes('kiss') || text.includes('affair') || text.includes('romantic');
 
-  // Combat/duel/fight/trial
-  if (/trial|combat|fight|duel|battle/.test(text)) {
-    cues.push("trial by combat", "duel", "arena", "battle scene", "weapon");
-  }
-  
-  // Injury/death/fall/poison
-  if (/fall|push|killed|wounded|poisoned|death/.test(text)) {
-    cues.push("death scene", "falling", "final moments");
-  }
-  
-  // Magic/power/vision
-  if (/vision|prophecy|magic|warg|greenseer|dream|power/.test(text)) {
-    cues.push("visions", "magic", "transformation", "weirwood", "raven");
-  }
-  
-  // Politics/royalty/court
-  if (/king|queen|council|throne|ruler|election/.test(text)) {
-    cues.push("council", "throne room", "court", "Dragonpit", "coronation");
-  }
-  
-  // Friendship/allies
-  if (/meeting|friend|ally|companion|protect/.test(text)) {
-    cues.push("companions", "journey", "group", "reunion");
-  }
-  
-  // Betrayal/revenge
-  if (/betrayed|revenge|vengeance/.test(text)) {
-    cues.push("betrayal", "revenge scene");
-  }
-  
-  // Romance/intimacy (only if explicit)
-  if (/\b(love|lover|kiss|affair)\b/.test(text)) {
-    const explicitRomanceCues = ["romance", "intimate moment"];
-    // Only add if really explicit in text
-    if (text.includes("kiss") || text.includes("affair")) {
-      cues.push(...explicitRomanceCues.filter(c => !denyList.has(c)));
+  // Priority 1: Fantasy-specific proper nouns and scene anchors (extract first)
+  const fantasyAnchors: { [key: string]: string[] } = {
+    'three-eyed raven': ['Three-Eyed Raven', 'visions', 'weirwood'],
+    'children of the forest': ['Children of the Forest', 'cave', 'weirwood'],
+    'night king': ['Night King', 'wights', 'battle'],
+    'warg': ['warging', 'ravens', 'wolves', 'greenseer'],
+    'greenseer': ['greenseer', 'visions', 'weirwood'],
+    'hodor': ['Hodor', 'hold the door'],
+    'jojen': ['Jojen Reed', 'greenseer'],
+    'meera': ['Meera Reed'],
+    "craster's keep": ["Craster's Keep", "Night's Watch", "mutineers"],
+    'tower of joy': ['Tower of Joy', 'Lyanna', 'Rhaegar'],
+    'valyrian steel': ['Valyrian steel dagger'],
+    'dragonpit': ['Dragonpit', 'council'],
+    'winterfell': ['Winterfell'],
+    'godswood': ['godswood', 'weirwood'],
+    'battle of winterfell': ['Battle of Winterfell', 'Night King'],
+  };
+
+  // Extract fantasy anchors first (priority)
+  for (const [key, anchors] of Object.entries(fantasyAnchors)) {
+    if (text.includes(key)) {
+      cues.push(...anchors);
     }
   }
-  
-  // Travel/discovery
-  if (/journey|travel|beyond|arrive|explore/.test(text)) {
-    cues.push("journey", "traveling", "exploration", "landscape");
-  }
-  
-  // Religion/ritual/prophecy
-  if (/gods|faith|prophecy|vision/.test(text)) {
-    cues.push("ritual", "vision", "temple", "prophecy");
+
+  // Extract character names as proper nouns
+  const characterNames = ['Arya', 'Sansa', 'Jon Snow', 'Tyrion', 'Cersei', 'Jaime', 'Rhaegar', 'Lyanna'];
+  for (const name of characterNames) {
+    if (originalText.includes(name)) {
+      cues.push(name);
+    }
   }
 
-  // Fallback entity anchors (Fantasy/Drama specific)
-  const entities = [
-    "Winterfell", "Hodor", "Jojen", "Meera", "Craster", "Children of the Forest",
-    "Three-Eyed Raven", "Night King", "Arya", "Sansa", "Jon Snow", "Tyrion",
-    "Cersei", "Jaime", "Valyrian steel dagger", "Tower of Joy", "Dragonpit"
+  // Priority 2: Theme-based cues (only if no fantasy anchors matched strongly)
+  const strongFantasyMatch = cues.length >= 2;
+  
+  if (!strongFantasyMatch) {
+    // Magic/power/vision (avoid if already have fantasy anchors)
+    if (/vision|prophecy|magic|dream|power/.test(text) && !text.includes('warg')) {
+      cues.push('visions', 'magic', 'weirwood');
+    }
+    
+    // Combat/duel/fight/trial (only if NOT warging/visions)
+    if (/trial|combat|fight|duel|battle/.test(text) && !text.includes('warg') && !text.includes('vision')) {
+      cues.push('battle scene', 'weapon');
+    }
+    
+    // Injury/death/fall/poison
+    if (/\b(fall|push|killed|wounded|poisoned|death)\b/.test(text)) {
+      if (text.includes('fall') || text.includes('push')) {
+        cues.push('falling', 'pushed');
+      } else {
+        cues.push('death scene');
+      }
+    }
+    
+    // Politics/royalty/court (only for actual council/election scenes)
+    if (/(elected|council|vote|coronation)/.test(text)) {
+      cues.push('council', 'Dragonpit', 'vote');
+    } else if (/\b(king|queen|throne)\b/.test(text) && !text.includes('night king')) {
+      cues.push('throne room');
+    }
+    
+    // Travel/discovery
+    if (/journey|travel|beyond|trek|snow/.test(text)) {
+      cues.push('journey', 'traveling', 'snow');
+    }
+    
+    // Meeting/reunion
+    if (/meeting|reunion|return/.test(text)) {
+      cues.push('reunion', 'meeting');
+    }
+    
+    // Gifting/giving
+    if (/giving|gift|dagger/.test(text)) {
+      cues.push('gifting');
+    }
+  }
+
+  // Priority 3: Extract additional proper nouns from event text as anchors
+  const properNounPatterns = [
+    /\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)\b/g, // Capitalized words
   ];
   
-  for (const entity of entities) {
-    if (text.includes(entity.toLowerCase())) {
-      cues.push(entity);
+  for (const pattern of properNounPatterns) {
+    const matches = originalText.match(pattern);
+    if (matches) {
+      for (const match of matches) {
+        // Skip common words and already added terms
+        if (match.length > 2 && !['The', 'His', 'Her', 'Their', 'During', 'After', 'Before'].includes(match)) {
+          const lower = match.toLowerCase();
+          if (!cues.some(c => c.toLowerCase().includes(lower))) {
+            cues.push(match);
+          }
+        }
+      }
     }
   }
 
-  // Remove any cues that are in deny-list (unless explicitly mentioned)
-  return cues.filter(cue => !denyList.has(cue.toLowerCase()));
+  // CRITICAL: Remove deny-list terms UNLESS explicitly present
+  const filtered = cues.filter(cue => {
+    const lower = cue.toLowerCase();
+    if (denyList.includes(lower)) {
+      return hasExplicitRomance;
+    }
+    return true;
+  });
+
+  // Ensure uniqueness
+  return [...new Set(filtered)];
 }
 
 // Build query variants following v3 guide for Person lifelines
@@ -117,37 +168,43 @@ function buildQueries(
     return []; // Can't build queries without a subject
   }
   
-  // Step 2: Extract context cues from event (using v3 cue dictionary)
+  // Step 2: Extract context cues from event (using v3 cue dictionary with proper noun extraction)
   const contextCues = extractContextCues(entry.title, entry.summary || entry.details || '');
   
-  // Generic visual anchors (always append to broad variant)
-  const visualAnchors = "scene still screenshot episode photo";
+  console.log(`  Extracted ${contextCues.length} cues: ${contextCues.slice(0, 8).join(', ')}`);
   
   // Step 3: Build the 3 variants per v3 guide
+  // REQUIREMENT: Need ≥2 event-specific anchors for meaningful queries
   
-  // Variant 1: Broad (subject + cue words + visual anchors)
-  if (contextCues.length > 0) {
-    const broadCues = contextCues.slice(0, 6).join(" "); // Use up to 6 cues
-    queries.push(`${subject} ${broadCues} ${visualAnchors}`);
-  } else {
-    // Fallback if no cues extracted
-    queries.push(`${subject} ${visualAnchors}`);
+  if (contextCues.length < 2) {
+    console.log(`  WARNING: Only ${contextCues.length} cues extracted, query may be too generic`);
   }
   
-  // Variant 2: Context-focused (subject + 2 strongest cues + "scene still")
+  // Variant 1: Broad (subject + up to 6 best cues + "scene still")
   if (contextCues.length >= 2) {
-    queries.push(`${subject} ${contextCues[0]} ${contextCues[1]} scene still`);
+    const broadCues = contextCues.slice(0, 6).join(" ");
+    queries.push(`${subject} ${broadCues} scene still`);
   } else if (contextCues.length === 1) {
     queries.push(`${subject} ${contextCues[0]} scene still`);
+  } else {
+    // Last resort fallback
+    queries.push(`${subject} ${entry.title} scene still`);
   }
   
-  // Variant 3: Domain-biased (subject + 2 strongest cues + site filters)
-  if (contextCues.length >= 2) {
-    const domains = "site:hbo.com OR site:imdb.com OR site:fandom.com";
+  // Variant 2: Context-focused (subject + 2-3 strongest cues + "scene still")
+  if (contextCues.length >= 3) {
+    queries.push(`${subject} ${contextCues[0]} ${contextCues[1]} ${contextCues[2]} scene still`);
+  } else if (contextCues.length === 2) {
+    queries.push(`${subject} ${contextCues[0]} ${contextCues[1]} scene still`);
+  }
+  
+  // Variant 3: Domain-biased (subject + 2-3 strongest cues + site filters)
+  if (contextCues.length >= 3) {
+    const domains = "site:hbo.com OR site:imdb.com OR site:gameofthrones.fandom.com";
+    queries.push(`${subject} ${contextCues[0]} ${contextCues[1]} ${contextCues[2]} ${domains}`);
+  } else if (contextCues.length === 2) {
+    const domains = "site:hbo.com OR site:imdb.com OR site:gameofthrones.fandom.com";
     queries.push(`${subject} ${contextCues[0]} ${contextCues[1]} ${domains}`);
-  } else if (contextCues.length === 1) {
-    const domains = "site:hbo.com OR site:imdb.com OR site:fandom.com";
-    queries.push(`${subject} ${contextCues[0]} ${domains}`);
   }
   
   return queries.filter(q => q.trim().length > 0);
