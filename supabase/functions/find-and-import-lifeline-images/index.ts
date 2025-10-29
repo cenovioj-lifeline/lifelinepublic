@@ -238,6 +238,88 @@ function pickStrongAnchors(anchors: string[], kinds?: Profile["anchorKinds"]): s
   return anchors.slice(0, 2);
 }
 
+// ============================================================
+// QA VALIDATION
+// ============================================================
+
+interface QAWarning {
+  type: 'anchor_count' | 'pronoun_present' | 'duplicate_words' | 'denied_term' | 'missing_character';
+  severity: 'error' | 'warning';
+  message: string;
+  query: string;
+}
+
+function validateQuery(
+  query: string,
+  characterName: string,
+  collectionTitle: string,
+  anchors: string[],
+  cueWords: string[]
+): QAWarning[] {
+  const warnings: QAWarning[] = [];
+  const queryLower = query.toLowerCase();
+  const tokens = query.split(/\s+/);
+  
+  // Check 1: Character name present
+  if (!queryLower.includes(characterName.toLowerCase())) {
+    warnings.push({
+      type: 'missing_character',
+      severity: 'error',
+      message: `Character name "${characterName}" missing from query`,
+      query
+    });
+  }
+  
+  // Check 2: Anchor count (should have at least 2 for context queries)
+  const anchorCount = anchors.filter(a => queryLower.includes(a.toLowerCase())).length;
+  if (anchorCount < 2 && query.includes('scene still')) {
+    warnings.push({
+      type: 'anchor_count',
+      severity: 'warning',
+      message: `Only ${anchorCount} anchors found in query (expected ≥2)`,
+      query
+    });
+  }
+  
+  // Check 3: Pronouns present
+  const foundPronouns = tokens.filter(t => PRONOUNS.has(t.toLowerCase()));
+  if (foundPronouns.length > 0) {
+    warnings.push({
+      type: 'pronoun_present',
+      severity: 'error',
+      message: `Pronouns found: ${foundPronouns.join(', ')}`,
+      query
+    });
+  }
+  
+  // Check 4: Duplicate words
+  const uniqueTokens = new Set(tokens.map(t => t.toLowerCase()));
+  if (uniqueTokens.size < tokens.length) {
+    const duplicates = tokens.filter((t, i) => 
+      tokens.findIndex(t2 => t2.toLowerCase() === t.toLowerCase()) !== i
+    );
+    warnings.push({
+      type: 'duplicate_words',
+      severity: 'warning',
+      message: `Duplicate words found: ${[...new Set(duplicates)].join(', ')}`,
+      query
+    });
+  }
+  
+  // Check 5: Denied terms
+  const foundDenied = Array.from(DENY).filter(d => queryLower.includes(d));
+  if (foundDenied.length > 0) {
+    warnings.push({
+      type: 'denied_term',
+      severity: 'error',
+      message: `Denied terms found: ${foundDenied.join(', ')}`,
+      query
+    });
+  }
+  
+  return warnings;
+}
+
 function buildQueries(
   entry: Entry, 
   characterName?: string, 
@@ -304,6 +386,24 @@ function buildQueries(
   const domainBiased = normalizeSpaces(`${subject} ${contextAnchors.slice(0,2).join(" ")} ${domainExpr}`);
 
   console.log(`  Extracted ${anchors.length} anchors, ${cueWords.length} theme cues, ${titleTokens.length} title tokens`);
+
+  // Run QA validation and log warnings
+  const allQueries = [
+    { name: 'Broad', query: broad },
+    { name: 'Context', query: context },
+    { name: 'Domain-biased', query: domainBiased }
+  ];
+
+  for (const { name, query } of allQueries) {
+    const warnings = validateQuery(query, characterName, collectionTitle, anchors, cueWords);
+    if (warnings.length > 0) {
+      console.warn(`⚠️  QA warnings for ${name} query "${entry.title}":`);
+      warnings.forEach(w => {
+        const icon = w.severity === 'error' ? '❌' : '⚠️';
+        console.warn(`  ${icon} [${w.type}] ${w.message}`);
+      });
+    }
+  }
 
   return [broad, context, domainBiased];
 }
@@ -589,9 +689,34 @@ serve(async (req) => {
 
     // Return different response based on dry run mode
     if (dryRun) {
+      // Generate QA report for dry run
+      const qaReport = queryPreview.map(preview => {
+        const entry = entries.find(e => e.title === preview.entryTitle)!;
+        const baseText = `${entry.title} ${entry.summary || entry.details || ''}`;
+        const themes = findThemes(baseText);
+        const profile = findProfile(collectionTitle);
+        const anchorUniverse = [...(profile?.anchors ?? []), ...DEFAULT_ENTITY_ANCHORS];
+        const anchors = harvestEntityAnchors(baseText, anchorUniverse);
+        const effectiveThemeMap = { ...DEFAULT_THEME_MAP, ...(profile?.themeMap ?? {}) } as Record<string, string[]>;
+        const cueWords = pickThemeCues(themes, effectiveThemeMap);
+        
+        return {
+          entryTitle: preview.entryTitle,
+          queries: preview.queries.map((q, idx) => {
+            const type = ['Broad', 'Context', 'Domain-biased'][idx];
+            const warnings = validateQuery(q, characterName, collectionTitle, anchors, cueWords);
+            return {
+              type,
+              query: q,
+              warnings: warnings.map(w => `${w.severity.toUpperCase()}: ${w.message}`)
+            };
+          })
+        };
+      });
+
       return new Response(
         JSON.stringify({
-          message: 'Query preview generated',
+          message: 'Query preview generated with QA validation',
           dryRun: true,
           lifeline: {
             characterName,
@@ -599,7 +724,8 @@ serve(async (req) => {
             actorName,
             type: lifelineType
           },
-          queryPreview
+          queryPreview,
+          qaReport
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
