@@ -174,7 +174,7 @@ serve(async (req) => {
     // Fetch lifeline metadata to get character name, collection, etc.
     const { data: lifeline, error: lifelineError } = await supabase
       .from('lifelines')
-      .select('title, type, metadata, collections(title)')
+      .select('title, subject, lifeline_type, collection_id, collections(title)')
       .eq('id', lifelineId)
       .single();
 
@@ -184,10 +184,10 @@ serve(async (req) => {
     }
 
     // Extract metadata
-    const characterName = lifeline?.title || '';
+    const characterName = lifeline?.subject || lifeline?.title || '';
     const collectionTitle = (lifeline?.collections as any)?.title || '';
-    const actorName = lifeline?.metadata?.actor_name || '';
-    const lifelineType = lifeline?.type || '';
+    const lifelineType = lifeline?.lifeline_type || '';
+    const actorName = ''; // Actor name would need to come from profile table
 
     console.log(`Lifeline metadata - Character: ${characterName}, Collection: ${collectionTitle}, Type: ${lifelineType}`);
 
