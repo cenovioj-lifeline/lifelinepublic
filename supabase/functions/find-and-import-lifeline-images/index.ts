@@ -199,14 +199,17 @@ function scoreImage(
   return score;
 }
 
+// Batch processing configuration
+const BATCH_SIZE = 5; // Process 5 entries per invocation to stay within timeout limits
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { lifelineId, dryRun } = await req.json();
-    console.log('Processing lifeline:', lifelineId, 'Dry run:', dryRun);
+    const { lifelineId, dryRun, startIndex = 0, batchSize = BATCH_SIZE } = await req.json();
+    console.log(`🚀 Processing lifeline: ${lifelineId} | Batch starting at index: ${startIndex} | Dry run: ${dryRun}`);
 
     if (!lifelineId) {
       return new Response(
@@ -298,19 +301,33 @@ serve(async (req) => {
           imported: 0, 
           skipped: entries.length,
           totalEntries: entries.length,
-          entriesWithImages: entriesWithMedia.size
+          entriesWithImages: entriesWithMedia.size,
+          isComplete: true
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    // Calculate batch boundaries
+    const batchStart = startIndex;
+    const batchEnd = Math.min(startIndex + batchSize, entriesToProcess.length);
+    const batchEntries = entriesToProcess.slice(batchStart, batchEnd);
+    const remainingEntries = entriesToProcess.length - batchEnd;
+    const isLastBatch = remainingEntries === 0;
+
+    console.log(`📦 Batch Processing:`);
+    console.log(`   Processing entries ${batchStart + 1}-${batchEnd} of ${entriesToProcess.length}`);
+    console.log(`   Batch size: ${batchEntries.length}`);
+    console.log(`   Remaining after this batch: ${remainingEntries}`);
+    console.log(`   Is last batch: ${isLastBatch}`);
 
     let imported = 0;
     let failed = 0;
     const results = [];
     const queryPreview: Array<{ entryTitle: string; queries: string[] }> = [];
 
-    // Process each entry (only those needing images)
-    for (const entry of entriesToProcess) {
+    // Process only the entries in this batch
+    for (const entry of batchEntries) {
       try {
         console.log(`\n🔍 Processing entry: "${entry.title}"`);
         
@@ -493,15 +510,53 @@ serve(async (req) => {
       );
     }
 
+    // If more entries remain, invoke the function for the next batch
+    if (!isLastBatch && !dryRun) {
+      console.log(`\n🔄 Continuing to next batch (starting at index ${batchEnd})...`);
+      
+      // Fire and forget - invoke next batch asynchronously
+      supabase.functions.invoke('find-and-import-lifeline-images', {
+        body: {
+          lifelineId,
+          startIndex: batchEnd,
+          batchSize,
+          dryRun: false
+        }
+      }).catch(error => {
+        console.error('Error invoking next batch:', error);
+      });
+    }
+
+    // Prepare response with batch progress
+    const response = {
+      message: isLastBatch 
+        ? `✅ Completed processing all entries` 
+        : `Processed batch ${Math.floor(startIndex / batchSize) + 1}, continuing...`,
+      batchInfo: {
+        batchStart: batchStart + 1,
+        batchEnd,
+        totalToProcess: entriesToProcess.length,
+        remainingEntries,
+        isComplete: isLastBatch
+      },
+      processed: batchEntries.length,
+      imported,
+      failed,
+      skipped: entriesWithMedia.size,
+      totalEntries: entries.length,
+      isComplete: isLastBatch,
+      results
+    };
+
+    console.log(`\n${isLastBatch ? '✅ Final' : '📊 Batch'} Summary:`, {
+      processed: batchEntries.length,
+      imported,
+      failed,
+      remaining: remainingEntries
+    });
+
     return new Response(
-      JSON.stringify({
-        message: `Processed ${entriesToProcess.length} entries`,
-        processed: entriesToProcess.length,
-        imported,
-        failed,
-        skipped: entriesWithMedia.size,
-        results
-      }),
+      JSON.stringify(response),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
