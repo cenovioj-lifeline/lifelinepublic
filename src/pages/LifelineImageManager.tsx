@@ -126,12 +126,18 @@ export default function LifelineImageManager() {
       return;
     }
 
+    // Check if already running
+    if (isSearching) {
+      toast.error("Image loading is already in progress. Please wait for it to complete.");
+      return;
+    }
+
     setIsSearching(true);
-    toast.info("Finding and importing images... This may take a minute");
+    toast.info("Finding and importing images... This may take several minutes as it processes in batches.");
 
     try {
       const { data, error } = await supabase.functions.invoke('find-and-import-lifeline-images', {
-        body: { lifelineId: selectedLifelineId, dryRun: false }
+        body: { lifelineId: selectedLifelineId, dryRun: false, startIndex: 0 }
       });
 
       if (error) {
@@ -143,8 +149,17 @@ export default function LifelineImageManager() {
       // Refetch entries to show newly imported images
       await queryClient.invalidateQueries({ queryKey: ['lifeline-entries-with-media', selectedLifelineId] });
 
-      const { imported, failed, skipped } = data;
-      toast.success(`Import complete: ${imported} images imported, ${failed} failed, ${skipped} already had images`);
+      const { imported, failed, skipped, isComplete, batchInfo } = data;
+      
+      if (isComplete) {
+        toast.success(`Import complete: ${imported} images imported, ${failed} failed, ${skipped} already had images`);
+      } else {
+        toast.success(`Batch ${batchInfo?.batchEnd}/${batchInfo?.totalToProcess} complete. Processing continues in background...`);
+        // Poll for completion or show progress
+        setTimeout(() => {
+          queryClient.invalidateQueries({ queryKey: ['lifeline-entries-with-media', selectedLifelineId] });
+        }, 5000); // Refresh after 5 seconds to show progress
+      }
     } catch (error) {
       console.error('Error:', error);
       toast.error("An unexpected error occurred");
