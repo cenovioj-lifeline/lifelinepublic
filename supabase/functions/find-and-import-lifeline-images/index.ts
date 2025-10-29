@@ -1,6 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.75.0';
+import { buildSerpQueries, type Inputs } from "./buildSerpQueries.v4.2.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -24,97 +25,16 @@ interface ImageResult {
   original_height?: number;
 }
 
-// ===== V4.1.1 IMAGE SEARCH LOGIC =====
-// Collection-aware query builder with v4.1.1 improvements:
-// 1) Pronoun/determiner scrub  2) Possessive handling  3) Preserve title order
-// 4) Context variant enforces >=2 anchors, prefer place/object + person
-// 5) Guard 'death' cues (only on explicit tokens)  6) Musical soft-cues for certain titles
-// 7) Final dedupe across tokens
+// ===== V4.2 IMAGE SEARCH LOGIC =====
+// Using universal, franchise-agnostic query builder with proper noun extraction,
+// anchor scoring, and auto-detected domain selection.
 
-const STOPWORDS = new Set([
-  "born","the","a","an","we","when","everything","giving"
-]);
-
-// NEW: pronouns/determiners get scrubbed from tokens
+// Minimal constants needed for QA validation
 const PRONOUNS = new Set([
   "she","he","they","them","her","his","hers","its","it's","it","their","theirs","you","your","yours","i","me","my","mine","our","ours"
 ]);
 
 const DENY = new Set(["romance","lover","intimate moment"]);
-
-// ---------- DEFAULT (fallback) ANCHORS & THEMES ----------
-const DEFAULT_ENTITY_ANCHORS = [
-  "council","throne room","castle","tournament","arena","champion",
-  "vision","prophecy","ritual","forest","ravens","dagger","sword"
-];
-
-const DEFAULT_THEME_MAP: Record<string, string[]> = {
-  combat:   ["trial by combat","duel","arena","battle scene","weapon"],
-  death:    ["death scene","falling","final moments"],
-  magic:    ["visions","magic","transformation","ritual","prophecy"],
-  politics: ["council","throne room","court","coronation"],
-  allies:   ["companions","journey","group","reunion"],
-  travel:   ["journey","traveling","exploration","landscape"],
-  religion: ["ritual","vision","temple","prophecy"],
-  betrayal: ["betrayal","revenge scene"]
-};
-
-const DEFAULT_BIASED_DOMAINS = ["imdb.com","fandom.com"];
-
-// ---------- COLLECTION PROFILES ----------
-type Profile = {
-  match: (collectionTitle: string) => boolean;
-  domains: string[];
-  anchors: string[];
-  themeMap?: Partial<Record<string, string[]>>;
-  extraStop?: string[];
-  // classify anchors to help pick place/object + person for context variant
-  anchorKinds?: Record<"place"|"person"|"object", string[]>;
-};
-
-// Game of Thrones (Westeros)
-const PROFILE_GOT: Profile = {
-  match: t => /game\s*of\s*thrones|westeros|asoiaf/i.test(t),
-  domains: ["hbo.com","imdb.com","fandom.com"],
-  anchors: [
-    "Winterfell","godswood","Dragonpit","Tower of Joy","Craster's Keep","weirwood","cave",
-    "Hodor","Jojen Reed","Meera Reed","Three-Eyed Raven","Night King","Arya Stark","Jon Snow","Tyrion","Cersei","Jaime",
-    "Valyrian steel dagger","ravens","dragons","The Wall","King's Landing"
-  ],
-  themeMap: {
-    magic: ["visions","magic","weirwood","raven","warging","godswood"]
-  },
-  anchorKinds: {
-    place: ["Winterfell","godswood","Dragonpit","Tower of Joy","Craster's Keep","The Wall","King's Landing","weirwood","cave"],
-    person:["Hodor","Jojen Reed","Meera Reed","Three-Eyed Raven","Night King","Arya Stark","Jon Snow","Tyrion","Cersei","Jaime"],
-    object:["Valyrian steel dagger","ravens","dragons"]
-  }
-};
-
-// Wicked (Oz / Musical)
-const PROFILE_WICKED: Profile = {
-  match: t => /wicked|oz|emerald\s*city/i.test(t),
-  domains: ["wickedthemusical.com","broadway.com","playbill.com","imdb.com","fandom.com","universalpictures.com"],
-  anchors: [
-    "Emerald City","Shiz University","Ozdust Ballroom","Munchkinland","Yellow Brick Road","Glinda's Bubble",
-    "Glinda","Elphaba","Fiyero","Nessarose","Madame Morrible","The Wizard of Oz",
-    "wand","broom","spellbook","throne","bubble","stage","duet","song","spotlight"
-  ],
-  themeMap: {
-    magic:     ["spell","wand","broom","bubble","stage effect","transformation"],
-    politics:  ["council","public address","leadership","throne","Emerald City"],
-    allies:    ["companions","duet","friendship","reunion"],
-    travel:    ["journey","Yellow Brick Road","arrival","Emerald City"],
-  },
-  extraStop: [":"],
-  anchorKinds: {
-    place: ["Emerald City","Shiz University","Ozdust Ballroom","Munchkinland","Yellow Brick Road"],
-    person:["Glinda","Elphaba","Fiyero","Nessarose","Madame Morrible","The Wizard of Oz"],
-    object:["wand","broom","spellbook","throne","bubble","stage","duet","song","spotlight"]
-  }
-};
-
-const PROFILES: Profile[] = [PROFILE_GOT, PROFILE_WICKED];
 
 function findProfile(collectionTitle: string): Profile | undefined {
   return PROFILES.find(p => p.match(collectionTitle));
@@ -324,74 +244,40 @@ function buildQueries(
   entry: Entry, 
   characterName?: string, 
   collectionTitle?: string,
-  actorName?: string
+  actorName?: string,
+  collectionDomains?: string[]
 ): string[] {
   if (!characterName || !collectionTitle) {
-    console.log('  WARNING: Missing characterName or collectionTitle, cannot build v4.1.1 queries');
+    console.log('  WARNING: Missing characterName or collectionTitle, cannot build queries');
     return [];
   }
 
-  const profile = findProfile(collectionTitle);
-  const extraStops = profile?.extraStop ?? [];
+  // Build queries using v4.2 universal query builder
+  const queries = buildSerpQueries({
+    characterName,
+    collectionTitle,
+    eventTitle: entry.title,
+    eventDetails: entry.summary || entry.details || '',
+    actorName,
+    type: "Person",
+    collectionDomains
+  });
 
-  // Subject string: colon -> space, strip possessives from subject parts too
-  const cleanCollection = stripPossessives(collectionTitle.replace(/[:]/g, " "));
-  const cleanCharacter  = stripPossessives(characterName);
-  const subject = [cleanCharacter, cleanCollection, actorName ? stripPossessives(actorName) : ""]
-    .filter(Boolean)
-    .join(" ");
-
-  // Title: strip possessives, keep ORIGINAL ORDER, then sanitize by removing stopwords/pronouns only
-  const titleClean = stripPossessives(entry.title);
-  const titleTokensOrdered = tokenize(titleClean);
-  const titleTokens = sanitizeTokens(titleTokensOrdered, extraStops)
-    .filter(t => t.length > 1 && /^[a-zA-Z'-]+$/.test(t)); // keep readable words only
-
+  // Extract basic info for QA validation
   const baseText = `${entry.title} ${entry.summary || entry.details || ''}`;
+  
+  // For QA purposes, extract proper nouns as anchors
+  const properNouns = (baseText.match(/\b([A-Z][a-z]+(?:\s[A-Z][a-z]+)*)\b/g) || []).slice(0, 5);
+  const anchors = properNouns.length > 0 ? properNouns : [characterName];
+  const cueWords: string[] = []; // v4.2 handles cues internally
 
-  // Theme cues (collection-aware overrides)
-  const effectiveThemeMap = { ...DEFAULT_THEME_MAP, ...(profile?.themeMap ?? {}) } as Record<string, string[]>;
-  const themes = findThemes(baseText);
-  let cueWords = pickThemeCues(themes, effectiveThemeMap);
-  cueWords = removeDenied(cueWords);
-  // soft musical cues from title keywords
-  cueWords = maybeAddTitleSoftCues(entry.title, cueWords);
-
-  // Anchors from event text (profile + default fallback)
-  const anchorUniverse = [...(profile?.anchors ?? []), ...DEFAULT_ENTITY_ANCHORS];
-  let anchors = harvestEntityAnchors(baseText, anchorUniverse);
-  anchors = enforceMinimumAnchors(anchors, baseText, 2);
-
-  const genericTail = "scene still screenshot";
-
-  // 1) Broad — preserve order: [subject] + [titleTokens] + [cues] + [anchors] + tail
-  const broadParts = [
-    subject,
-    ...titleTokens,
-    ...cueWords,
-    ...anchors,
-    genericTail
-  ];
-  const broad = normalizeSpaces(dedupeWordsPreserveOrder(broadParts.join(" ").split(/\s+/)).join(" "));
-
-  // 2) Context — enforce >=2 anchors, prefer place/object + person
-  const strongPair = pickStrongAnchors(anchors, profile?.anchorKinds);
-  let contextAnchors = strongPair.length >= 2 ? strongPair : enforceMinimumAnchors(strongPair, baseText, 2);
-  const contextParts = [subject, ...contextAnchors, "scene", "still"];
-  const context = normalizeSpaces(dedupeWordsPreserveOrder(contextParts).join(" "));
-
-  // 3) Domain-biased — profile-specific domains
-  const domains = (profile?.domains ?? DEFAULT_BIASED_DOMAINS);
-  const domainExpr = `site:${domains.join(" OR site:")}`;
-  const domainBiased = normalizeSpaces(`${subject} ${contextAnchors.slice(0,2).join(" ")} ${domainExpr}`);
-
-  console.log(`  Extracted ${anchors.length} anchors, ${cueWords.length} theme cues, ${titleTokens.length} title tokens`);
+  console.log(`  Extracted ${anchors.length} anchors for QA validation`);
 
   // Run QA validation and log warnings
   const allQueries = [
-    { name: 'Broad', query: broad },
-    { name: 'Context', query: context },
-    { name: 'Domain-biased', query: domainBiased }
+    { name: 'Broad', query: queries[0] },
+    { name: 'Context', query: queries[1] },
+    { name: 'Domain-biased', query: queries[2] }
   ];
 
   for (const { name, query } of allQueries) {
@@ -405,7 +291,7 @@ function buildQueries(
     }
   }
 
-  return [broad, context, domainBiased];
+  return queries;
 }
 
 // rankResults v4 logic
