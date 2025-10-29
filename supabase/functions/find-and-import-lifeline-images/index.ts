@@ -284,11 +284,22 @@ serve(async (req) => {
     
     const entriesToProcess = dryRun ? entries : entries.filter(e => !entriesWithMedia.has(e.id));
 
-    console.log(`Total entries: ${entries.length}, Already have images: ${entriesWithMedia.size}, To process: ${entriesToProcess.length}`);
+    console.log(`📊 Lifeline Analysis:`);
+    console.log(`   Total entries: ${entries.length}`);
+    console.log(`   ✓ Already have images: ${entriesWithMedia.size}`);
+    console.log(`   ⏳ Need images: ${entriesToProcess.length}`);
+    console.log(`   🚫 Duplicate images blocked: ${usedImageUrls.size}`);
 
     if (!dryRun && entriesToProcess.length === 0) {
       return new Response(
-        JSON.stringify({ message: 'All entries already have images', processed: 0, imported: 0, skipped: entries.length }),
+        JSON.stringify({ 
+          message: 'All entries already have images - no processing needed', 
+          processed: 0, 
+          imported: 0, 
+          skipped: entries.length,
+          totalEntries: entries.length,
+          entriesWithImages: entriesWithMedia.size
+        }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -298,10 +309,10 @@ serve(async (req) => {
     const results = [];
     const queryPreview: Array<{ entryTitle: string; queries: string[] }> = [];
 
-    // Process each entry
+    // Process each entry (only those needing images)
     for (const entry of entriesToProcess) {
       try {
-        console.log(`Processing entry: ${entry.title}`);
+        console.log(`\n🔍 Processing entry: "${entry.title}"`);
         
         // Build queries using lifeline metadata
         const queries = buildQueries(entry, characterName, collectionTitle, actorName);
