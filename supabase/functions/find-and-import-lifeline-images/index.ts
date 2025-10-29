@@ -85,57 +85,82 @@ serve(async (req) => {
       try {
         console.log(`Processing entry: ${entry.title}`);
         
-        // Generate an image using Lovable AI
-        const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
-        if (!lovableApiKey) {
-          console.error('LOVABLE_API_KEY not found');
+        // === IMAGE SEARCH PROVIDER ===
+        // Future: Add provider selection logic here (serpapi, tmdb, thronesapi, etc.)
+        // For now, using SerpAPI Google Images search for universal coverage
+        
+        const serpApiKey = Deno.env.get('SERPAPI_KEY');
+        if (!serpApiKey) {
+          console.error('SERPAPI_KEY not found');
           failed++;
           results.push({ entryId: entry.id, title: entry.title, success: false, error: 'API key not configured' });
           continue;
         }
 
-        const imagePrompt = `Generate a cinematic, dramatic image for this Game of Thrones moment: "${entry.title}". ${entry.summary || entry.details || ''}. Style: dark fantasy, HBO production quality, atmospheric lighting.`;
+        // Build search query based on entry context
+        const contextInfo = entry.summary || entry.details || '';
+        const searchQuery = `"${entry.title}" ${contextInfo.slice(0, 100)}`.trim();
         
-        const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${lovableApiKey}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            model: 'google/gemini-2.5-flash-image-preview',
-            messages: [{
-              role: 'user',
-              content: imagePrompt
-            }],
-            modalities: ['image', 'text']
-          })
-        });
+        console.log(`Searching for images: ${searchQuery}`);
+        
+        // Search for images using SerpAPI Google Images
+        const serpApiUrl = new URL('https://serpapi.com/search.json');
+        serpApiUrl.searchParams.set('q', searchQuery);
+        serpApiUrl.searchParams.set('tbm', 'isch'); // Image search
+        serpApiUrl.searchParams.set('api_key', serpApiKey);
+        serpApiUrl.searchParams.set('num', '10'); // Get multiple results
+        
+        const searchResponse = await fetch(serpApiUrl.toString());
 
-        if (!aiResponse.ok) {
-          const errorText = await aiResponse.text();
-          console.error(`AI generation failed for "${entry.title}":`, aiResponse.status, errorText);
+        if (!searchResponse.ok) {
+          const errorText = await searchResponse.text();
+          console.error(`SerpAPI search failed for "${entry.title}":`, searchResponse.status, errorText);
           failed++;
-          results.push({ entryId: entry.id, title: entry.title, success: false, error: 'Image generation failed' });
+          results.push({ entryId: entry.id, title: entry.title, success: false, error: 'Image search failed' });
           continue;
         }
 
-        const aiData = await aiResponse.json();
-        const generatedImageUrl = aiData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+        const searchData = await searchResponse.json();
+        const imageResults = searchData.images_results || [];
 
-        if (!generatedImageUrl) {
-          console.log(`No image generated for "${entry.title}"`);
+        if (imageResults.length === 0) {
+          console.log(`No images found for "${entry.title}"`);
           failed++;
-          results.push({ entryId: entry.id, title: entry.title, success: false, error: 'No image in response' });
+          results.push({ entryId: entry.id, title: entry.title, success: false, error: 'No images found' });
           continue;
         }
 
-        // Import the generated image
+        // Select best image from results
+        // Prioritize high-resolution images from reliable sources
+        let selectedImageUrl = null;
+        for (const img of imageResults) {
+          const imageUrl = img.original || img.thumbnail;
+          const width = img.original_width || 0;
+          
+          // Prefer images with good resolution
+          if (imageUrl && width > 800) {
+            selectedImageUrl = imageUrl;
+            console.log(`Selected high-res image (${width}px) from: ${img.source || 'unknown source'}`);
+            break;
+          } else if (imageUrl && !selectedImageUrl) {
+            // Fallback to any available image
+            selectedImageUrl = imageUrl;
+          }
+        }
+
+        if (!selectedImageUrl) {
+          console.log(`No suitable image URL found for "${entry.title}"`);
+          failed++;
+          results.push({ entryId: entry.id, title: entry.title, success: false, error: 'No valid image URL' });
+          continue;
+        }
+
+        // Import the found image
         try {
           const importResponse = await supabase.functions.invoke('import-image-from-url', {
             body: {
               entryId: entry.id,
-              imageUrl: generatedImageUrl,
+              imageUrl: selectedImageUrl,
               altText: entry.title,
               position: { x: 50, y: 50, scale: 1.0 }
             }
@@ -146,12 +171,12 @@ serve(async (req) => {
             failed++;
             results.push({ entryId: entry.id, title: entry.title, success: false, error: 'Import failed' });
           } else {
-            console.log(`Successfully generated and imported image for "${entry.title}"`);
+            console.log(`Successfully found and imported image for "${entry.title}"`);
             imported++;
-            results.push({ entryId: entry.id, title: entry.title, success: true, imageUrl: generatedImageUrl });
+            results.push({ entryId: entry.id, title: entry.title, success: true, imageUrl: selectedImageUrl });
           }
         } catch (importError) {
-          console.error(`Error importing generated image:`, importError);
+          console.error(`Error importing found image:`, importError);
           failed++;
           results.push({ entryId: entry.id, title: entry.title, success: false, error: 'Import error' });
         }
