@@ -7,7 +7,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ImagePositionPicker } from "@/components/ImagePositionPicker";
 import { toast } from "sonner";
-import { Loader2, Image as ImageIcon, Search } from "lucide-react";
+import { Loader2, Image as ImageIcon, Search, FileText } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface LifelineEntry {
   id: string;
@@ -30,6 +32,8 @@ export default function LifelineImageManager() {
   const queryClient = useQueryClient();
   const [selectedLifelineId, setSelectedLifelineId] = useState<string>("");
   const [isSearching, setIsSearching] = useState(false);
+  const [isGeneratingQueries, setIsGeneratingQueries] = useState(false);
+  const [queryPreview, setQueryPreview] = useState<any>(null);
   const [editingImage, setEditingImage] = useState<{
     mediaAssetId: string;
     url: string;
@@ -118,7 +122,7 @@ export default function LifelineImageManager() {
     },
   });
 
-  const handleFindImages = async () => {
+  const handleLoadImages = async () => {
     if (!selectedLifelineId) {
       toast.error("Please select a lifeline first");
       return;
@@ -129,7 +133,7 @@ export default function LifelineImageManager() {
 
     try {
       const { data, error } = await supabase.functions.invoke('find-and-import-lifeline-images', {
-        body: { lifelineId: selectedLifelineId }
+        body: { lifelineId: selectedLifelineId, dryRun: false }
       });
 
       if (error) {
@@ -141,13 +145,43 @@ export default function LifelineImageManager() {
       // Refetch entries to show newly imported images
       await queryClient.invalidateQueries({ queryKey: ['lifeline-entries-with-media', selectedLifelineId] });
 
-      const { imported, failed, skipped, processed } = data;
+      const { imported, failed, skipped } = data;
       toast.success(`Import complete: ${imported} images imported, ${failed} failed, ${skipped} already had images`);
     } catch (error) {
       console.error('Error:', error);
       toast.error("An unexpected error occurred");
     } finally {
       setIsSearching(false);
+    }
+  };
+
+  const handleReturnQuery = async () => {
+    if (!selectedLifelineId) {
+      toast.error("Please select a lifeline first");
+      return;
+    }
+
+    setIsGeneratingQueries(true);
+    toast.info("Generating query preview...");
+
+    try {
+      const { data, error } = await supabase.functions.invoke('find-and-import-lifeline-images', {
+        body: { lifelineId: selectedLifelineId, dryRun: true }
+      });
+
+      if (error) {
+        console.error('Error generating queries:', error);
+        toast.error(error.message || "Failed to generate queries");
+        return;
+      }
+
+      setQueryPreview(data);
+      toast.success("Query preview generated");
+    } catch (error) {
+      console.error('Error:', error);
+      toast.error("An unexpected error occurred");
+    } finally {
+      setIsGeneratingQueries(false);
     }
   };
 
@@ -191,18 +225,36 @@ export default function LifelineImageManager() {
               </Select>
               
               <Button
-                onClick={handleFindImages}
+                onClick={handleLoadImages}
                 disabled={!selectedLifelineId || isSearching}
               >
                 {isSearching ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Searching...
+                    Loading...
                   </>
                 ) : (
                   <>
                     <Search className="mr-2 h-4 w-4" />
-                    Find Images
+                    Load Images
+                  </>
+                )}
+              </Button>
+              
+              <Button
+                onClick={handleReturnQuery}
+                disabled={!selectedLifelineId || isGeneratingQueries}
+                variant="outline"
+              >
+                {isGeneratingQueries ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <FileText className="mr-2 h-4 w-4" />
+                    Return Query
                   </>
                 )}
               </Button>
@@ -303,6 +355,50 @@ export default function LifelineImageManager() {
           title="Adjust Image Position"
           viewType="both"
         />
+      )}
+
+      {queryPreview && (
+        <Dialog open={!!queryPreview} onOpenChange={(open) => !open && setQueryPreview(null)}>
+          <DialogContent className="max-w-4xl">
+            <DialogHeader>
+              <DialogTitle>Query Preview</DialogTitle>
+            </DialogHeader>
+            <ScrollArea className="max-h-[70vh]">
+              <div className="space-y-6 pr-4">
+                <div className="space-y-2">
+                  <h3 className="font-semibold">Lifeline Metadata</h3>
+                  <div className="bg-muted p-4 rounded-md space-y-1 text-sm">
+                    <div><strong>Character:</strong> {queryPreview.lifeline?.characterName}</div>
+                    <div><strong>Collection:</strong> {queryPreview.lifeline?.collectionTitle}</div>
+                    {queryPreview.lifeline?.actorName && (
+                      <div><strong>Actor:</strong> {queryPreview.lifeline?.actorName}</div>
+                    )}
+                    <div><strong>Type:</strong> {queryPreview.lifeline?.type}</div>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <h3 className="font-semibold">Queries for Each Event</h3>
+                  {queryPreview.queryPreview?.map((item: any, index: number) => (
+                    <div key={index} className="border rounded-md p-4 space-y-3">
+                      <h4 className="font-medium text-primary">{item.entryTitle}</h4>
+                      <div className="space-y-2">
+                        {item.queries.map((query: string, qIndex: number) => (
+                          <div key={qIndex} className="bg-muted p-3 rounded text-sm font-mono">
+                            <div className="text-xs text-muted-foreground mb-1">
+                              Variant {qIndex + 1} {qIndex === 0 ? "(Broad)" : qIndex === 1 ? "(Context-focused)" : "(Domain-biased)"}
+                            </div>
+                            {query}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </ScrollArea>
+          </DialogContent>
+        </Dialog>
       )}
     </AdminLayout>
   );

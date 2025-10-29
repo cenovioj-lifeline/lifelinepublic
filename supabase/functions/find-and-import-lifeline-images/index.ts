@@ -24,72 +24,95 @@ interface ImageResult {
   original_height?: number;
 }
 
-// Extract context and mood signals from event text
-function extractSignals(eventTitle: string, eventDetails: string) {
+// Extract context cues from event text based on keyword families
+function extractContextCues(eventTitle: string, eventDetails: string): string[] {
   const text = `${eventTitle} ${eventDetails}`.toLowerCase();
+  const cues: string[] = [];
 
-  const contextCues: string[] = [];
-  if (/\bpartner(ship)?\b/.test(text)) contextCues.push("partners meeting", "partnership", "boardroom");
-  if (/\btv\b|\btelevision\b/.test(text)) contextCues.push("TV department", "television");
-  if (/\brevenue|profit|money|billings\b/.test(text)) contextCues.push("revenue", "billings");
-  if (/\bdenied|passed over|snubbed|overlooked\b/.test(text)) contextCues.push("denied", "passed over");
-  if (/\bhierarchy|class|status\b/.test(text)) contextCues.push("hierarchy", "class system");
-  if (/\baffair|relationship|romantic|marriage\b/.test(text)) contextCues.push("relationship", "personal");
-  if (/\bcalifornia|west coast|travel\b/.test(text)) contextCues.push("California", "travel");
+  // Combat/fight keywords
+  if (/combat|duel|fight|trial|battle|arena/.test(text)) {
+    cues.push("trial by combat", "duel", "arena", "spear", "battle");
+  }
+  
+  // Love/romance keywords
+  if (/love|affair|romance|lover|intimate/.test(text)) {
+    cues.push("romance", "lover", "intimate moment");
+  }
+  
+  // Death keywords
+  if (/death|killed|poison|wound|dying|murder/.test(text)) {
+    cues.push("death scene", "final moments");
+  }
+  
+  // Court/politics keywords
+  if (/court|politics|king|queen|throne|council/.test(text)) {
+    cues.push("throne room", "council");
+  }
+  
+  // Travel/meeting keywords
+  if (/travel|arrival|meeting|came to/.test(text)) {
+    cues.push("meeting", "council room");
+  }
+  
+  // Celebration keywords
+  if (/celebration|feast|party|wedding|banquet/.test(text)) {
+    cues.push("banquet", "feast");
+  }
+  
+  // Betrayal/revenge keywords
+  if (/betrayal|revenge|vengeance/.test(text)) {
+    cues.push("betrayal", "revenge scene");
+  }
+  
+  // Conversation keywords
+  if (/conversation|confession|spoke|said/.test(text)) {
+    cues.push("conversation", "confession", "close up");
+  }
 
-  const moodCues: string[] = [];
-  if (/\bresent|resentment|frustrat|bitter|complain|whin/.test(text)) moodCues.push("resentful", "frustrated");
-  if (/\bexcluded|not equal|unequal|second-class|marginal/.test(text)) moodCues.push("excluded", "on the margins");
-  if (/\bargue|confront|demand|ask\b/.test(text)) moodCues.push("confrontation");
-  if (/\bsexist|harass|entitle/.test(text)) moodCues.push("entitled", "problematic");
-
-  // Generic visual anchors that produce useful stills
-  const visualCues = ["office scene", "ad agency", "meeting", "still", "screenshot"];
-
-  return { contextCues, moodCues, visualCues };
+  return cues;
 }
 
-// Build multiple query variants for better results
-function buildQueries(entry: Entry, characterName?: string, showTitle?: string): string[] {
-  const { contextCues, moodCues, visualCues } = extractSignals(
-    entry.title, 
-    entry.summary || entry.details || ''
-  );
-
-  // Build core subject
+// Build query variants following the new SerpAPI guide for Person lifelines
+function buildQueries(
+  entry: Entry, 
+  characterName?: string, 
+  collectionTitle?: string,
+  actorName?: string
+): string[] {
+  const queries: string[] = [];
+  
+  // Step 1: Build base subject string
   const subjectParts: string[] = [];
   if (characterName) subjectParts.push(characterName);
-  if (showTitle) subjectParts.push(showTitle);
-  if (subjectParts.length === 0) subjectParts.push(entry.title);
+  if (collectionTitle) subjectParts.push(collectionTitle);
+  if (actorName) subjectParts.push(actorName);
   
-  const core = subjectParts.join(" ");
-
-  // Combine all cues (deduplicated)
-  const allCues = [...new Set([
-    ...contextCues.slice(0, 3),
-    ...moodCues.slice(0, 2),
-    ...visualCues.slice(0, 2)
-  ])].join(" ");
-
-  const queries: string[] = [];
-
-  // Query 1: Broad (core + all cues)
-  queries.push(`"${core}" ${allCues}`);
-
-  // Query 2: Context-forward
+  const subject = subjectParts.join(" ");
+  
+  // Step 2: Extract context cues from event
+  const contextCues = extractContextCues(entry.title, entry.summary || entry.details || '');
+  
+  // Always add generic visual cues
+  const visualCues = ["scene", "still", "screenshot", "episode photo"];
+  
+  // Step 3: Build the 3 variants
+  
+  // Variant 1: Broad (subject + context cues + visual cues)
+  const broadCues = [...contextCues.slice(0, 5), ...visualCues.slice(0, 2)];
+  queries.push(`${subject} ${broadCues.join(" ")}`);
+  
+  // Variant 2: Context-focused (subject + 2 strongest cues + scene still)
   if (contextCues.length > 0) {
-    queries.push(`"${core}" ${contextCues.slice(0, 3).join(" ")} office scene still`);
+    queries.push(`${subject} ${contextCues.slice(0, 2).join(" ")} scene still`);
   }
-
-  // Query 3: Visual-forward (clean stills)
-  queries.push(`"${core}" screenshot still scene`);
-
-  // Query 4: Domain-biased (trusted sources)
-  if (showTitle) {
-    queries.push(`"${core}" site:amc.com OR site:imdb.com OR site:fandom.com OR site:hbo.com`);
+  
+  // Variant 3: Domain-biased (subject + 2 strongest cues + domain filters)
+  if (contextCues.length > 0 && collectionTitle) {
+    const domains = "site:hbo.com OR site:imdb.com OR site:fandom.com";
+    queries.push(`${subject} ${contextCues.slice(0, 2).join(" ")} ${domains}`);
   }
-
-  return queries.filter(Boolean);
+  
+  return queries.filter(q => q.trim().length > 0);
 }
 
 // Score an image based on quality signals
@@ -134,8 +157,8 @@ serve(async (req) => {
   }
 
   try {
-    const { lifelineId } = await req.json();
-    console.log('Processing lifeline:', lifelineId);
+    const { lifelineId, dryRun } = await req.json();
+    console.log('Processing lifeline:', lifelineId, 'Dry run:', dryRun);
 
     if (!lifelineId) {
       return new Response(
@@ -147,6 +170,26 @@ serve(async (req) => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // Fetch lifeline metadata to get character name, collection, etc.
+    const { data: lifeline, error: lifelineError } = await supabase
+      .from('lifelines')
+      .select('title, type, metadata, collections(title)')
+      .eq('id', lifelineId)
+      .single();
+
+    if (lifelineError) {
+      console.error('Error fetching lifeline:', lifelineError);
+      throw lifelineError;
+    }
+
+    // Extract metadata
+    const characterName = lifeline?.title || '';
+    const collectionTitle = (lifeline?.collections as any)?.title || '';
+    const actorName = lifeline?.metadata?.actor_name || '';
+    const lifelineType = lifeline?.type || '';
+
+    console.log(`Lifeline metadata - Character: ${characterName}, Collection: ${collectionTitle}, Type: ${lifelineType}`);
 
     // Fetch all entries for this lifeline
     const { data: entries, error: entriesError } = await supabase
@@ -178,11 +221,11 @@ serve(async (req) => {
     }
 
     const entriesWithMedia = new Set(existingMedia?.map(m => m.entry_id) || []);
-    const entriesToProcess = entries.filter(e => !entriesWithMedia.has(e.id));
+    const entriesToProcess = dryRun ? entries : entries.filter(e => !entriesWithMedia.has(e.id));
 
     console.log(`Total entries: ${entries.length}, Already have images: ${entriesWithMedia.size}, To process: ${entriesToProcess.length}`);
 
-    if (entriesToProcess.length === 0) {
+    if (!dryRun && entriesToProcess.length === 0) {
       return new Response(
         JSON.stringify({ message: 'All entries already have images', processed: 0, imported: 0, skipped: entries.length }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -192,16 +235,27 @@ serve(async (req) => {
     let imported = 0;
     let failed = 0;
     const results = [];
+    const queryPreview: Array<{ entryTitle: string; queries: string[] }> = [];
 
     // Process each entry
     for (const entry of entriesToProcess) {
       try {
         console.log(`Processing entry: ${entry.title}`);
         
-        // === IMAGE SEARCH PROVIDER ===
-        // Future: Add provider selection logic here (serpapi, tmdb, thronesapi, etc.)
-        // For now, using SerpAPI Google Images search with advanced query building
+        // Build queries using lifeline metadata
+        const queries = buildQueries(entry, characterName, collectionTitle, actorName);
+        console.log(`Built ${queries.length} query variants for "${entry.title}"`);
         
+        // If dry run, just collect queries and continue
+        if (dryRun) {
+          queryPreview.push({
+            entryTitle: entry.title,
+            queries: queries
+          });
+          continue;
+        }
+        
+        // === ACTUAL IMAGE SEARCH AND IMPORT ===
         const serpApiKey = Deno.env.get('SERPAPI_KEY');
         if (!serpApiKey) {
           console.error('SERPAPI_KEY not found');
@@ -209,11 +263,6 @@ serve(async (req) => {
           results.push({ entryId: entry.id, title: entry.title, success: false, error: 'API key not configured' });
           continue;
         }
-
-        // Extract character/show info if available (could be enhanced with DB lookup)
-        // For now, we'll work with entry title as the main subject
-        const queries = buildQueries(entry);
-        console.log(`Built ${queries.length} query variants for "${entry.title}"`);
 
         // Collect images from all query variants
         const seenUrls = new Set<string>();
@@ -330,6 +379,23 @@ serve(async (req) => {
       }
     }
 
+    // Return different response based on dry run mode
+    if (dryRun) {
+      return new Response(
+        JSON.stringify({
+          message: 'Query preview generated',
+          dryRun: true,
+          lifeline: {
+            characterName,
+            collectionTitle,
+            actorName,
+            type: lifelineType
+          },
+          queryPreview
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     return new Response(
       JSON.stringify({
