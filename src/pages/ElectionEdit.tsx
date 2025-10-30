@@ -26,6 +26,17 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, Plus, Trash2, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ElectionResultsUpload } from "@/components/ElectionResultsUpload";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 type ElectionResult = {
   id?: string;
@@ -309,6 +320,34 @@ export default function ElectionEdit() {
     setResults(updated);
   };
 
+  const deleteAllResultsMutation = useMutation({
+    mutationFn: async () => {
+      if (!id || isNew) return;
+      
+      const { error } = await supabase
+        .from("election_results")
+        .delete()
+        .eq("election_id", id);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["election-results", id] });
+      setResults([]);
+      toast({
+        title: "Success",
+        description: "All results deleted successfully",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
@@ -530,11 +569,45 @@ export default function ElectionEdit() {
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
-                <CardTitle>Manual Entry</CardTitle>
-                <Button type="button" size="sm" onClick={addResult}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Result
-                </Button>
+                <div>
+                  <CardTitle>Manual Entry</CardTitle>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    <strong>Note:</strong> Superlative Category is how awards get grouped
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  {results.length > 0 && (
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button type="button" size="sm" variant="destructive">
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Delete All Results
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Delete All Results?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            This will permanently delete all {results.length} result{results.length !== 1 ? 's' : ''} for this election. This action cannot be undone.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => deleteAllResultsMutation.mutate()}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          >
+                            Delete All
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  )}
+                  <Button type="button" size="sm" onClick={addResult}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Result
+                  </Button>
+                </div>
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
