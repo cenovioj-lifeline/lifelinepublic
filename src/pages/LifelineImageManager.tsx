@@ -534,8 +534,8 @@ export default function LifelineImageManager() {
                         </TableHeader>
                         <TableBody>
                           {filteredLifelines?.map((lifeline) => {
-                            const percentage = lifeline.events_with_pics > 0 
-                              ? Math.round((lifeline.events_with_locked / lifeline.events_with_pics) * 100)
+                            const percentage = lifeline.total_events > 0 
+                              ? Math.round((lifeline.events_with_locked / lifeline.total_events) * 100)
                               : 0;
                             return (
                               <TableRow

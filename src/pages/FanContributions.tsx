@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Check, X, Eye } from "lucide-react";
+import { Check, X, Eye, Users } from "lucide-react";
 
 export default function FanContributions() {
   const queryClient = useQueryClient();
@@ -30,6 +30,7 @@ export default function FanContributions() {
   const [adminMessage, setAdminMessage] = useState("");
   const [expandedUserId, setExpandedUserId] = useState<string | null>(null);
   const [superFanStates, setSuperFanStates] = useState<Record<string, boolean>>({});
+  const [allUsersSuperFanStates, setAllUsersSuperFanStates] = useState<Record<string, boolean>>({});
 
   const { data: contributions, isLoading } = useQuery({
     queryKey: ["fan-contributions-admin"],
@@ -80,6 +81,38 @@ export default function FanContributions() {
     },
   });
 
+  const { data: allUsers, isLoading: usersLoading } = useQuery({
+    queryKey: ["all-users"],
+    queryFn: async () => {
+      const { data: profiles, error } = await supabase
+        .from("user_profiles")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+
+      // Check super fan status for each user
+      if (profiles) {
+        const userIds = profiles.map((p: any) => p.user_id);
+        const superFanPromises = userIds.map(async (userId: string) => {
+          const { data: isSuperFan } = await supabase.rpc('is_super_fan', {
+            check_user_id: userId
+          });
+          return { userId, isSuperFan: !!isSuperFan };
+        });
+
+        const superFanResults = await Promise.all(superFanPromises);
+        const superFanMap: Record<string, boolean> = {};
+        superFanResults.forEach(({ userId, isSuperFan }) => {
+          superFanMap[userId] = isSuperFan;
+        });
+        setAllUsersSuperFanStates(superFanMap);
+      }
+
+      return profiles;
+    },
+  });
+
   const toggleSuperFanMutation = useMutation({
     mutationFn: async ({ userId, isSuperFan }: { userId: string; isSuperFan: boolean }) => {
       const { error } = await supabase.rpc('toggle_super_fan', {
@@ -93,6 +126,11 @@ export default function FanContributions() {
         ...prev,
         [variables.userId]: variables.isSuperFan
       }));
+      setAllUsersSuperFanStates(prev => ({
+        ...prev,
+        [variables.userId]: variables.isSuperFan
+      }));
+      queryClient.invalidateQueries({ queryKey: ["all-users"] });
       toast.success(variables.isSuperFan ? "User promoted to Super Fan" : "Super Fan status removed");
     },
     onError: () => {
@@ -243,6 +281,75 @@ export default function FanContributions() {
       </div>
 
       <div className="rounded-md border">
+        <div className="p-4 border-b bg-muted/30">
+          <div className="flex items-center gap-2">
+            <Users className="h-5 w-5" />
+            <h2 className="text-xl font-semibold">All Users</h2>
+          </div>
+        </div>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+              <TableHead>Email</TableHead>
+              <TableHead>Super Fan</TableHead>
+              <TableHead>Joined</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {usersLoading ? (
+              <TableRow>
+                <TableCell colSpan={4} className="text-center">
+                  Loading...
+                </TableCell>
+              </TableRow>
+            ) : allUsers?.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={4} className="text-center">
+                  No users found
+                </TableCell>
+              </TableRow>
+            ) : (
+              allUsers?.map((user) => (
+                <TableRow 
+                  key={user.id}
+                  className="cursor-pointer hover:bg-muted/50"
+                  onClick={() => toggleSuperFanMutation.mutate({
+                    userId: user.user_id,
+                    isSuperFan: !allUsersSuperFanStates[user.user_id]
+                  })}
+                >
+                  <TableCell>
+                    {user.first_name || user.last_name
+                      ? `${user.first_name || ""} ${user.last_name || ""}`.trim()
+                      : "Anonymous User"}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {user.user_id}
+                  </TableCell>
+                  <TableCell>
+                    <input
+                      type="checkbox"
+                      checked={allUsersSuperFanStates[user.user_id] || false}
+                      onChange={() => {}}
+                      className="cursor-pointer"
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {new Date(user.created_at).toLocaleDateString()}
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
+
+      <div className="rounded-md border">
+        <div className="p-4 border-b bg-muted/30">
+          <h2 className="text-xl font-semibold">Contributions</h2>
+        </div>
         <Table>
           <TableHeader>
             <TableRow>
