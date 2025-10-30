@@ -6,12 +6,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { Plus, Star, Menu, Image as ImageIcon } from "lucide-react";
+import { Plus, Star, Menu, Image as ImageIcon, ImageUp } from "lucide-react";
 import { ContributeEventDialog } from "@/components/ContributeEventDialog";
 import { useAuth } from "@/lib/auth";
 import { PublicAuthModal } from "@/components/PublicAuthModal";
 import { SuperFanImageUpload, SuperFanImageDelete } from "@/components/SuperFanImageUpload";
 import { ImageLockToggle } from "@/components/ImageLockToggle";
+import { CoverImagePicker } from "@/components/CoverImagePicker";
 import { Link } from "react-router-dom";
 import {
   DropdownMenu,
@@ -46,6 +47,8 @@ export function LifelineViewer({
   const [contributeDialogOpen, setContributeDialogOpen] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [contributePictureMode, setContributePictureMode] = useState(false);
+  const [coverImagePickerOpen, setCoverImagePickerOpen] = useState(false);
+  const [coverImageUrl, setCoverImageUrl] = useState<string | undefined>(undefined);
   const selectionStyle: SelectionStyle = "glow"; // Always use glow
   const timelineRef = useRef<HTMLDivElement>(null);
   const entryRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
@@ -498,30 +501,42 @@ export function LifelineViewer({
                 {selected.media && selected.media.length > 0 && (
                   <div className="mb-4 relative">
                     <Carousel className="w-full">
-                      <CarouselContent>
-                        {selected.media.map((media) => (
-                          <CarouselItem key={media.id}>
-                            <div className="relative overflow-hidden rounded-lg">
-                              {isSuperFan && (
-                                <>
-                                  <ImageLockToggle
-                                    entryMediaId={media.entryMediaId}
-                                    isLocked={media.locked}
-                                    onLockChange={() => {
-                                      queryClient.invalidateQueries({ queryKey: ["entries", lifelineId] });
-                                    }}
-                                  />
-                                  {!media.locked && (
-                                    <SuperFanImageDelete
-                                      mediaId={media.id}
-                                      entryId={selected.id}
-                                      onDeleteComplete={() => {
-                                        queryClient.invalidateQueries({ queryKey: ["entries", lifelineId] });
-                                      }}
-                                    />
-                                  )}
-                                </>
-                              )}
+                       <CarouselContent>
+                         {selected.media.map((media) => (
+                           <CarouselItem key={media.id}>
+                             <div className="relative overflow-hidden rounded-lg">
+                               {isSuperFan && (
+                                 <>
+                                   <ImageLockToggle
+                                     entryMediaId={media.entryMediaId}
+                                     isLocked={media.locked}
+                                     onLockChange={() => {
+                                       queryClient.invalidateQueries({ queryKey: ["entries", lifelineId] });
+                                     }}
+                                   />
+                                   <Button
+                                     variant="secondary"
+                                     size="sm"
+                                     onClick={() => {
+                                       setCoverImageUrl(media.url);
+                                       setCoverImagePickerOpen(true);
+                                     }}
+                                     className="absolute top-12 left-2 z-10"
+                                     title="Use as cover image"
+                                   >
+                                     <ImageUp className="h-4 w-4" />
+                                   </Button>
+                                   {!media.locked && (
+                                     <SuperFanImageDelete
+                                       mediaId={media.id}
+                                       entryId={selected.id}
+                                       onDeleteComplete={() => {
+                                         queryClient.invalidateQueries({ queryKey: ["entries", lifelineId] });
+                                       }}
+                                     />
+                                   )}
+                                 </>
+                               )}
                               <img
                                 src={media.url}
                                 alt={media.alt_text || selected.title}
@@ -664,6 +679,18 @@ export function LifelineViewer({
           }
         }}
       />
+
+      {isSuperFan && (
+        <CoverImagePicker
+          lifelineId={lifelineId}
+          currentImageUrl={coverImageUrl}
+          open={coverImagePickerOpen}
+          onOpenChange={setCoverImagePickerOpen}
+          onSuccess={() => {
+            queryClient.invalidateQueries({ queryKey: ["lifeline", lifelineId] });
+          }}
+        />
+      )}
     </Card>
   );
 }

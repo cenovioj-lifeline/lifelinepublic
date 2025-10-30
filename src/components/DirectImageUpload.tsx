@@ -4,6 +4,7 @@ import { uploadImage, deleteImage, getImageDimensions } from "@/lib/storage";
 import { useToast } from "@/hooks/use-toast";
 import { Upload, X, Loader2, Move } from "lucide-react";
 import { ImagePositionPicker } from "./ImagePositionPicker";
+import { cn } from "@/lib/utils";
 
 interface DirectImageUploadProps {
   currentImageUrl?: string;
@@ -30,11 +31,39 @@ export function DirectImageUpload({
 }: DirectImageUploadProps) {
   const [uploading, setUploading] = useState(false);
   const [showPositionPicker, setShowPositionPicker] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
   const { toast } = useToast();
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+
+    const files = Array.from(e.dataTransfer.files);
+    const imageFile = files.find(file => file.type.startsWith('image/'));
+
+    if (!imageFile) {
+      toast({
+        title: "Invalid file type",
+        description: "Please drop an image file.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    await processFile(imageFile);
+  };
+
+  const processFile = async (file: File) => {
 
     if (!file.type.startsWith("image/")) {
       toast({
@@ -73,6 +102,12 @@ export function DirectImageUpload({
     } finally {
       setUploading(false);
     }
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    await processFile(file);
   };
 
   const handleRemove = async () => {
@@ -134,7 +169,17 @@ export function DirectImageUpload({
           )}
         </div>
       ) : (
-        <div className="border-2 border-dashed rounded-lg p-8 text-center">
+        <div
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+          className={cn(
+            "border-2 border-dashed rounded-lg p-8 text-center transition-colors",
+            isDragging
+              ? "border-primary bg-primary/5"
+              : "border-muted-foreground/25 hover:border-primary/50"
+          )}
+        >
           <input
             type="file"
             accept="image/*"
@@ -154,7 +199,7 @@ export function DirectImageUpload({
                 <Upload className="h-8 w-8 text-muted-foreground" />
                 <p className="text-sm text-muted-foreground">{label}</p>
                 <p className="text-xs text-muted-foreground">
-                  Click to upload (max 10MB)
+                  Drag & drop or click to upload (max 10MB)
                 </p>
               </div>
             )}
