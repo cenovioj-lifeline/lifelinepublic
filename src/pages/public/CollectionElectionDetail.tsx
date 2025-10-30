@@ -360,9 +360,9 @@ export default function CollectionElectionDetail() {
                                 )}
                                 
                                 <div className="flex-1 min-w-0 space-y-2">
-                                  {result.category && (
+                                  {result.superlative_category && (
                                     <h3 className="text-lg sm:text-xl font-bold line-clamp-2" style={{ color: 'hsl(var(--scheme-card-text))' }}>
-                                      {result.category}
+                                      {result.superlative_category}
                                     </h3>
                                   )}
                                   
