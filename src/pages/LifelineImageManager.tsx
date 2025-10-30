@@ -5,118 +5,89 @@ import { AdminLayout } from "@/components/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ImagePositionPicker } from "@/components/ImagePositionPicker";
+import { Input } from "@/components/ui/input";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { Loader2, Image as ImageIcon, Search, FileText } from "lucide-react";
+import { Loader2, Search, FileText, Filter } from "lucide-react";
 
-interface LifelineEntry {
+interface LifelineWithStats {
   id: string;
   title: string;
-  occurred_on: string | null;
-  media: Array<{
-    id: string;
-    media_id: string;
-    media_assets: {
-      id: string;
-      url: string;
-      position_x: number;
-      position_y: number;
-      scale: number;
-    };
-  }>;
+  slug: string;
+  lifeline_type: string;
+  collection_id: string | null;
+  collections: { title: string } | null;
+  total_events: number;
+  events_with_pics: number;
 }
 
 export default function LifelineImageManager() {
   const queryClient = useQueryClient();
   const [selectedLifelineId, setSelectedLifelineId] = useState<string>("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [collectionFilter, setCollectionFilter] = useState<string>("all");
+  const [typeFilter, setTypeFilter] = useState<string>("all");
   const [isSearching, setIsSearching] = useState(false);
   const [isGeneratingQueries, setIsGeneratingQueries] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
-  const [editingImage, setEditingImage] = useState<{
-    mediaAssetId: string;
-    url: string;
-    position: { x: number; y: number; scale: number };
-  } | null>(null);
 
-  // Fetch lifelines
-  const { data: lifelines } = useQuery({
-    queryKey: ["lifelines-for-image-manager"],
+  // Fetch collections for filter
+  const { data: collections } = useQuery({
+    queryKey: ["collections-for-filter"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("lifelines")
-        .select("id, title, slug")
+        .from("collections")
+        .select("id, title")
         .order("title");
       if (error) throw error;
       return data;
     },
   });
 
-  // Fetch entries for selected lifeline
-  const { data: entries, isLoading: entriesLoading } = useQuery({
-    queryKey: ["lifeline-entries-with-media", selectedLifelineId],
+  // Fetch lifelines with stats
+  const { data: lifelines, isLoading: lifelinesLoading } = useQuery({
+    queryKey: ["lifelines-with-stats"],
     queryFn: async () => {
-      if (!selectedLifelineId) return [];
       const { data, error } = await supabase
-        .from("entries")
+        .from("lifelines")
         .select(`
           id,
           title,
-          occurred_on,
-          entry_media (
-            id,
-            media_id,
-            media_assets (
-              id,
-              url,
-              position_x,
-              position_y,
-              scale
-            )
-          )
+          slug,
+          lifeline_type,
+          collection_id,
+          collections (title)
         `)
-        .eq("lifeline_id", selectedLifelineId)
-        .order("occurred_on");
+        .order("title");
       
       if (error) throw error;
-      
-      return data.map(entry => ({
-        ...entry,
-        media: entry.entry_media.map((em: any) => ({
-          id: em.id,
-          media_id: em.media_id,
-          media_assets: em.media_assets
-        }))
-      })) as LifelineEntry[];
-    },
-    enabled: !!selectedLifelineId,
-  });
 
-  // Update media position mutation
-  const updatePositionMutation = useMutation({
-    mutationFn: async ({ 
-      mediaAssetId, 
-      position 
-    }: { 
-      mediaAssetId: string; 
-      position: { x: number; y: number; scale: number } 
-    }) => {
-      const { error } = await supabase
-        .from("media_assets")
-        .update({
-          position_x: position.x,
-          position_y: position.y,
-          scale: position.scale,
+      // Fetch stats for each lifeline
+      const lifelinesWithStats = await Promise.all(
+        data.map(async (lifeline) => {
+          const { count: totalEvents } = await supabase
+            .from("entries")
+            .select("*", { count: "exact", head: true })
+            .eq("lifeline_id", lifeline.id);
+
+          const { data: entriesWithMedia } = await supabase
+            .from("entries")
+            .select("id, entry_media(id)")
+            .eq("lifeline_id", lifeline.id);
+
+          const eventsWithPics = entriesWithMedia?.filter(
+            (e: any) => e.entry_media && e.entry_media.length > 0
+          ).length || 0;
+
+          return {
+            ...lifeline,
+            total_events: totalEvents || 0,
+            events_with_pics: eventsWithPics,
+          };
         })
-        .eq("id", mediaAssetId);
-      
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["lifeline-entries-with-media", selectedLifelineId] });
-      toast.success("Image position updated");
-    },
-    onError: () => {
-      toast.error("Failed to update image position");
+      );
+
+      return lifelinesWithStats as LifelineWithStats[];
     },
   });
 
@@ -126,7 +97,6 @@ export default function LifelineImageManager() {
       return;
     }
 
-    // Check if already running
     if (isSearching) {
       toast.error("Image loading is already in progress. Please wait for it to complete.");
       return;
@@ -146,8 +116,7 @@ export default function LifelineImageManager() {
         return;
       }
 
-      // Refetch entries to show newly imported images
-      await queryClient.invalidateQueries({ queryKey: ['lifeline-entries-with-media', selectedLifelineId] });
+      await queryClient.invalidateQueries({ queryKey: ['lifelines-with-stats'] });
 
       const { imported, failed, skipped, isComplete, batchInfo } = data;
       
@@ -155,10 +124,9 @@ export default function LifelineImageManager() {
         toast.success(`Import complete: ${imported} images imported, ${failed} failed, ${skipped} already had images`);
       } else {
         toast.success(`Batch ${batchInfo?.batchEnd}/${batchInfo?.totalToProcess} complete. Processing continues in background...`);
-        // Poll for completion or show progress
         setTimeout(() => {
-          queryClient.invalidateQueries({ queryKey: ['lifeline-entries-with-media', selectedLifelineId] });
-        }, 5000); // Refresh after 5 seconds to show progress
+          queryClient.invalidateQueries({ queryKey: ['lifelines-with-stats'] });
+        }, 5000);
       }
     } catch (error) {
       console.error('Error:', error);
@@ -330,14 +298,15 @@ export default function LifelineImageManager() {
     }
   };
 
-  const handlePositionSave = (position: { x: number; y: number; scale: number }) => {
-    if (!editingImage) return;
-    updatePositionMutation.mutate({
-      mediaAssetId: editingImage.mediaAssetId,
-      position,
-    });
-    setEditingImage(null);
-  };
+  // Filter lifelines
+  const filteredLifelines = lifelines?.filter((lifeline) => {
+    const matchesSearch = lifeline.title.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCollection = collectionFilter === "all" || lifeline.collection_id === collectionFilter;
+    const matchesType = typeFilter === "all" || lifeline.lifeline_type === typeFilter;
+    return matchesSearch && matchesCollection && matchesType;
+  });
+
+  const selectedLifeline = lifelines?.find((l) => l.id === selectedLifelineId);
 
   return (
     <AdminLayout>
@@ -345,183 +314,168 @@ export default function LifelineImageManager() {
         <div>
           <h1 className="text-3xl font-bold">Lifeline Image Manager</h1>
           <p className="text-muted-foreground mt-2">
-            Select a lifeline to manage images, search for new ones, and adjust positioning
+            Select a lifeline to load images, generate queries, or export data
           </p>
         </div>
 
         <Card>
           <CardHeader>
-            <CardTitle>Select Lifeline</CardTitle>
-            <CardDescription>Choose which lifeline you want to add or manage images for</CardDescription>
+            <CardTitle>All Lifelines</CardTitle>
+            <CardDescription>Filter and select a lifeline to manage</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Select value={selectedLifelineId} onValueChange={setSelectedLifelineId}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select a lifeline..." />
-              </SelectTrigger>
-              <SelectContent>
-                {lifelines?.map((lifeline) => (
-                  <SelectItem key={lifeline.id} value={lifeline.id}>
-                    {lifeline.title}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            
             <div className="flex gap-2">
-              <Button
-                onClick={handleLoadImages}
-                disabled={!selectedLifelineId || isSearching}
-                className="flex-1"
-              >
-                {isSearching ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Loading...
-                  </>
-                ) : (
-                  <>
-                    <Search className="mr-2 h-4 w-4" />
-                    Load Images
-                  </>
-                )}
-              </Button>
-              
-              <Button
-                onClick={handleReturnQuery}
-                disabled={!selectedLifelineId || isGeneratingQueries}
-                variant="outline"
-                className="flex-1"
-              >
-                {isGeneratingQueries ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Generating...
-                  </>
-                ) : (
-                  <>
-                    <FileText className="mr-2 h-4 w-4" />
-                    Return Query
-                  </>
-                )}
-              </Button>
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search lifelines..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
+              <Select value={collectionFilter} onValueChange={setCollectionFilter}>
+                <SelectTrigger className="w-[200px]">
+                  <Filter className="h-4 w-4 mr-2" />
+                  <SelectValue placeholder="All Collections" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Collections</SelectItem>
+                  {collections?.map((collection) => (
+                    <SelectItem key={collection.id} value={collection.id}>
+                      {collection.title}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={typeFilter} onValueChange={setTypeFilter}>
+                <SelectTrigger className="w-[180px]">
+                  <Filter className="h-4 w-4 mr-2" />
+                  <SelectValue placeholder="All Types" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Types</SelectItem>
+                  <SelectItem value="person">Person</SelectItem>
+                  <SelectItem value="event">Event</SelectItem>
+                  <SelectItem value="topic">Topic</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
-              <Button
-                onClick={handleExportLifeline}
-                disabled={!selectedLifelineId || isExporting}
-                variant="outline"
-                className="flex-1"
-              >
-                {isExporting ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Exporting...
-                  </>
-                ) : (
-                  <>
-                    <FileText className="mr-2 h-4 w-4" />
-                    Export Lifeline as MD
-                  </>
-                )}
-              </Button>
+            <div className="border rounded-lg">
+              {lifelinesLoading ? (
+                <div className="flex justify-center py-8">
+                  <Loader2 className="h-8 w-8 animate-spin" />
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Type</TableHead>
+                      <TableHead>Lifeline Name</TableHead>
+                      <TableHead>Collection</TableHead>
+                      <TableHead className="text-right"># Events / # Pics</TableHead>
+                      <TableHead className="text-right">% with Pics</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredLifelines?.map((lifeline) => {
+                      const percentage = lifeline.total_events > 0 
+                        ? Math.round((lifeline.events_with_pics / lifeline.total_events) * 100)
+                        : 0;
+                      
+                      return (
+                        <TableRow
+                          key={lifeline.id}
+                          className={`cursor-pointer ${selectedLifelineId === lifeline.id ? 'bg-muted' : ''}`}
+                          onClick={() => setSelectedLifelineId(lifeline.id)}
+                        >
+                          <TableCell className="capitalize">{lifeline.lifeline_type}</TableCell>
+                          <TableCell className="font-medium">{lifeline.title}</TableCell>
+                          <TableCell>{lifeline.collections?.title || '—'}</TableCell>
+                          <TableCell className="text-right">
+                            {lifeline.total_events} / {lifeline.events_with_pics}
+                          </TableCell>
+                          <TableCell className="text-right">{percentage}%</TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              )}
             </div>
           </CardContent>
         </Card>
 
-        {selectedLifelineId && (
+        {selectedLifelineId && selectedLifeline && (
           <Card>
             <CardHeader>
-              <CardTitle>Events & Images</CardTitle>
-              <CardDescription>
-                Click on any image to adjust its position and zoom
-              </CardDescription>
+              <CardTitle>Actions for {selectedLifeline.title}</CardTitle>
+              <CardDescription>Load images, generate query preview, or export as markdown</CardDescription>
             </CardHeader>
             <CardContent>
-              {entriesLoading ? (
-                <div className="flex justify-center py-8">
-                  <Loader2 className="h-8 w-8 animate-spin" />
-                </div>
-              ) : entries && entries.length > 0 ? (
-                <div className="space-y-4">
-                  {entries.map((entry) => (
-                    <div
-                      key={entry.id}
-                      className="border rounded-lg p-4 space-y-3"
-                    >
-                      <div>
-                        <h3 className="font-semibold">{entry.title}</h3>
-                        {entry.occurred_on && (
-                          <p className="text-sm text-muted-foreground">
-                            {new Date(entry.occurred_on).toLocaleDateString()}
-                          </p>
-                        )}
-                      </div>
+              <div className="flex gap-2">
+                <Button
+                  onClick={handleLoadImages}
+                  disabled={isSearching}
+                  className="flex-1"
+                >
+                  {isSearching ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Loading...
+                    </>
+                  ) : (
+                    <>
+                      <Search className="mr-2 h-4 w-4" />
+                      Load Images
+                    </>
+                  )}
+                </Button>
+                
+                <Button
+                  onClick={handleReturnQuery}
+                  disabled={isGeneratingQueries}
+                  variant="outline"
+                  className="flex-1"
+                >
+                  {isGeneratingQueries ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Generating...
+                    </>
+                  ) : (
+                    <>
+                      <FileText className="mr-2 h-4 w-4" />
+                      Return Query
+                    </>
+                  )}
+                </Button>
 
-                      {entry.media.length > 0 ? (
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                          {entry.media.map((media) => (
-                            <button
-                              key={media.id}
-                              onClick={() =>
-                                setEditingImage({
-                                  mediaAssetId: media.media_assets.id,
-                                  url: media.media_assets.url,
-                                  position: {
-                                    x: media.media_assets.position_x,
-                                    y: media.media_assets.position_y,
-                                    scale: media.media_assets.scale,
-                                  },
-                                })
-                              }
-                              className="relative aspect-video rounded-md overflow-hidden border-2 border-transparent hover:border-primary transition-colors group"
-                            >
-                              <img
-                                src={media.media_assets.url}
-                                alt=""
-                                className="w-full h-full object-cover"
-                                style={{
-                                  objectPosition: `${media.media_assets.position_x}% ${media.media_assets.position_y}%`,
-                                  transform: `scale(${media.media_assets.scale})`,
-                                }}
-                              />
-                              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                <span className="text-white text-sm font-medium">
-                                  Click to adjust
-                                </span>
-                              </div>
-                            </button>
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="flex items-center gap-2 text-muted-foreground py-4">
-                          <ImageIcon className="h-4 w-4" />
-                          <span className="text-sm">No images yet</span>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-center text-muted-foreground py-8">
-                  No events found for this lifeline
-                </p>
-              )}
+                <Button
+                  onClick={handleExportLifeline}
+                  disabled={isExporting}
+                  variant="outline"
+                  className="flex-1"
+                >
+                  {isExporting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Exporting...
+                    </>
+                  ) : (
+                    <>
+                      <FileText className="mr-2 h-4 w-4" />
+                      Export Lifeline as MD
+                    </>
+                  )}
+                </Button>
+              </div>
             </CardContent>
           </Card>
         )}
       </div>
-
-      {editingImage && (
-        <ImagePositionPicker
-          imageUrl={editingImage.url}
-          initialPosition={editingImage.position}
-          onPositionChange={handlePositionSave}
-          open={!!editingImage}
-          onOpenChange={(open) => !open && setEditingImage(null)}
-          title="Adjust Image Position"
-          viewType="both"
-        />
-      )}
 
     </AdminLayout>
   );
