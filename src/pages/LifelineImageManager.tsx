@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
 import { toast } from "sonner";
 import { Loader2, Search, FileText, Filter } from "lucide-react";
 
@@ -19,6 +20,7 @@ interface LifelineWithStats {
   collections: { title: string } | null;
   total_events: number;
   events_with_pics: number;
+  events_with_locked: number;
 }
 
 export default function LifelineImageManager() {
@@ -72,17 +74,22 @@ export default function LifelineImageManager() {
 
           const { data: entriesWithMedia } = await supabase
             .from("entries")
-            .select("id, entry_media(id)")
+            .select("id, entry_media(id, locked)")
             .eq("lifeline_id", lifeline.id);
 
           const eventsWithPics = entriesWithMedia?.filter(
             (e: any) => e.entry_media && e.entry_media.length > 0
           ).length || 0;
 
+          const eventsWithLocked = entriesWithMedia?.filter(
+            (e: any) => e.entry_media && e.entry_media.some((m: any) => m.locked)
+          ).length || 0;
+
           return {
             ...lifeline,
             total_events: totalEvents || 0,
             events_with_pics: eventsWithPics,
+            events_with_locked: eventsWithLocked,
           };
         })
       );
@@ -363,46 +370,188 @@ export default function LifelineImageManager() {
               </Select>
             </div>
 
-            <div className="border rounded-lg">
+            <div className="border rounded-lg overflow-hidden">
               {lifelinesLoading ? (
                 <div className="flex justify-center py-8">
                   <Loader2 className="h-8 w-8 animate-spin" />
                 </div>
               ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Type</TableHead>
-                      <TableHead>Lifeline Name</TableHead>
-                      <TableHead>Collection</TableHead>
-                      <TableHead className="text-right"># Events / # Pics</TableHead>
-                      <TableHead className="text-right">% with Pics</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredLifelines?.map((lifeline) => {
-                      const percentage = lifeline.total_events > 0 
-                        ? Math.round((lifeline.events_with_pics / lifeline.total_events) * 100)
-                        : 0;
-                      
-                      return (
-                        <TableRow
-                          key={lifeline.id}
-                          className={`cursor-pointer ${selectedLifelineId === lifeline.id ? 'bg-muted' : ''}`}
-                          onClick={() => setSelectedLifelineId(lifeline.id)}
-                        >
-                          <TableCell className="capitalize">{lifeline.lifeline_type}</TableCell>
-                          <TableCell className="font-medium">{lifeline.title}</TableCell>
-                          <TableCell>{lifeline.collections?.title || '—'}</TableCell>
-                          <TableCell className="text-right">
-                            {lifeline.total_events} / {lifeline.events_with_pics}
-                          </TableCell>
-                          <TableCell className="text-right">{percentage}%</TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
+                <ResizablePanelGroup direction="horizontal">
+                  <ResizablePanel defaultSize={15} minSize={10}>
+                    <div className="h-full overflow-auto">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="sticky top-0 bg-background">Type</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {filteredLifelines?.map((lifeline) => (
+                            <TableRow
+                              key={lifeline.id}
+                              className={`cursor-pointer ${selectedLifelineId === lifeline.id ? 'bg-muted' : ''}`}
+                              onClick={() => setSelectedLifelineId(lifeline.id)}
+                            >
+                              <TableCell className="capitalize">{lifeline.lifeline_type}</TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </ResizablePanel>
+                  <ResizableHandle withHandle />
+                  <ResizablePanel defaultSize={35} minSize={20}>
+                    <div className="h-full overflow-auto">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="sticky top-0 bg-background">Lifeline Name</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {filteredLifelines?.map((lifeline) => (
+                            <TableRow
+                              key={lifeline.id}
+                              className={`cursor-pointer ${selectedLifelineId === lifeline.id ? 'bg-muted' : ''}`}
+                              onClick={() => setSelectedLifelineId(lifeline.id)}
+                            >
+                              <TableCell className="font-medium">{lifeline.title}</TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </ResizablePanel>
+                  <ResizableHandle withHandle />
+                  <ResizablePanel defaultSize={20} minSize={15}>
+                    <div className="h-full overflow-auto">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="sticky top-0 bg-background">Collection</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {filteredLifelines?.map((lifeline) => (
+                            <TableRow
+                              key={lifeline.id}
+                              className={`cursor-pointer ${selectedLifelineId === lifeline.id ? 'bg-muted' : ''}`}
+                              onClick={() => setSelectedLifelineId(lifeline.id)}
+                            >
+                              <TableCell>{lifeline.collections?.title || '—'}</TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </ResizablePanel>
+                  <ResizableHandle withHandle />
+                  <ResizablePanel defaultSize={12} minSize={10}>
+                    <div className="h-full overflow-auto">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="text-right sticky top-0 bg-background"># Events / # Pics</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {filteredLifelines?.map((lifeline) => (
+                            <TableRow
+                              key={lifeline.id}
+                              className={`cursor-pointer ${selectedLifelineId === lifeline.id ? 'bg-muted' : ''}`}
+                              onClick={() => setSelectedLifelineId(lifeline.id)}
+                            >
+                              <TableCell className="text-right">
+                                {lifeline.total_events} / {lifeline.events_with_pics}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </ResizablePanel>
+                  <ResizableHandle withHandle />
+                  <ResizablePanel defaultSize={10} minSize={8}>
+                    <div className="h-full overflow-auto">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="text-right sticky top-0 bg-background">% with Pics</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {filteredLifelines?.map((lifeline) => {
+                            const percentage = lifeline.total_events > 0 
+                              ? Math.round((lifeline.events_with_pics / lifeline.total_events) * 100)
+                              : 0;
+                            return (
+                              <TableRow
+                                key={lifeline.id}
+                                className={`cursor-pointer ${selectedLifelineId === lifeline.id ? 'bg-muted' : ''}`}
+                                onClick={() => setSelectedLifelineId(lifeline.id)}
+                              >
+                                <TableCell className="text-right">{percentage}%</TableCell>
+                              </TableRow>
+                            );
+                          })}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </ResizablePanel>
+                  <ResizableHandle withHandle />
+                  <ResizablePanel defaultSize={12} minSize={10}>
+                    <div className="h-full overflow-auto">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="text-right sticky top-0 bg-background"># Events / # Locked</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {filteredLifelines?.map((lifeline) => (
+                            <TableRow
+                              key={lifeline.id}
+                              className={`cursor-pointer ${selectedLifelineId === lifeline.id ? 'bg-muted' : ''}`}
+                              onClick={() => setSelectedLifelineId(lifeline.id)}
+                            >
+                              <TableCell className="text-right">
+                                {lifeline.total_events} / {lifeline.events_with_locked}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </ResizablePanel>
+                  <ResizableHandle withHandle />
+                  <ResizablePanel defaultSize={10} minSize={8}>
+                    <div className="h-full overflow-auto">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="text-right sticky top-0 bg-background">% Locked</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {filteredLifelines?.map((lifeline) => {
+                            const percentage = lifeline.events_with_pics > 0 
+                              ? Math.round((lifeline.events_with_locked / lifeline.events_with_pics) * 100)
+                              : 0;
+                            return (
+                              <TableRow
+                                key={lifeline.id}
+                                className={`cursor-pointer ${selectedLifelineId === lifeline.id ? 'bg-muted' : ''}`}
+                                onClick={() => setSelectedLifelineId(lifeline.id)}
+                              >
+                                <TableCell className="text-right">{percentage}%</TableCell>
+                              </TableRow>
+                            );
+                          })}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </ResizablePanel>
+                </ResizablePanelGroup>
               )}
             </div>
           </CardContent>

@@ -706,6 +706,7 @@ export type Database = {
           id: string
           image_path: string
           image_url: string
+          locked: boolean
           order_index: number | null
           position_x: number | null
           position_y: number | null
@@ -717,6 +718,7 @@ export type Database = {
           id?: string
           image_path: string
           image_url: string
+          locked?: boolean
           order_index?: number | null
           position_x?: number | null
           position_y?: number | null
@@ -728,6 +730,7 @@ export type Database = {
           id?: string
           image_path?: string
           image_url?: string
+          locked?: boolean
           order_index?: number | null
           position_x?: number | null
           position_y?: number | null
@@ -747,6 +750,7 @@ export type Database = {
           created_at: string
           entry_id: string
           id: string
+          locked: boolean
           media_id: string
           order_index: number | null
         }
@@ -754,6 +758,7 @@ export type Database = {
           created_at?: string
           entry_id: string
           id?: string
+          locked?: boolean
           media_id: string
           order_index?: number | null
         }
@@ -761,6 +766,7 @@ export type Database = {
           created_at?: string
           entry_id?: string
           id?: string
+          locked?: boolean
           media_id?: string
           order_index?: number | null
         }

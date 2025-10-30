@@ -11,6 +11,7 @@ import { ContributeEventDialog } from "@/components/ContributeEventDialog";
 import { useAuth } from "@/lib/auth";
 import { PublicAuthModal } from "@/components/PublicAuthModal";
 import { SuperFanImageUpload, SuperFanImageDelete } from "@/components/SuperFanImageUpload";
+import { ImageLockToggle } from "@/components/ImageLockToggle";
 import { Link } from "react-router-dom";
 import {
   DropdownMenu,
@@ -40,8 +41,7 @@ export function LifelineViewer({
 }: LifelineViewerProps) {
   const queryClient = useQueryClient();
   const { user } = useAuth();
-  // Super fan upload is now available to everyone
-  const isSuperFan = true;
+  const { isSuperFan } = useSuperFan();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [contributeDialogOpen, setContributeDialogOpen] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -99,15 +99,19 @@ export function LifelineViewer({
           const entryIds = data.map((e: any) => e.id);
           const { data: entryMedia } = await supabase
             .from("entry_media")
-            .select("*, media_assets(*)")
+            .select("id, entry_id, media_id, order_index, locked, media_assets(*)")
             .in("entry_id", entryIds)
             .order("order_index");
           
-          // Attach profiles and media to entries
+          // Attach profiles and media to entries with lock status
           return data.map((entry: any) => ({
             ...entry,
             user_profile: profiles?.find((p: any) => p.user_id === entry.contributed_by_user_id),
-            media: entryMedia?.filter((m: any) => m.entry_id === entry.id).map((m: any) => m.media_assets) || [],
+            media: entryMedia?.filter((m: any) => m.entry_id === entry.id).map((m: any) => ({
+              ...m.media_assets,
+              entryMediaId: m.id,
+              locked: m.locked
+            })) || [],
           }));
         }
         
@@ -115,13 +119,17 @@ export function LifelineViewer({
         const entryIds = data.map((e: any) => e.id);
         const { data: entryMedia } = await supabase
           .from("entry_media")
-          .select("*, media_assets(*)")
+          .select("id, entry_id, media_id, order_index, locked, media_assets(*)")
           .in("entry_id", entryIds)
           .order("order_index");
         
         return data.map((entry: any) => ({
           ...entry,
-          media: entryMedia?.filter((m: any) => m.entry_id === entry.id).map((m: any) => m.media_assets) || [],
+          media: entryMedia?.filter((m: any) => m.entry_id === entry.id).map((m: any) => ({
+            ...m.media_assets,
+            entryMediaId: m.id,
+            locked: m.locked
+          })) || [],
         }));
       }
       
@@ -495,13 +503,24 @@ export function LifelineViewer({
                           <CarouselItem key={media.id}>
                             <div className="relative overflow-hidden rounded-lg">
                               {isSuperFan && (
-                                <SuperFanImageDelete
-                                  mediaId={media.id}
-                                  entryId={selected.id}
-                                  onDeleteComplete={() => {
-                                    queryClient.invalidateQueries({ queryKey: ["entries", lifelineId] });
-                                  }}
-                                />
+                                <>
+                                  <ImageLockToggle
+                                    entryMediaId={media.entryMediaId}
+                                    isLocked={media.locked}
+                                    onLockChange={() => {
+                                      queryClient.invalidateQueries({ queryKey: ["entries", lifelineId] });
+                                    }}
+                                  />
+                                  {!media.locked && (
+                                    <SuperFanImageDelete
+                                      mediaId={media.id}
+                                      entryId={selected.id}
+                                      onDeleteComplete={() => {
+                                        queryClient.invalidateQueries({ queryKey: ["entries", lifelineId] });
+                                      }}
+                                    />
+                                  )}
+                                </>
                               )}
                               <img
                                 src={media.url}
