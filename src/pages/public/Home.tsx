@@ -66,6 +66,7 @@ export default function Home() {
                 title,
                 slug,
                 intro,
+                cover_image_url,
                 cover_image_position_x,
                 cover_image_position_y,
                 cover_image:media_assets!lifelines_cover_image_id_fkey(url, alt_text)
@@ -128,6 +129,7 @@ export default function Home() {
                 title,
                 slug,
                 intro,
+                cover_image_url,
                 cover_image_position_x,
                 cover_image_position_y,
                 cover_image:media_assets!lifelines_cover_image_id_fkey(url, alt_text)
@@ -256,10 +258,10 @@ export default function Home() {
                 >
                   <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
                     <div className="aspect-video relative overflow-hidden bg-white">
-                      {item.cover_image?.url ? (
+                      {item.cover_image?.url || item.cover_image_url ? (
                         <img
-                          src={item.cover_image.url}
-                          alt={item.cover_image.alt_text || item.title}
+                          src={item.cover_image?.url || item.cover_image_url}
+                          alt={item.cover_image?.alt_text || item.title}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                           style={{
                             objectPosition: `${item.cover_image_position_x ?? 50}% ${item.cover_image_position_y ?? 50}%`,
@@ -331,10 +333,10 @@ export default function Home() {
                 >
                   <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
                     <div className="aspect-video relative overflow-hidden bg-white">
-                      {item.cover_image?.url ? (
+                      {item.cover_image?.url || item.cover_image_url ? (
                         <img
-                          src={item.cover_image.url}
-                          alt={item.cover_image.alt_text || item.title}
+                          src={item.cover_image?.url || item.cover_image_url}
+                          alt={item.cover_image?.alt_text || item.title}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                           style={{
                             objectPosition: `${item.cover_image_position_x ?? 50}% ${item.cover_image_position_y ?? 50}%`,
