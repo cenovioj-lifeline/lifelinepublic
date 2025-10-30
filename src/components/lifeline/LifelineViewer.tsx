@@ -1,12 +1,14 @@
 import { useMemo, useState, useEffect, useRef } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useSuperFan } from "@/hooks/useSuperFan";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
-import { Plus, Star, Menu, Image as ImageIcon, ImageUp } from "lucide-react";
+import { Plus, Star, Menu, Image as ImageIcon, ImageUp, Pencil, Check, X } from "lucide-react";
 import { ContributeEventDialog } from "@/components/ContributeEventDialog";
 import { useAuth } from "@/lib/auth";
 import { PublicAuthModal } from "@/components/PublicAuthModal";
@@ -14,6 +16,8 @@ import { SuperFanImageUpload, SuperFanImageDelete } from "@/components/SuperFanI
 import { ImageLockToggle } from "@/components/ImageLockToggle";
 import { CoverImagePicker } from "@/components/CoverImagePicker";
 import { Link } from "react-router-dom";
+import { toast } from "sonner";
+import { z } from "zod";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -49,6 +53,10 @@ export function LifelineViewer({
   const [contributePictureMode, setContributePictureMode] = useState(false);
   const [coverImagePickerOpen, setCoverImagePickerOpen] = useState(false);
   const [coverImageUrl, setCoverImageUrl] = useState<string | undefined>(undefined);
+  const [editingTitle, setEditingTitle] = useState(false);
+  const [editingDetails, setEditingDetails] = useState(false);
+  const [editedTitle, setEditedTitle] = useState("");
+  const [editedDetails, setEditedDetails] = useState("");
   const selectionStyle: SelectionStyle = "glow"; // Always use glow
   const timelineRef = useRef<HTMLDivElement>(null);
   const entryRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
@@ -168,6 +176,82 @@ export function LifelineViewer({
     if (!selectedId || !entries) return null;
     return entries.find((e) => e.id === selectedId) || null;
   }, [selectedId, entries]);
+
+  // Validation schema
+  const titleSchema = z.string().trim().min(1, "Title cannot be empty").max(200, "Title must be less than 200 characters");
+  const detailsSchema = z.string().trim().min(1, "Details cannot be empty").max(5000, "Details must be less than 5000 characters");
+
+  // Update mutation for entry
+  const updateEntryMutation = useMutation({
+    mutationFn: async ({ entryId, title, details }: { entryId: string; title?: string; details?: string }) => {
+      const updates: any = {};
+      if (title !== undefined) updates.title = title;
+      if (details !== undefined) updates.summary = details;
+
+      const { error } = await supabase
+        .from("entries")
+        .update(updates)
+        .eq("id", entryId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["entries", lifelineId] });
+      toast.success("Event updated successfully");
+      setEditingTitle(false);
+      setEditingDetails(false);
+    },
+    onError: (error: Error) => {
+      toast.error(`Failed to update: ${error.message}`);
+    },
+  });
+
+  const handleStartEditTitle = () => {
+    if (selected) {
+      setEditedTitle(selected.title);
+      setEditingTitle(true);
+    }
+  };
+
+  const handleStartEditDetails = () => {
+    if (selected) {
+      setEditedDetails(selected.summary || selected.details || "");
+      setEditingDetails(true);
+    }
+  };
+
+  const handleSaveTitle = () => {
+    try {
+      const validated = titleSchema.parse(editedTitle);
+      if (selected) {
+        updateEntryMutation.mutate({ entryId: selected.id, title: validated });
+      }
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        toast.error(error.errors[0].message);
+      }
+    }
+  };
+
+  const handleSaveDetails = () => {
+    try {
+      const validated = detailsSchema.parse(editedDetails);
+      if (selected) {
+        updateEntryMutation.mutate({ entryId: selected.id, details: validated });
+      }
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        toast.error(error.errors[0].message);
+      }
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingTitle(false);
+    setEditingDetails(false);
+    setEditedTitle("");
+    setEditedDetails("");
+  };
 
   const currentIndex = useMemo(() => {
     if (!selected || !entries) return -1;
@@ -576,14 +660,95 @@ export function LifelineViewer({
                     {selected.score || 0}
                   </div>
                   <div className="flex-1">
-                    <h2 className="text-2xl font-bold text-[hsl(var(--scheme-title-text))]">
-                      {selected.title}
-                    </h2>
+                    {editingTitle ? (
+                      <div className="flex items-center gap-2">
+                        <Input
+                          value={editedTitle}
+                          onChange={(e) => setEditedTitle(e.target.value)}
+                          className="text-xl font-bold"
+                          autoFocus
+                        />
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={handleSaveTitle}
+                          disabled={updateEntryMutation.isPending}
+                        >
+                          <Check className="h-4 w-4 text-green-600" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={handleCancelEdit}
+                          disabled={updateEntryMutation.isPending}
+                        >
+                          <X className="h-4 w-4 text-red-600" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <h2 className="text-2xl font-bold text-[hsl(var(--scheme-title-text))]">
+                          {selected.title}
+                        </h2>
+                        {isSuperFan && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={handleStartEditTitle}
+                            className="p-1 h-auto"
+                          >
+                            <Pencil className="h-4 w-4 text-muted-foreground hover:text-foreground" />
+                          </Button>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
-                <p className="leading-relaxed text-[hsl(var(--scheme-cards-text))]">
-                  {selected.summary || selected.details}
-                </p>
+                {editingDetails ? (
+                  <div className="space-y-2">
+                    <Textarea
+                      value={editedDetails}
+                      onChange={(e) => setEditedDetails(e.target.value)}
+                      rows={6}
+                      autoFocus
+                    />
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        onClick={handleSaveDetails}
+                        disabled={updateEntryMutation.isPending}
+                      >
+                        <Check className="h-4 w-4 mr-1" />
+                        Save
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={handleCancelEdit}
+                        disabled={updateEntryMutation.isPending}
+                      >
+                        <X className="h-4 w-4 mr-1" />
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-start gap-2">
+                    <p className="flex-1 leading-relaxed text-[hsl(var(--scheme-cards-text))]">
+                      {selected.summary || selected.details}
+                    </p>
+                    {isSuperFan && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={handleStartEditDetails}
+                        className="p-1 h-auto flex-shrink-0"
+                      >
+                        <Pencil className="h-4 w-4 text-muted-foreground hover:text-foreground" />
+                      </Button>
+                    )}
+                  </div>
+                )}
                  {selected.is_fan_contributed && selected.user_profile && (
                    <p className="text-sm italic text-[hsl(var(--scheme-cards-text))] opacity-70">
                       Credit: Created by{" "}
