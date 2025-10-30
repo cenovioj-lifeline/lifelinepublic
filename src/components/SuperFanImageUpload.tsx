@@ -189,51 +189,7 @@ export function SuperFanImageUpload({ entryId, onUploadComplete }: SuperFanImage
           </div>
         </div>
 
-        <div className="relative">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t" style={{ borderColor: 'hsl(var(--scheme-cards-text) / 0.2)' }} />
-          </div>
-          <div className="relative flex justify-center text-xs uppercase">
-            <span className="px-2" style={{ 
-              backgroundColor: 'transparent',
-              color: '#6B7280'
-            }}>
-              Or
-            </span>
-          </div>
-        </div>
-
-        <div className="flex gap-2">
-          <input
-            type="text"
-            value={imageUrl}
-            onChange={(e) => setImageUrl(e.target.value)}
-            placeholder="Paste image URL"
-            disabled={uploading}
-            className="flex-1 px-3 py-2 rounded-lg border text-sm"
-            style={{
-              backgroundColor: 'white',
-              borderColor: 'hsl(var(--scheme-cards-text) / 0.2)',
-              color: 'hsl(var(--scheme-cards-text))'
-            }}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !uploading) {
-                handleUrlLoad();
-              }
-            }}
-          />
-          <Button
-            onClick={handleUrlLoad}
-            disabled={uploading || !imageUrl.trim()}
-            size="sm"
-            style={{
-              backgroundColor: 'hsl(var(--scheme-nav-bg))',
-              color: 'hsl(var(--scheme-nav-text))'
-            }}
-          >
-            Load
-          </Button>
-        </div>
+        {/* URL paste feature temporarily hidden */}
       </div>
 
       {tempImage && (
