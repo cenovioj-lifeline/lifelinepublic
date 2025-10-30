@@ -262,7 +262,32 @@ export function EntryForm({
             <FormItem>
               <FormLabel>Description *</FormLabel>
               <FormControl>
-                <Textarea {...field} placeholder="2-3 sentences" rows={4} required />
+                <Textarea 
+                  {...field} 
+                  value={field.value || ""} 
+                  placeholder="2-3 sentences" 
+                  rows={4} 
+                  required 
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="details"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Extended Details (Optional)</FormLabel>
+              <FormControl>
+                <Textarea 
+                  {...field} 
+                  value={field.value || ""} 
+                  placeholder="Additional context and information" 
+                  rows={6} 
+                />
               </FormControl>
               <FormMessage />
             </FormItem>

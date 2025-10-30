@@ -1,9 +1,20 @@
 import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Search } from "lucide-react";
+import { Plus, Search, Trash2 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import {
   Select,
@@ -25,6 +36,7 @@ const FILTER_STORAGE_KEY = "lifelines-filters";
 
 export default function Lifelines() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   
   // Load saved filters from localStorage
   const savedFilters = localStorage.getItem(FILTER_STORAGE_KEY);
@@ -39,6 +51,7 @@ export default function Lifelines() {
   const [collectionFilter, setCollectionFilter] = useState<string>(initialFilters.collectionFilter);
   const [pictureFilter, setPictureFilter] = useState<string>(initialFilters.pictureFilter);
   const [lifelineTypeFilter, setLifelineTypeFilter] = useState<string>(initialFilters.lifelineTypeFilter);
+  const [deletingLifeline, setDeletingLifeline] = useState<{ id: string; title: string } | null>(null);
 
   // Save filters to localStorage whenever they change
   useEffect(() => {
@@ -93,6 +106,119 @@ export default function Lifelines() {
       return data;
     },
   });
+
+  const deleteLifelineMutation = useMutation({
+    mutationFn: async (lifelineId: string) => {
+      // Clean up all references to this lifeline
+      
+      // 1. Delete from home_page_featured_items
+      await supabase
+        .from("home_page_featured_items")
+        .delete()
+        .eq("item_type", "lifeline")
+        .eq("item_id", lifelineId);
+
+      // 2. Delete from home_page_new_content_items
+      await supabase
+        .from("home_page_new_content_items")
+        .delete()
+        .eq("item_type", "lifeline")
+        .eq("item_id", lifelineId);
+
+      // 3. Delete from profile_lifelines
+      await supabase
+        .from("profile_lifelines")
+        .delete()
+        .eq("lifeline_id", lifelineId);
+
+      // 4. Delete lifeline_tags
+      await supabase
+        .from("lifeline_tags")
+        .delete()
+        .eq("lifeline_id", lifelineId);
+
+      // 5. Get all entries for this lifeline
+      const { data: entries } = await supabase
+        .from("entries")
+        .select("id")
+        .eq("lifeline_id", lifelineId);
+
+      if (entries && entries.length > 0) {
+        const entryIds = entries.map(e => e.id);
+
+        // Delete entry_media relationships
+        await supabase
+          .from("entry_media")
+          .delete()
+          .in("entry_id", entryIds);
+
+        // Delete entry_images
+        await supabase
+          .from("entry_images")
+          .delete()
+          .in("entry_id", entryIds);
+
+        // Delete entry_votes
+        await supabase
+          .from("entry_votes")
+          .delete()
+          .in("entry_id", entryIds);
+
+        // Delete fan_contributions referencing these entries
+        await supabase
+          .from("fan_contributions")
+          .delete()
+          .in("entry_id", entryIds);
+
+        // Delete entries themselves
+        await supabase
+          .from("entries")
+          .delete()
+          .eq("lifeline_id", lifelineId);
+      }
+
+      // 6. Delete user_favorites
+      await supabase
+        .from("user_favorites")
+        .delete()
+        .eq("item_type", "lifeline")
+        .eq("item_id", lifelineId);
+
+      // 7. Delete fan_contributions for this lifeline
+      await supabase
+        .from("fan_contributions")
+        .delete()
+        .eq("lifeline_id", lifelineId);
+
+      // 8. Finally, delete the lifeline itself
+      const { error } = await supabase
+        .from("lifelines")
+        .delete()
+        .eq("id", lifelineId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["lifelines"] });
+      toast.success("Lifeline and all references deleted successfully");
+      setDeletingLifeline(null);
+    },
+    onError: (error: Error) => {
+      console.error("Delete error:", error);
+      toast.error(`Failed to delete lifeline: ${error.message}`);
+    },
+  });
+
+  const handleDeleteClick = (e: React.MouseEvent, lifeline: any) => {
+    e.stopPropagation();
+    setDeletingLifeline({ id: lifeline.id, title: lifeline.title });
+  };
+
+  const handleDeleteConfirm = () => {
+    if (deletingLifeline) {
+      deleteLifelineMutation.mutate(deletingLifeline.id);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -210,16 +336,26 @@ export default function Lifelines() {
                     {new Date(lifeline.updated_at).toLocaleDateString()}
                   </TableCell>
                   <TableCell>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        navigate(`/lifelines/${lifeline.id}`);
-                      }}
-                    >
-                      Edit
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/lifelines/${lifeline.id}`);
+                        }}
+                      >
+                        Edit
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => handleDeleteClick(e, lifeline)}
+                        disabled={deleteLifelineMutation.isPending}
+                      >
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))
@@ -227,6 +363,34 @@ export default function Lifelines() {
           </TableBody>
         </Table>
       </div>
+
+      <AlertDialog open={!!deletingLifeline} onOpenChange={(open) => !open && setDeletingLifeline(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Lifeline</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete "{deletingLifeline?.title}"? This will permanently remove:
+              <ul className="list-disc list-inside mt-2 space-y-1">
+                <li>The lifeline and all its entries</li>
+                <li>All images and media associated with entries</li>
+                <li>All votes and fan contributions</li>
+                <li>References from home page and profiles</li>
+                <li>All tags and relationships</li>
+              </ul>
+              <p className="mt-2 font-semibold">This action cannot be undone.</p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteConfirm}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete Lifeline
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
