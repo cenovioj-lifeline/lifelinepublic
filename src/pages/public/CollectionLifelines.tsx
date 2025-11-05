@@ -49,19 +49,12 @@ export default function CollectionLifelines() {
     queryFn: async () => {
       if (!collection?.id) return [];
 
-      const { data: lifelinesData, error } = await supabase
-        .from("lifelines")
-        .select(`
-          *,
-          profile:profiles!lifelines_profile_id_fkey(
-            display_name,
-            avatar_image_url,
-            avatar_image_path
-          )
-        `)
-        .eq("collection_id", collection.id)
-        .eq("status", "published")
-        .order("created_at", { ascending: false });
+    const { data: lifelinesData, error } = await supabase
+      .from("lifelines")
+      .select("*")
+      .eq("collection_id", collection.id)
+      .eq("status", "published")
+      .order("created_at", { ascending: false });
 
       if (error) throw error;
 
