@@ -80,7 +80,7 @@ export default function Lifelines() {
     queryFn: async () => {
       let query = supabase
         .from("lifelines")
-        .select("*, profiles(display_name), collections(title)")
+        .select("*, profiles(name), collections(title)")
         .order("updated_at", { ascending: false });
 
       if (searchTerm) {

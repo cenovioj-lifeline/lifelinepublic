@@ -343,7 +343,7 @@ export default function CollectionElectionDetail() {
                                         color: 'hsl(var(--scheme-nav-button))'
                                       }}
                                     >
-                                      {(result.profiles[0].display_name || result.winner_name || "?")[0]}
+                                      {(result.profiles[0].name || result.winner_name || "?")[0]}
                                     </AvatarFallback>
                                   </Avatar>
                                 ) : (
@@ -355,7 +355,7 @@ export default function CollectionElectionDetail() {
                                       borderColor: 'hsl(var(--scheme-card-border))'
                                     }}
                                   >
-                                    {(result.profiles?.[0]?.display_name || result.winner_name || "?")[0]}
+                                    {(result.profiles?.[0]?.name || result.winner_name || "?")[0]}
                                   </div>
                                 )}
                                 
@@ -377,7 +377,7 @@ export default function CollectionElectionDetail() {
                                           onMouseEnter={(e) => (e.currentTarget.style.color = 'hsl(var(--scheme-actions-icon))')}
                                           onMouseLeave={(e) => (e.currentTarget.style.color = 'hsl(var(--scheme-card-text))')}
                                         >
-                                          {profile.display_name}{idx < result.profiles.length - 1 ? ',' : ''}
+                                          {profile.name}{idx < result.profiles.length - 1 ? ',' : ''}
                                         </button>
                                       ))}
                                     </div>

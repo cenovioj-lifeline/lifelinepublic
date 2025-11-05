@@ -97,7 +97,7 @@ export default function PublicCollectionDetail() {
         .from("lifelines")
         .select(`
           *,
-          profile:profiles!lifelines_profile_id_fkey(display_name)
+          profile:profiles!lifelines_profile_id_fkey(name)
         `)
         .eq("collection_id", collection.id)
         .eq("status", "published")

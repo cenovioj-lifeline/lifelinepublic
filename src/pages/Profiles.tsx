@@ -28,7 +28,7 @@ export default function Profiles() {
         .order("updated_at", { ascending: false });
 
       if (searchTerm) {
-        query = query.or(`display_name.ilike.%${searchTerm}%,slug.ilike.%${searchTerm}%`);
+        query = query.or(`name.ilike.%${searchTerm}%,slug.ilike.%${searchTerm}%`);
       }
 
       const { data, error } = await query;
@@ -70,7 +70,7 @@ export default function Profiles() {
             <TableRow>
               <TableHead>Name</TableHead>
               <TableHead>Type</TableHead>
-              <TableHead>Occupation</TableHead>
+              <TableHead>Description</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Updated</TableHead>
               <TableHead className="w-[100px]">Actions</TableHead>
@@ -96,12 +96,12 @@ export default function Profiles() {
                   className="cursor-pointer"
                   onClick={() => navigate(`/profiles/${profile.id}`)}
                 >
-                  <TableCell className="font-medium">{profile.display_name}</TableCell>
+                  <TableCell className="font-medium">{profile.name}</TableCell>
                   <TableCell>
-                    <Badge variant="outline">{profile.type}</Badge>
+                    <Badge variant="outline">{profile.subject_type}</Badge>
                   </TableCell>
                   <TableCell className="text-muted-foreground">
-                    {profile.occupation || "—"}
+                    {profile.short_description || "—"}
                   </TableCell>
                   <TableCell>
                     <Badge variant={profile.status === "published" ? "default" : "secondary"}>

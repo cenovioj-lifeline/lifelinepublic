@@ -285,12 +285,12 @@ export default function PublicElectionDetail() {
                                   <Avatar className="h-14 w-14 sm:h-16 sm:w-16 border-2 flex-shrink-0" style={{ borderColor: 'hsl(var(--scheme-card-border))' }}>
                                     <AvatarImage src={result.profiles[0].avatar.url} />
                                     <AvatarFallback className="text-lg sm:text-xl font-bold" style={{ backgroundColor: '#FFFFFF', color: 'hsl(var(--scheme-nav-button))' }}>
-                                      {(result.profiles[0].display_name || result.winner_name || "?")[0]}
+                                      {(result.profiles[0].name || result.winner_name || "?")[0]}
                                     </AvatarFallback>
                                   </Avatar>
                                 ) : (
                                   <div className="h-14 w-14 sm:h-16 sm:w-16 rounded-full flex items-center justify-center text-xl sm:text-2xl font-bold border-2 flex-shrink-0" style={{ backgroundColor: '#FFFFFF', color: 'hsl(var(--scheme-nav-button))', borderColor: 'hsl(var(--scheme-card-border))' }}>
-                                    {(result.profiles?.[0]?.display_name || result.winner_name || "?")[0]}
+                                    {(result.profiles?.[0]?.name || result.winner_name || "?")[0]}
                                   </div>
                                 )}
                                 
@@ -312,7 +312,7 @@ export default function PublicElectionDetail() {
                                           onMouseEnter={(e) => (e.currentTarget.style.color = 'hsl(var(--scheme-actions-icon))')}
                                           onMouseLeave={(e) => (e.currentTarget.style.color = 'hsl(var(--scheme-card-text))')}
                                         >
-                                          {profile.display_name}{idx < result.profiles.length - 1 ? ',' : ''}
+                                          {profile.name}{idx < result.profiles.length - 1 ? ',' : ''}
                                         </button>
                                       ))}
                                     </div>

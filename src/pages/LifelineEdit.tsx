@@ -100,7 +100,7 @@ export default function LifelineEdit() {
         .from("lifelines")
         .select(`
           *,
-          profile:profiles(id, display_name),
+          profile:profiles(id, name),
           collection:collections(id, title),
           profile_lifelines!profile_lifelines_lifeline_id_fkey(profile_id)
         `)
@@ -129,8 +129,8 @@ export default function LifelineEdit() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("profiles")
-        .select("id, display_name")
-        .order("display_name");
+        .select("id, name")
+        .order("name");
       if (error) throw error;
       return data;
     },
@@ -679,7 +679,7 @@ export default function LifelineEdit() {
                     <SelectContent className="bg-background">
                       {profiles?.filter(p => !field.value?.includes(p.id)).map((p) => (
                         <SelectItem key={p.id} value={p.id}>
-                          {p.display_name}
+                          {p.name}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -689,7 +689,7 @@ export default function LifelineEdit() {
                       const profile = profiles?.find(p => p.id === profileId);
                       return profile ? (
                         <div key={profileId} className="flex items-center gap-2 bg-secondary text-secondary-foreground px-3 py-1 rounded-md">
-                          <span className="text-sm">{profile.display_name}</span>
+                          <span className="text-sm">{profile.name}</span>
                           <button
                             type="button"
                             onClick={() => {

@@ -112,8 +112,8 @@ export default function ElectionEdit() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("profiles")
-        .select("id, display_name")
-        .order("display_name");
+        .select("id, name")
+        .order("name");
       if (error) throw error;
       return data;
     },
@@ -655,7 +655,7 @@ export default function ElectionEdit() {
                             <SelectContent>
                               {profiles?.filter(p => !result.winner_profile_ids?.includes(p.id)).map((p) => (
                                 <SelectItem key={p.id} value={p.id}>
-                                  {p.display_name}
+                                  {p.name}
                                 </SelectItem>
                               ))}
                             </SelectContent>
@@ -666,7 +666,7 @@ export default function ElectionEdit() {
                                 const profile = profiles?.find(p => p.id === profileId);
                                 return profile ? (
                                   <Badge key={profileId} variant="secondary">
-                                    {profile.display_name}
+                                    {profile.name}
                                     <button
                                       type="button"
                                       onClick={() => updateResult(index, "winner_profile_ids", result.winner_profile_ids?.filter(id => id !== profileId))}

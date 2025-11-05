@@ -108,13 +108,6 @@ export type Database = {
             referencedRelation: "lifelines"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "ballot_options_profile_ref_fkey"
-            columns: ["profile_ref"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
         ]
       }
       collection_quotes: {
@@ -579,13 +572,6 @@ export type Database = {
             columns: ["election_id"]
             isOneToOne: false
             referencedRelation: "mock_elections"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "election_results_winner_profile_id_fkey"
-            columns: ["winner_profile_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1145,13 +1131,6 @@ export type Database = {
             referencedRelation: "media_assets"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "lifelines_profile_id_fkey"
-            columns: ["profile_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
         ]
       }
       media_assets: {
@@ -1381,6 +1360,48 @@ export type Database = {
           },
         ]
       }
+      profile_relationships: {
+        Row: {
+          context: string | null
+          created_at: string
+          id: string
+          profile_id: string
+          related_profile_id: string | null
+          relationship_type: string
+        }
+        Insert: {
+          context?: string | null
+          created_at?: string
+          id?: string
+          profile_id: string
+          related_profile_id?: string | null
+          relationship_type: string
+        }
+        Update: {
+          context?: string | null
+          created_at?: string
+          id?: string
+          profile_id?: string
+          related_profile_id?: string | null
+          relationship_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profile_relationships_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profile_relationships_related_profile_id_fkey"
+            columns: ["related_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profile_tags: {
         Row: {
           profile_id: string
@@ -1414,65 +1435,62 @@ export type Database = {
       profiles: {
         Row: {
           avatar_image_id: string | null
-          avatar_image_path: string | null
-          avatar_image_url: string | null
-          birth_date: string | null
           created_at: string
           created_by: string | null
-          death_date: string | null
-          demographics: Json | null
-          display_name: string
-          external_links: Json | null
+          extended_data: Json
           id: string
-          long_bio: string | null
-          nationality: string | null
-          occupation: string | null
+          known_for: string[]
+          name: string
+          primary_collection_id: string | null
+          primary_image_path: string | null
+          primary_image_url: string | null
+          primary_lifeline_id: string | null
+          reality_status: string
+          short_description: string
           slug: string
           status: Database["public"]["Enums"]["content_status"]
-          summary: string | null
-          type: Database["public"]["Enums"]["profile_type"]
+          subject_type: string
+          tags: string[]
           updated_at: string
         }
         Insert: {
           avatar_image_id?: string | null
-          avatar_image_path?: string | null
-          avatar_image_url?: string | null
-          birth_date?: string | null
           created_at?: string
           created_by?: string | null
-          death_date?: string | null
-          demographics?: Json | null
-          display_name: string
-          external_links?: Json | null
+          extended_data?: Json
           id?: string
-          long_bio?: string | null
-          nationality?: string | null
-          occupation?: string | null
+          known_for?: string[]
+          name: string
+          primary_collection_id?: string | null
+          primary_image_path?: string | null
+          primary_image_url?: string | null
+          primary_lifeline_id?: string | null
+          reality_status: string
+          short_description: string
           slug: string
           status?: Database["public"]["Enums"]["content_status"]
-          summary?: string | null
-          type: Database["public"]["Enums"]["profile_type"]
+          subject_type: string
+          tags?: string[]
           updated_at?: string
         }
         Update: {
           avatar_image_id?: string | null
-          avatar_image_path?: string | null
-          avatar_image_url?: string | null
-          birth_date?: string | null
           created_at?: string
           created_by?: string | null
-          death_date?: string | null
-          demographics?: Json | null
-          display_name?: string
-          external_links?: Json | null
+          extended_data?: Json
           id?: string
-          long_bio?: string | null
-          nationality?: string | null
-          occupation?: string | null
+          known_for?: string[]
+          name?: string
+          primary_collection_id?: string | null
+          primary_image_path?: string | null
+          primary_image_url?: string | null
+          primary_lifeline_id?: string | null
+          reality_status?: string
+          short_description?: string
           slug?: string
           status?: Database["public"]["Enums"]["content_status"]
-          summary?: string | null
-          type?: Database["public"]["Enums"]["profile_type"]
+          subject_type?: string
+          tags?: string[]
           updated_at?: string
         }
         Relationships: [
@@ -1481,6 +1499,20 @@ export type Database = {
             columns: ["avatar_image_id"]
             isOneToOne: false
             referencedRelation: "media_assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_primary_collection_id_fkey"
+            columns: ["primary_collection_id"]
+            isOneToOne: false
+            referencedRelation: "collections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_primary_lifeline_id_fkey"
+            columns: ["primary_lifeline_id"]
+            isOneToOne: false
+            referencedRelation: "lifelines"
             referencedColumns: ["id"]
           },
         ]
