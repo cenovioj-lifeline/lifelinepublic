@@ -97,7 +97,7 @@ export default function CollectionElectionDetail() {
       if (profileIds.length > 0) {
         const { data: profilesData } = await supabase
           .from("profiles")
-          .select("id, display_name, slug, avatar_image_id")
+          .select("id, name, slug, avatar_image_id")
           .in("id", profileIds);
 
         if (profilesData) {

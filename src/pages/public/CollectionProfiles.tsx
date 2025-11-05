@@ -99,28 +99,26 @@ export default function CollectionProfiles() {
                         {profile.avatar_image?.url && (
                           <AvatarImage
                             src={profile.avatar_image.url}
-                            alt={profile.display_name}
+                            alt={profile.name}
                           />
                         )}
                         <AvatarFallback>
-                          {getInitials(profile.display_name)}
+                          {getInitials(profile.name)}
                         </AvatarFallback>
                       </Avatar>
                       <div>
                         <CardTitle className="text-lg transition-colors text-[hsl(var(--scheme-card-text))]">
-                          {profile.display_name}
+                          {profile.name}
                         </CardTitle>
-                        {profile.occupation && (
-                          <p className="text-sm text-[hsl(var(--scheme-cards-text))]">
-                            {profile.occupation}
-                          </p>
-                        )}
+                        <p className="text-sm text-[hsl(var(--scheme-cards-text))]">
+                          {profile.subject_type}
+                        </p>
                       </div>
                     </div>
                   </CardHeader>
                   <CardContent>
                     <p className="text-sm line-clamp-3 text-[hsl(var(--scheme-cards-text))]">
-                      {profile.summary || "View profile for more details"}
+                      {profile.short_description || "View profile for more details"}
                     </p>
                   </CardContent>
                 </Card>

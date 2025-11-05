@@ -24,10 +24,10 @@ export default function PublicProfiles() {
         .select(`
           id,
           slug,
-          display_name,
-          occupation,
-          summary,
-          type,
+          name,
+          short_description,
+          subject_type,
+          reality_status,
           avatar_image_id,
           media_assets:avatar_image_id(url)
         `)
@@ -35,11 +35,11 @@ export default function PublicProfiles() {
         .order("updated_at", { ascending: false });
 
       if (searchTerm) {
-        query = query.or(`display_name.ilike.%${searchTerm}%,occupation.ilike.%${searchTerm}%`);
+        query = query.or(`name.ilike.%${searchTerm}%,short_description.ilike.%${searchTerm}%`);
       }
 
       if (typeFilter !== "all") {
-        query = query.eq("type", typeFilter);
+        query = query.eq("subject_type", typeFilter);
       }
 
       const { data, error } = await query;
@@ -119,29 +119,26 @@ export default function PublicProfiles() {
                   <Avatar className="h-16 w-16">
                     <AvatarImage
                       src={(profile.media_assets as any)?.url}
-                      alt={profile.display_name}
+                      alt={profile.name}
                     />
                     <AvatarFallback className="text-lg">
-                      {profile.display_name.charAt(0)}
+                      {profile.name.charAt(0)}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0">
                     <CardTitle className="text-lg mb-1 truncate">
-                      {profile.display_name}
+                      {profile.name}
                     </CardTitle>
                     <CardDescription className="text-sm">
-                      {profile.occupation || "No occupation listed"}
+                      {profile.subject_type} • {profile.reality_status}
                     </CardDescription>
-                    <Badge variant="secondary" className="mt-2">
-                      {getTypeLabel(profile.type)}
-                    </Badge>
                   </div>
                 </div>
               </CardHeader>
-              {profile.summary && (
+              {profile.short_description && (
                 <CardContent>
                   <p className="text-sm text-muted-foreground line-clamp-2">
-                    {profile.summary}
+                    {profile.short_description}
                   </p>
                 </CardContent>
               )}

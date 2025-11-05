@@ -162,40 +162,37 @@ export default function CollectionProfileDetail() {
           <CardContent className="pt-6">
             <div className="flex flex-col md:flex-row gap-6">
               <Avatar className="h-32 w-32 mx-auto md:mx-0">
-                <AvatarImage src={profile.avatar_image?.url} alt={profile.display_name} />
+                <AvatarImage src={profile.avatar_image?.url} alt={profile.name} />
                 <AvatarFallback className="text-3xl">
-                  {getInitials(profile.display_name)}
+                  {getInitials(profile.name)}
                 </AvatarFallback>
               </Avatar>
 
               <div className="flex-1 space-y-4">
                 <div>
-                  <h1 className="text-3xl font-bold text-[hsl(var(--scheme-title-text))]">{profile.display_name}</h1>
-                  {profile.occupation && (
-                    <p className="text-lg text-[hsl(var(--scheme-cards-text))]">{profile.occupation}</p>
-                  )}
+                  <h1 className="text-3xl font-bold text-[hsl(var(--scheme-title-text))]">{profile.name}</h1>
+                  <p className="text-sm text-[hsl(var(--scheme-cards-text))]">{profile.subject_type} • {profile.reality_status}</p>
                 </div>
 
-                {profile.summary && (
-                  <p className="text-base leading-relaxed text-[hsl(var(--scheme-card-text))]">{profile.summary}</p>
+                {profile.short_description && (
+                  <p className="text-base leading-relaxed text-[hsl(var(--scheme-card-text))]">{profile.short_description}</p>
                 )}
 
-                {profile.long_bio && (
-                  <div className="prose prose-sm max-w-none">
-                    <p className="text-[hsl(var(--scheme-card-text))]">{profile.long_bio}</p>
+                {profile.known_for && profile.known_for.length > 0 && (
+                  <div>
+                    <h3 className="font-semibold mb-2">Known For</h3>
+                    <ul className="list-disc list-inside space-y-1">
+                      {profile.known_for.map((item: string, idx: number) => (
+                        <li key={idx} className="text-[hsl(var(--scheme-card-text))]">{item}</li>
+                      ))}
+                    </ul>
                   </div>
                 )}
 
                 <div className="flex flex-wrap gap-2">
-                  {profile.nationality && (
-                    <Badge variant="secondary">{profile.nationality}</Badge>
-                  )}
-                  {profile.birth_date && (
-                    <Badge variant="outline">Born: {new Date(profile.birth_date).getFullYear()}</Badge>
-                  )}
-                  {profile.death_date && (
-                    <Badge variant="outline">Died: {new Date(profile.death_date).getFullYear()}</Badge>
-                  )}
+                  {profile.tags && profile.tags.map((tag: string) => (
+                    <Badge key={tag} variant="secondary">{tag}</Badge>
+                  ))}
                 </div>
               </div>
             </div>

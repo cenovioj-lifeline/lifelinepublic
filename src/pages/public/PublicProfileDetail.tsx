@@ -149,22 +149,20 @@ export default function PublicProfileDetail() {
               <Avatar className="h-24 w-24 md:h-32 md:w-32">
                 <AvatarImage
                   src={(profile.avatar as any)?.url}
-                  alt={profile.display_name}
+                  alt={profile.name}
                 />
                 <AvatarFallback className="text-3xl">
-                  {profile.display_name.charAt(0)}
+                  {profile.name.charAt(0)}
                 </AvatarFallback>
               </Avatar>
 
               <div>
                 <h1 className="text-2xl md:text-3xl font-bold">
-                  {profile.display_name}
+                  {profile.name}
                 </h1>
-                {profile.occupation && (
-                  <p className="text-muted-foreground mt-1">
-                    {profile.occupation}
-                  </p>
-                )}
+                <p className="text-muted-foreground mt-1">
+                  {profile.subject_type} • {profile.reality_status}
+                </p>
               </div>
 
               <div className="flex items-center justify-center gap-6 text-sm">
@@ -194,9 +192,9 @@ export default function PublicProfileDetail() {
                 {isFollowing ? "Following" : "Follow"}
               </Button>
 
-              {(profile.summary || profile.long_bio) && (
+              {profile.short_description && (
                 <p className="text-muted-foreground text-sm md:text-base max-w-2xl">
-                  {profile.summary || profile.long_bio}
+                  {profile.short_description}
                 </p>
               )}
             </div>
