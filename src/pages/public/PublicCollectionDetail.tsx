@@ -95,10 +95,7 @@ export default function PublicCollectionDetail() {
 
       const { data, error } = await supabase
         .from("lifelines")
-        .select(`
-          *,
-          profile:profiles!lifelines_profile_id_fkey(name)
-        `)
+        .select('*')
         .eq("collection_id", collection.id)
         .eq("status", "published")
         .eq("is_featured", true)
