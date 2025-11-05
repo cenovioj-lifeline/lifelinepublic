@@ -1368,6 +1368,7 @@ export type Database = {
           profile_id: string
           related_profile_id: string | null
           relationship_type: string
+          target_name: string | null
         }
         Insert: {
           context?: string | null
@@ -1376,6 +1377,7 @@ export type Database = {
           profile_id: string
           related_profile_id?: string | null
           relationship_type: string
+          target_name?: string | null
         }
         Update: {
           context?: string | null
@@ -1384,6 +1386,7 @@ export type Database = {
           profile_id?: string
           related_profile_id?: string | null
           relationship_type?: string
+          target_name?: string | null
         }
         Relationships: [
           {

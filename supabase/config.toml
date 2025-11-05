@@ -5,3 +5,12 @@ verify_jwt = false
 
 [functions.find-and-import-lifeline-images]
 verify_jwt = false
+
+[functions.upload-profiles]
+verify_jwt = false
+
+[functions.upload-profile-works]
+verify_jwt = false
+
+[functions.upload-profile-relationships]
+verify_jwt = false
