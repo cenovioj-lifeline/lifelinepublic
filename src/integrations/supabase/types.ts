@@ -1432,6 +1432,53 @@ export type Database = {
           },
         ]
       }
+      profile_works: {
+        Row: {
+          additional_info: Json | null
+          created_at: string
+          id: string
+          profile_id: string
+          significance: string | null
+          title: string
+          updated_at: string
+          work_category: string
+          work_type: string | null
+          year: string | null
+        }
+        Insert: {
+          additional_info?: Json | null
+          created_at?: string
+          id?: string
+          profile_id: string
+          significance?: string | null
+          title: string
+          updated_at?: string
+          work_category: string
+          work_type?: string | null
+          year?: string | null
+        }
+        Update: {
+          additional_info?: Json | null
+          created_at?: string
+          id?: string
+          profile_id?: string
+          significance?: string | null
+          title?: string
+          updated_at?: string
+          work_category?: string
+          work_type?: string | null
+          year?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profile_works_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_image_id: string | null
@@ -1449,6 +1496,7 @@ export type Database = {
           short_description: string
           slug: string
           status: Database["public"]["Enums"]["content_status"]
+          subject_status: string | null
           subject_type: string
           tags: string[]
           updated_at: string
@@ -1469,6 +1517,7 @@ export type Database = {
           short_description: string
           slug: string
           status?: Database["public"]["Enums"]["content_status"]
+          subject_status?: string | null
           subject_type: string
           tags?: string[]
           updated_at?: string
@@ -1489,6 +1538,7 @@ export type Database = {
           short_description?: string
           slug?: string
           status?: Database["public"]["Enums"]["content_status"]
+          subject_status?: string | null
           subject_type?: string
           tags?: string[]
           updated_at?: string

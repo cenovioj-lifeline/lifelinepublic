@@ -24,6 +24,7 @@ export interface Profile {
   
   // Status
   status: 'draft' | 'published' | 'archived';
+  subject_status: string | null; // e.g., "Living", "Deceased (1865)", "Active", "Defunct"
   
   // TIER 2 & 3: Modular/optional data
   extended_data: ProfileExtendedData;
@@ -107,6 +108,8 @@ export interface FictionalCharacterModule {
   media_appearances?: MediaAppearance[];
   portrayed_by?: string | string[];
   character_arc_summary?: string;
+  first_appearance?: string;
+  last_appearance?: string;
 }
 
 export interface CreativeWorksModule {
