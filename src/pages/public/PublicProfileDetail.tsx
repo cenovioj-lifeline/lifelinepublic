@@ -14,15 +14,30 @@ export default function PublicProfileDetail() {
   const { data: profile, isLoading } = useQuery({
     queryKey: ["public-profile", slug],
     queryFn: async () => {
-      const { data, error } = await supabase
+      if (!slug) return null;
+
+      // 1) Fetch base profile without ambiguous embeds
+      const { data: baseProfile, error: baseError } = await supabase
         .from("profiles")
         .select(`
           *,
           avatar_image:media_assets!profiles_avatar_image_id_fkey(
             url,
             alt_text
-          ),
-          profile_relationships!profile_relationships_profile_id_fkey(
+          )
+        `)
+        .eq("slug", slug)
+        .eq("status", "published")
+        .maybeSingle();
+
+      if (baseError) throw baseError;
+      if (!baseProfile) return null;
+
+      // 2) Fetch related resources in parallel to avoid PostgREST embed ambiguity
+      const [relsRes, worksRes, lifelinesRes, collectionsRes] = await Promise.all([
+        supabase
+          .from("profile_relationships")
+          .select(`
             id,
             relationship_type,
             target_name,
@@ -33,39 +48,31 @@ export default function PublicProfileDetail() {
               slug,
               subject_type
             )
-          ),
-          profile_works(
-            id,
-            work_category,
-            title,
-            year,
-            work_type,
-            significance,
-            additional_info
-          ),
-          profile_lifelines(
-            lifeline:lifelines(
-              id,
-              slug,
-              title,
-              type
-            )
-          ),
-          profile_collections(
-            collection:collections(
-              id,
-              slug,
-              title,
-              description
-            )
-          )
-        `)
-        .eq("slug", slug)
-        .eq("status", "published")
-        .single();
+          `)
+          .eq("profile_id", baseProfile.id),
+        supabase
+          .from("profile_works")
+          .select(`id, work_category, title, year, work_type, significance, additional_info`)
+          .eq("profile_id", baseProfile.id),
+        supabase
+          .from("profile_lifelines")
+          .select(`lifeline:lifelines(id, slug, title, type)`)
+          .eq("profile_id", baseProfile.id),
+        supabase
+          .from("profile_collections")
+          .select(`collection:collections(id, slug, title, description)`)
+          .eq("profile_id", baseProfile.id),
+      ]);
 
-      if (error) throw error;
-      return data;
+      const fullProfile: any = {
+        ...baseProfile,
+        profile_relationships: relsRes.data ?? [],
+        profile_works: worksRes.data ?? [],
+        profile_lifelines: lifelinesRes.data ?? [],
+        profile_collections: collectionsRes.data ?? [],
+      };
+
+      return fullProfile;
     },
   });
 
