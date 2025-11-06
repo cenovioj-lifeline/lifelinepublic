@@ -27,7 +27,7 @@ Deno.serve(async (req) => {
   try {
     // Validate Authorization header
     const authHeader = req.headers.get('Authorization');
-    const expectedKey = Deno.env.get('LOVABLE_API_KEY');
+    const expectedKey = Deno.env.get('PROFILE_UPLOAD_API_KEY');
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return new Response(
