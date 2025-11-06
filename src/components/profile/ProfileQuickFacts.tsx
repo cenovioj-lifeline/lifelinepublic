@@ -1,0 +1,123 @@
+import { Profile, formatDate } from "@/types/profile";
+import { Calendar, MapPin, Briefcase, Users, Building2, Sparkles } from "lucide-react";
+import { Card } from "@/components/ui/card";
+
+interface ProfileQuickFactsProps {
+  profile: Profile;
+}
+
+export function ProfileQuickFacts({ profile }: ProfileQuickFactsProps) {
+  const facts: Array<{ icon: React.ReactNode; label: string; value: string }> = [];
+
+  const bio = profile.extended_data?.biographical;
+  const fictional = profile.extended_data?.fictional;
+  const org = profile.extended_data?.organization;
+
+  // Biographical facts
+  if (bio?.birth_date) {
+    facts.push({
+      icon: <Calendar className="h-4 w-4" />,
+      label: "Born",
+      value: formatDate(bio.birth_date) + (bio.birth_place ? ` in ${bio.birth_place}` : ''),
+    });
+  }
+
+  if (bio?.death_date) {
+    facts.push({
+      icon: <Calendar className="h-4 w-4" />,
+      label: "Died",
+      value: formatDate(bio.death_date) + (bio.death_place ? ` in ${bio.death_place}` : ''),
+    });
+  }
+
+  if (bio?.nationality) {
+    const nationality = Array.isArray(bio.nationality) ? bio.nationality.join(', ') : bio.nationality;
+    facts.push({
+      icon: <MapPin className="h-4 w-4" />,
+      label: "Nationality",
+      value: nationality,
+    });
+  }
+
+  if (bio?.occupation && bio.occupation.length > 0) {
+    facts.push({
+      icon: <Briefcase className="h-4 w-4" />,
+      label: "Occupation",
+      value: bio.occupation.join(', '),
+    });
+  }
+
+  // Fictional character facts
+  if (fictional?.universe) {
+    facts.push({
+      icon: <Sparkles className="h-4 w-4" />,
+      label: "Universe",
+      value: fictional.universe,
+    });
+  }
+
+  if (fictional?.creators && fictional.creators.length > 0) {
+    facts.push({
+      icon: <Users className="h-4 w-4" />,
+      label: "Created by",
+      value: fictional.creators.join(', '),
+    });
+  }
+
+  if (fictional?.portrayed_by) {
+    const portrayed = Array.isArray(fictional.portrayed_by) 
+      ? fictional.portrayed_by.join(', ') 
+      : fictional.portrayed_by;
+    facts.push({
+      icon: <Users className="h-4 w-4" />,
+      label: "Portrayed by",
+      value: portrayed,
+    });
+  }
+
+  if (fictional?.first_appearance) {
+    facts.push({
+      icon: <Calendar className="h-4 w-4" />,
+      label: "First appearance",
+      value: fictional.first_appearance,
+    });
+  }
+
+  // Organization facts
+  if (org?.founded_date) {
+    facts.push({
+      icon: <Calendar className="h-4 w-4" />,
+      label: "Founded",
+      value: formatDate(org.founded_date),
+    });
+  }
+
+  if (org?.headquarters) {
+    facts.push({
+      icon: <Building2 className="h-4 w-4" />,
+      label: "Headquarters",
+      value: org.headquarters,
+    });
+  }
+
+  if (facts.length === 0) return null;
+
+  return (
+    <Card className="p-6">
+      <h2 className="text-xl font-bold mb-4">Quick Facts</h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {facts.map((fact, index) => (
+          <div key={index} className="flex gap-3 items-start">
+            <div className="text-primary mt-0.5">{fact.icon}</div>
+            <div className="flex-1">
+              <div className="text-sm font-medium text-muted-foreground">
+                {fact.label}
+              </div>
+              <div className="text-sm">{fact.value}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </Card>
+  );
+}
