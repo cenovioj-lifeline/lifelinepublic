@@ -39,11 +39,17 @@ export function ProfileQuickFacts({ profile }: ProfileQuickFactsProps) {
     });
   }
 
-  if (bio?.occupation && bio.occupation.length > 0) {
+  const rawOccupation: any = bio?.occupation as any;
+  const occupations = Array.isArray(rawOccupation)
+    ? rawOccupation
+    : typeof rawOccupation === 'string'
+      ? rawOccupation.split(/[|,]/).map((s: string) => s.trim()).filter(Boolean)
+      : [];
+  if (occupations.length > 0) {
     facts.push({
       icon: <Briefcase className="h-4 w-4" />,
       label: "Occupation",
-      value: bio.occupation.join(', '),
+      value: occupations.join(', '),
     });
   }
 
@@ -56,12 +62,20 @@ export function ProfileQuickFacts({ profile }: ProfileQuickFactsProps) {
     });
   }
 
-  if (fictional?.creators && fictional.creators.length > 0) {
-    facts.push({
-      icon: <Users className="h-4 w-4" />,
-      label: "Created by",
-      value: fictional.creators.join(', '),
-    });
+  if (fictional?.creators) {
+    const rawCreators: any = fictional.creators as any;
+    const creators = Array.isArray(rawCreators)
+      ? rawCreators
+      : typeof rawCreators === 'string'
+        ? rawCreators.split(/[|,]/).map((s: string) => s.trim()).filter(Boolean)
+        : [];
+    if (creators.length > 0) {
+      facts.push({
+        icon: <Users className="h-4 w-4" />,
+        label: "Created by",
+        value: creators.join(', '),
+      });
+    }
   }
 
   if (fictional?.portrayed_by) {

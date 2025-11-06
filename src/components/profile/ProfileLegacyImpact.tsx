@@ -67,10 +67,15 @@ export function ProfileLegacyImpact({ profile }: ProfileLegacyImpactProps) {
         {sections.map((section) => (
           <TabsContent key={section.id} value={section.id} className="mt-4">
             <ul className="space-y-2">
-              {section.content.map((item, index) => (
+              {(Array.isArray(section.content)
+                ? section.content
+                : typeof section.content === 'string'
+                  ? section.content.split(/[|,]/).map((s: string) => s.trim()).filter(Boolean)
+                  : []
+              ).map((item: any, index: number) => (
                 <li key={index} className="flex gap-3">
                   <span className="text-primary mt-1.5">•</span>
-                  <span className="flex-1">{item}</span>
+                  <span className="flex-1">{String(item)}</span>
                 </li>
               ))}
             </ul>
