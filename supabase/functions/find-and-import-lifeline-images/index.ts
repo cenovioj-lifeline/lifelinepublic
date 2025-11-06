@@ -14,6 +14,7 @@ interface Entry {
   summary: string | null;
   details: string | null;
   occurred_on: string;
+  serpapi_query?: string | null;
 }
 
 interface ImageResult {
@@ -245,7 +246,7 @@ serve(async (req) => {
     // Fetch all entries for this lifeline
     const { data: entries, error: entriesError } = await supabase
       .from('entries')
-      .select('id, title, summary, details, occurred_on')
+      .select('id, title, summary, details, occurred_on, serpapi_query')
       .eq('lifeline_id', lifelineId)
       .order('occurred_on', { ascending: true });
 
@@ -339,9 +340,18 @@ serve(async (req) => {
       try {
         console.log(`\n🔍 Processing entry: "${entry.title}"`);
         
-        // Build queries using lifeline metadata
-        const queries = buildQueries(entry, characterName, collectionTitle, actorName);
-        console.log(`Built ${queries.length} query variants for "${entry.title}"`);
+        // Check if entry has a pre-built SerpAPI query
+        let queries: string[];
+        
+        if (entry.serpapi_query && entry.serpapi_query.trim()) {
+          // Use the pre-built query directly
+          queries = [entry.serpapi_query.trim()];
+          console.log(`✅ Using pre-built query for "${entry.title}": ${queries[0]}`);
+        } else {
+          // Build queries using existing logic
+          queries = buildQueries(entry, characterName, collectionTitle, actorName);
+          console.log(`🔨 Built ${queries.length} query variants for "${entry.title}"`);
+        }
         
         // If dry run, just collect queries and continue
         if (dryRun) {

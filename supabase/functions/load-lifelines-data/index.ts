@@ -163,6 +163,7 @@ Deno.serve(async (req) => {
             occurred_on: occurredOn,
             order_index: entryData.order_index || 0,
             collection_id: collectionId,
+            serpapi_query: entryData.serpapi_query || null,
           });
 
         if (entryError) {

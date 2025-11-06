@@ -622,6 +622,7 @@ export type Database = {
           related_lifelines: string | null
           score: number | null
           sentiment: Database["public"]["Enums"]["sentiment_type"] | null
+          serpapi_query: string | null
           summary: string | null
           tags: string | null
           title: string
@@ -642,6 +643,7 @@ export type Database = {
           related_lifelines?: string | null
           score?: number | null
           sentiment?: Database["public"]["Enums"]["sentiment_type"] | null
+          serpapi_query?: string | null
           summary?: string | null
           tags?: string | null
           title: string
@@ -662,6 +664,7 @@ export type Database = {
           related_lifelines?: string | null
           score?: number | null
           sentiment?: Database["public"]["Enums"]["sentiment_type"] | null
+          serpapi_query?: string | null
           summary?: string | null
           tags?: string | null
           title?: string
