@@ -22,7 +22,7 @@ export default function PublicProfileDetail() {
             url,
             alt_text
           ),
-          profile_relationships(
+          profile_relationships!profile_relationships_profile_id_fkey(
             id,
             relationship_type,
             target_name,
