@@ -52,19 +52,18 @@ serve(async (req) => {
     }
 
     // Fetch all lifelines in the collection
-    const { data: collectionLifelines, error: clError } = await supabaseClient
-      .from('collection_lifelines')
-      .select('lifeline_id')
-      .eq('collection_id', collection.id);
+    const { data: lifelines, error: lifelinesError } = await supabaseClient
+      .from('lifelines')
+      .select('*')
+      .eq('collection_id', collection.id)
+      .order('title', { ascending: true });
 
-    if (clError) {
-      console.error('Error fetching collection lifelines:', clError);
-      throw clError;
+    if (lifelinesError) {
+      console.error('Error fetching lifelines:', lifelinesError);
+      throw lifelinesError;
     }
 
-    const lifelineIds = (collectionLifelines || []).map(cl => cl.lifeline_id);
-
-    if (lifelineIds.length === 0) {
+    if (!lifelines || lifelines.length === 0) {
       return new Response(
         JSON.stringify({
           collection: {
@@ -84,18 +83,6 @@ serve(async (req) => {
         }),
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
-    }
-
-    // Fetch all lifelines with their data
-    const { data: lifelines, error: lifelinesError } = await supabaseClient
-      .from('lifelines')
-      .select('*')
-      .in('id', lifelineIds)
-      .order('title', { ascending: true });
-
-    if (lifelinesError) {
-      console.error('Error fetching lifelines:', lifelinesError);
-      throw lifelinesError;
     }
 
     // Process each lifeline
