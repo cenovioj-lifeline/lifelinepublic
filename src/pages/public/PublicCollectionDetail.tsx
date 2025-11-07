@@ -88,48 +88,104 @@ export default function PublicCollectionDetail() {
     enabled: !!collection?.id,
   });
 
-  const { data: lifelines } = useQuery({
-    queryKey: ["collection-lifelines", collection?.id],
+  const { data: featuredItems } = useQuery({
+    queryKey: ["collection-featured-items", collection?.id],
     queryFn: async () => {
       if (!collection?.id) return [];
 
-      const { data, error } = await supabase
-        .from("lifelines")
-        .select('*')
+      const { data: featuredItemsData, error: featuredError } = await supabase
+        .from("collection_featured_items")
+        .select("*")
         .eq("collection_id", collection.id)
-        .eq("status", "published")
-        .eq("is_featured", true)
-        .order("created_at", { ascending: false });
+        .order("order_index");
 
-      if (error) throw error;
-      return data;
+      if (featuredError) throw featuredError;
+      if (!featuredItemsData || featuredItemsData.length === 0) return [];
+
+      // Fetch the actual content for each item
+      const items = await Promise.all(
+        featuredItemsData.map(async (item) => {
+          if (item.item_type === "lifeline") {
+            const { data } = await supabase
+              .from("lifelines")
+              .select("*")
+              .eq("id", item.item_id)
+              .eq("status", "published")
+              .single();
+            return data ? { ...data, _type: "lifeline" } : null;
+          } else if (item.item_type === "election") {
+            const { data } = await supabase
+              .from("mock_elections")
+              .select("*")
+              .eq("id", item.item_id)
+              .eq("status", "published")
+              .single();
+            return data ? { ...data, _type: "election" } : null;
+          } else if (item.item_type === "profile") {
+            const { data } = await supabase
+              .from("profiles")
+              .select("id, slug, name, short_description, primary_image_url, primary_image_path, status")
+              .eq("id", item.item_id)
+              .eq("status", "published")
+              .single();
+            return data ? { ...data, _type: "profile" } : null;
+          }
+          return null;
+        })
+      );
+
+      return items.filter(Boolean);
     },
     enabled: !!collection?.id,
   });
 
-  const { data: profiles } = useQuery({
-    queryKey: ["collection-profiles", collection?.id],
+  const { data: customSectionItems } = useQuery({
+    queryKey: ["collection-custom-section-items", collection?.id],
     queryFn: async () => {
       if (!collection?.id) return [];
 
-      const { data, error } = await supabase
-        .from("profile_collections")
-        .select(`
-          profiles!inner(
-            id,
-            slug,
-            display_name,
-            summary,
-            avatar_image:media_assets!profiles_avatar_image_id_fkey(url, alt_text, position_x, position_y)
-          )
-        `)
+      const { data: customItemsData, error: customError } = await supabase
+        .from("collection_custom_section_items")
+        .select("*")
         .eq("collection_id", collection.id)
-        .eq("is_featured", true)
-        .eq("profiles.status", "published")
-        .order("created_at", { ascending: false });
+        .order("order_index");
 
-      if (error) throw error;
-      return data?.map(item => item.profiles).filter(Boolean);
+      if (customError) throw customError;
+      if (!customItemsData || customItemsData.length === 0) return [];
+
+      // Fetch the actual content for each item
+      const items = await Promise.all(
+        customItemsData.map(async (item) => {
+          if (item.item_type === "lifeline") {
+            const { data } = await supabase
+              .from("lifelines")
+              .select("*")
+              .eq("id", item.item_id)
+              .eq("status", "published")
+              .single();
+            return data ? { ...data, _type: "lifeline" } : null;
+          } else if (item.item_type === "election") {
+            const { data } = await supabase
+              .from("mock_elections")
+              .select("*")
+              .eq("id", item.item_id)
+              .eq("status", "published")
+              .single();
+            return data ? { ...data, _type: "election" } : null;
+          } else if (item.item_type === "profile") {
+            const { data } = await supabase
+              .from("profiles")
+              .select("id, slug, name, short_description, primary_image_url, primary_image_path, status")
+              .eq("id", item.item_id)
+              .eq("status", "published")
+              .single();
+            return data ? { ...data, _type: "profile" } : null;
+          }
+          return null;
+        })
+      );
+
+      return items.filter(Boolean);
     },
     enabled: !!collection?.id,
   });
@@ -195,6 +251,122 @@ export default function PublicCollectionDetail() {
       return `${(num / 1000).toFixed(num >= 10000 ? 0 : 1)}K`;
     }
     return num.toString();
+  };
+
+  const renderContentCard = (item: any, collectionSlug: string) => {
+    if (item._type === "lifeline") {
+      return (
+        <Link
+          key={item.id}
+          to={`/public/collections/${collectionSlug}/lifelines/${item.slug}`}
+          className="group"
+        >
+          <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
+            <div className="absolute top-2 right-2 z-10">
+              <FavoriteButton itemId={item.id} itemType="lifeline" />
+            </div>
+            <div className="aspect-video relative bg-white overflow-hidden">
+              {item.cover_image_url ? (
+                <img
+                  src={item.cover_image_url}
+                  alt={item.title}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  style={{
+                    objectPosition: `${item.cover_image_position_x ?? 50}% ${item.cover_image_position_y ?? 50}%`
+                  }}
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-gray-400">
+                  No image
+                </div>
+              )}
+            </div>
+            <CardHeader className="bg-[hsl(var(--scheme-card-bg))]">
+              <CardTitle className="text-lg transition-colors text-[hsl(var(--scheme-card-text))]">
+                {item.title}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="bg-[hsl(var(--scheme-card-bg))]">
+              <p className="text-sm line-clamp-2 text-[hsl(var(--scheme-cards-text))]">
+                {item.subtitle || item.intro || "Explore this lifeline"}
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
+      );
+    } else if (item._type === "election") {
+      return (
+        <Link
+          key={item.id}
+          to={`/public/collections/${collectionSlug}/elections/${item.slug}`}
+          className="group"
+        >
+          <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
+            <div className="aspect-video relative bg-white overflow-hidden">
+              {item.hero_image_url ? (
+                <img
+                  src={item.hero_image_url}
+                  alt={item.title}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  style={{
+                    objectPosition: `${item.hero_image_position_x ?? 50}% ${item.hero_image_position_y ?? 50}%`
+                  }}
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-gray-400">
+                  No image
+                </div>
+              )}
+            </div>
+            <CardHeader className="bg-[hsl(var(--scheme-card-bg))]">
+              <CardTitle className="text-lg transition-colors text-[hsl(var(--scheme-card-text))]">
+                {item.title}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="bg-[hsl(var(--scheme-card-bg))]">
+              <p className="text-sm line-clamp-2 text-[hsl(var(--scheme-cards-text))]">
+                {item.description || "View this election"}
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
+      );
+    } else if (item._type === "profile") {
+      return (
+        <Link
+          key={item.id}
+          to={`/public/collections/${collectionSlug}/profiles/${item.slug}`}
+          className="group"
+        >
+          <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
+            <div className="aspect-video relative bg-white overflow-hidden">
+              {item.primary_image_url ? (
+                <img
+                  src={item.primary_image_url}
+                  alt={item.name}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-gray-400">
+                  No image
+                </div>
+              )}
+            </div>
+            <CardHeader className="bg-[hsl(var(--scheme-card-bg))]">
+              <CardTitle className="text-lg transition-colors text-[hsl(var(--scheme-card-text))]">
+                {item.name}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="bg-[hsl(var(--scheme-card-bg))]">
+              <p className="text-sm line-clamp-2 text-[hsl(var(--scheme-cards-text))]">
+                {item.short_description || "View this profile"}
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
+      );
+    }
+    return null;
   };
 
   return (
@@ -314,60 +486,15 @@ export default function PublicCollectionDetail() {
           </Card>
         </div>
 
-        {/* Featured Lifelines */}
-        {lifelines && lifelines.length > 0 && (
+        {/* Featured Content */}
+        {featuredItems && featuredItems.length > 0 && (
           <section>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl font-bold text-[hsl(var(--scheme-title-text))]">Featured Lifelines</h2>
-              <Link
-                to={`/public/collections/${collection.slug}/lifelines`}
-                className="text-sm flex items-center gap-1 hover:underline"
-                style={{ color: collection.primary_color || undefined }}
-              >
-                View All <ArrowRight className="h-4 w-4" />
-              </Link>
+              <h2 className="text-2xl font-bold text-[hsl(var(--scheme-title-text))]">Featured</h2>
             </div>
-            {lifelines.length <= 3 ? (
+            {featuredItems.length <= 3 ? (
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {lifelines.map((lifeline) => (
-                  <Link
-                    key={lifeline.id}
-                    to={`/public/collections/${collection.slug}/lifelines/${lifeline.slug}`}
-                    className="group"
-                  >
-                    <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
-                      <div className="absolute top-2 right-2 z-10">
-                        <FavoriteButton itemId={lifeline.id} itemType="lifeline" />
-                      </div>
-                      <div className="aspect-video relative bg-white overflow-hidden">
-                        {lifeline.cover_image_url ? (
-                          <img
-                            src={lifeline.cover_image_url}
-                            alt={lifeline.title}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                            style={{
-                              objectPosition: `${lifeline.cover_image_position_x ?? 50}% ${lifeline.cover_image_position_y ?? 50}%`
-                            }}
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center text-gray-400">
-                            No image
-                          </div>
-                        )}
-                      </div>
-                      <CardHeader className="bg-[hsl(var(--scheme-card-bg))]">
-                        <CardTitle className="text-lg transition-colors text-[hsl(var(--scheme-card-text))]">
-                          {lifeline.title}
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="bg-[hsl(var(--scheme-card-bg))]">
-                        <p className="text-sm line-clamp-2 text-[hsl(var(--scheme-cards-text))]">
-                          {lifeline.subtitle || lifeline.intro || "Explore this lifeline"}
-                        </p>
-                      </CardContent>
-                    </Card>
-                  </Link>
-                ))}
+                {featuredItems.map((item: any) => renderContentCard(item, collection.slug))}
               </div>
             ) : (
               <Carousel
@@ -378,44 +505,9 @@ export default function PublicCollectionDetail() {
                 className="w-full"
               >
                 <CarouselContent>
-                  {lifelines.map((lifeline) => (
-                    <CarouselItem key={lifeline.id} className="md:basis-1/2 lg:basis-1/3">
-                      <Link
-                        to={`/public/collections/${collection.slug}/lifelines/${lifeline.slug}`}
-                        className="group block h-full"
-                      >
-                        <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
-                          <div className="absolute top-2 right-2 z-10">
-                            <FavoriteButton itemId={lifeline.id} itemType="lifeline" />
-                          </div>
-                          <div className="aspect-video relative bg-white overflow-hidden">
-                            {lifeline.cover_image_url ? (
-                              <img
-                                src={lifeline.cover_image_url}
-                                alt={lifeline.title}
-                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                                style={{
-                                  objectPosition: `${lifeline.cover_image_position_x ?? 50}% ${lifeline.cover_image_position_y ?? 50}%`
-                                }}
-                              />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center text-gray-400">
-                                No image
-                              </div>
-                            )}
-                          </div>
-                          <CardHeader className="bg-[hsl(var(--scheme-card-bg))]">
-                            <CardTitle className="text-lg transition-colors text-[hsl(var(--scheme-card-text))]">
-                              {lifeline.title}
-                            </CardTitle>
-                          </CardHeader>
-                          <CardContent className="bg-[hsl(var(--scheme-card-bg))]">
-                            <p className="text-sm line-clamp-2 text-[hsl(var(--scheme-cards-text))]">
-                              {lifeline.subtitle || lifeline.intro || "Explore this lifeline"}
-                            </p>
-                          </CardContent>
-                        </Card>
-                      </Link>
+                  {featuredItems.map((item: any) => (
+                    <CarouselItem key={item.id} className="md:basis-1/2 lg:basis-1/3">
+                      {renderContentCard(item, collection.slug)}
                     </CarouselItem>
                   ))}
                 </CarouselContent>
@@ -426,57 +518,17 @@ export default function PublicCollectionDetail() {
           </section>
         )}
 
-        {/* Featured Profiles */}
-        {profiles && profiles.length > 0 && (
+        {/* Custom Section */}
+        {customSectionItems && customSectionItems.length > 0 && (
           <section>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl font-bold text-[hsl(var(--scheme-title-text))]">Featured Profiles</h2>
-              <Link
-                to={`/public/collections/${collection.slug}/profiles`}
-                className="text-sm flex items-center gap-1 hover:underline"
-                style={{ color: collection.primary_color || undefined }}
-              >
-                View All <ArrowRight className="h-4 w-4" />
-              </Link>
+              <h2 className="text-2xl font-bold text-[hsl(var(--scheme-title-text))]">
+                {collection.custom_section_name || "New Content"}
+              </h2>
             </div>
-            {profiles.length <= 3 ? (
+            {customSectionItems.length <= 3 ? (
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {profiles.map((profile: any) => (
-                  <Link
-                    key={profile.id}
-                    to={`/public/collections/${collection.slug}/profiles/${profile.slug}`}
-                    className="group"
-                  >
-                    <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
-                      <div className="aspect-video relative bg-white overflow-hidden">
-                        {profile.avatar_image?.url ? (
-                          <img
-                            src={profile.avatar_image.url}
-                            alt={profile.avatar_image.alt_text || profile.display_name}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                            style={{
-                              objectPosition: `${profile.avatar_image.position_x ?? 50}% ${profile.avatar_image.position_y ?? 50}%`
-                            }}
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center text-gray-400">
-                            No image
-                          </div>
-                        )}
-                      </div>
-                      <CardHeader className="bg-[hsl(var(--scheme-card-bg))]">
-                        <CardTitle className="text-lg transition-colors text-[hsl(var(--scheme-card-text))]">
-                          {profile.display_name}
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="bg-[hsl(var(--scheme-card-bg))]">
-                        <p className="text-sm line-clamp-2 text-[hsl(var(--scheme-cards-text))]">
-                          {profile.summary || "View this profile"}
-                        </p>
-                      </CardContent>
-                    </Card>
-                  </Link>
-                ))}
+                {customSectionItems.map((item: any) => renderContentCard(item, collection.slug))}
               </div>
             ) : (
               <Carousel
@@ -487,41 +539,9 @@ export default function PublicCollectionDetail() {
                 className="w-full"
               >
                 <CarouselContent>
-                  {profiles.map((profile: any) => (
-                    <CarouselItem key={profile.id} className="md:basis-1/2 lg:basis-1/3">
-                      <Link
-                        to={`/public/collections/${collection.slug}/profiles/${profile.slug}`}
-                        className="group block h-full"
-                      >
-                        <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
-                          <div className="aspect-video relative bg-white overflow-hidden">
-                            {profile.avatar_image?.url ? (
-                              <img
-                                src={profile.avatar_image.url}
-                                alt={profile.avatar_image.alt_text || profile.display_name}
-                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                                style={{
-                                  objectPosition: `${profile.avatar_image.position_x ?? 50}% ${profile.avatar_image.position_y ?? 50}%`
-                                }}
-                              />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center text-gray-400">
-                                No image
-                              </div>
-                            )}
-                          </div>
-                          <CardHeader className="bg-[hsl(var(--scheme-card-bg))]">
-                            <CardTitle className="text-lg transition-colors text-[hsl(var(--scheme-card-text))]">
-                              {profile.display_name}
-                            </CardTitle>
-                          </CardHeader>
-                          <CardContent className="bg-[hsl(var(--scheme-card-bg))]">
-                            <p className="text-sm line-clamp-2 text-[hsl(var(--scheme-cards-text))]">
-                              {profile.summary || "View this profile"}
-                            </p>
-                          </CardContent>
-                        </Card>
-                      </Link>
+                  {customSectionItems.map((item: any) => (
+                    <CarouselItem key={item.id} className="md:basis-1/2 lg:basis-1/3">
+                      {renderContentCard(item, collection.slug)}
                     </CarouselItem>
                   ))}
                 </CarouselContent>
