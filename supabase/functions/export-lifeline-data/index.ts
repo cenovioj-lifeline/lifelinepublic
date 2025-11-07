@@ -84,22 +84,53 @@ Deno.serve(async (req) => {
     const entriesWithQuery = entries?.filter(e => e.serpapi_query) || [];
     console.log(`Entries with serpapi_query: ${entriesWithQuery.length}`);
 
-    // Fetch images for each entry if requested
-    if (includeImages && entries && entries.length > 0) {
-      const entryIds = entries.map(e => e.id);
-      const { data: images, error: imagesError } = await supabase
-        .from('entry_images')
-        .select('*')
-        .in('entry_id', entryIds)
-        .order('order_index', { ascending: true });
+    // Fetch images for each entry via entry_media and media_assets
+    if (includeImages && entries) {
+      for (const entry of entries) {
+        const { data: entryMedia, error: mediaError } = await supabase
+          .from('entry_media')
+          .select(`
+            id,
+            order_index,
+            position_x,
+            position_y,
+            scale,
+            locked,
+            media_assets (
+              id,
+              url,
+              alt_text,
+              mime_type
+            )
+          `)
+          .eq('entry_id', entry.id)
+          .order('order_index', { ascending: true });
 
-      if (!imagesError && images) {
-        // Attach images to their respective entries
-        entries.forEach(entry => {
-          entry.images = images.filter(img => img.entry_id === entry.id);
-        });
-        console.log(`Fetched images for entries`);
+        if (mediaError) {
+          console.error(`Error fetching images for entry ${entry.id}:`, mediaError);
+          entry.images = [];
+        } else {
+          // Transform the data to include both entry_media and media_assets info
+          entry.images = (entryMedia || []).map(em => {
+            const mediaAsset = Array.isArray(em.media_assets) ? em.media_assets[0] : em.media_assets;
+            return {
+              entryMediaId: em.id,
+              mediaId: mediaAsset?.id,
+              url: mediaAsset?.url,
+              altText: mediaAsset?.alt_text,
+              mimeType: mediaAsset?.mime_type,
+              orderIndex: em.order_index,
+              position: {
+                x: em.position_x,
+                y: em.position_y,
+                scale: em.scale
+              },
+              locked: em.locked
+            };
+          });
+        }
       }
+      console.log(`Fetched images for entries`);
     }
 
     // Build response

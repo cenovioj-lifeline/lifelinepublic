@@ -3,6 +3,9 @@ project_id = "xvtmrnmwmuroksneekbl"
 [functions.import-image-from-url]
 verify_jwt = false
 
+[functions.import-images-batch]
+verify_jwt = false
+
 [functions.find-and-import-lifeline-images]
 verify_jwt = false
 
@@ -16,4 +19,7 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.export-lifeline-data]
+verify_jwt = false
+
+[functions.export-collection-data]
 verify_jwt = false
