@@ -7,11 +7,20 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Link, useNavigate } from "react-router-dom";
 import { RequestLifelineDialog } from "@/components/RequestLifelineDialog";
 import { useState } from "react";
-import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export default function Home() {
   const navigate = useNavigate();
   const [requestDialogOpen, setRequestDialogOpen] = useState(false);
+  const [constructionAlertOpen, setConstructionAlertOpen] = useState(false);
   
   const { data: homeSettings } = useQuery({
     queryKey: ["home-settings"],
@@ -173,10 +182,10 @@ export default function Home() {
   });
 
   const quickActionCards = [
-    { icon: Rss, label: "Feed", path: "/public/feed" },
+    { icon: Rss, label: "Feed", onClick: () => setConstructionAlertOpen(true) },
     { icon: FileQuestion, label: "Request", onClick: () => setRequestDialogOpen(true) },
-    { icon: Share2, label: "Share", onClick: () => toast.info("Site is still under construction") },
-    { icon: Settings, label: "Settings", onClick: () => toast.info("Site is still under construction") },
+    { icon: Share2, label: "Share", onClick: () => setConstructionAlertOpen(true) },
+    { icon: Settings, label: "Settings", onClick: () => setConstructionAlertOpen(true) },
   ];
 
   return (
@@ -212,31 +221,17 @@ export default function Home() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {quickActionCards.map((action) => {
           const Icon = action.icon;
-          
-          if (action.onClick) {
-            return (
-              <Card
-                key={action.label}
-                className="hover:shadow-md transition-shadow cursor-pointer h-full bg-[hsl(var(--scheme-actions-bg))] border-[hsl(var(--scheme-actions-border))]"
-                onClick={action.onClick}
-              >
-                <CardContent className="flex flex-col items-center justify-center p-6 gap-2">
-                  <Icon className="h-8 w-8 text-[hsl(var(--scheme-actions-icon))]" />
-                  <span className="text-sm font-medium text-[hsl(var(--scheme-actions-text))]">{action.label}</span>
-                </CardContent>
-              </Card>
-            );
-          }
-          
           return (
-            <Link key={action.label} to={action.path!}>
-              <Card className="hover:shadow-md transition-shadow cursor-pointer h-full bg-[hsl(var(--scheme-actions-bg))] border-[hsl(var(--scheme-actions-border))]">
-                <CardContent className="flex flex-col items-center justify-center p-6 gap-2">
-                  <Icon className="h-8 w-8 text-[hsl(var(--scheme-actions-icon))]" />
-                  <span className="text-sm font-medium text-[hsl(var(--scheme-actions-text))]">{action.label}</span>
-                </CardContent>
-              </Card>
-            </Link>
+            <Card 
+              key={action.label}
+              className="hover:shadow-md transition-shadow cursor-pointer h-full bg-[hsl(var(--scheme-actions-bg))] border-[hsl(var(--scheme-actions-border))]"
+              onClick={action.onClick}
+            >
+              <CardContent className="flex flex-col items-center justify-center p-6 gap-2">
+                <Icon className="h-8 w-8 text-[hsl(var(--scheme-actions-icon))]" />
+                <span className="text-sm font-medium text-[hsl(var(--scheme-actions-text))]">{action.label}</span>
+              </CardContent>
+            </Card>
           );
         })}
       </div>
@@ -249,6 +244,20 @@ export default function Home() {
           navigate("/auth");
         }}
       />
+
+      <AlertDialog open={constructionAlertOpen} onOpenChange={setConstructionAlertOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Site Under Construction</AlertDialogTitle>
+            <AlertDialogDescription>
+              This feature is still under construction and will be available soon.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction>OK</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Featured Section */}
       <section>

@@ -242,7 +242,7 @@ export default function PublicElectionDetail() {
               {Object.entries(groupedResults).map(([category, categoryResults]: [string, any]) => (
                 <Collapsible
                   key={category}
-                  open={openCategories[category] ?? true}
+                  open={openCategories[category] ?? false}
                   onOpenChange={(open) => setOpenCategories(prev => ({ ...prev, [category]: open }))}
                 >
                   <Card style={{ backgroundColor: 'hsl(var(--scheme-card-bg))', borderColor: 'hsl(var(--scheme-card-border))' }}>
