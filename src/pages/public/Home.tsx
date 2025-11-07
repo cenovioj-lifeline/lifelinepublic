@@ -7,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Link, useNavigate } from "react-router-dom";
 import { RequestLifelineDialog } from "@/components/RequestLifelineDialog";
 import { useState } from "react";
+import { toast } from "sonner";
 
 export default function Home() {
   const navigate = useNavigate();
@@ -174,8 +175,8 @@ export default function Home() {
   const quickActionCards = [
     { icon: Rss, label: "Feed", path: "/public/feed" },
     { icon: FileQuestion, label: "Request", onClick: () => setRequestDialogOpen(true) },
-    { icon: Share2, label: "Share", path: "/public/share" },
-    { icon: Settings, label: "Settings", path: "/public/settings" },
+    { icon: Share2, label: "Share", onClick: () => toast.info("Site is still under construction") },
+    { icon: Settings, label: "Settings", onClick: () => toast.info("Site is still under construction") },
   ];
 
   return (

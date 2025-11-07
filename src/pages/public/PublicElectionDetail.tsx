@@ -147,7 +147,7 @@ export default function PublicElectionDetail() {
 
   const [openCategories, setOpenCategories] = useState<Record<string, boolean>>(() => {
     const initial: Record<string, boolean> = {};
-    Object.keys(groupedResults).forEach(cat => initial[cat] = true);
+    Object.keys(groupedResults).forEach(cat => initial[cat] = false);
     return initial;
   });
 
