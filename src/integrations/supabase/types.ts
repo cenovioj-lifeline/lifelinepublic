@@ -1200,6 +1200,10 @@ export type Database = {
           created_at: string
           created_by: string | null
           description: string | null
+          hero_image_path: string | null
+          hero_image_position_x: number | null
+          hero_image_position_y: number | null
+          hero_image_url: string | null
           id: string
           opens_at: string | null
           slug: string
@@ -1214,6 +1218,10 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           description?: string | null
+          hero_image_path?: string | null
+          hero_image_position_x?: number | null
+          hero_image_position_y?: number | null
+          hero_image_url?: string | null
           id?: string
           opens_at?: string | null
           slug: string
@@ -1228,6 +1236,10 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           description?: string | null
+          hero_image_path?: string | null
+          hero_image_position_x?: number | null
+          hero_image_position_y?: number | null
+          hero_image_url?: string | null
           id?: string
           opens_at?: string | null
           slug?: string

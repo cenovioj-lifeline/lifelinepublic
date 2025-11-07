@@ -26,6 +26,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, Plus, Trash2, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ElectionResultsUpload } from "@/components/ElectionResultsUpload";
+import { DirectImageUpload } from "@/components/DirectImageUpload";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -58,6 +59,10 @@ type ElectionForm = {
   status: "draft" | "published";
   collection_id: string;
   tag_ids: string[];
+  hero_image_url: string;
+  hero_image_path: string;
+  hero_image_position_x: number;
+  hero_image_position_y: number;
 };
 
 export default function ElectionEdit() {
@@ -77,6 +82,10 @@ export default function ElectionEdit() {
       status: "draft",
       collection_id: "",
       tag_ids: [],
+      hero_image_url: "",
+      hero_image_path: "",
+      hero_image_position_x: 50,
+      hero_image_position_y: 50,
     },
   });
 
@@ -170,6 +179,10 @@ export default function ElectionEdit() {
         status: election.status,
         collection_id: election.collection_id || "",
         tag_ids: electionTags,
+        hero_image_url: election.hero_image_url || "",
+        hero_image_path: election.hero_image_path || "",
+        hero_image_position_x: election.hero_image_position_x || 50,
+        hero_image_position_y: election.hero_image_position_y || 50,
       });
     }
   }, [election, electionTags, form]);
@@ -199,6 +212,10 @@ export default function ElectionEdit() {
         visibility: data.visibility,
         status: data.status,
         collection_id: data.collection_id || null,
+        hero_image_url: data.hero_image_url || null,
+        hero_image_path: data.hero_image_path || null,
+        hero_image_position_x: data.hero_image_position_x,
+        hero_image_position_y: data.hero_image_position_y,
       };
       
       let electionId = id;
@@ -319,6 +336,63 @@ export default function ElectionEdit() {
     updated[index] = { ...updated[index], [field]: value };
     setResults(updated);
   };
+
+  const saveImageMutation = useMutation({
+    mutationFn: async ({ url, path }: { url: string; path: string }) => {
+      if (isNew) return;
+      const { error } = await supabase
+        .from("mock_elections")
+        .update({
+          hero_image_url: url,
+          hero_image_path: path,
+        })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["election", id] });
+      toast({
+        title: "Success",
+        description: "Image saved successfully",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const savePositionMutation = useMutation({
+    mutationFn: async ({ position_x, position_y }: { position_x: number; position_y: number }) => {
+      if (isNew) return;
+      const { error } = await supabase
+        .from("mock_elections")
+        .update({
+          hero_image_position_x: position_x,
+          hero_image_position_y: position_y,
+        })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      form.setValue("hero_image_position_x", form.watch("hero_image_position_x"));
+      form.setValue("hero_image_position_y", form.watch("hero_image_position_y"));
+      toast({
+        title: "Success",
+        description: "Image position saved",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
 
   const deleteAllResultsMutation = useMutation({
     mutationFn: async () => {
@@ -537,6 +611,59 @@ export default function ElectionEdit() {
                     })}
                   </div>
                 </div>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="hero_image_url"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Hero Image (Optional)</FormLabel>
+                <DirectImageUpload
+                  currentImageUrl={field.value || undefined}
+                  currentImagePath={form.watch("hero_image_path") || undefined}
+                  onUploadComplete={(url, path) => {
+                    form.setValue("hero_image_url", url);
+                    form.setValue("hero_image_path", path);
+                    
+                    // Save the image to the database immediately
+                    if (!isNew) {
+                      saveImageMutation.mutate({ url, path });
+                    }
+                  }}
+                  onRemove={() => {
+                    form.setValue("hero_image_url", "");
+                    form.setValue("hero_image_path", "");
+                    form.setValue("hero_image_position_x", 50);
+                    form.setValue("hero_image_position_y", 50);
+                    
+                    // Save the removal to the database
+                    if (!isNew) {
+                      saveMutation.mutate({
+                        ...form.getValues(),
+                        hero_image_url: "",
+                        hero_image_path: "",
+                        hero_image_position_x: 50,
+                        hero_image_position_y: 50,
+                      });
+                    }
+                  }}
+                  onPositionChange={(position) => {
+                    savePositionMutation.mutate({
+                      position_x: position.x,
+                      position_y: position.y,
+                    });
+                  }}
+                  initialPosition={{
+                    x: form.watch("hero_image_position_x"),
+                    y: form.watch("hero_image_position_y"),
+                  }}
+                  label="Upload Hero Image"
+                  viewType="card"
+                />
                 <FormMessage />
               </FormItem>
             )}
