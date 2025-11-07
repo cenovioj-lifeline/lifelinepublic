@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Plus, Search, Trash2 } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -52,6 +53,8 @@ export default function Lifelines() {
   const [pictureFilter, setPictureFilter] = useState<string>(initialFilters.pictureFilter);
   const [lifelineTypeFilter, setLifelineTypeFilter] = useState<string>(initialFilters.lifelineTypeFilter);
   const [deletingLifeline, setDeletingLifeline] = useState<{ id: string; title: string } | null>(null);
+  const [selectedLifelines, setSelectedLifelines] = useState<string[]>([]);
+  const [showBulkDeleteDialog, setShowBulkDeleteDialog] = useState(false);
 
   // Save filters to localStorage whenever they change
   useEffect(() => {
@@ -108,100 +111,106 @@ export default function Lifelines() {
   });
 
   const deleteLifelineMutation = useMutation({
-    mutationFn: async (lifelineId: string) => {
-      // Clean up all references to this lifeline
-      
-      // 1. Delete from home_page_featured_items
-      await supabase
-        .from("home_page_featured_items")
-        .delete()
-        .eq("item_type", "lifeline")
-        .eq("item_id", lifelineId);
-
-      // 2. Delete from home_page_new_content_items
-      await supabase
-        .from("home_page_new_content_items")
-        .delete()
-        .eq("item_type", "lifeline")
-        .eq("item_id", lifelineId);
-
-      // 3. Delete from profile_lifelines
-      await supabase
-        .from("profile_lifelines")
-        .delete()
-        .eq("lifeline_id", lifelineId);
-
-      // 4. Delete lifeline_tags
-      await supabase
-        .from("lifeline_tags")
-        .delete()
-        .eq("lifeline_id", lifelineId);
-
-      // 5. Get all entries for this lifeline
-      const { data: entries } = await supabase
-        .from("entries")
-        .select("id")
-        .eq("lifeline_id", lifelineId);
-
-      if (entries && entries.length > 0) {
-        const entryIds = entries.map(e => e.id);
-
-        // Delete entry_media relationships
+    mutationFn: async (lifelineIds: string[]) => {
+      // Process each lifeline deletion
+      for (const lifelineId of lifelineIds) {
+        // Clean up all references to this lifeline
+        
+        // 1. Delete from home_page_featured_items
         await supabase
-          .from("entry_media")
+          .from("home_page_featured_items")
           .delete()
-          .in("entry_id", entryIds);
+          .eq("item_type", "lifeline")
+          .eq("item_id", lifelineId);
 
-        // Delete entry_images
+        // 2. Delete from home_page_new_content_items
         await supabase
-          .from("entry_images")
+          .from("home_page_new_content_items")
           .delete()
-          .in("entry_id", entryIds);
+          .eq("item_type", "lifeline")
+          .eq("item_id", lifelineId);
 
-        // Delete entry_votes
+        // 3. Delete from profile_lifelines
         await supabase
-          .from("entry_votes")
+          .from("profile_lifelines")
           .delete()
-          .in("entry_id", entryIds);
+          .eq("lifeline_id", lifelineId);
 
-        // Delete fan_contributions referencing these entries
+        // 4. Delete lifeline_tags
+        await supabase
+          .from("lifeline_tags")
+          .delete()
+          .eq("lifeline_id", lifelineId);
+
+        // 5. Get all entries for this lifeline
+        const { data: entries } = await supabase
+          .from("entries")
+          .select("id")
+          .eq("lifeline_id", lifelineId);
+
+        if (entries && entries.length > 0) {
+          const entryIds = entries.map(e => e.id);
+
+          // Delete entry_media relationships
+          await supabase
+            .from("entry_media")
+            .delete()
+            .in("entry_id", entryIds);
+
+          // Delete entry_images
+          await supabase
+            .from("entry_images")
+            .delete()
+            .in("entry_id", entryIds);
+
+          // Delete entry_votes
+          await supabase
+            .from("entry_votes")
+            .delete()
+            .in("entry_id", entryIds);
+
+          // Delete fan_contributions referencing these entries
+          await supabase
+            .from("fan_contributions")
+            .delete()
+            .in("entry_id", entryIds);
+
+          // Delete entries themselves
+          await supabase
+            .from("entries")
+            .delete()
+            .eq("lifeline_id", lifelineId);
+        }
+
+        // 6. Delete user_favorites
+        await supabase
+          .from("user_favorites")
+          .delete()
+          .eq("item_type", "lifeline")
+          .eq("item_id", lifelineId);
+
+        // 7. Delete fan_contributions for this lifeline
         await supabase
           .from("fan_contributions")
           .delete()
-          .in("entry_id", entryIds);
-
-        // Delete entries themselves
-        await supabase
-          .from("entries")
-          .delete()
           .eq("lifeline_id", lifelineId);
+
+        // 8. Finally, delete the lifeline itself
+        const { error } = await supabase
+          .from("lifelines")
+          .delete()
+          .eq("id", lifelineId);
+
+        if (error) throw error;
       }
-
-      // 6. Delete user_favorites
-      await supabase
-        .from("user_favorites")
-        .delete()
-        .eq("item_type", "lifeline")
-        .eq("item_id", lifelineId);
-
-      // 7. Delete fan_contributions for this lifeline
-      await supabase
-        .from("fan_contributions")
-        .delete()
-        .eq("lifeline_id", lifelineId);
-
-      // 8. Finally, delete the lifeline itself
-      const { error } = await supabase
-        .from("lifelines")
-        .delete()
-        .eq("id", lifelineId);
-
-      if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["lifelines"] });
-      toast.success("Lifeline and all references deleted successfully");
+      const count = selectedLifelines.length || 1;
+      toast.success(`${count} lifeline${count > 1 ? 's' : ''} deleted successfully`);
       setDeletingLifeline(null);
+      setSelectedLifelines([]);
+      setShowBulkDeleteDialog(false);
     },
     onError: (error: Error) => {
       console.error("Delete error:", error);
@@ -216,7 +225,29 @@ export default function Lifelines() {
 
   const handleDeleteConfirm = () => {
     if (deletingLifeline) {
-      deleteLifelineMutation.mutate(deletingLifeline.id);
+      deleteLifelineMutation.mutate([deletingLifeline.id]);
+    }
+  };
+
+  const handleBulkDelete = () => {
+    setShowBulkDeleteDialog(true);
+  };
+
+  const handleBulkDeleteConfirm = () => {
+    deleteLifelineMutation.mutate(selectedLifelines);
+  };
+
+  const toggleLifelineSelection = (id: string) => {
+    setSelectedLifelines(prev =>
+      prev.includes(id) ? prev.filter(l => l !== id) : [...prev, id]
+    );
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedLifelines.length === lifelines?.length) {
+      setSelectedLifelines([]);
+    } else {
+      setSelectedLifelines(lifelines?.map(l => l.id) || []);
     }
   };
 
@@ -229,10 +260,22 @@ export default function Lifelines() {
             Manage scored timeline narratives with entries
           </p>
         </div>
-        <Button onClick={() => navigate("/lifelines/new")}>
-          <Plus className="mr-2 h-4 w-4" />
-          New Lifeline
-        </Button>
+        <div className="flex gap-2">
+          {selectedLifelines.length > 0 && (
+            <Button 
+              variant="destructive" 
+              onClick={handleBulkDelete}
+              disabled={deleteLifelineMutation.isPending}
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              Delete {selectedLifelines.length} Selected
+            </Button>
+          )}
+          <Button onClick={() => navigate("/lifelines/new")}>
+            <Plus className="mr-2 h-4 w-4" />
+            New Lifeline
+          </Button>
+        </div>
       </div>
 
       <div className="flex items-center gap-4 flex-wrap">
@@ -285,6 +328,12 @@ export default function Lifelines() {
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-[50px]">
+                <Checkbox
+                  checked={selectedLifelines.length === lifelines?.length && lifelines?.length > 0}
+                  onCheckedChange={toggleSelectAll}
+                />
+              </TableHead>
               <TableHead className="w-[100px]">Cover Image</TableHead>
               <TableHead>Lifeline Name</TableHead>
               <TableHead>Collection</TableHead>
@@ -295,13 +344,13 @@ export default function Lifelines() {
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-center">
+                <TableCell colSpan={6} className="text-center">
                   Loading...
                 </TableCell>
               </TableRow>
             ) : lifelines?.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-center">
+                <TableCell colSpan={6} className="text-center">
                   No lifelines found
                 </TableCell>
               </TableRow>
@@ -312,6 +361,12 @@ export default function Lifelines() {
                   className="cursor-pointer"
                   onClick={() => navigate(`/lifelines/${lifeline.id}`)}
                 >
+                  <TableCell onClick={(e) => e.stopPropagation()}>
+                    <Checkbox
+                      checked={selectedLifelines.includes(lifeline.id)}
+                      onCheckedChange={() => toggleLifelineSelection(lifeline.id)}
+                    />
+                  </TableCell>
                   <TableCell>
                     <div className="w-20 h-20 rounded overflow-hidden bg-muted flex items-center justify-center">
                       {lifeline.cover_image_url ? (
@@ -387,6 +442,34 @@ export default function Lifelines() {
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               Delete Lifeline
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={showBulkDeleteDialog} onOpenChange={setShowBulkDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete {selectedLifelines.length} Lifelines</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete {selectedLifelines.length} selected lifeline{selectedLifelines.length > 1 ? 's' : ''}? This will permanently remove:
+              <ul className="list-disc list-inside mt-2 space-y-1">
+                <li>All selected lifelines and their entries</li>
+                <li>All images and media associated with entries</li>
+                <li>All votes and fan contributions</li>
+                <li>References from home page and profiles</li>
+                <li>All tags and relationships</li>
+              </ul>
+              <p className="mt-2 font-semibold">This action cannot be undone.</p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleBulkDeleteConfirm}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete {selectedLifelines.length} Lifelines
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
