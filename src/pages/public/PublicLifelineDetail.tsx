@@ -7,18 +7,22 @@ import { LifelineViewer } from "@/components/lifeline/LifelineViewer";
 import { PublicLayout } from "@/components/PublicLayout";
 import { FavoriteButton } from "@/components/FavoriteButton";
 import { useColorScheme } from "@/hooks/useColorScheme";
+import { LifelineDisclaimerDialog } from "@/components/lifeline/LifelineDisclaimerDialog";
+import { useState, useEffect } from "react";
 
 export default function PublicLifelineDetail() {
   useColorScheme(); // Apply default color scheme
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
+  const [showDisclaimer, setShowDisclaimer] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const { data: lifeline, isLoading } = useQuery({
     queryKey: ["public-lifeline", slug],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("lifelines")
-        .select("id, title, slug")
+        .select("id, title, slug, lifeline_type")
         .eq("slug", slug)
         .eq("status", "published")
         .eq("visibility", "public")
@@ -28,6 +32,37 @@ export default function PublicLifelineDetail() {
       return data;
     },
   });
+
+  // Check if user is authenticated and if they've dismissed the disclaimer
+  useEffect(() => {
+    const checkDisclaimerPreference = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setIsAuthenticated(!!user);
+
+      // Only show disclaimer for person lifelines
+      if (lifeline && lifeline.lifeline_type === "person") {
+        if (user) {
+          // Check if user has dismissed the disclaimer
+          const { data: preferences } = await supabase
+            .from("user_preferences")
+            .select("hide_person_lifeline_disclaimer")
+            .eq("user_id", user.id)
+            .single();
+
+          if (!preferences?.hide_person_lifeline_disclaimer) {
+            setShowDisclaimer(true);
+          }
+        } else {
+          // Not authenticated, always show disclaimer
+          setShowDisclaimer(true);
+        }
+      }
+    };
+
+    if (lifeline) {
+      checkDisclaimerPreference();
+    }
+  }, [lifeline]);
 
 
   if (isLoading) {
@@ -71,6 +106,11 @@ export default function PublicLifelineDetail() {
           lifelineId={lifeline.id}
         />
       </div>
+      <LifelineDisclaimerDialog
+        open={showDisclaimer}
+        onOpenChange={setShowDisclaimer}
+        isAuthenticated={isAuthenticated}
+      />
     </PublicLayout>
   );
 }

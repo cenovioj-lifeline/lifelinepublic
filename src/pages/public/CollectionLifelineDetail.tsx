@@ -7,10 +7,14 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { LifelineViewer } from "@/components/lifeline/LifelineViewer";
 import { CollectionLayout } from "@/components/CollectionLayout";
 import { FavoriteButton } from "@/components/FavoriteButton";
+import { LifelineDisclaimerDialog } from "@/components/lifeline/LifelineDisclaimerDialog";
+import { useState, useEffect } from "react";
 
 export default function CollectionLifelineDetail() {
   const { collectionSlug, lifelineSlug } = useParams<{ collectionSlug: string; lifelineSlug: string }>();
   const navigate = useNavigate();
+  const [showDisclaimer, setShowDisclaimer] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const { data: lifeline, isLoading } = useQuery({
     queryKey: ["collection-lifeline", collectionSlug, lifelineSlug],
@@ -60,6 +64,37 @@ export default function CollectionLifelineDetail() {
     },
   });
 
+  // Check if user is authenticated and if they've dismissed the disclaimer
+  useEffect(() => {
+    const checkDisclaimerPreference = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setIsAuthenticated(!!user);
+
+      // Only show disclaimer for person lifelines
+      if (lifeline && lifeline.lifeline_type === "person") {
+        if (user) {
+          // Check if user has dismissed the disclaimer
+          const { data: preferences } = await supabase
+            .from("user_preferences")
+            .select("hide_person_lifeline_disclaimer")
+            .eq("user_id", user.id)
+            .single();
+
+          if (!preferences?.hide_person_lifeline_disclaimer) {
+            setShowDisclaimer(true);
+          }
+        } else {
+          // Not authenticated, always show disclaimer
+          setShowDisclaimer(true);
+        }
+      }
+    };
+
+    if (lifeline) {
+      checkDisclaimerPreference();
+    }
+  }, [lifeline]);
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background p-6 space-y-6">
@@ -96,6 +131,11 @@ export default function CollectionLifelineDetail() {
           lifelineId={lifeline.id}
           lifelineType={lifeline.lifeline_type}
         />
+      <LifelineDisclaimerDialog
+        open={showDisclaimer}
+        onOpenChange={setShowDisclaimer}
+        isAuthenticated={isAuthenticated}
+      />
     </CollectionLayout>
   );
 }
