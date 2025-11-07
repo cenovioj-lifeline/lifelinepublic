@@ -30,6 +30,7 @@ import { DirectImageUpload } from "@/components/DirectImageUpload";
 import { CollectionQuotesUpload } from "@/components/CollectionQuotesUpload";
 import { CollectionFeaturedProfiles } from "@/components/CollectionFeaturedProfiles";
 import { ImagePositionPicker } from "@/components/ImagePositionPicker";
+import { CollectionContentManager } from "@/components/CollectionContentManager";
 
 const collectionFormSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -450,6 +451,11 @@ export default function CollectionEdit() {
               <div className="mt-8">
                 <h3 className="text-lg font-medium mb-4">Featured Profiles</h3>
                 <CollectionFeaturedProfiles collectionId={id!} />
+              </div>
+
+              <div className="mt-8">
+                <h3 className="text-lg font-medium mb-4">Collection Content</h3>
+                <CollectionContentManager collectionId={id!} />
               </div>
             </>
           )}

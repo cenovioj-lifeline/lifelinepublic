@@ -110,6 +110,76 @@ export type Database = {
           },
         ]
       }
+      collection_custom_section_items: {
+        Row: {
+          collection_id: string
+          created_at: string
+          id: string
+          item_id: string
+          item_type: string
+          order_index: number
+        }
+        Insert: {
+          collection_id: string
+          created_at?: string
+          id?: string
+          item_id: string
+          item_type: string
+          order_index?: number
+        }
+        Update: {
+          collection_id?: string
+          created_at?: string
+          id?: string
+          item_id?: string
+          item_type?: string
+          order_index?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "collection_custom_section_items_collection_id_fkey"
+            columns: ["collection_id"]
+            isOneToOne: false
+            referencedRelation: "collections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      collection_featured_items: {
+        Row: {
+          collection_id: string
+          created_at: string
+          id: string
+          item_id: string
+          item_type: string
+          order_index: number
+        }
+        Insert: {
+          collection_id: string
+          created_at?: string
+          id?: string
+          item_id: string
+          item_type: string
+          order_index?: number
+        }
+        Update: {
+          collection_id?: string
+          created_at?: string
+          id?: string
+          item_id?: string
+          item_type?: string
+          order_index?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "collection_featured_items_collection_id_fkey"
+            columns: ["collection_id"]
+            isOneToOne: false
+            referencedRelation: "collections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       collection_quotes: {
         Row: {
           author: string | null
@@ -204,6 +274,7 @@ export type Database = {
           color_scheme_id: string | null
           created_at: string
           created_by: string | null
+          custom_section_name: string | null
           default_color: string | null
           description: string | null
           entry_bg_color: string | null
@@ -275,6 +346,7 @@ export type Database = {
           color_scheme_id?: string | null
           created_at?: string
           created_by?: string | null
+          custom_section_name?: string | null
           default_color?: string | null
           description?: string | null
           entry_bg_color?: string | null
@@ -346,6 +418,7 @@ export type Database = {
           color_scheme_id?: string | null
           created_at?: string
           created_by?: string | null
+          custom_section_name?: string | null
           default_color?: string | null
           description?: string | null
           entry_bg_color?: string | null
@@ -954,6 +1027,7 @@ export type Database = {
       home_page_settings: {
         Row: {
           created_at: string
+          custom_section_name: string | null
           hero_image_id: string | null
           hero_image_position_x: number | null
           hero_image_position_y: number | null
@@ -964,6 +1038,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          custom_section_name?: string | null
           hero_image_id?: string | null
           hero_image_position_x?: number | null
           hero_image_position_y?: number | null
@@ -974,6 +1049,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          custom_section_name?: string | null
           hero_image_id?: string | null
           hero_image_position_x?: number | null
           hero_image_position_y?: number | null

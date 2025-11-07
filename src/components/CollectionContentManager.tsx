@@ -5,8 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { DirectImageUpload } from "@/components/DirectImageUpload";
-import { ImagePositionPicker } from "@/components/ImagePositionPicker";
 import {
   Select,
   SelectContent,
@@ -15,7 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Trash2, Plus, Image as ImageIcon, GripVertical } from "lucide-react";
+import { Trash2, GripVertical } from "lucide-react";
 import {
   DndContext,
   closestCenter,
@@ -84,89 +82,68 @@ function SortableItem({
   );
 }
 
-export default function HomeManager() {
+interface CollectionContentManagerProps {
+  collectionId: string;
+}
+
+export function CollectionContentManager({ collectionId }: CollectionContentManagerProps) {
   const queryClient = useQueryClient();
-  const [heroTitle, setHeroTitle] = useState("");
-  const [heroSubtitle, setHeroSubtitle] = useState("");
-  const [heroImageId, setHeroImageId] = useState<string | null>(null);
-  const [heroImageUrl, setHeroImageUrl] = useState<string | null>(null);
-  const [heroImagePosition, setHeroImagePosition] = useState({ x: 50, y: 50 });
-  const [showPositionPicker, setShowPositionPicker] = useState(false);
   const [customSectionName, setCustomSectionName] = useState("New Content");
 
-  const { data: settings } = useQuery({
-    queryKey: ["home-settings"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("home_page_settings")
-        .select(`
-          *,
-          hero_image:media_assets(url, alt_text)
-        `)
-        .single();
-
-      if (error) throw error;
-      
-      setHeroTitle(data.hero_title || "");
-      setHeroSubtitle(data.hero_subtitle || "");
-      setHeroImageId(data.hero_image_id);
-      setHeroImageUrl(data.hero_image?.url || null);
-      setHeroImagePosition({
-        x: data.hero_image_position_x || 50,
-        y: data.hero_image_position_y || 50,
-      });
-      setCustomSectionName(data.custom_section_name || "New Content");
-      
-      return data;
-    },
-  });
-
-  const { data: featuredItems } = useQuery({
-    queryKey: ["home-featured-items"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("home_page_featured_items")
-        .select("*")
-        .order("order_index");
-
-      if (error) throw error;
-      return data;
-    },
-  });
-
-  const { data: newContentItems } = useQuery({
-    queryKey: ["home-new-content-items"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("home_page_new_content_items")
-        .select("*")
-        .order("order_index");
-
-      if (error) throw error;
-      return data;
-    },
-  });
-
-  const { data: collections } = useQuery({
-    queryKey: ["collections-list"],
+  // Fetch collection
+  const { data: collection } = useQuery({
+    queryKey: ["collection", collectionId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("collections")
-        .select("id, title")
-        .eq("status", "published")
-        .order("title");
+        .select("*")
+        .eq("id", collectionId)
+        .single();
+
+      if (error) throw error;
+      setCustomSectionName(data.custom_section_name || "New Content");
+      return data;
+    },
+  });
+
+  // Fetch featured items
+  const { data: featuredItems } = useQuery({
+    queryKey: ["collection-featured-items", collectionId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("collection_featured_items")
+        .select("*")
+        .eq("collection_id", collectionId)
+        .order("order_index");
 
       if (error) throw error;
       return data;
     },
   });
 
+  // Fetch custom section items
+  const { data: customSectionItems } = useQuery({
+    queryKey: ["collection-custom-section-items", collectionId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("collection_custom_section_items")
+        .select("*")
+        .eq("collection_id", collectionId)
+        .order("order_index");
+
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Fetch available content in this collection
   const { data: lifelines } = useQuery({
-    queryKey: ["lifelines-list"],
+    queryKey: ["collection-lifelines-list", collectionId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("lifelines")
         .select("id, title")
+        .eq("collection_id", collectionId)
         .eq("status", "published")
         .order("title");
 
@@ -176,11 +153,12 @@ export default function HomeManager() {
   });
 
   const { data: elections } = useQuery({
-    queryKey: ["elections-list"],
+    queryKey: ["collection-elections-list", collectionId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("mock_elections")
         .select("id, title")
+        .eq("collection_id", collectionId)
         .eq("status", "published")
         .order("title");
 
@@ -189,66 +167,50 @@ export default function HomeManager() {
     },
   });
 
-  const updateSettings = useMutation({
+  const { data: profiles } = useQuery({
+    queryKey: ["collection-profiles-list", collectionId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profile_collections")
+        .select("profile_id, profiles!inner(id, name)")
+        .eq("collection_id", collectionId);
+
+      if (error) throw error;
+      return data.map(pc => ({ 
+        id: pc.profiles?.id || pc.profile_id, 
+        title: pc.profiles?.name || 'Unknown Profile' 
+      }));
+    },
+  });
+
+  // Update custom section name
+  const updateSectionName = useMutation({
     mutationFn: async () => {
       const { error } = await supabase
-        .from("home_page_settings")
-        .update({
-          hero_title: heroTitle,
-          hero_subtitle: heroSubtitle,
-          hero_image_id: heroImageId,
-          hero_image_position_x: heroImagePosition.x,
-          hero_image_position_y: heroImagePosition.y,
-          custom_section_name: customSectionName,
-        })
-        .eq("id", settings?.id);
+        .from("collections")
+        .update({ custom_section_name: customSectionName })
+        .eq("id", collectionId);
 
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["home-settings"] });
-      toast.success("Home page settings updated");
+      queryClient.invalidateQueries({ queryKey: ["collection", collectionId] });
+      toast.success("Section name updated");
     },
     onError: () => {
-      toast.error("Failed to update settings");
+      toast.error("Failed to update section name");
     },
   });
 
-  const handleImageUpload = async (mediaAssetId: string, url: string) => {
-    setHeroImageId(mediaAssetId);
-    setHeroImageUrl(url);
-    
-    // Auto-save after upload
-    try {
-      await supabase
-        .from("home_page_settings")
-        .update({
-          hero_image_id: mediaAssetId,
-          hero_image_position_x: 50,
-          hero_image_position_y: 50,
-        })
-        .eq("id", settings?.id);
-      
-      setHeroImagePosition({ x: 50, y: 50 });
-      queryClient.invalidateQueries({ queryKey: ["home-settings"] });
-      toast.success("Hero image uploaded");
-    } catch (error) {
-      toast.error("Failed to save hero image");
-    }
-  };
-
-  const handlePositionSave = (position: { x: number; y: number }) => {
-    setHeroImagePosition(position);
-    toast.success("Position updated. Click 'Save Hero Settings' to apply.");
-  };
-
+  // Featured items mutations
   const addFeaturedItem = useMutation({
     mutationFn: async ({ type, id }: { type: string; id: string }) => {
       const maxOrder = featuredItems?.reduce((max, item) => Math.max(max, item.order_index), -1) ?? -1;
       
       const { error } = await supabase
-        .from("home_page_featured_items")
+        .from("collection_featured_items")
         .insert({
+          collection_id: collectionId,
           item_type: type,
           item_id: id,
           order_index: maxOrder + 1,
@@ -257,7 +219,7 @@ export default function HomeManager() {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["home-featured-items"] });
+      queryClient.invalidateQueries({ queryKey: ["collection-featured-items", collectionId] });
       toast.success("Featured item added");
     },
   });
@@ -265,25 +227,44 @@ export default function HomeManager() {
   const removeFeaturedItem = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
-        .from("home_page_featured_items")
+        .from("collection_featured_items")
         .delete()
         .eq("id", id);
 
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["home-featured-items"] });
+      queryClient.invalidateQueries({ queryKey: ["collection-featured-items", collectionId] });
       toast.success("Featured item removed");
     },
   });
 
-  const addNewContentItem = useMutation({
+  const reorderFeaturedItems = useMutation({
+    mutationFn: async (items: Array<{ id: string; order_index: number }>) => {
+      const updates = items.map(item => 
+        supabase
+          .from("collection_featured_items")
+          .update({ order_index: item.order_index })
+          .eq("id", item.id)
+      );
+      
+      await Promise.all(updates);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["collection-featured-items", collectionId] });
+      toast.success("Featured items reordered");
+    },
+  });
+
+  // Custom section items mutations
+  const addCustomSectionItem = useMutation({
     mutationFn: async ({ type, id }: { type: string; id: string }) => {
-      const maxOrder = newContentItems?.reduce((max, item) => Math.max(max, item.order_index), -1) ?? -1;
+      const maxOrder = customSectionItems?.reduce((max, item) => Math.max(max, item.order_index), -1) ?? -1;
       
       const { error } = await supabase
-        .from("home_page_new_content_items")
+        .from("collection_custom_section_items")
         .insert({
+          collection_id: collectionId,
           item_type: type,
           item_id: id,
           order_index: maxOrder + 1,
@@ -292,31 +273,31 @@ export default function HomeManager() {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["home-new-content-items"] });
-      toast.success("New content item added");
+      queryClient.invalidateQueries({ queryKey: ["collection-custom-section-items", collectionId] });
+      toast.success("Item added");
     },
   });
 
-  const removeNewContentItem = useMutation({
+  const removeCustomSectionItem = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
-        .from("home_page_new_content_items")
+        .from("collection_custom_section_items")
         .delete()
         .eq("id", id);
 
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["home-new-content-items"] });
-      toast.success("New content item removed");
+      queryClient.invalidateQueries({ queryKey: ["collection-custom-section-items", collectionId] });
+      toast.success("Item removed");
     },
   });
 
-  const reorderFeaturedItems = useMutation({
+  const reorderCustomSectionItems = useMutation({
     mutationFn: async (items: Array<{ id: string; order_index: number }>) => {
       const updates = items.map(item => 
         supabase
-          .from("home_page_featured_items")
+          .from("collection_custom_section_items")
           .update({ order_index: item.order_index })
           .eq("id", item.id)
       );
@@ -324,25 +305,8 @@ export default function HomeManager() {
       await Promise.all(updates);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["home-featured-items"] });
-      toast.success("Featured items reordered");
-    },
-  });
-
-  const reorderNewContentItems = useMutation({
-    mutationFn: async (items: Array<{ id: string; order_index: number }>) => {
-      const updates = items.map(item => 
-        supabase
-          .from("home_page_new_content_items")
-          .update({ order_index: item.order_index })
-          .eq("id", item.id)
-      );
-      
-      await Promise.all(updates);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["home-new-content-items"] });
-      toast.success("New content items reordered");
+      queryClient.invalidateQueries({ queryKey: ["collection-custom-section-items", collectionId] });
+      toast.success("Items reordered");
     },
   });
 
@@ -370,73 +334,48 @@ export default function HomeManager() {
     }
   };
 
-  const handleNewContentDragEnd = (event: DragEndEvent) => {
+  const handleCustomSectionDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
 
-    if (over && active.id !== over.id && newContentItems) {
-      const oldIndex = newContentItems.findIndex((item) => item.id === active.id);
-      const newIndex = newContentItems.findIndex((item) => item.id === over.id);
+    if (over && active.id !== over.id && customSectionItems) {
+      const oldIndex = customSectionItems.findIndex((item) => item.id === active.id);
+      const newIndex = customSectionItems.findIndex((item) => item.id === over.id);
 
-      const newItems = arrayMove(newContentItems, oldIndex, newIndex);
+      const newItems = arrayMove(customSectionItems, oldIndex, newIndex);
       const updates = newItems.map((item, index) => ({
         id: item.id,
         order_index: index,
       }));
 
-      reorderNewContentItems.mutate(updates);
+      reorderCustomSectionItems.mutate(updates);
     }
   };
 
   // Helper function to get content title
   const getContentTitle = (item: { item_type: string; item_id: string }) => {
-    if (item.item_type === 'collection') {
-      const collection = collections?.find(c => c.id === item.item_id);
-      return collection?.title || 'Unknown Collection';
-    } else if (item.item_type === 'lifeline') {
+    if (item.item_type === 'lifeline') {
       const lifeline = lifelines?.find(l => l.id === item.item_id);
       return lifeline?.title || 'Unknown Lifeline';
     } else if (item.item_type === 'election') {
       const election = elections?.find(e => e.id === item.item_id);
       return election?.title || 'Unknown Election';
+    } else if (item.item_type === 'profile') {
+      const profile = profiles?.find(p => p.id === item.item_id);
+      return profile?.title || 'Unknown Profile';
     }
     return 'Unknown';
   };
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold mb-2">Home Page Manager</h1>
-        <p className="text-muted-foreground">
-          Manage the hero section, featured content, and new content on the home page
-        </p>
-      </div>
-
-      {/* Hero Section Settings */}
+      {/* Custom Section Name */}
       <Card>
         <CardHeader>
-          <CardTitle>Hero Section</CardTitle>
+          <CardTitle>Custom Section Name</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <Label htmlFor="hero-title">Hero Title</Label>
-            <Input
-              id="hero-title"
-              value={heroTitle}
-              onChange={(e) => setHeroTitle(e.target.value)}
-              placeholder="Welcome to Lifeline Public"
-            />
-          </div>
-          <div>
-            <Label htmlFor="hero-subtitle">Hero Subtitle</Label>
-            <Input
-              id="hero-subtitle"
-              value={heroSubtitle}
-              onChange={(e) => setHeroSubtitle(e.target.value)}
-              placeholder="Explore stories, profiles, and collections"
-            />
-          </div>
-          <div>
-            <Label htmlFor="custom-section-name">Custom Section Name</Label>
+            <Label htmlFor="custom-section-name">Section Name</Label>
             <Input
               id="custom-section-name"
               value={customSectionName}
@@ -444,89 +383,9 @@ export default function HomeManager() {
               placeholder="New Content"
             />
           </div>
-          <div className="space-y-4">
-            <Label>Hero Image (1920x480 recommended)</Label>
-            
-            {heroImageUrl ? (
-              <div className="space-y-2">
-                <div className="relative w-full rounded-lg overflow-hidden border" style={{ height: "240px" }}>
-                  <img
-                    src={heroImageUrl}
-                    alt="Hero preview"
-                    className="w-full h-full object-cover"
-                    style={{
-                      objectPosition: `${heroImagePosition.x}% ${heroImagePosition.y}%`,
-                    }}
-                  />
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setShowPositionPicker(true)}
-                  >
-                    <ImageIcon className="h-4 w-4 mr-2" />
-                    Adjust Position
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      setHeroImageId(null);
-                      setHeroImageUrl(null);
-                    }}
-                  >
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    Remove Image
-                  </Button>
-                </div>
-              </div>
-            ) : (
-              <DirectImageUpload
-                currentImageUrl={heroImageUrl || undefined}
-                onUploadComplete={(url, path) => {
-                  setHeroImageUrl(url);
-                  // Auto-save after upload
-                  supabase
-                    .from("home_page_settings")
-                    .update({
-                      hero_image_id: null,
-                      hero_image_position_x: 50,
-                      hero_image_position_y: 50,
-                    })
-                    .eq("id", settings?.id)
-                    .then(() => {
-                      setHeroImagePosition({ x: 50, y: 50 });
-                      queryClient.invalidateQueries({ queryKey: ["home-settings"] });
-                      toast.success("Hero image uploaded");
-                    });
-                }}
-                onRemove={() => {
-                  setHeroImageUrl(null);
-                }}
-                label="Upload Hero Image"
-              />
-            )}
-            
-            <div className="text-xs text-muted-foreground">
-              Hero image must be 1920x480 recommended
-            </div>
-          </div>
-          <Button onClick={() => updateSettings.mutate()}>
-            Save Hero Settings
+          <Button onClick={() => updateSectionName.mutate()}>
+            Save Section Name
           </Button>
-          
-          {heroImageUrl && (
-            <ImagePositionPicker
-              imageUrl={heroImageUrl}
-              onPositionChange={handlePositionSave}
-              initialPosition={heroImagePosition}
-              open={showPositionPicker}
-              onOpenChange={setShowPositionPicker}
-            />
-          )}
         </CardContent>
       </Card>
 
@@ -570,10 +429,10 @@ export default function HomeManager() {
                 <SelectValue placeholder="Add featured item..." />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="divider" disabled>Collections</SelectItem>
-                {collections?.map((c) => (
-                  <SelectItem key={c.id} value={`collection:${c.id}`}>
-                    {c.title}
+                <SelectItem value="divider" disabled>Profiles</SelectItem>
+                {profiles?.map((p) => (
+                  <SelectItem key={p.id} value={`profile:${p.id}`}>
+                    {p.title}
                   </SelectItem>
                 ))}
                 <SelectItem value="divider2" disabled>Lifelines</SelectItem>
@@ -603,20 +462,20 @@ export default function HomeManager() {
           <DndContext
             sensors={sensors}
             collisionDetection={closestCenter}
-            onDragEnd={handleNewContentDragEnd}
+            onDragEnd={handleCustomSectionDragEnd}
           >
             <SortableContext
-              items={newContentItems?.map((item) => item.id) || []}
+              items={customSectionItems?.map((item) => item.id) || []}
               strategy={verticalListSortingStrategy}
             >
               <div className="space-y-2">
-                {newContentItems?.map((item) => (
+                {customSectionItems?.map((item) => (
                   <SortableItem
                     key={item.id}
                     id={item.id}
                     title={getContentTitle(item)}
                     subtitle={item.item_type}
-                    onRemove={() => removeNewContentItem.mutate(item.id)}
+                    onRemove={() => removeCustomSectionItem.mutate(item.id)}
                   />
                 ))}
               </div>
@@ -627,17 +486,17 @@ export default function HomeManager() {
             <Select
               onValueChange={(value) => {
                 const [type, id] = value.split(":");
-                addNewContentItem.mutate({ type, id });
+                addCustomSectionItem.mutate({ type, id });
               }}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Add new content item..." />
+                <SelectValue placeholder="Add item..." />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="divider" disabled>Collections</SelectItem>
-                {collections?.map((c) => (
-                  <SelectItem key={c.id} value={`collection:${c.id}`}>
-                    {c.title}
+                <SelectItem value="divider" disabled>Profiles</SelectItem>
+                {profiles?.map((p) => (
+                  <SelectItem key={p.id} value={`profile:${p.id}`}>
+                    {p.title}
                   </SelectItem>
                 ))}
                 <SelectItem value="divider2" disabled>Lifelines</SelectItem>
