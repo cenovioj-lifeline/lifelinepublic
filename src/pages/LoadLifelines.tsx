@@ -122,13 +122,14 @@ export default function LoadLifelines() {
       if (hasEntriesHeaders) {
         entriesJson = XLSX.utils.sheet_to_json(entriesSheet);
       } else {
-        // Map headerless data: [Lifeline_title, date, entry_title, description, rating]
+        // Map headerless data: [Lifeline_title, date, entry_title, description, rating, serpapi_query]
         entriesJson = entriesRaw.map((row: any[]) => ({
           Lifeline_title: row[0],
           date: row[1],
           entry_title: row[2],
           description: row[3],
-          rating: row[4]
+          rating: row[4],
+          serpapi_query: row[5]
         }));
       }
 
@@ -139,6 +140,7 @@ export default function LoadLifelines() {
         details: row.description,
         score: parseInt(row.rating) || 0,
         order_index: index,
+        serpapi_query: row.serpapi_query || row.media_suggestion || null,
       }));
 
       setStatus(`Sending ${lifelines.length} lifelines and ${entries.length} entries to server...`);
@@ -208,7 +210,7 @@ export default function LoadLifelines() {
               <br />
               <strong>Sheet 1 (Lifelines):</strong> Lifeline_name, subject_name, lifeline_type (person/event/list/voting), Introduction
               <br />
-              <strong>Sheet 2 (Entries):</strong> Lifeline_title, date (YYYY-MM-DD or numeric), entry_title, description, rating
+              <strong>Sheet 2 (Entries):</strong> Lifeline_title, date (YYYY-MM-DD or numeric), entry_title, description, rating, serpapi_query (optional - custom image search query)
             </AlertDescription>
           </Alert>
 
