@@ -17,14 +17,10 @@ export const ImageHero = ({ imageUrl, title, rating }: ImageHeroProps) => {
     return (
       <div 
         className={cn(
-          "h-[320px] relative flex items-end p-6",
+          "h-[320px] relative",
           isPositive ? "bg-gradient-to-br from-green-500/20 to-green-600/30" : "bg-gradient-to-br from-red-500/20 to-red-600/30"
         )}
-      >
-        <h1 className="text-3xl font-bold text-foreground drop-shadow-lg">
-          {title}
-        </h1>
-      </div>
+      />
     );
   }
 
@@ -42,12 +38,6 @@ export const ImageHero = ({ imageUrl, title, rating }: ImageHeroProps) => {
         )}
         onLoad={() => setImageLoaded(true)}
       />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
-      <div className="absolute bottom-0 left-0 right-0 p-6">
-        <h1 className="text-3xl font-bold text-white drop-shadow-lg">
-          {title}
-        </h1>
-      </div>
       <div className="absolute bottom-4 right-4">
         <div className={cn(
           "rounded-md px-3 py-1.5 border-2 shadow-lg",

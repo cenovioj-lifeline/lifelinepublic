@@ -27,10 +27,10 @@ export const GraphHeader = ({ entries, currentIndex, onEntryClick }: GraphHeader
   }, [currentIndex]);
 
   return (
-    <div className="sticky top-0 z-50 bg-background border-b border-border py-2">
-      <div
+    <div className="sticky top-0 z-50 bg-background border-b border-border">
+      <div 
         ref={scrollContainerRef}
-        className="h-[48px] px-4 flex items-end gap-2 pb-0 overflow-x-auto scrollbar-hide"
+        className="h-[64px] px-4 flex items-center gap-2 overflow-x-auto scrollbar-hide"
         style={{
           scrollbarWidth: 'none',
           msOverflowStyle: 'none'
