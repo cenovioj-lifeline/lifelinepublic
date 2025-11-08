@@ -12,9 +12,12 @@ import { ChevronDown } from "lucide-react";
 import { PublicLayout } from "@/components/PublicLayout";
 import { FavoriteButton } from "@/components/FavoriteButton";
 import { useColorScheme } from "@/hooks/useColorScheme";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { MobileElectionViewer } from "@/components/election/MobileElectionViewer";
 
 export default function PublicElectionDetail() {
   useColorScheme();
+  const isMobile = useIsMobile();
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
 
@@ -175,6 +178,14 @@ export default function PublicElectionDetail() {
             Back to Elections
           </Button>
         </div>
+      </PublicLayout>
+    );
+  }
+
+  if (isMobile) {
+    return (
+      <PublicLayout>
+        <MobileElectionViewer electionId={election.id} />
       </PublicLayout>
     );
   }

@@ -12,8 +12,11 @@ import { ChevronDown } from "lucide-react";
 import { CollectionLayout } from "@/components/CollectionLayout";
 import { FavoriteButton } from "@/components/FavoriteButton";
 import { useColorScheme } from "@/hooks/useColorScheme";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { MobileElectionViewer } from "@/components/election/MobileElectionViewer";
 
 export default function CollectionElectionDetail() {
+  const isMobile = useIsMobile();
   const { collectionSlug, electionSlug } = useParams<{ collectionSlug: string; electionSlug: string }>();
   const navigate = useNavigate();
   
@@ -215,6 +218,21 @@ export default function CollectionElectionDetail() {
   }
 
   const collectionData = election.collections as any;
+
+  if (isMobile) {
+    return (
+      <CollectionLayout
+        collectionTitle={collectionData.title}
+        collectionSlug={collectionData.slug}
+        collectionId={collectionData.id}
+      >
+        <MobileElectionViewer
+          electionId={election.id}
+          collectionSlug={collectionData.slug}
+        />
+      </CollectionLayout>
+    );
+  }
 
   return (
     <CollectionLayout
