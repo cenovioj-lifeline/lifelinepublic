@@ -30,7 +30,7 @@ export const GraphHeader = ({ entries, currentIndex, onEntryClick }: GraphHeader
     <div className="sticky top-0 z-50 bg-background border-b border-border">
       <div 
         ref={scrollContainerRef}
-        className="h-[80px] px-4 flex items-end gap-2 pb-2 overflow-x-auto scrollbar-hide"
+        className="h-[60px] px-4 flex items-end gap-2 pb-1 overflow-x-auto scrollbar-hide"
         style={{
           scrollbarWidth: 'none',
           msOverflowStyle: 'none'
