@@ -91,9 +91,12 @@ async function importSingleImage(
       .from('media_assets')
       .insert({
         url: urlData.publicUrl,
-        storage_path: filePath,
+        filename: filePath,
         alt_text: altText || '',
-        mime_type: contentType,
+        type: contentType,
+        position_x: position?.x ?? 50,
+        position_y: position?.y ?? 50,
+        scale: position?.scale ?? 1.0,
       })
       .select()
       .single();
@@ -135,9 +138,6 @@ async function importSingleImage(
         entry_id: entryId,
         media_id: mediaAsset.id,
         order_index: finalOrderIndex,
-        position_x: position?.x ?? 50,
-        position_y: position?.y ?? 50,
-        scale: position?.scale ?? 1.0,
         locked: false
       })
       .select()
