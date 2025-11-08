@@ -8,9 +8,7 @@ interface GraphBarProps {
 }
 
 export const GraphBar = ({ rating, isActive, isPast, onClick }: GraphBarProps) => {
-  const height = Math.max(30, Math.abs(rating) * 3.5); // Min 30px, scale by rating
   const isPositive = rating >= 0;
-  const absRating = Math.abs(rating);
 
   return (
     <button
@@ -23,7 +21,7 @@ export const GraphBar = ({ rating, isActive, isPast, onClick }: GraphBarProps) =
       )}
       style={{
         width: '48px',
-        height: `${height}px`,
+        height: '44px',
       }}
     >
       <div

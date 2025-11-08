@@ -268,7 +268,8 @@ export function CollectionLayout({
       </header>
       <main className="container mx-auto px-4 py-2 lg:py-6 md:py-4">
         {children}
-        {currentQuote && (
+        {/* Show legacy quote popup only on non-mobile */}
+        {currentQuote && !isMobile && (
           <CollectionQuotePopup
             quote={currentQuote.quote}
             author={currentQuote.author}
