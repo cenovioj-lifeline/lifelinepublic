@@ -14,14 +14,15 @@ export const StorySlide = ({ entry }: StorySlideProps) => {
         title={entry.title}
         rating={entry.rating}
       />
-      <div className="px-6 pt-6">
-        <h1 className="text-3xl font-bold text-foreground mb-4">
+      <div className="px-4 pt-5">
+        <h1 className="text-[22px] leading-tight font-bold text-foreground">
           {entry.title}
         </h1>
       </div>
       <EntryContent
         date={entry.date}
         description={entry.description}
+        rating={entry.rating}
       />
     </div>
   );
