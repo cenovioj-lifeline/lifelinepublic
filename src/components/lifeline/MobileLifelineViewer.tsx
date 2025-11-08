@@ -26,11 +26,13 @@ export const MobileLifelineViewer = ({ lifelineId }: MobileLifelineViewerProps) 
           occurred_on,
           order_index,
           sentiment,
-          entry_images (
+          entry_media (
             id,
-            image_url,
             locked,
-            order_index
+            order_index,
+            media_assets (
+              url
+            )
           )
         `)
         .eq('lifeline_id', lifelineId)

@@ -18,26 +18,28 @@ export interface EntryWithImages {
   occurred_on: string | null;
   order_index: number;
   sentiment: string | null;
-  entry_images: Array<{
+  entry_media: Array<{
     id: string;
-    image_url: string;
     locked: boolean;
     order_index: number | null;
+    media_assets: {
+      url: string;
+    } | null;
   }>;
 }
 
-export const selectMobileImage = (entryImages: EntryWithImages['entry_images']): string | null => {
-  if (!entryImages || entryImages.length === 0) return null;
+export const selectMobileImage = (entryMedia: EntryWithImages['entry_media']): string | null => {
+  if (!entryMedia || entryMedia.length === 0) return null;
   
   // Priority 1: Locked images (Super Fan uploads)
-  const lockedImage = entryImages.find(img => img.locked);
-  if (lockedImage) return lockedImage.image_url;
+  const lockedImage = entryMedia.find(img => img.locked);
+  if (lockedImage?.media_assets?.url) return lockedImage.media_assets.url;
   
   // Priority 2: First by order_index
-  const sorted = [...entryImages].sort((a, b) => 
+  const sorted = [...entryMedia].sort((a, b) => 
     (a.order_index ?? 999) - (b.order_index ?? 999)
   );
-  return sorted[0]?.image_url || null;
+  return sorted[0]?.media_assets?.url || null;
 };
 
 export const formatEntryDate = (dateString: string | null): string => {
@@ -58,7 +60,7 @@ export const transformToMobileEntry = (entry: EntryWithImages): MobileEntry => {
     title: entry.title,
     description: entry.details || entry.summary || '',
     rating: entry.score || 0,
-    image_url: selectMobileImage(entry.entry_images),
+    image_url: selectMobileImage(entry.entry_media),
     sentiment: entry.sentiment || 'neutral',
   };
 };
