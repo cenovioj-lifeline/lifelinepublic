@@ -3,15 +3,43 @@ import { supabase } from '@/integrations/supabase/client';
 import { useSwipeable } from 'react-swipeable';
 import { transformEntriesToMobile } from '@/utils/entryDataAdapter';
 import { useMobileEntryNavigation } from '@/hooks/useMobileEntryNavigation';
+import { useCollectionQuote } from '@/hooks/useCollectionQuote';
 import { GraphHeader } from './mobile/GraphHeader';
 import { StorySlide } from './mobile/StorySlide';
+import { MinimalQuote } from './mobile/MinimalQuote';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useParams } from 'react-router-dom';
 
 interface MobileLifelineViewerProps {
   lifelineId: string;
 }
 
 export const MobileLifelineViewer = ({ lifelineId }: MobileLifelineViewerProps) => {
+  const { collectionSlug } = useParams();
+  
+  // Fetch collection settings for quotes
+  const { data: collection } = useQuery({
+    queryKey: ['collection-settings', collectionSlug],
+    queryFn: async () => {
+      if (!collectionSlug) return null;
+      const { data, error } = await supabase
+        .from('collections')
+        .select('id, quotes_enabled, quote_frequency')
+        .eq('slug', collectionSlug)
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!collectionSlug,
+  });
+
+  const { currentQuote, dismissQuote } = useCollectionQuote(
+    collection?.id || '',
+    collection?.quotes_enabled || false,
+    collection?.quote_frequency || 3
+  );
+
   const { data: entries, isLoading } = useQuery({
     queryKey: ['lifeline-entries-mobile', lifelineId],
     queryFn: async () => {
@@ -94,6 +122,16 @@ export const MobileLifelineViewer = ({ lifelineId }: MobileLifelineViewerProps) 
       <div {...swipeHandlers} className="flex-1 overflow-hidden">
         <StorySlide entry={currentEntry} />
       </div>
+
+      {/* Minimal quote display */}
+      {currentQuote && (
+        <MinimalQuote
+          quote={currentQuote.quote}
+          author={currentQuote.author}
+          context={currentQuote.context}
+          onDismiss={dismissQuote}
+        />
+      )}
     </div>
   );
 };

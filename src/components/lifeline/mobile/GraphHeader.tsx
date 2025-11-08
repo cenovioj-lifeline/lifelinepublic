@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { MobileEntry } from '@/utils/entryDataAdapter';
 import { GraphBar } from './GraphBar';
 
@@ -8,9 +9,33 @@ interface GraphHeaderProps {
 }
 
 export const GraphHeader = ({ entries, currentIndex, onEntryClick }: GraphHeaderProps) => {
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  // Center the active bar when currentIndex changes
+  useEffect(() => {
+    if (scrollContainerRef.current) {
+      const container = scrollContainerRef.current;
+      const barWidth = 48; // Width of each bar
+      const gap = 8; // Gap between bars (gap-2)
+      const scrollPosition = currentIndex * (barWidth + gap) - (container.clientWidth / 2) + (barWidth / 2);
+
+      container.scrollTo({
+        left: Math.max(0, scrollPosition),
+        behavior: 'smooth'
+      });
+    }
+  }, [currentIndex]);
+
   return (
     <div className="sticky top-0 z-50 bg-background border-b border-border">
-      <div className="h-[60px] px-4 flex items-end justify-center gap-1 pb-2">
+      <div 
+        ref={scrollContainerRef}
+        className="h-[100px] px-4 flex items-end gap-2 pb-4 overflow-x-auto scrollbar-hide"
+        style={{
+          scrollbarWidth: 'none',
+          msOverflowStyle: 'none'
+        }}
+      >
         {entries.map((entry, index) => (
           <GraphBar
             key={entry.id}
