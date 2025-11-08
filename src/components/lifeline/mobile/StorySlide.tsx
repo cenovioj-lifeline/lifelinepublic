@@ -1,14 +1,20 @@
 import { MobileEntry } from '@/utils/entryDataAdapter';
 import { ImageHero } from './ImageHero';
 import { EntryContent } from './EntryContent';
+import { cn } from '@/lib/utils';
 
 interface StorySlideProps {
   entry: MobileEntry;
+  transitionDirection?: 'left' | 'right' | null;
 }
 
-export const StorySlide = ({ entry }: StorySlideProps) => {
+export const StorySlide = ({ entry, transitionDirection }: StorySlideProps) => {
   return (
-    <div className="w-full h-full overflow-y-auto">
+    <div className={cn(
+      "w-full h-full overflow-y-auto",
+      transitionDirection === 'left' && "animate-slide-in-left",
+      transitionDirection === 'right' && "animate-slide-in-right"
+    )}>
       <ImageHero
         imageUrl={entry.image_url}
         title={entry.title}

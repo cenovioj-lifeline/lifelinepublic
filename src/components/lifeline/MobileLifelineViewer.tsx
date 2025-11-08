@@ -1,9 +1,11 @@
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useSwipeable } from 'react-swipeable';
 import { transformEntriesToMobile } from '@/utils/entryDataAdapter';
 import { useMobileEntryNavigation } from '@/hooks/useMobileEntryNavigation';
 import { useCollectionQuote } from '@/hooks/useCollectionQuote';
+import { useImagePreloader } from '@/hooks/useImagePreloader';
 import { GraphHeader } from './mobile/GraphHeader';
 import { StorySlide } from './mobile/StorySlide';
 import { MinimalQuote } from './mobile/MinimalQuote';
@@ -80,9 +82,31 @@ export const MobileLifelineViewer = ({ lifelineId }: MobileLifelineViewerProps) 
     canGoPrevious,
   } = useMobileEntryNavigation(entries?.length || 0);
 
+  const [transitionDirection, setTransitionDirection] = useState<'left' | 'right' | null>(null);
+  
+  // Preload adjacent images
+  const imageUrls = entries?.map(entry => entry.image_url) || [];
+  useImagePreloader(imageUrls, currentIndex);
+
   const swipeHandlers = useSwipeable({
-    onSwipedLeft: () => canGoNext && goToNext(),
-    onSwipedRight: () => canGoPrevious && goToPrevious(),
+    onSwipedLeft: () => {
+      if (canGoNext) {
+        setTransitionDirection('left');
+        setTimeout(() => {
+          goToNext();
+          setTransitionDirection(null);
+        }, 50);
+      }
+    },
+    onSwipedRight: () => {
+      if (canGoPrevious) {
+        setTransitionDirection('right');
+        setTimeout(() => {
+          goToPrevious();
+          setTransitionDirection(null);
+        }, 50);
+      }
+    },
     trackMouse: false,
     preventScrollOnSwipe: false,
     delta: 50,
@@ -120,7 +144,7 @@ export const MobileLifelineViewer = ({ lifelineId }: MobileLifelineViewerProps) 
       />
       
       <div {...swipeHandlers} className="flex-1 overflow-hidden">
-        <StorySlide entry={currentEntry} />
+        <StorySlide entry={currentEntry} transitionDirection={transitionDirection} />
       </div>
 
       {/* Minimal quote display */}

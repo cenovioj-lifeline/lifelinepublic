@@ -25,16 +25,19 @@ export const ImageHero = ({ imageUrl, title, rating }: ImageHeroProps) => {
   }
 
   return (
-    <div className="h-[320px] relative overflow-hidden">
+    <div className="h-[320px] relative overflow-hidden bg-muted">
       {!imageLoaded && (
-        <Skeleton className="absolute inset-0" />
+        <div className="absolute inset-0">
+          <Skeleton className="w-full h-full" />
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent to-background/20" />
+        </div>
       )}
       <img
         src={imageUrl}
         alt={title}
         className={cn(
-          "w-full h-full object-cover transition-opacity duration-300",
-          imageLoaded ? "opacity-100" : "opacity-0"
+          "w-full h-full object-cover transition-all duration-300",
+          imageLoaded ? "opacity-100 blur-0" : "opacity-0 blur-sm"
         )}
         onLoad={() => setImageLoaded(true)}
       />
