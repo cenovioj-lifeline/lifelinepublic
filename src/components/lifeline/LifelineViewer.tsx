@@ -18,6 +18,8 @@ import { CoverImagePicker } from "@/components/CoverImagePicker";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { z } from "zod";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { MobileLifelineViewer } from "./MobileLifelineViewer";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -44,9 +46,15 @@ export function LifelineViewer({
   lifelineId,
   lifelineType,
 }: LifelineViewerProps) {
+  const isMobile = useIsMobile();
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const { isSuperFan } = useSuperFan();
+
+  // Mobile view
+  if (isMobile) {
+    return <MobileLifelineViewer lifelineId={lifelineId} />;
+  }
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [contributeDialogOpen, setContributeDialogOpen] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
