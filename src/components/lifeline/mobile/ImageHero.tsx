@@ -48,6 +48,16 @@ export const ImageHero = ({ imageUrl, title, rating }: ImageHeroProps) => {
           {title}
         </h1>
       </div>
+      <div className="absolute bottom-4 right-4">
+        <div className={cn(
+          "rounded-md px-3 py-1.5 border-2 shadow-lg",
+          isPositive ? "bg-green-500 border-green-600" : "bg-red-500 border-red-600"
+        )}>
+          <span className="text-sm font-bold text-white">
+            {rating >= 0 ? '+' : ''}{rating}
+          </span>
+        </div>
+      </div>
     </div>
   );
 };

@@ -19,7 +19,7 @@ export const GraphBar = ({ rating, isActive, isPast, onClick }: GraphBarProps) =
         "relative transition-all duration-200 flex-shrink-0",
         "hover:scale-105 active:scale-95",
         "focus:outline-none focus:ring-2 focus:ring-primary/50",
-        isActive ? "scale-110 z-10" : "scale-100"
+        isActive ? "scale-125 z-10" : "scale-100"
       )}
       style={{
         width: '48px',
@@ -34,16 +34,17 @@ export const GraphBar = ({ rating, isActive, isPast, onClick }: GraphBarProps) =
           isActive && !isPositive && "bg-red-500 border-red-600 shadow-lg",
           !isActive && isPast && isPositive && "bg-green-400/70 border-green-500/50",
           !isActive && isPast && !isPositive && "bg-red-400/70 border-red-500/50",
-          !isActive && !isPast && "bg-muted/30 border-muted/40"
+          !isActive && !isPast && isPositive && "bg-green-400/60 border-green-500/40",
+          !isActive && !isPast && !isPositive && "bg-red-400/60 border-red-500/40"
         )}
       >
         <span 
           className={cn(
-            "text-sm font-bold transition-colors",
-            isActive ? "text-white" : "text-foreground/60"
+            "text-xs font-bold transition-colors",
+            isActive ? "text-white" : "text-foreground/70"
           )}
         >
-          {absRating}
+          {rating >= 0 ? '+' : ''}{rating}
         </span>
       </div>
     </button>

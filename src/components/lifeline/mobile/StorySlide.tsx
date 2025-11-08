@@ -16,7 +16,6 @@ export const StorySlide = ({ entry }: StorySlideProps) => {
       />
       <EntryContent
         date={entry.date}
-        rating={entry.rating}
         description={entry.description}
       />
     </div>
