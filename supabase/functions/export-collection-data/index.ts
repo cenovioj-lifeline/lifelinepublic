@@ -98,7 +98,7 @@ serve(async (req) => {
         .from('entries')
         .select('*')
         .eq('lifeline_id', lifeline.id)
-        .order('date_start', { ascending: true });
+        .order('order_index', { ascending: true });
 
       if (entriesError) {
         console.error(`Error fetching entries for lifeline ${lifeline.id}:`, entriesError);
@@ -161,9 +161,9 @@ serve(async (req) => {
         processedEntries.push({
           id: entry.id,
           title: entry.title,
-          description: entry.description,
-          date_start: entry.date_start,
-          date_end: entry.date_end,
+          summary: entry.summary,
+          occurred_on: entry.occurred_on,
+          order_index: entry.order_index,
           serpapi_query: entry.serpapi_query,
           has_images: hasImages,
           has_locked_images: hasLockedImages,

@@ -68,7 +68,7 @@ Deno.serve(async (req) => {
       .from('entries')
       .select('*')
       .eq('lifeline_id', lifelineId)
-      .order('occurred_on', { ascending: true });
+      .order('order_index', { ascending: true });
 
     if (entriesError) {
       console.error('Error fetching entries:', entriesError);
