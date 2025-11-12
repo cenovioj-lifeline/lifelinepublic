@@ -1,5 +1,8 @@
 project_id = "xvtmrnmwmuroksneekbl"
 
+[functions.get-service-key]
+verify_jwt = false
+
 [functions.import-image-from-url]
 verify_jwt = false
 
