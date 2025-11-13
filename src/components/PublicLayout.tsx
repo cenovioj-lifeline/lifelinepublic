@@ -21,7 +21,7 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
   const isMobile = useIsMobile();
 
   const navItems = [
-    { path: "/", label: "Homes", icon: Home },
+    { path: "/", label: "Home", icon: Home },
     { path: "/public/lifelines", label: "Stories", icon: BookOpen },
     { path: "/public/profiles", label: "People", icon: Users },
     { path: "/public/elections", label: "Awards", icon: Award },
