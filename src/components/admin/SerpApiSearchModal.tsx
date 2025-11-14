@@ -10,11 +10,6 @@
  * - Score badges (0-25 points)
  * - Full-size preview lightbox
  * - Rerun with modified query
- *
- * Installation:
- * 1. Copy to src/components/admin/SerpApiSearchModal.tsx
- * 2. Update API_URL with your Railway service URL
- * 3. Import and use in event display component
  */
 
 import { useState } from 'react';
@@ -76,7 +71,6 @@ export const SerpApiSearchModal = ({
 
   const [step, setStep] = useState<'edit' | 'results'>('edit');
   const [query, setQuery] = useState(initialQuery || '');
-  const [numResults, setNumResults] = useState(3);
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<ImageCandidate[]>([]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -89,6 +83,9 @@ export const SerpApiSearchModal = ({
   /**
    * Search for images using Railway API
    * Does NOT upload - just returns candidates
+   * 
+   * Note: Always requests 20 images (max) since SerpAPI charges per API call,
+   * not per result returned. Same cost for 1 or 20 images.
    */
   const handleSearch = async () => {
     if (!query.trim()) {
@@ -103,7 +100,7 @@ export const SerpApiSearchModal = ({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           query: query.trim(),
-          num_results: numResults
+          num_results: 20  // Hardcoded: no cost difference between 1 and 20
         })
       });
 
@@ -211,7 +208,6 @@ export const SerpApiSearchModal = ({
     // Reset state when closing
     setStep('edit');
     setQuery(initialQuery || '');
-    setNumResults(3);
     setResults([]);
     setSelected(new Set());
     setPreviewUrl(null);
@@ -261,29 +257,6 @@ export const SerpApiSearchModal = ({
                 />
                 <p className="text-xs text-gray-500 mt-1">
                   Describe what you're looking for. Press Enter to search.
-                </p>
-              </div>
-
-              <div>
-                <label className="text-sm font-medium text-gray-700 mb-2 block">
-                  Number of Results
-                </label>
-                <Input
-                  type="number"
-                  value={numResults}
-                  onChange={(e) => {
-                    const val = parseInt(e.target.value);
-                    if (val >= 1 && val <= 20) {
-                      setNumResults(val);
-                    }
-                  }}
-                  min={1}
-                  max={20}
-                  className="w-32"
-                  disabled={loading}
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  Default: 3 images (1-20 allowed)
                 </p>
               </div>
 
