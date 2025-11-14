@@ -8,13 +8,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
-import { Plus, Star, Menu, Image as ImageIcon, ImageUp, Pencil, Check, X } from "lucide-react";
+import { Plus, Star, Menu, Image as ImageIcon, ImageUp, Pencil, Check, X, Search } from "lucide-react";
 import { ContributeEventDialog } from "@/components/ContributeEventDialog";
 import { useAuth } from "@/lib/auth";
 import { PublicAuthModal } from "@/components/PublicAuthModal";
 import { SuperFanImageUpload, SuperFanImageDelete } from "@/components/SuperFanImageUpload";
 import { ImageLockToggle } from "@/components/ImageLockToggle";
 import { CoverImagePicker } from "@/components/CoverImagePicker";
+import { SerpApiSearchModal } from "@/components/admin/SerpApiSearchModal";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -65,6 +66,7 @@ export function LifelineViewer({
   const [editingDetails, setEditingDetails] = useState(false);
   const [editedTitle, setEditedTitle] = useState("");
   const [editedDetails, setEditedDetails] = useState("");
+  const [serpApiModalOpen, setSerpApiModalOpen] = useState(false);
   const selectionStyle: SelectionStyle = "glow"; // Always use glow
   const timelineRef = useRef<HTMLDivElement>(null);
   const entryRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
@@ -345,6 +347,9 @@ export function LifelineViewer({
       .toUpperCase()
       .slice(0, 2);
   };
+
+  // Check if user is admin
+  const isAdmin = user?.email === 'cenovioj@gmail.com';
 
   if (!lifeline || !entries) {
     return <div>Loading...</div>;
@@ -769,7 +774,7 @@ export function LifelineViewer({
                       </Link>
                     </p>
                   )}
-                <div className="pt-4 flex justify-center">
+                <div className="pt-4 flex justify-center gap-2">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button 
@@ -811,6 +816,18 @@ export function LifelineViewer({
                       </DropdownMenuItem>
                      </DropdownMenuContent>
                   </DropdownMenu>
+
+                  {/* Admin SerpAPI Button - Only for cenovioj@gmail.com */}
+                  {isAdmin && (
+                    <Button
+                      size="sm"
+                      onClick={() => setSerpApiModalOpen(true)}
+                      className="bg-purple-600 hover:bg-purple-700 text-white border-0"
+                    >
+                      <Search className="h-4 w-4 mr-2" />
+                      SerpAPI Search
+                    </Button>
+                  )}
                 </div>
 
                 {isSuperFan && (
@@ -861,6 +878,19 @@ export function LifelineViewer({
           onOpenChange={setCoverImagePickerOpen}
           onSuccess={() => {
             queryClient.invalidateQueries({ queryKey: ["lifeline", lifelineId] });
+          }}
+        />
+      )}
+
+      {/* SerpAPI Search Modal - Only for admin */}
+      {isAdmin && selected && (
+        <SerpApiSearchModal
+          open={serpApiModalOpen}
+          onClose={() => setSerpApiModalOpen(false)}
+          entryId={selected.id}
+          initialQuery={`${selected.title} ${lifeline.title}`}
+          onImportComplete={() => {
+            queryClient.invalidateQueries({ queryKey: ["entries", lifelineId] });
           }}
         />
       )}
