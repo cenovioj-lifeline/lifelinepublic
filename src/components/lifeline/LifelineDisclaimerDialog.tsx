@@ -27,6 +27,14 @@ export function LifelineDisclaimerDialog({
   const [dontShowAgain, setDontShowAgain] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
+  const handleCheckboxChange = (checked: boolean) => {
+    if (checked && !isAuthenticated) {
+      toast.error("Please create a free account to save your preferences");
+      return;
+    }
+    setDontShowAgain(checked);
+  };
+
   const handleContinue = async () => {
     if (dontShowAgain && isAuthenticated) {
       setIsSaving(true);
@@ -87,18 +95,16 @@ export function LifelineDisclaimerDialog({
             </p>
           </AlertDialogDescription>
         </AlertDialogHeader>
-        {isAuthenticated && (
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="dont-show"
-              checked={dontShowAgain}
-              onCheckedChange={(checked) => setDontShowAgain(checked as boolean)}
-            />
-            <Label htmlFor="dont-show" className="text-sm cursor-pointer">
-              Don't show this message again
-            </Label>
-          </div>
-        )}
+        <div className="flex items-center space-x-2">
+          <Checkbox
+            id="dont-show"
+            checked={dontShowAgain}
+            onCheckedChange={(checked) => handleCheckboxChange(checked as boolean)}
+          />
+          <Label htmlFor="dont-show" className="text-sm cursor-pointer">
+            I acknowledge and won't show this again
+          </Label>
+        </div>
         <AlertDialogFooter>
           <AlertDialogAction onClick={handleContinue} disabled={isSaving}>
             {isSaving ? "Saving..." : "Continue"}
