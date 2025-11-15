@@ -1136,6 +1136,7 @@ export type Database = {
           cover_image_url: string | null
           created_at: string
           created_by: string | null
+          entity_id: string | null
           id: string
           intro: string | null
           is_featured: boolean | null
@@ -1159,6 +1160,7 @@ export type Database = {
           cover_image_url?: string | null
           created_at?: string
           created_by?: string | null
+          entity_id?: string | null
           id?: string
           intro?: string | null
           is_featured?: boolean | null
@@ -1182,6 +1184,7 @@ export type Database = {
           cover_image_url?: string | null
           created_at?: string
           created_by?: string | null
+          entity_id?: string | null
           id?: string
           intro?: string | null
           is_featured?: boolean | null
@@ -1578,6 +1581,7 @@ export type Database = {
           avatar_image_id: string | null
           created_at: string
           created_by: string | null
+          entity_id: string | null
           extended_data: Json
           id: string
           known_for: string[]
@@ -1599,6 +1603,7 @@ export type Database = {
           avatar_image_id?: string | null
           created_at?: string
           created_by?: string | null
+          entity_id?: string | null
           extended_data?: Json
           id?: string
           known_for?: string[]
@@ -1620,6 +1625,7 @@ export type Database = {
           avatar_image_id?: string | null
           created_at?: string
           created_by?: string | null
+          entity_id?: string | null
           extended_data?: Json
           id?: string
           known_for?: string[]
