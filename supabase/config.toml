@@ -1,5 +1,8 @@
 project_id = "xvtmrnmwmuroksneekbl"
 
+[functions.delete-collection]
+verify_jwt = true
+
 [functions.import-image-from-url]
 verify_jwt = false
 
