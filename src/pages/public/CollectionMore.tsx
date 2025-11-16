@@ -63,19 +63,19 @@ export default function CollectionMore() {
           </p>
         </div>
 
-        <div className="grid grid-cols-4 gap-2 md:gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {features.map((feature) => (
             <Card
               key={feature.id}
               className="cursor-pointer hover:shadow-lg transition-shadow bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]"
               onClick={() => navigate(feature.path)}
             >
-              <CardContent className="pt-3 md:pt-6 text-center px-1 md:px-6">
+              <CardContent className="pt-6 text-center">
                 <feature.icon
-                  className="h-5 w-5 md:h-8 md:w-8 mx-auto mb-1 md:mb-2 text-[hsl(var(--scheme-cards-text))]"
+                  className="h-8 w-8 mx-auto mb-2 text-[hsl(var(--scheme-cards-text))]"
                 />
-                <div className="text-[10px] md:text-sm font-medium mb-0.5 md:mb-1 text-[hsl(var(--scheme-card-text))]">{feature.label}</div>
-                <div className="text-[8px] md:text-xs text-[hsl(var(--scheme-cards-text))] hidden md:block">
+                <div className="text-sm font-medium mb-1 text-[hsl(var(--scheme-card-text))]">{feature.label}</div>
+                <div className="text-xs text-[hsl(var(--scheme-cards-text))]">
                   {feature.description}
                 </div>
               </CardContent>
