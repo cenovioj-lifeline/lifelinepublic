@@ -1584,6 +1584,7 @@ export type Database = {
           entity_id: string | null
           extended_data: Json
           id: string
+          image_query: string | null
           known_for: string[]
           name: string
           primary_collection_id: string | null
@@ -1606,6 +1607,7 @@ export type Database = {
           entity_id?: string | null
           extended_data?: Json
           id?: string
+          image_query?: string | null
           known_for?: string[]
           name: string
           primary_collection_id?: string | null
@@ -1628,6 +1630,7 @@ export type Database = {
           entity_id?: string | null
           extended_data?: Json
           id?: string
+          image_query?: string | null
           known_for?: string[]
           name?: string
           primary_collection_id?: string | null
