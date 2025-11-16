@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { PasswordInput } from "@/components/ui/password-input";
 
 export default function AdminAuth() {
   const [email, setEmail] = useState("");
@@ -150,24 +151,24 @@ export default function AdminAuth() {
             <form onSubmit={handleSetNewPassword} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="new-password">New Password</Label>
-                <Input
+                <PasswordInput
                   id="new-password"
-                  type="password"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   disabled={loading}
                   minLength={6}
+                  autoComplete="new-password"
                 />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="confirm-password">Confirm Password</Label>
-                <Input
+                <PasswordInput
                   id="confirm-password"
-                  type="password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   disabled={loading}
                   minLength={6}
+                  autoComplete="new-password"
                 />
               </div>
               <Button type="submit" className="w-full" disabled={loading}>
@@ -190,12 +191,12 @@ export default function AdminAuth() {
               {!resetMode && (
                 <div className="space-y-2">
                   <Label htmlFor="password">Password</Label>
-                  <Input
+                  <PasswordInput
                     id="password"
-                    type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     disabled={loading}
+                    autoComplete="current-password"
                   />
                 </div>
               )}

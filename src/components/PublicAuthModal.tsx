@@ -14,6 +14,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { PasswordInput } from "@/components/ui/password-input";
 
 interface PublicAuthModalProps {
   open: boolean;
@@ -126,12 +127,12 @@ export function PublicAuthModal({ open, onOpenChange }: PublicAuthModalProps) {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="signin-password">Password</Label>
-                <Input
+                <PasswordInput
                   id="signin-password"
-                  type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   disabled={loading}
+                  autoComplete="current-password"
                 />
               </div>
               <Button type="submit" className="w-full" disabled={loading}>
@@ -155,13 +156,13 @@ export function PublicAuthModal({ open, onOpenChange }: PublicAuthModalProps) {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="signup-password">Password</Label>
-                <Input
+                <PasswordInput
                   id="signup-password"
-                  type="password"
                   placeholder="At least 6 characters"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   disabled={loading}
+                  autoComplete="new-password"
                 />
               </div>
               <Button type="submit" className="w-full" disabled={loading}>
