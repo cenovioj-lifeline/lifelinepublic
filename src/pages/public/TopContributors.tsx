@@ -66,9 +66,9 @@ export default function TopContributors() {
 
       if (contribError) throw contribError;
 
-      // Fetch user profiles
+      // Fetch user profiles from public view
       const { data: profiles, error: profilesError } = await supabase
-        .from("user_profiles")
+        .from("public_contributors")
         .select("user_id, first_name, last_name, avatar_url");
 
       if (profilesError) throw profilesError;
