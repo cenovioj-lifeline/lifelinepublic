@@ -15,6 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { PasswordInput } from "@/components/ui/password-input";
+import { AdminDestinationDialog } from "@/components/AdminDestinationDialog";
 
 interface PublicAuthModalProps {
   open: boolean;
@@ -25,6 +26,7 @@ export function PublicAuthModal({ open, onOpenChange }: PublicAuthModalProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showDestinationDialog, setShowDestinationDialog] = useState(false);
   const { signIn, signUp } = useAuth();
   const navigate = useNavigate();
 
@@ -37,7 +39,8 @@ export function PublicAuthModal({ open, onOpenChange }: PublicAuthModalProps) {
       .single();
 
     if (data) {
-      navigate('/admin');
+      onOpenChange(false);
+      setShowDestinationDialog(true);
     }
   };
 
@@ -172,6 +175,11 @@ export function PublicAuthModal({ open, onOpenChange }: PublicAuthModalProps) {
           </TabsContent>
         </Tabs>
       </DialogContent>
+      
+      <AdminDestinationDialog 
+        open={showDestinationDialog}
+        onOpenChange={setShowDestinationDialog}
+      />
     </Dialog>
   );
 }
