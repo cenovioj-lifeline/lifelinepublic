@@ -218,7 +218,7 @@ export default function Home() {
       </div>
 
       {/* Quick Action Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-4 gap-2 md:gap-4">
         {quickActionCards.map((action) => {
           const Icon = action.icon;
           return (
@@ -227,9 +227,9 @@ export default function Home() {
               className="hover:shadow-md transition-shadow cursor-pointer h-full bg-[hsl(var(--scheme-actions-bg))] border-[hsl(var(--scheme-actions-border))]"
               onClick={action.onClick}
             >
-              <CardContent className="flex flex-col items-center justify-center p-6 gap-2">
-                <Icon className="h-8 w-8 text-[hsl(var(--scheme-actions-icon))]" />
-                <span className="text-sm font-medium text-[hsl(var(--scheme-actions-text))]">{action.label}</span>
+              <CardContent className="flex flex-col items-center justify-center p-3 md:p-6 gap-1 md:gap-2">
+                <Icon className="h-5 w-5 md:h-8 md:w-8 text-[hsl(var(--scheme-actions-icon))]" />
+                <span className="text-[10px] md:text-sm font-medium text-[hsl(var(--scheme-actions-text))]">{action.label}</span>
               </CardContent>
             </Card>
           );
