@@ -418,18 +418,18 @@ export default function PublicCollectionDetail() {
         </div>
 
         {/* Action Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-4 gap-2 md:gap-4">
           <Card
             className="cursor-pointer hover:shadow-lg transition-shadow"
             style={{ backgroundColor: 'hsl(var(--scheme-actions-bg))', borderColor: 'hsl(var(--scheme-actions-border))' }}
             onClick={() => navigate(`/public/collections/${collection.slug}/feed`)}
           >
-            <CardContent className="pt-6 text-center">
+            <CardContent className="p-3 md:p-6 text-center">
               <Rss
-                className="h-8 w-8 mx-auto mb-2"
+                className="h-5 w-5 md:h-8 md:w-8 mx-auto mb-1 md:mb-2"
                 style={{ color: 'hsl(var(--scheme-actions-icon))' }}
               />
-              <div className="text-sm mt-1" style={{ color: 'hsl(var(--scheme-actions-text))' }}>Feed</div>
+              <div className="text-[10px] md:text-sm mt-1" style={{ color: 'hsl(var(--scheme-actions-text))' }}>Feed</div>
             </CardContent>
           </Card>
           <Card
@@ -437,12 +437,12 @@ export default function PublicCollectionDetail() {
             style={{ backgroundColor: 'hsl(var(--scheme-ch-actions-bg))', borderColor: 'hsl(var(--scheme-ch-actions-border))' }}
             onClick={() => setShareModalOpen(true)}
           >
-            <CardContent className="pt-6 text-center">
+            <CardContent className="p-3 md:p-6 text-center">
               <Share2
-                className="h-8 w-8 mx-auto mb-2"
+                className="h-5 w-5 md:h-8 md:w-8 mx-auto mb-1 md:mb-2"
                 style={{ color: 'hsl(var(--scheme-ch-actions-icon))' }}
               />
-              <div className="text-sm mt-1" style={{ color: 'hsl(var(--scheme-ch-actions-text))' }}>Share</div>
+              <div className="text-[10px] md:text-sm mt-1" style={{ color: 'hsl(var(--scheme-ch-actions-text))' }}>Share</div>
             </CardContent>
           </Card>
           <Card
@@ -452,19 +452,19 @@ export default function PublicCollectionDetail() {
             <div className="absolute top-2 right-2 z-10">
               <FavoriteButton itemId={collection.id} itemType="collection" className="bg-white/80 hover:bg-white" />
             </div>
-            <CardContent className="pt-6 text-center">
+            <CardContent className="p-3 md:p-6 text-center">
               <Heart
-                className="h-8 w-8 mx-auto mb-2"
+                className="h-5 w-5 md:h-8 md:w-8 mx-auto mb-1 md:mb-2"
                 style={{ color: 'hsl(var(--scheme-ch-actions-icon))' }}
               />
               <div 
-                className="text-2xl font-bold mb-1"
+                className="text-lg md:text-2xl font-bold mb-1"
                 style={{ color: 'hsl(var(--scheme-ch-actions-text))' }}
               >
                 {fanCount || 0}
               </div>
               <div 
-                className="text-sm"
+                className="text-[10px] md:text-sm"
                 style={{ color: 'hsl(var(--scheme-ch-actions-text))' }}
               >
                 Fans
@@ -476,12 +476,12 @@ export default function PublicCollectionDetail() {
             style={{ backgroundColor: 'hsl(var(--scheme-ch-actions-bg))', borderColor: 'hsl(var(--scheme-ch-actions-border))' }}
             onClick={() => navigate(`/public/collections/${collection.slug}/settings`)}
           >
-            <CardContent className="pt-6 text-center">
+            <CardContent className="p-3 md:p-6 text-center">
               <Settings
-                className="h-8 w-8 mx-auto mb-2"
+                className="h-5 w-5 md:h-8 md:w-8 mx-auto mb-1 md:mb-2"
                 style={{ color: 'hsl(var(--scheme-ch-actions-icon))' }}
               />
-              <div className="text-sm mt-1" style={{ color: 'hsl(var(--scheme-ch-actions-text))' }}>Settings</div>
+              <div className="text-[10px] md:text-sm mt-1" style={{ color: 'hsl(var(--scheme-ch-actions-text))' }}>Settings</div>
             </CardContent>
           </Card>
         </div>
