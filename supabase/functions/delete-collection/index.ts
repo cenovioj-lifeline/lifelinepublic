@@ -102,7 +102,9 @@ Deno.serve(async (req) => {
 
     console.log(`Collected ${storagePaths.length} storage paths for deletion`);
 
-    // Step 2: Delete database records in correct order
+    // Step 2: Update NULL references FIRST (before any deletes!)
+    console.log('Updating references to NULL before deletion...');
+    
     const deletedCounts = {
       collection_tags: 0,
       collection_featured_items: 0,
@@ -121,7 +123,46 @@ Deno.serve(async (req) => {
       elections_updated: 0,
       profiles_updated: 0,
     };
+    
+    // Update mock_elections to NULL first
+    const { count: electionsCount, error: e15 } = await supabase
+      .from('mock_elections')
+      .update({ collection_id: null }, { count: 'exact' })
+      .eq('collection_id', collectionId);
+    if (e15) {
+      console.error('Error updating elections:', e15);
+      throw new Error('Failed to update elections references');
+    }
+    deletedCounts.elections_updated = electionsCount || 0;
 
+    // Update profiles - primary_collection_id
+    const { count: profilesCount1, error: e16 } = await supabase
+      .from('profiles')
+      .update({ primary_collection_id: null }, { count: 'exact' })
+      .eq('primary_collection_id', collectionId);
+    if (e16) {
+      console.error('Error updating profiles (collection):', e16);
+      throw new Error('Failed to update profiles collection references');
+    }
+
+    // Update profiles - primary_lifeline_id
+    let profilesCount2 = 0;
+    if (lifelineIds.length > 0) {
+      const { count, error: e17 } = await supabase
+        .from('profiles')
+        .update({ primary_lifeline_id: null }, { count: 'exact' })
+        .in('primary_lifeline_id', lifelineIds);
+      if (e17) {
+        console.error('Error updating profiles (lifeline):', e17);
+        throw new Error('Failed to update profiles lifeline references');
+      }
+      profilesCount2 = count || 0;
+    }
+    deletedCounts.profiles_updated = (profilesCount1 || 0) + profilesCount2;
+
+    console.log(`Updated ${deletedCounts.elections_updated} elections and ${deletedCounts.profiles_updated} profiles`);
+
+    // Step 3: Delete database records in correct order
     // Delete collection_tags
     const { error: e1 } = await supabase
       .from('collection_tags')
@@ -252,34 +293,6 @@ Deno.serve(async (req) => {
       throw new Error('Failed to delete collection');
     }
     deletedCounts.collections = 1;
-
-    // Step 3: Update NULL references
-    // Update mock_elections
-    const { count: electionsCount, error: e15 } = await supabase
-      .from('mock_elections')
-      .update({ collection_id: null }, { count: 'exact' })
-      .eq('collection_id', collectionId);
-    if (e15) console.error('Error updating elections:', e15);
-    else deletedCounts.elections_updated = electionsCount || 0;
-
-    // Update profiles - primary_collection_id
-    const { count: profilesCount1, error: e16 } = await supabase
-      .from('profiles')
-      .update({ primary_collection_id: null }, { count: 'exact' })
-      .eq('primary_collection_id', collectionId);
-    if (e16) console.error('Error updating profiles (collection):', e16);
-
-    // Update profiles - primary_lifeline_id
-    let profilesCount2 = 0;
-    if (lifelineIds.length > 0) {
-      const { count, error: e17 } = await supabase
-        .from('profiles')
-        .update({ primary_lifeline_id: null }, { count: 'exact' })
-        .in('primary_lifeline_id', lifelineIds);
-      if (e17) console.error('Error updating profiles (lifeline):', e17);
-      else profilesCount2 = count || 0;
-    }
-    deletedCounts.profiles_updated = (profilesCount1 || 0) + profilesCount2;
 
     console.log('Database deletion complete');
 
