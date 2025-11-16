@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Activity } from "lucide-react";
+import { PasswordInput } from "@/components/ui/password-input";
 
 export default function Auth() {
   const [email, setEmail] = useState("");
@@ -96,13 +97,13 @@ export default function Auth() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="signin-password">Password</Label>
-                  <Input
+                  <PasswordInput
                     id="signin-password"
-                    type="password"
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
+                    autoComplete="current-password"
                   />
                 </div>
                 <Button type="submit" className="w-full" disabled={loading}>

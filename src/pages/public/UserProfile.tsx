@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Pencil, Save, X } from "lucide-react";
 import { ImageUpload } from "@/components/ImageUpload";
+import { PasswordInput } from "@/components/ui/password-input";
 
 export default function UserProfile() {
   const { user } = useAuth();
@@ -20,6 +21,9 @@ export default function UserProfile() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
   const { data: profile, isLoading: profileLoading } = useQuery({
     queryKey: ["user-profile", user?.id],
@@ -100,6 +104,48 @@ export default function UserProfile() {
     },
     onError: () => {
       toast.error("Failed to update profile");
+    },
+  });
+
+  const changePasswordMutation = useMutation({
+    mutationFn: async () => {
+      if (!currentPassword || !newPassword || !confirmPassword) {
+        throw new Error("Please fill in all password fields");
+      }
+
+      if (newPassword !== confirmPassword) {
+        throw new Error("New passwords don't match");
+      }
+
+      if (newPassword.length < 6) {
+        throw new Error("Password must be at least 6 characters");
+      }
+
+      // Verify current password by attempting to sign in
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: user?.email || "",
+        password: currentPassword,
+      });
+
+      if (signInError) {
+        throw new Error("Current password is incorrect");
+      }
+
+      // Update password
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword,
+      });
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      toast.success("Password changed successfully");
+    },
+    onError: (error: Error) => {
+      toast.error(error.message);
     },
   });
 
@@ -196,6 +242,49 @@ export default function UserProfile() {
                 </div>
               </div>
             )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Change Password</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={(e) => { e.preventDefault(); changePasswordMutation.mutate(); }} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="currentPassword">Current Password</Label>
+                <PasswordInput
+                  id="currentPassword"
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  placeholder="Enter current password"
+                  autoComplete="current-password"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="newPassword">New Password</Label>
+                <PasswordInput
+                  id="newPassword"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="Enter new password (min 6 characters)"
+                  autoComplete="new-password"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                <PasswordInput
+                  id="confirmPassword"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Confirm new password"
+                  autoComplete="new-password"
+                />
+              </div>
+              <Button type="submit" disabled={changePasswordMutation.isPending}>
+                {changePasswordMutation.isPending ? "Changing..." : "Change Password"}
+              </Button>
+            </form>
           </CardContent>
         </Card>
 
