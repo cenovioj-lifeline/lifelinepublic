@@ -5,7 +5,7 @@ import { CollectionLayout } from "@/components/CollectionLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowRight, Share2, Rss, Users, Settings, Heart } from "lucide-react";
+import { ArrowRight, Share2, Rss, Users, Settings } from "lucide-react";
 import { CollectionShareModal } from "@/components/CollectionShareModal";
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
@@ -446,28 +446,16 @@ export default function PublicCollectionDetail() {
             </CardContent>
           </Card>
           <Card
-            className="relative cursor-pointer hover:shadow-lg transition-shadow"
+            className="cursor-pointer hover:shadow-lg transition-shadow"
             style={{ backgroundColor: 'hsl(var(--scheme-ch-actions-bg))', borderColor: 'hsl(var(--scheme-ch-actions-border))' }}
           >
-            <div className="absolute top-2 right-2 z-10">
-              <FavoriteButton itemId={collection.id} itemType="collection" className="bg-white/80 hover:bg-white" />
-            </div>
             <CardContent className="p-3 md:p-6 text-center">
-              <Heart
+              <Users
                 className="h-5 w-5 md:h-8 md:w-8 mx-auto mb-1 md:mb-2"
                 style={{ color: 'hsl(var(--scheme-ch-actions-icon))' }}
               />
-              <div 
-                className="text-lg md:text-2xl font-bold mb-1"
-                style={{ color: 'hsl(var(--scheme-ch-actions-text))' }}
-              >
-                {fanCount || 0}
-              </div>
-              <div 
-                className="text-[10px] md:text-sm"
-                style={{ color: 'hsl(var(--scheme-ch-actions-text))' }}
-              >
-                Fans
+              <div className="text-[10px] md:text-sm mt-1" style={{ color: 'hsl(var(--scheme-ch-actions-text))' }}>
+                {fanCount || 0} Fans
               </div>
             </CardContent>
           </Card>
