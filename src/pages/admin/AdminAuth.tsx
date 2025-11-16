@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { PasswordInput } from "@/components/ui/password-input";
+import { AdminDestinationDialog } from "@/components/AdminDestinationDialog";
 
 export default function AdminAuth() {
   const [email, setEmail] = useState("");
@@ -17,6 +18,7 @@ export default function AdminAuth() {
   const [isRecovery, setIsRecovery] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showDestinationDialog, setShowDestinationDialog] = useState(false);
   const { signIn, user } = useAuth();
   const navigate = useNavigate();
 
@@ -48,7 +50,7 @@ export default function AdminAuth() {
       .single();
 
     if (data) {
-      navigate('/admin');
+      setShowDestinationDialog(true);
     } else {
       toast.error("Access denied. Admin privileges required.");
       await supabase.auth.signOut();
@@ -221,6 +223,11 @@ export default function AdminAuth() {
           )}
         </CardContent>
       </Card>
+      
+      <AdminDestinationDialog 
+        open={showDestinationDialog}
+        onOpenChange={setShowDestinationDialog}
+      />
     </div>
   );
 }

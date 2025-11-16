@@ -1,4 +1,4 @@
-import { Home, Folder, Activity, Users, Award, Tag, Image, LogOut, Settings, Heart, Upload, FileQuestion, Palette, ImagePlus } from "lucide-react";
+import { Home, Folder, Activity, Users, Award, Tag, Image, LogOut, Settings, Heart, Upload, FileQuestion, Palette, ImagePlus, ArrowLeft } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import {
   Sidebar,
@@ -87,7 +87,13 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter>
+      <SidebarFooter className="space-y-1">
+        <SidebarMenuButton asChild className="text-sidebar-foreground">
+          <NavLink to="/" className={getNavCls}>
+            <ArrowLeft className="h-4 w-4" />
+            <span>Return to Lifeline Public</span>
+          </NavLink>
+        </SidebarMenuButton>
         <Button
           variant="ghost"
           className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
