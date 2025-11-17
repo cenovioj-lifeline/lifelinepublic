@@ -634,15 +634,15 @@ export function LifelineViewer({
                                    )}
                                  </>
                                )}
-                              <img
-                                src={media.url}
-                                alt={media.alt_text || selected.title}
-                                className="w-full aspect-video object-cover rounded-lg"
-                                style={{
-                                  objectPosition: `${media.position_x ?? 50}% ${media.position_y ?? 50}%`,
-                                  transform: `scale(${media.scale ?? 1})`,
-                                  transformOrigin: 'center'
-                                }}
+                               <img
+                                 src={media.url}
+                                 alt={media.alt_text || selected.title}
+                                 className="w-full aspect-video object-cover rounded-lg"
+                                 style={{
+                                   objectPosition: `${media.position_x ?? 50}% ${media.position_y ?? 50}%`,
+                                   transform: `scale(${media.scale ?? 1})`,
+                                   transformOrigin: `${media.position_x ?? 50}% ${media.position_y ?? 50}%`
+                                 }}
                                 onError={(e) => {
                                   e.currentTarget.src = '/placeholder.svg';
                                   e.currentTarget.alt = 'Image failed to load';
