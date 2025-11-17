@@ -31,7 +31,15 @@ interface ProfileWork {
 }
 
 interface ProfileWithRelations extends Profile {
-  avatar_image?: { url: string; alt_text?: string };
+  avatar_image?: { 
+    url: string; 
+    alt_text?: string;
+    id?: string;
+    position_x?: number;
+    position_y?: number;
+    scale?: number;
+  };
+  image_query?: string;
   profile_relationships: ProfileRelationship[];
   profile_works: ProfileWork[];
 }
@@ -54,7 +62,7 @@ export function ProfileDetailView({
 }: ProfileDetailViewProps) {
   return (
     <div className="space-y-8">
-      <ProfileHero profile={profile} />
+      <ProfileHero profile={profile} onImageUpdate={() => window.location.reload()} />
 
       {(hasModule(profile, 'biographical') || 
         hasModule(profile, 'fictional') || 

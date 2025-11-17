@@ -20,8 +20,12 @@ export function useProfileData(slug: string | undefined, options?: UseProfileDat
         .select(`
           *,
           avatar_image:media_assets!profiles_avatar_image_id_fkey(
+            id,
             url,
-            alt_text
+            alt_text,
+            position_x,
+            position_y,
+            scale
           )
         `)
         .eq("slug", slug)
