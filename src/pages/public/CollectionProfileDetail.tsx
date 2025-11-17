@@ -41,7 +41,7 @@ export default function CollectionProfileDetail() {
               collection_badge_color
             )
           ),
-          profile_relationships(
+          profile_relationships!profile_relationships_profile_id_fkey(
             id,
             relationship_type,
             target_name,
