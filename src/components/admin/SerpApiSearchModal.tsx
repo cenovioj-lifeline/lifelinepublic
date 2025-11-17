@@ -12,7 +12,7 @@
  * - Rerun with modified query
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -75,6 +75,17 @@ export const SerpApiSearchModal = ({
   const [results, setResults] = useState<ImageCandidate[]>([]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  // Sync modal state when entry or query changes
+  useEffect(() => {
+    if (open) {
+      setStep('edit');
+      setQuery(initialQuery || '');
+      setResults([]);
+      setSelected(new Set());
+      setPreviewUrl(null);
+    }
+  }, [open, entryId, initialQuery]);
 
   // ========================================
   // API CALLS
@@ -205,9 +216,9 @@ export const SerpApiSearchModal = ({
   };
 
   const handleClose = () => {
-    // Reset state when closing
+    // Clear state - useEffect will rehydrate on next open
     setStep('edit');
-    setQuery(initialQuery || '');
+    setQuery('');
     setResults([]);
     setSelected(new Set());
     setPreviewUrl(null);
@@ -228,7 +239,14 @@ export const SerpApiSearchModal = ({
   return (
     <>
       {/* Main Modal */}
-      <Dialog open={open} onOpenChange={handleClose}>
+      <Dialog 
+        open={open} 
+        onOpenChange={(nextOpen) => {
+          if (!nextOpen) {
+            handleClose();
+          }
+        }}
+      >
         <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-xl font-semibold">
