@@ -2,13 +2,10 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Users, User, List, Vote, TrendingUp } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CollectionLayout } from "@/components/CollectionLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
+import { ProfileDetailView } from "@/components/ProfileDetailView";
 
 export default function CollectionProfileDetail() {
   const { collectionSlug, profileSlug } = useParams<{ collectionSlug: string; profileSlug: string }>();
@@ -44,6 +41,27 @@ export default function CollectionProfileDetail() {
               collection_badge_color
             )
           ),
+          profile_relationships(
+            id,
+            relationship_type,
+            target_name,
+            context,
+            related_profile:profiles!profile_relationships_related_profile_id_fkey(
+              id,
+              name,
+              slug,
+              subject_type
+            )
+          ),
+          profile_works(
+            id,
+            work_category,
+            title,
+            year,
+            work_type,
+            significance,
+            additional_info
+          ),
           profile_lifelines(
             lifeline:lifelines(
               id,
@@ -72,26 +90,6 @@ export default function CollectionProfileDetail() {
       return data;
     },
   });
-
-  const getLifelineIcon = (type: string) => {
-    switch (type) {
-      case "family":
-        return Users;
-      case "person":
-        return User;
-      case "list":
-        return List;
-      case "election":
-        return Vote;
-      default:
-        return TrendingUp;
-    }
-  };
-
-  const getLifelineTypeColor = (type: string) => {
-    // Use color scheme variables instead of hardcoded colors
-    return ""; // Styling will be applied inline with color scheme variables
-  };
 
   const { data: lifelinesData } = useQuery({
     queryKey: ["profile-lifelines", profile?.id, collectionSlug],
@@ -142,103 +140,31 @@ export default function CollectionProfileDetail() {
     ?.map((pl: any) => pl.lifeline)
     .filter(Boolean) || [];
 
-  const getInitials = (name: string) => {
-    return name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 2);
-  };
-
   return (
     <CollectionLayout
       collectionTitle={collection.title}
       collectionSlug={collection.slug}
       collectionId={collection.id}
     >
-      <div className="container max-w-4xl mx-auto py-8 px-4">
-        <Card className="bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
-          <CardContent className="pt-6">
-            <div className="flex flex-col md:flex-row gap-6">
-              <Avatar className="h-32 w-32 mx-auto md:mx-0">
-                <AvatarImage src={profile.avatar_image?.url} alt={profile.name} />
-                <AvatarFallback className="text-3xl">
-                  {getInitials(profile.name)}
-                </AvatarFallback>
-              </Avatar>
-
-              <div className="flex-1 space-y-4">
-                <div>
-                  <h1 className="text-3xl font-bold text-[hsl(var(--scheme-title-text))]">{profile.name}</h1>
-                  <p className="text-sm text-[hsl(var(--scheme-cards-text))]">{profile.subject_type} • {profile.reality_status}</p>
-                </div>
-
-                {profile.short_description && (
-                  <p className="text-base leading-relaxed text-[hsl(var(--scheme-card-text))]">{profile.short_description}</p>
-                )}
-
-                {profile.known_for && profile.known_for.length > 0 && (
-                  <div>
-                    <h3 className="font-semibold mb-2">Known For</h3>
-                    <ul className="list-disc list-inside space-y-1">
-                      {profile.known_for.map((item: string, idx: number) => (
-                        <li key={idx} className="text-[hsl(var(--scheme-card-text))]">{item}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-
-                <div className="flex flex-wrap gap-2">
-                  {profile.tags && profile.tags.map((tag: string) => (
-                    <Badge key={tag} variant="secondary">{tag}</Badge>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {(lifelinesData?.length ?? associatedLifelines.length) > 0 && (
-          <>
-            <Separator className="my-8" />
-            <Card className="bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
-              <CardHeader>
-                <CardTitle className="text-[hsl(var(--scheme-title-text))]">Associated Lifelines</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid gap-4 md:grid-cols-2">
-                  {(lifelinesData ?? associatedLifelines).map((lifeline: any) => {
-                    const Icon = getLifelineIcon(lifeline.lifeline_type);
-                    return (
-                      <Card
-                        key={lifeline.id}
-                        className="overflow-hidden cursor-pointer hover:shadow-lg transition-shadow bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]"
-                        onClick={() => navigate(`/public/collections/${collectionSlug}/lifelines/${lifeline.slug}`)}
-                      >
-                        {lifeline.cover_image && (
-                          <div className="aspect-video w-full overflow-hidden bg-white">
-                            <img
-                              src={lifeline.cover_image.url}
-                              alt={lifeline.cover_image.alt_text || lifeline.title}
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
-                        )}
-                        <CardContent className="p-4">
-                          <div className="flex items-center gap-2">
-                            <Icon className="h-5 w-5 text-[hsl(var(--scheme-actions-icon))]" />
-                            <h3 className="font-semibold text-[hsl(var(--scheme-card-text))]">{lifeline.title}</h3>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    );
-                  })}
-                </div>
-              </CardContent>
-            </Card>
-          </>
-        )}
+      <div className="container max-w-6xl mx-auto py-8 px-4">
+        <ProfileDetailView
+          profile={profile as any}
+          associatedLifelines={lifelinesData ?? associatedLifelines}
+          collections={[]}
+          collectionContext={{
+            slug: collectionSlug!,
+            name: collection.title
+          }}
+        />
+        
+        <Button 
+          onClick={() => navigate(`/public/collections/${collectionSlug}/profiles`)}
+          variant="outline"
+          className="mt-8"
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back to Profiles
+        </Button>
       </div>
     </CollectionLayout>
   );
