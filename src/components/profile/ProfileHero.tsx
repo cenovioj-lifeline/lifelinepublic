@@ -40,7 +40,7 @@ export function ProfileHero({ profile, onImageUpdate }: ProfileHeroProps) {
               style={{
                 objectPosition: `${positionX}% ${positionY}%`,
                 transform: `scale(${scale})`,
-                transformOrigin: 'center'
+                transformOrigin: `${positionX}% ${positionY}%`
               }}
             />
             <AvatarFallback className="text-2xl">

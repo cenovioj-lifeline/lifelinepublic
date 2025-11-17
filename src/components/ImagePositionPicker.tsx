@@ -54,6 +54,17 @@ export function ImagePositionPicker({
     setPosition({ ...position, scale: value[0] });
   };
 
+  const handleDrag = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100));
+    const y = Math.max(0, Math.min(100, ((e.clientY - rect.top) / rect.height) * 100));
+    setPosition({ ...position, x, y });
+  };
+
+  const handleReset = () => {
+    setPosition({ x: 50, y: 50, scale: 1 });
+  };
+
   const handleSave = () => {
     onPositionChange(position);
     onOpenChange(false);
@@ -76,20 +87,36 @@ export function ImagePositionPicker({
             {viewType === "avatar" && (
               <div>
                 <p className="text-xs text-muted-foreground mb-2">Avatar Preview (Circle):</p>
-                <div className="relative w-32 h-32 rounded-full overflow-hidden border-2 border-primary mx-auto">
+                <div 
+                  className="relative w-32 h-32 rounded-full overflow-hidden border-2 border-primary mx-auto cursor-move"
+                  onMouseDown={(e) => {
+                    const handleMove = (moveEvent: MouseEvent) => {
+                      const rect = e.currentTarget.getBoundingClientRect();
+                      const x = Math.max(0, Math.min(100, ((moveEvent.clientX - rect.left) / rect.width) * 100));
+                      const y = Math.max(0, Math.min(100, ((moveEvent.clientY - rect.top) / rect.height) * 100));
+                      setPosition(prev => ({ ...prev, x, y }));
+                    };
+                    const handleUp = () => {
+                      document.removeEventListener('mousemove', handleMove);
+                      document.removeEventListener('mouseup', handleUp);
+                    };
+                    document.addEventListener('mousemove', handleMove);
+                    document.addEventListener('mouseup', handleUp);
+                  }}
+                >
                   <img
                     src={imageUrl}
                     alt="Avatar preview"
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover pointer-events-none"
                     style={{
                       objectPosition: `${position.x}% ${position.y}%`,
                       transform: `scale(${position.scale})`,
-                      transformOrigin: 'center'
+                      transformOrigin: `${position.x}% ${position.y}%`
                     }}
                   />
                   <div className="absolute inset-0 pointer-events-none border-4 border-primary/30 rounded-full" />
                   <div className="absolute bottom-1 left-1/2 -translate-x-1/2 bg-background/80 px-2 py-0.5 rounded text-xs whitespace-nowrap">
-                    Avatar
+                    Drag to reposition
                   </div>
                 </div>
               </div>
@@ -98,19 +125,36 @@ export function ImagePositionPicker({
             {(viewType === "banner" || viewType === "both") && (
               <div>
                 <p className="text-xs text-muted-foreground mb-2">Banner View (3:1 ratio):</p>
-                <div className="relative w-full aspect-[3/1] rounded-lg overflow-hidden border-2 border-primary">
+                <div 
+                  className="relative w-full aspect-[3/1] rounded-lg overflow-hidden border-2 border-primary cursor-move"
+                  onMouseDown={(e) => {
+                    const handleMove = (moveEvent: MouseEvent) => {
+                      const rect = e.currentTarget.getBoundingClientRect();
+                      const x = Math.max(0, Math.min(100, ((moveEvent.clientX - rect.left) / rect.width) * 100));
+                      const y = Math.max(0, Math.min(100, ((moveEvent.clientY - rect.top) / rect.height) * 100));
+                      setPosition(prev => ({ ...prev, x, y }));
+                    };
+                    const handleUp = () => {
+                      document.removeEventListener('mousemove', handleMove);
+                      document.removeEventListener('mouseup', handleUp);
+                    };
+                    document.addEventListener('mousemove', handleMove);
+                    document.addEventListener('mouseup', handleUp);
+                  }}
+                >
                   <img
                     src={imageUrl}
                     alt="Banner preview"
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover pointer-events-none"
                     style={{
                       objectPosition: `${position.x}% ${position.y}%`,
                       transform: `scale(${position.scale})`,
+                      transformOrigin: `${position.x}% ${position.y}%`
                     }}
                   />
                   <div className="absolute inset-0 pointer-events-none border-4 border-primary/30" />
                   <div className="absolute top-2 left-2 bg-background/80 px-2 py-1 rounded text-xs">
-                    Banner Visible Area
+                    Drag to reposition
                   </div>
                 </div>
               </div>
@@ -119,19 +163,36 @@ export function ImagePositionPicker({
             {(viewType === "card" || viewType === "both") && (
               <div>
                 <p className="text-xs text-muted-foreground mb-2">Card View (16:9 ratio):</p>
-                <div className="relative w-full max-w-md aspect-video rounded-lg overflow-hidden border-2 border-primary">
+                <div 
+                  className="relative w-full max-w-md aspect-video rounded-lg overflow-hidden border-2 border-primary cursor-move"
+                  onMouseDown={(e) => {
+                    const handleMove = (moveEvent: MouseEvent) => {
+                      const rect = e.currentTarget.getBoundingClientRect();
+                      const x = Math.max(0, Math.min(100, ((moveEvent.clientX - rect.left) / rect.width) * 100));
+                      const y = Math.max(0, Math.min(100, ((moveEvent.clientY - rect.top) / rect.height) * 100));
+                      setPosition(prev => ({ ...prev, x, y }));
+                    };
+                    const handleUp = () => {
+                      document.removeEventListener('mousemove', handleMove);
+                      document.removeEventListener('mouseup', handleUp);
+                    };
+                    document.addEventListener('mousemove', handleMove);
+                    document.addEventListener('mouseup', handleUp);
+                  }}
+                >
                   <img
                     src={imageUrl}
                     alt="Card preview"
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover pointer-events-none"
                     style={{
                       objectPosition: `${position.x}% ${position.y}%`,
                       transform: `scale(${position.scale})`,
+                      transformOrigin: `${position.x}% ${position.y}%`
                     }}
                   />
                   <div className="absolute inset-0 pointer-events-none border-4 border-primary/30" />
                   <div className="absolute top-2 left-2 bg-background/80 px-2 py-1 rounded text-xs">
-                    Card Visible Area
+                    Drag to reposition
                   </div>
                 </div>
               </div>
@@ -201,13 +262,18 @@ export function ImagePositionPicker({
           </div>
 
           {/* Action buttons */}
-          <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
+          <div className="flex justify-between items-center gap-2">
+            <Button variant="outline" size="sm" onClick={handleReset}>
+              Reset
             </Button>
-            <Button onClick={handleSave}>
-              Save Position
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => onOpenChange(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleSave}>
+                Save Position
+              </Button>
+            </div>
           </div>
         </div>
       </DialogContent>
