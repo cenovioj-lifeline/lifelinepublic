@@ -6,6 +6,7 @@ import { Rss, FileQuestion, Share2, Settings } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Link, useNavigate } from "react-router-dom";
 import { RequestLifelineDialog } from "@/components/RequestLifelineDialog";
+import { CollectionShareModal } from "@/components/CollectionShareModal";
 import { useState } from "react";
 import {
   AlertDialog,
@@ -20,6 +21,7 @@ import {
 export default function Home() {
   const navigate = useNavigate();
   const [requestDialogOpen, setRequestDialogOpen] = useState(false);
+  const [shareModalOpen, setShareModalOpen] = useState(false);
   const [constructionAlertOpen, setConstructionAlertOpen] = useState(false);
   
   const { data: homeSettings } = useQuery({
@@ -184,7 +186,7 @@ export default function Home() {
   const quickActionCards = [
     { icon: Rss, label: "Feed", onClick: () => setConstructionAlertOpen(true) },
     { icon: FileQuestion, label: "Request", onClick: () => setRequestDialogOpen(true) },
-    { icon: Share2, label: "Share", onClick: () => setConstructionAlertOpen(true) },
+    { icon: Share2, label: "Share", onClick: () => setShareModalOpen(true) },
     { icon: Settings, label: "Settings", onClick: () => setConstructionAlertOpen(true) },
   ];
 
@@ -243,6 +245,14 @@ export default function Home() {
           setRequestDialogOpen(false);
           navigate("/auth");
         }}
+      />
+
+      <CollectionShareModal
+        open={shareModalOpen}
+        onOpenChange={setShareModalOpen}
+        shareUrl={`${window.location.origin}/public`}
+        shareTitle="Lifeline Public"
+        shareDescription="Explore interactive timelines, collections, and more"
       />
 
       <AlertDialog open={constructionAlertOpen} onOpenChange={setConstructionAlertOpen}>
