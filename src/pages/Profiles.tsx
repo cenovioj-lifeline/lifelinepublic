@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import {
   Table,
@@ -39,17 +39,11 @@ export default function Profiles() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Profiles</h1>
-          <p className="text-muted-foreground">
-            Manage people, organizations, and topics
-          </p>
-        </div>
-        <Button onClick={() => navigate("/profiles/new")}>
-          <Plus className="mr-2 h-4 w-4" />
-          New Profile
-        </Button>
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Profiles</h1>
+        <p className="text-muted-foreground">
+          Manage people, organizations, and topics
+        </p>
       </div>
 
       <div className="flex items-center gap-4">
