@@ -42,25 +42,22 @@ export function LifelineDisclaimerDialog({
         const { data: { user } } = await supabase.auth.getUser();
         
         if (user) {
-          // Try to update existing preference first
-          const { error: updateError } = await supabase
+          // Use upsert to insert or update in one operation
+          const { error } = await supabase
             .from("user_preferences")
-            .update({ hide_person_lifeline_disclaimer: true })
-            .eq("user_id", user.id);
-
-          // If no rows were updated, insert a new preference
-          if (updateError) {
-            const { error: insertError } = await supabase
-              .from("user_preferences")
-              .insert({
+            .upsert(
+              {
                 user_id: user.id,
                 hide_person_lifeline_disclaimer: true,
-              });
+              },
+              {
+                onConflict: 'user_id'
+              }
+            );
 
-            if (insertError) {
-              console.error("Error saving preference:", insertError);
-              toast.error("Failed to save preference");
-            }
+          if (error) {
+            console.error("Error saving preference:", error);
+            toast.error("Failed to save preference");
           }
         }
       } catch (error) {
