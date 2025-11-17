@@ -888,7 +888,7 @@ export function LifelineViewer({
           open={serpApiModalOpen}
           onClose={() => setSerpApiModalOpen(false)}
           entryId={selected.id}
-          initialQuery={`${selected.title} ${lifeline.title}`}
+          initialQuery={selected.serpapi_query || `${selected.title} ${lifeline.title}`}
           onImportComplete={() => {
             queryClient.invalidateQueries({ queryKey: ["entries", lifelineId] });
           }}
