@@ -1,80 +1,16 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { PublicLayout } from "@/components/PublicLayout";
 import { ProfileDetailView } from "@/components/ProfileDetailView";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useProfileData } from "@/hooks/useProfileData";
 
 export default function PublicProfileDetail() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
 
-  const { data: profile, isLoading } = useQuery({
-    queryKey: ["public-profile", slug],
-    queryFn: async () => {
-      if (!slug) return null;
-
-      // 1) Fetch base profile without ambiguous embeds
-      const { data: baseProfile, error: baseError } = await supabase
-        .from("profiles")
-        .select(`
-          *,
-          avatar_image:media_assets!profiles_avatar_image_id_fkey(
-            url,
-            alt_text
-          )
-        `)
-        .eq("slug", slug)
-        .eq("status", "published")
-        .maybeSingle();
-
-      if (baseError) throw baseError;
-      if (!baseProfile) return null;
-
-      // 2) Fetch related resources in parallel to avoid PostgREST embed ambiguity
-      const [relsRes, worksRes, lifelinesRes, collectionsRes] = await Promise.all([
-        supabase
-          .from("profile_relationships")
-          .select(`
-            id,
-            relationship_type,
-            target_name,
-            context,
-            related_profile:profiles!profile_relationships_related_profile_id_fkey(
-              id,
-              name,
-              slug,
-              subject_type
-            )
-          `)
-          .eq("profile_id", baseProfile.id),
-        supabase
-          .from("profile_works")
-          .select(`id, work_category, title, year, work_type, significance, additional_info`)
-          .eq("profile_id", baseProfile.id),
-        supabase
-          .from("profile_lifelines")
-          .select(`lifeline:lifelines(id, slug, title, type)`)
-          .eq("profile_id", baseProfile.id),
-        supabase
-          .from("profile_collections")
-          .select(`collection:collections(id, slug, title, description)`)
-          .eq("profile_id", baseProfile.id),
-      ]);
-
-      const fullProfile: any = {
-        ...baseProfile,
-        profile_relationships: relsRes.data ?? [],
-        profile_works: worksRes.data ?? [],
-        profile_lifelines: lifelinesRes.data ?? [],
-        profile_collections: collectionsRes.data ?? [],
-      };
-
-      return fullProfile;
-    },
-  });
+  const { profile, isLoading } = useProfileData(slug);
 
 
   if (isLoading) {

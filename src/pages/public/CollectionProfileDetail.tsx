@@ -1,118 +1,16 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CollectionLayout } from "@/components/CollectionLayout";
 import { ProfileDetailView } from "@/components/ProfileDetailView";
+import { useProfileData } from "@/hooks/useProfileData";
 
 export default function CollectionProfileDetail() {
   const { collectionSlug, profileSlug } = useParams<{ collectionSlug: string; profileSlug: string }>();
   const navigate = useNavigate();
 
-  const { data: profile, isLoading } = useQuery({
-    queryKey: ["collection-profile", collectionSlug, profileSlug],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select(`
-          *,
-          avatar_image:media_assets!profiles_avatar_image_id_fkey(url, alt_text),
-          profile_collections!inner(
-            collection:collections!profile_collections_collection_id_fkey(
-              id,
-              title,
-              slug,
-              primary_color,
-              secondary_color,
-              web_primary,
-              web_secondary,
-              menu_text_color,
-              menu_hover_color,
-              menu_active_color,
-              collection_bg_color,
-              collection_text_color,
-              collection_heading_color,
-              collection_accent_color,
-              collection_card_bg,
-              collection_border_color,
-              collection_muted_text,
-              collection_badge_color
-            )
-          ),
-          profile_relationships!profile_relationships_profile_id_fkey(
-            id,
-            relationship_type,
-            target_name,
-            context,
-            related_profile:profiles!profile_relationships_related_profile_id_fkey(
-              id,
-              name,
-              slug,
-              subject_type
-            )
-          ),
-          profile_works(
-            id,
-            work_category,
-            title,
-            year,
-            work_type,
-            significance,
-            additional_info
-          ),
-          profile_lifelines(
-            lifeline:lifelines(
-              id,
-              title,
-              slug,
-              lifeline_type,
-              cover_image:media_assets(url, alt_text)
-            )
-          )
-        `)
-        .eq("slug", profileSlug)
-        .eq("status", "published")
-        .single();
-
-      if (error) throw error;
-      
-      // Verify this profile belongs to the collection
-      const belongsToCollection = (data.profile_collections as any[])?.some(
-        (pc: any) => pc.collection?.slug === collectionSlug
-      );
-      
-      if (!belongsToCollection) {
-        throw new Error("Profile not found in this collection");
-      }
-      
-      return data;
-    },
-  });
-
-  const { data: lifelinesData } = useQuery({
-    queryKey: ["profile-lifelines", profile?.id, collectionSlug],
-    enabled: !!profile?.id,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("lifelines")
-        .select(`
-          id,
-          title,
-          slug,
-          lifeline_type,
-          collection_id,
-          cover_image:media_assets(url, alt_text)
-        `)
-        .eq("profile_id", (profile as any).id)
-        .eq("status", "published");
-      if (error) throw error;
-
-      const cid = (profile?.profile_collections as any[])?.find((pc: any) => pc.collection?.slug === collectionSlug)?.collection?.id;
-      return cid ? data?.filter((l: any) => l.collection_id === cid) : data;
-    },
-  });
+  const { profile, lifelinesData, isLoading } = useProfileData(profileSlug, { collectionSlug });
 
   if (isLoading) {
     return (
