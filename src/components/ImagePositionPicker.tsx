@@ -1,3 +1,20 @@
+/**
+ * Image Positioning System
+ * 
+ * position.x (0-100): Horizontal position percentage
+ * position.y (0-100): Vertical position percentage  
+ * position.scale (1.0-4.0): Zoom level
+ *   - 1.0 = Natural fit (full image visible in frame)
+ *   - 2.0 = 2x zoom (shows 50% of image width/height)
+ *   - 4.0 = 4x zoom (shows 25% of image width/height)
+ * 
+ * How it works:
+ * - Container has `overflow: hidden` and `object-fit: cover`
+ * - Image scales UP from 1x to 4x
+ * - Larger scale = less visible area = tighter crop
+ * - Position controls which part of scaled image is centered
+ */
+
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -51,7 +68,7 @@ export function ImagePositionPicker({
 
         <div className="space-y-6">
           <div className="text-sm text-muted-foreground">
-            Adjust the position to control which part of the image is visible in the frame.
+            Adjust position and zoom to control which part of the image is visible. Higher zoom values show less of the image (closer crop).
           </div>
 
           {/* Preview with visible frame guide */}
@@ -150,12 +167,12 @@ export function ImagePositionPicker({
           {/* Position controls */}
           <div className="space-y-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium">Zoom: {position.scale.toFixed(2)}x</label>
+              <label className="text-sm font-medium">Zoom: {position.scale.toFixed(2)}x (higher = closer crop)</label>
               <Slider
                 value={[position.scale]}
                 onValueChange={handleScaleChange}
-                min={0.5}
-                max={3}
+                min={1.0}
+                max={4.0}
                 step={0.1}
               />
             </div>
