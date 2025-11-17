@@ -19,6 +19,8 @@ import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { Loader2, X, ZoomIn, Check } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { ImagePositionPicker } from '@/components/ImagePositionPicker';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 // ========================================
 // CONFIGURATION
@@ -68,6 +70,10 @@ export const ProfileSerpApiSearchModal = ({
   const [selectedUrl, setSelectedUrl] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [importing, setImporting] = useState(false);
+  const [showPositionPicker, setShowPositionPicker] = useState(false);
+  const [importedImageUrl, setImportedImageUrl] = useState<string | null>(null);
+  const [mediaAssetId, setMediaAssetId] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
   // Sync modal state when profile or query changes
   useEffect(() => {
@@ -122,6 +128,32 @@ export const ProfileSerpApiSearchModal = ({
     }
   };
 
+  const updatePositionMutation = useMutation({
+    mutationFn: async ({ mediaId, position }: { mediaId: string; position: { x: number; y: number; scale: number } }) => {
+      const { error } = await supabase
+        .from('media_assets')
+        .update({
+          position_x: position.x,
+          position_y: position.y,
+          scale: position.scale,
+        })
+        .eq('id', mediaId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Avatar position saved successfully");
+      queryClient.invalidateQueries({ queryKey: ["profile-data"] });
+      onImportComplete?.();
+      setShowPositionPicker(false);
+      onClose();
+    },
+    onError: (error) => {
+      console.error('Error updating position:', error);
+      toast.error("Failed to save avatar position");
+    },
+  });
+
   const handleImport = async () => {
     if (!selectedUrl) {
       toast.error('Please select an image');
@@ -130,23 +162,33 @@ export const ProfileSerpApiSearchModal = ({
 
     setImporting(true);
     try {
-      const { error } = await supabase.functions.invoke('import-profile-image', {
+      const { data, error } = await supabase.functions.invoke('import-profile-image', {
         body: {
           profileId,
           imageUrl: selectedUrl,
-          altText: `Profile avatar`,
-        }
+          altText: `${initialQuery} profile avatar`,
+        },
       });
 
       if (error) throw error;
 
-      toast.success('Profile image imported successfully');
-      onImportComplete();
+      // Open position picker with imported image
+      setImportedImageUrl(data.url);
+      setMediaAssetId(data.mediaId);
+      setShowPositionPicker(true);
+      
+      toast.success("Image imported - now position your avatar");
     } catch (error) {
       console.error('Import error:', error);
-      toast.error('Failed to import image');
+      toast.error(error instanceof Error ? error.message : 'Failed to import image');
     } finally {
       setImporting(false);
+    }
+  };
+
+  const handlePositionSave = (position: { x: number; y: number; scale: number }) => {
+    if (mediaAssetId) {
+      updatePositionMutation.mutate({ mediaId: mediaAssetId, position });
     }
   };
 
@@ -372,6 +414,19 @@ export const ProfileSerpApiSearchModal = ({
             </div>
           </DialogContent>
         </Dialog>
+      )}
+
+      {/* Position Picker Modal */}
+      {importedImageUrl && (
+        <ImagePositionPicker
+          open={showPositionPicker}
+          onOpenChange={setShowPositionPicker}
+          imageUrl={importedImageUrl}
+          initialPosition={{ x: 50, y: 50, scale: 1 }}
+          onPositionChange={handlePositionSave}
+          title="Position Profile Avatar"
+          viewType="avatar"
+        />
       )}
     </>
   );

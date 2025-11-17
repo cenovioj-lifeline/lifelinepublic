@@ -10,7 +10,7 @@ interface ImagePositionPickerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   title?: string;
-  viewType?: "banner" | "card" | "both";
+  viewType?: "banner" | "card" | "both" | "avatar";
 }
 
 export function ImagePositionPicker({
@@ -56,6 +56,28 @@ export function ImagePositionPicker({
 
           {/* Preview with visible frame guide */}
           <div className="space-y-4">
+            {viewType === "avatar" && (
+              <div>
+                <p className="text-xs text-muted-foreground mb-2">Avatar Preview (Circle):</p>
+                <div className="relative w-32 h-32 rounded-full overflow-hidden border-2 border-primary mx-auto">
+                  <img
+                    src={imageUrl}
+                    alt="Avatar preview"
+                    className="w-full h-full object-cover"
+                    style={{
+                      objectPosition: `${position.x}% ${position.y}%`,
+                      transform: `scale(${position.scale})`,
+                      transformOrigin: 'center'
+                    }}
+                  />
+                  <div className="absolute inset-0 pointer-events-none border-4 border-primary/30 rounded-full" />
+                  <div className="absolute bottom-1 left-1/2 -translate-x-1/2 bg-background/80 px-2 py-0.5 rounded text-xs whitespace-nowrap">
+                    Avatar
+                  </div>
+                </div>
+              </div>
+            )}
+
             {(viewType === "banner" || viewType === "both") && (
               <div>
                 <p className="text-xs text-muted-foreground mb-2">Banner View (3:1 ratio):</p>
