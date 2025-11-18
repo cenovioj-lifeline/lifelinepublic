@@ -85,7 +85,7 @@ export function CollectionLayout({
         .eq("status", "published")
         .order("created_at", { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
 
       if (error) return null;
       return data;

@@ -6,6 +6,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from '@/components/ui/dialog';
 
 interface MinimalQuoteProps {
@@ -42,6 +43,9 @@ export const MinimalQuote = ({ quote, author, context, onDismiss }: MinimalQuote
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="text-lg">Quote</DialogTitle>
+            <DialogDescription className="sr-only">
+              View the full quote and attribution details
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
             <p className="text-base italic text-foreground">
