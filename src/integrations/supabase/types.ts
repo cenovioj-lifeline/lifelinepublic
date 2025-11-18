@@ -679,6 +679,118 @@ export type Database = {
           },
         ]
       }
+      entities: {
+        Row: {
+          alternate_names: string[] | null
+          canonical_slug: string | null
+          created_at: string | null
+          entity_id: string
+          entity_type: string
+          id: string
+          metadata: Json | null
+          primary_name: string
+          updated_at: string | null
+        }
+        Insert: {
+          alternate_names?: string[] | null
+          canonical_slug?: string | null
+          created_at?: string | null
+          entity_id: string
+          entity_type: string
+          id?: string
+          metadata?: Json | null
+          primary_name: string
+          updated_at?: string | null
+        }
+        Update: {
+          alternate_names?: string[] | null
+          canonical_slug?: string | null
+          created_at?: string | null
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          metadata?: Json | null
+          primary_name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      entity_appearances: {
+        Row: {
+          appearance_type: string
+          collection_id: string | null
+          created_at: string | null
+          entity_id: string
+          entry_id: string | null
+          id: string
+          lifeline_id: string | null
+          profile_id: string | null
+        }
+        Insert: {
+          appearance_type: string
+          collection_id?: string | null
+          created_at?: string | null
+          entity_id: string
+          entry_id?: string | null
+          id?: string
+          lifeline_id?: string | null
+          profile_id?: string | null
+        }
+        Update: {
+          appearance_type?: string
+          collection_id?: string | null
+          created_at?: string | null
+          entity_id?: string
+          entry_id?: string | null
+          id?: string
+          lifeline_id?: string | null
+          profile_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "entity_appearances_collection_id_fkey"
+            columns: ["collection_id"]
+            isOneToOne: false
+            referencedRelation: "collections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "entity_appearances_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "entities"
+            referencedColumns: ["entity_id"]
+          },
+          {
+            foreignKeyName: "entity_appearances_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "entity_registry"
+            referencedColumns: ["entity_id"]
+          },
+          {
+            foreignKeyName: "entity_appearances_entry_id_fkey"
+            columns: ["entry_id"]
+            isOneToOne: false
+            referencedRelation: "entries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "entity_appearances_lifeline_id_fkey"
+            columns: ["lifeline_id"]
+            isOneToOne: false
+            referencedRelation: "lifelines"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "entity_appearances_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       entries: {
         Row: {
           age_at_event: number | null
@@ -1837,6 +1949,18 @@ export type Database = {
       }
     }
     Views: {
+      entity_registry: {
+        Row: {
+          alternate_names: string[] | null
+          appearances: Json[] | null
+          canonical_slug: string | null
+          entity_id: string | null
+          entity_type: string | null
+          metadata: Json | null
+          primary_name: string | null
+        }
+        Relationships: []
+      }
       public_contributors: {
         Row: {
           avatar_url: string | null
