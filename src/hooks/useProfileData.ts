@@ -58,7 +58,10 @@ export function useProfileData(slug: string | undefined, options?: UseProfileDat
           .eq("profile_id", baseProfile.id),
         supabase
           .from("profile_lifelines")
-          .select(`lifeline:lifelines!profile_lifelines_lifeline_id_fkey(id, slug, title, lifeline_type)`)
+          .select(`
+            relationship_type,
+            lifeline:lifelines!profile_lifelines_lifeline_id_fkey(id, slug, title, lifeline_type)
+          `)
           .eq("profile_id", baseProfile.id),
         supabase
           .from("profile_collections")
