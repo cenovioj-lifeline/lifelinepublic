@@ -1,28 +1,38 @@
-import { Profile } from "@/types/profile";
 import { Card } from "@/components/ui/card";
+import type { Profile } from "@/types/database";
 
 interface ProfileBiographyProps {
   profile: Profile;
+  collectionContext?: {
+    slug: string;
+    name: string;
+  };
 }
 
-export function ProfileBiography({ profile }: ProfileBiographyProps) {
-  const fictional = profile.extended_data?.fictional;
-  const legacy = profile.extended_data?.legacy;
-  const org = profile.extended_data?.organization;
+export function ProfileBiography({ profile, collectionContext }: ProfileBiographyProps) {
+  const { fictional, real, org } = profile;
 
-  const content = fictional?.character_arc_summary || 
-                  legacy?.historical_significance || 
-                  org?.mission_purpose;
+  const content = 
+    fictional?.character_arc_summary ||
+    real?.biography ||
+    org?.history ||
+    "No biography available";
 
-  if (!content) return null;
+  if (content === "No biography available") {
+    return null;
+  }
 
   return (
-    <Card className="p-6">
+    <Card className={`p-6 ${
+      collectionContext
+        ? 'bg-[hsl(var(--scheme-cards-bg))] border-[hsl(var(--scheme-cards-border))] text-[hsl(var(--scheme-cards-text))]'
+        : ''
+    }`}>
       <h2 className="text-xl font-bold mb-4">
-        {fictional?.character_arc_summary ? "Character Arc" : 
+        {fictional?.character_arc_summary ? "Character Arc" :
          org?.mission_purpose ? "Mission" : "Overview"}
       </h2>
-      <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">
+      <p className={`leading-relaxed whitespace-pre-wrap ${collectionContext ? 'opacity-90' : 'text-muted-foreground'}`}>
         {content}
       </p>
     </Card>

@@ -1,87 +1,87 @@
-import { Profile } from "@/types/profile";
 import { Card } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Award, Sparkles, TrendingUp, AlertCircle } from "lucide-react";
+import type { Profile } from "@/types/database";
 
 interface ProfileLegacyImpactProps {
   profile: Profile;
+  collectionContext?: {
+    slug: string;
+    name: string;
+  };
 }
 
-export function ProfileLegacyImpact({ profile }: ProfileLegacyImpactProps) {
-  const legacy = profile.extended_data?.legacy;
-  
-  if (!legacy) return null;
+export function ProfileLegacyImpact({ profile, collectionContext }: ProfileLegacyImpactProps) {
+  const { fictional, real, org } = profile;
 
-  const sections = [];
+  const legacyData: { label: string; content: string }[] = [];
 
-  if (legacy.major_accomplishments && legacy.major_accomplishments.length > 0) {
-    sections.push({
-      id: "accomplishments",
-      label: "Accomplishments",
-      icon: <Award className="h-4 w-4" />,
-      content: legacy.major_accomplishments,
+  if (fictional?.legacy_impact) {
+    legacyData.push({
+      label: "Legacy & Impact",
+      content: fictional.legacy_impact
     });
   }
 
-  if (legacy.cultural_impact && legacy.cultural_impact.length > 0) {
-    sections.push({
-      id: "impact",
-      label: "Cultural Impact",
-      icon: <Sparkles className="h-4 w-4" />,
-      content: legacy.cultural_impact,
+  if (fictional?.iconic_moments) {
+    legacyData.push({
+      label: "Iconic Moments",
+      content: fictional.iconic_moments
     });
   }
 
-  if (legacy.awards_honors && legacy.awards_honors.length > 0) {
-    sections.push({
-      id: "awards",
-      label: "Awards & Honors",
-      icon: <TrendingUp className="h-4 w-4" />,
-      content: legacy.awards_honors,
+  if (real?.legacy) {
+    legacyData.push({
+      label: "Legacy",
+      content: real.legacy
     });
   }
 
-  if (legacy.controversies && legacy.controversies.length > 0) {
-    sections.push({
-      id: "controversies",
-      label: "Controversies",
-      icon: <AlertCircle className="h-4 w-4" />,
-      content: legacy.controversies,
+  if (real?.accomplishments) {
+    legacyData.push({
+      label: "Key Accomplishments",
+      content: real.accomplishments
     });
   }
 
-  if (sections.length === 0) return null;
+  if (org?.impact) {
+    legacyData.push({
+      label: "Impact",
+      content: org.impact
+    });
+  }
+
+  if (org?.key_achievements) {
+    legacyData.push({
+      label: "Key Achievements",
+      content: org.key_achievements
+    });
+  }
+
+  if (legacyData.length === 0) {
+    return null;
+  }
 
   return (
-    <Card className="p-6">
-      <h2 className="text-xl font-bold mb-4">Legacy & Impact</h2>
-      <Tabs defaultValue={sections[0].id} className="w-full">
-        <TabsList className="grid w-full" style={{ gridTemplateColumns: `repeat(${sections.length}, 1fr)` }}>
-          {sections.map((section) => (
-            <TabsTrigger key={section.id} value={section.id} className="flex items-center gap-2">
-              {section.icon}
-              <span className="hidden sm:inline">{section.label}</span>
-            </TabsTrigger>
-          ))}
-        </TabsList>
-        {sections.map((section) => (
-          <TabsContent key={section.id} value={section.id} className="mt-4">
-            <ul className="space-y-2">
-              {(Array.isArray(section.content)
-                ? section.content
-                : typeof section.content === 'string'
-                  ? section.content.split(/[|,]/).map((s: string) => s.trim()).filter(Boolean)
-                  : []
-              ).map((item: any, index: number) => (
-                <li key={index} className="flex gap-3">
-                  <span className="text-primary mt-1.5">•</span>
-                  <span className="flex-1">{String(item)}</span>
-                </li>
-              ))}
-            </ul>
-          </TabsContent>
-        ))}
-      </Tabs>
-    </Card>
+    <div className="space-y-4">
+      {legacyData.map((item, index) => (
+        <Card key={index} className={`p-6 ${
+          collectionContext
+            ? 'bg-[hsl(var(--scheme-cards-bg))] border-[hsl(var(--scheme-cards-border))] text-[hsl(var(--scheme-cards-text))]'
+            : ''
+        }`}>
+          <h2 className="text-xl font-bold mb-4">{item.label}</h2>
+          <div className={`space-y-2 ${
+            collectionContext ? 'opacity-90' : 'text-muted-foreground'
+          }`}>
+            {item.content.split('\n').map((paragraph, idx) => (
+              paragraph.trim() && (
+                <p key={idx} className="leading-relaxed">
+                  {paragraph}
+                </p>
+              )
+            ))}
+          </div>
+        </Card>
+      ))}
+    </div>
   );
 }

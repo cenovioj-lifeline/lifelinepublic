@@ -1,137 +1,71 @@
-import { Profile, formatDate } from "@/types/profile";
-import { Calendar, MapPin, Briefcase, Users, Building2, Sparkles } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import type { Profile } from "@/types/database";
 
 interface ProfileQuickFactsProps {
   profile: Profile;
+  collectionContext?: {
+    slug: string;
+    name: string;
+  };
 }
 
-export function ProfileQuickFacts({ profile }: ProfileQuickFactsProps) {
-  const facts: Array<{ icon: React.ReactNode; label: string; value: string }> = [];
+export function ProfileQuickFacts({ profile, collectionContext }: ProfileQuickFactsProps) {
+  const { fictional, real, org } = profile;
 
-  const bio = profile.extended_data?.biographical;
-  const fictional = profile.extended_data?.fictional;
-  const org = profile.extended_data?.organization;
-
-  // Biographical facts
-  if (bio?.birth_date) {
-    facts.push({
-      icon: <Calendar className="h-4 w-4" />,
-      label: "Born",
-      value: formatDate(bio.birth_date) + (bio.birth_place ? ` in ${bio.birth_place}` : ''),
-    });
-  }
-
-  if (bio?.death_date) {
-    facts.push({
-      icon: <Calendar className="h-4 w-4" />,
-      label: "Died",
-      value: formatDate(bio.death_date) + (bio.death_place ? ` in ${bio.death_place}` : ''),
-    });
-  }
-
-  if (bio?.nationality) {
-    const nationality = Array.isArray(bio.nationality) ? bio.nationality.join(', ') : bio.nationality;
-    facts.push({
-      icon: <MapPin className="h-4 w-4" />,
-      label: "Nationality",
-      value: nationality,
-    });
-  }
-
-  const rawOccupation: any = bio?.occupation as any;
-  const occupations = Array.isArray(rawOccupation)
-    ? rawOccupation
-    : typeof rawOccupation === 'string'
-      ? rawOccupation.split(/[|,]/).map((s: string) => s.trim()).filter(Boolean)
-      : [];
-  if (occupations.length > 0) {
-    facts.push({
-      icon: <Briefcase className="h-4 w-4" />,
-      label: "Occupation",
-      value: occupations.join(', '),
-    });
-  }
+  const facts: { label: string; value: string | null }[] = [];
 
   // Fictional character facts
-  if (fictional?.universe) {
-    facts.push({
-      icon: <Sparkles className="h-4 w-4" />,
-      label: "Universe",
-      value: fictional.universe,
-    });
+  if (fictional) {
+    if (fictional.portrayed_by) facts.push({ label: "Portrayed By", value: fictional.portrayed_by });
+    if (fictional.species) facts.push({ label: "Species", value: fictional.species });
+    if (fictional.affiliation) facts.push({ label: "Affiliation", value: fictional.affiliation });
+    if (fictional.occupation) facts.push({ label: "Occupation", value: fictional.occupation });
+    if (fictional.status) facts.push({ label: "Status", value: fictional.status });
+    if (fictional.first_appearance) facts.push({ label: "First Appearance", value: fictional.first_appearance });
+    if (fictional.last_appearance) facts.push({ label: "Last Appearance", value: fictional.last_appearance });
   }
 
-  if (fictional?.creators) {
-    const rawCreators: any = fictional.creators as any;
-    const creators = Array.isArray(rawCreators)
-      ? rawCreators
-      : typeof rawCreators === 'string'
-        ? rawCreators.split(/[|,]/).map((s: string) => s.trim()).filter(Boolean)
-        : [];
-    if (creators.length > 0) {
-      facts.push({
-        icon: <Users className="h-4 w-4" />,
-        label: "Created by",
-        value: creators.join(', '),
-      });
-    }
-  }
-
-  if (fictional?.portrayed_by) {
-    const portrayed = Array.isArray(fictional.portrayed_by) 
-      ? fictional.portrayed_by.join(', ') 
-      : fictional.portrayed_by;
-    facts.push({
-      icon: <Users className="h-4 w-4" />,
-      label: "Portrayed by",
-      value: portrayed,
-    });
-  }
-
-  if (fictional?.first_appearance) {
-    facts.push({
-      icon: <Calendar className="h-4 w-4" />,
-      label: "First appearance",
-      value: fictional.first_appearance,
-    });
+  // Real person facts
+  if (real) {
+    if (real.birth_date) facts.push({ label: "Born", value: real.birth_date });
+    if (real.death_date) facts.push({ label: "Died", value: real.death_date });
+    if (real.nationality) facts.push({ label: "Nationality", value: real.nationality });
+    if (real.occupation) facts.push({ label: "Occupation", value: real.occupation });
+    if (real.known_for) facts.push({ label: "Known For", value: real.known_for });
   }
 
   // Organization facts
-  if (org?.founded_date) {
-    facts.push({
-      icon: <Calendar className="h-4 w-4" />,
-      label: "Founded",
-      value: formatDate(org.founded_date),
-    });
+  if (org) {
+    if (org.founded) facts.push({ label: "Founded", value: org.founded });
+    if (org.headquarters) facts.push({ label: "Headquarters", value: org.headquarters });
+    if (org.industry) facts.push({ label: "Industry", value: org.industry });
+    if (org.key_people) facts.push({ label: "Key People", value: org.key_people });
   }
 
-  if (org?.headquarters) {
-    facts.push({
-      icon: <Building2 className="h-4 w-4" />,
-      label: "Headquarters",
-      value: org.headquarters,
-    });
-  }
+  // Event facts (if applicable)
+  // Note: Event-specific fields would be added here if needed
 
-  if (facts.length === 0) return null;
+  if (facts.length === 0) {
+    return null;
+  }
 
   return (
-    <Card className="p-6">
+    <Card className={`p-6 ${
+      collectionContext
+        ? 'bg-[hsl(var(--scheme-cards-bg))] border-[hsl(var(--scheme-cards-border))] text-[hsl(var(--scheme-cards-text))]'
+        : ''
+    }`}>
       <h2 className="text-xl font-bold mb-4">Quick Facts</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <dl className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {facts.map((fact, index) => (
-          <div key={index} className="flex gap-3 items-start">
-            <div className="text-primary mt-0.5">{fact.icon}</div>
-            <div className="flex-1">
-              <div className="text-sm font-medium text-muted-foreground">
-                {fact.label}
-              </div>
-              <div className="text-sm">{fact.value}</div>
-            </div>
+          <div key={index} className="space-y-1">
+            <dt className="text-sm font-medium opacity-70">{fact.label}</dt>
+            <dd className={collectionContext ? 'opacity-90' : 'text-muted-foreground'}>
+              {fact.value}
+            </dd>
           </div>
         ))}
-      </div>
+      </dl>
     </Card>
   );
 }
