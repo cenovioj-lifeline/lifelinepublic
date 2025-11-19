@@ -35,7 +35,7 @@ export default function CollectionProfileDetail() {
 
   const collection = (profile.profile_collections as any[])?.[0]?.collection;
   const associatedLifelines = (profile.profile_lifelines as any[])
-    ?.map((pl: any) => pl.lifeline)
+    ?.map((pl: any) => ({ ...pl.lifeline, relationship_type: pl.relationship_type }))
     .filter(Boolean) || [];
 
   return (

@@ -48,7 +48,7 @@ export default function PublicProfileDetail() {
   }
 
   const associatedLifelines = profile.profile_lifelines?.map(
-    (pl: any) => pl.lifeline
+    (pl: any) => ({ ...pl.lifeline, relationship_type: pl.relationship_type })
   ).filter(Boolean) || [];
 
   const collections = profile.profile_collections?.map(
