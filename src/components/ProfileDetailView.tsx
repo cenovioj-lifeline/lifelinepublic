@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { Profile, hasModule } from "@/types/profile";
 import { ProfileHero } from "./profile/ProfileHero";
 import { ProfileQuickFacts } from "./profile/ProfileQuickFacts";
@@ -99,12 +100,22 @@ export function ProfileDetailView({
         <section className="space-y-4">
           <h2 className="text-2xl font-bold">Associated Lifelines</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {associatedLifelines.map((lifeline: any) => (
-              <div key={lifeline.id} className="p-4 border rounded-lg bg-card">
-                <h3 className="font-semibold">{lifeline.title}</h3>
-                <p className="text-sm text-muted-foreground">{lifeline.type}</p>
-              </div>
-            ))}
+            {associatedLifelines.map((lifeline: any) => {
+              const lifelinePath = collectionContext
+                ? `/public/collections/${collectionContext.slug}/lifelines/${lifeline.slug}`
+                : `/public/lifelines/${lifeline.slug}`;
+              
+              return (
+                <Link key={lifeline.id} to={lifelinePath} className="group block">
+                  <div className="p-4 border rounded-lg bg-card hover:shadow-lg hover:border-primary/50 transition-all duration-200 cursor-pointer">
+                    <h3 className="font-semibold group-hover:text-primary transition-colors">
+                      {lifeline.title}
+                    </h3>
+                    <p className="text-sm text-muted-foreground">{lifeline.type}</p>
+                  </div>
+                </Link>
+              );
+            })}
           </div>
         </section>
       )}
@@ -114,14 +125,22 @@ export function ProfileDetailView({
           <h2 className="text-2xl font-bold">Related Collections</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {collections.map((collection: any) => (
-              <div key={collection.id} className="p-4 border rounded-lg bg-card">
-                <h3 className="font-semibold">{collection.title}</h3>
-                {collection.description && (
-                  <p className="text-sm text-muted-foreground mt-1">
-                    {collection.description}
-                  </p>
-                )}
-              </div>
+              <Link 
+                key={collection.id} 
+                to={`/public/collections/${collection.slug}`} 
+                className="group block"
+              >
+                <div className="p-4 border rounded-lg bg-card hover:shadow-lg hover:border-primary/50 transition-all duration-200 cursor-pointer">
+                  <h3 className="font-semibold group-hover:text-primary transition-colors">
+                    {collection.title}
+                  </h3>
+                  {collection.description && (
+                    <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+                      {collection.description}
+                    </p>
+                  )}
+                </div>
+              </Link>
             ))}
           </div>
         </section>
