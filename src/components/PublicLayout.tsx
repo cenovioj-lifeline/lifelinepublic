@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Home, BookOpen, Users, Award, FolderOpen, Menu, MoreHorizontal } from "lucide-react";
+import { Home, Users, Award, FolderOpen, Menu, MoreHorizontal } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { PublicAuthModal } from "@/components/PublicAuthModal";
@@ -11,6 +11,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import logo from "@/assets/logo.png";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { cn } from "@/lib/utils";
+import { LifelineBookIcon } from "@/components/icons/LifelineBookIcon";
 
 export function PublicLayout({ children }: { children: React.ReactNode }) {
   useColorScheme(); // Apply default color scheme
@@ -22,7 +23,7 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
 
   const navItems = [
     { path: "/", label: "Home", icon: Home },
-    { path: "/public/lifelines", label: "Stories", icon: BookOpen },
+    { path: "/public/lifelines", label: "Stories", icon: LifelineBookIcon },
     { path: "/public/profiles", label: "People", icon: Users },
     { path: "/public/elections", label: "Awards", icon: Award },
     { path: "/public/collections", label: "Collections", icon: FolderOpen },
