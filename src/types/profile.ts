@@ -6,7 +6,7 @@ export interface Profile {
   name: string;
   slug: string;
   subject_type: 'Person' | 'Fictional Character' | 'Organization' | 'Concept' | 'Place' | 'Event';
-  reality_status: 'Real' | 'Fictional' | 'Mythological' | 'Disputed/Legendary';
+  reality_status: 'real' | 'fictional' | 'mythological' | 'historical_fiction';
   
   // References (can be null)
   primary_lifeline_id: string | null;
