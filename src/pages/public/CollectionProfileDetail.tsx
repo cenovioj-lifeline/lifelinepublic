@@ -1,80 +1,69 @@
-import { useParams } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { useParams, useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { CollectionLayout } from "@/components/CollectionLayout";
 import { ProfileDetailView } from "@/components/ProfileDetailView";
 import { useProfileData } from "@/hooks/useProfileData";
-import { LoadingState } from "@/components/ui/loading-state";
-import { ErrorState } from "@/components/ui/error-state";
 
 export default function CollectionProfileDetail() {
-  const { collectionSlug, profileSlug } = useParams<{
-    collectionSlug: string;
-    profileSlug: string;
-  }>();
+  const { collectionSlug, profileSlug } = useParams<{ collectionSlug: string; profileSlug: string }>();
+  const navigate = useNavigate();
 
-  // Get collection info
-  const { data: collection, isLoading: collectionLoading, error: collectionError } = useQuery({
-    queryKey: ['collection', collectionSlug],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('collections')
-        .select('id, slug, title, description')
-        .eq('slug', collectionSlug)
-        .single();
-      
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!collectionSlug,
-  });
+  const { profile, lifelinesData, isLoading } = useProfileData(profileSlug, { collectionSlug });
 
-  // Get profile with collection context
-  const {
-    data: profile,
-    isLoading: profileLoading,
-    error: profileError
-  } = useProfileData({
-    slug: profileSlug!,
-    collectionSlug,
-  });
-
-  // Get associated lifelines for this profile within this collection
-  const { data: associatedLifelines = [] } = useQuery({
-    queryKey: ['collection-profile-lifelines', collectionSlug, profile?.id],
-    queryFn: async () => {
-      if (!profile?.id || !collection?.id) return [];
-
-      const { data, error } = await supabase
-        .from('lifelines')
-        .select('id, slug, title, description, type, image_url')
-        .eq('collection_id', collection.id);
-      
-      if (error) throw error;
-      return data || [];
-    },
-    enabled: !!profile?.id && !!collection?.id,
-  });
-
-  if (collectionLoading || profileLoading) {
-    return <LoadingState message="Loading profile..." />;
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background p-6 space-y-6">
+        <Skeleton className="h-8 w-48" />
+        <Skeleton className="h-96 w-full" />
+      </div>
+    );
   }
 
-  if (collectionError || profileError) {
-    return <ErrorState message="Failed to load profile" />;
+  if (!profile) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4 p-4">
+        <p className="text-base text-muted-foreground">Profile not found</p>
+        <Button onClick={() => navigate(`/public/collections/${collectionSlug}/profiles`)}>
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back to Profiles
+        </Button>
+      </div>
+    );
   }
 
-  if (!profile || !collection) {
-    return <ErrorState message="Profile not found" />;
-  }
+  const collection = (profile.profile_collections as any[])?.[0]?.collection;
+  const associatedLifelines = (profile.profile_lifelines as any[])
+    ?.map((pl: any) => ({ ...pl.lifeline, relationship_type: pl.relationship_type }))
+    .filter(Boolean) || [];
 
   return (
-    <ProfileDetailView
-      profile={profile as any}
-      associatedLifelines={associatedLifelines}
-      collectionContext={{
-        slug: collectionSlug!,
-        name: collection.title
-      }}
-    />
+    <CollectionLayout
+      collectionTitle={collection.title}
+      collectionSlug={collection.slug}
+      collectionId={collection.id}
+    >
+      <div className="container max-w-6xl mx-auto py-8 px-4">
+        <ProfileDetailView
+          profile={profile as any}
+          associatedLifelines={lifelinesData ?? associatedLifelines}
+          collections={[]}
+          collectionContext={{
+            slug: collectionSlug!,
+            name: collection.title
+          }}
+        />
+        
+        <Button 
+          onClick={() => navigate(`/public/collections/${collectionSlug}/profiles`)}
+          variant="outline"
+          className="mt-8"
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back to Profiles
+        </Button>
+      </div>
+    </CollectionLayout>
   );
 }

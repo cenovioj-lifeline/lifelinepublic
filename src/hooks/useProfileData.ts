@@ -1,81 +1,81 @@
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import type { Tables } from '@/integrations/supabase/types';
-
-type Profile = Tables<'profiles'>;
-
-export interface ProfileWithRelations extends Profile {
-  fictional?: any;
-  real?: any;
-  org?: any;
-  profile_collections?: Array<{
-    collection?: {
-      id: string;
-      slug: string;
-      title: string;
-    };
-  }>;
-  profile_lifelines?: Array<{
-    lifeline?: {
-      id: string;
-      slug: string;
-      title: string;
-    };
-  }>;
-}
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 interface UseProfileDataOptions {
-  slug: string;
   collectionSlug?: string;
 }
 
-export function useProfileData({ slug, collectionSlug }: UseProfileDataOptions) {
-  return useQuery({
-    queryKey: ['profile', slug, collectionSlug],
+export function useProfileData(slug: string | undefined, options?: UseProfileDataOptions) {
+  const { collectionSlug } = options || {};
+
+  const profileQuery = useQuery({
+    queryKey: ["profile-data", slug, collectionSlug],
+    enabled: !!slug,
     queryFn: async () => {
-      // First get the profile with all its data
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
+      if (!slug) return null;
+
+      // Fetch base profile without ambiguous embeds
+      const { data: baseProfile, error: baseError } = await supabase
+        .from("profiles")
         .select(`
           *,
-          fictional_profiles (*),
-          real_profiles (*),
-          org_profiles (*)
-        `)
-        .eq('slug', slug)
-        .single();
-
-      if (profileError) throw profileError;
-      if (!profile) throw new Error('Profile not found');
-
-      // Merge the type-specific data into the main profile object
-      const fullProfile: any = {
-        ...profile,
-        fictional: profile.fictional_profiles?.[0] || null,
-        real: profile.real_profiles?.[0] || null,
-        org: profile.org_profiles?.[0] || null,
-      };
-
-      // Remove the arrays to avoid duplication
-      delete fullProfile.fictional_profiles;
-      delete fullProfile.real_profiles;
-      delete fullProfile.org_profiles;
-
-      // Get collections this profile belongs to
-      const { data: profileCollections, error: collectionsError } = await supabase
-        .from('profile_collections')
-        .select(`
-          collection:collections (
+          avatar_image:media_assets!profiles_avatar_image_id_fkey(
             id,
-            slug,
-            title
+            url,
+            alt_text,
+            position_x,
+            position_y,
+            scale
           )
         `)
-        .eq('profile_id', profile.id);
+        .eq("slug", slug)
+        .eq("status", "published")
+        .maybeSingle();
 
-      if (collectionsError) throw collectionsError;
+      if (baseError) throw baseError;
+      if (!baseProfile) return null;
 
-      fullProfile.profile_collections = profileCollections;
+      // Fetch related resources in parallel to avoid PostgREST embed ambiguity
+      const [relsRes, worksRes, lifelinesRes, collectionsRes] = await Promise.all([
+        supabase
+          .from("profile_relationships")
+          .select(`
+            id,
+            relationship_type,
+            target_name,
+            context,
+            related_profile:profiles!profile_relationships_related_profile_id_fkey(
+              id,
+              name,
+              slug,
+              subject_type
+            )
+          `)
+          .eq("profile_id", baseProfile.id),
+        supabase
+          .from("profile_works")
+          .select(`id, work_category, title, year, work_type, significance, additional_info`)
+          .eq("profile_id", baseProfile.id),
+        supabase
+          .from("profile_lifelines")
+          .select(`
+            relationship_type,
+            lifeline:lifelines!profile_lifelines_lifeline_id_fkey(id, slug, title, lifeline_type)
+          `)
+          .eq("profile_id", baseProfile.id),
+        supabase
+          .from("profile_collections")
+          .select(`collection:collections!profile_collections_collection_id_fkey(id, slug, title, description)`)
+          .eq("profile_id", baseProfile.id),
+      ]);
+
+      const fullProfile: any = {
+        ...baseProfile,
+        profile_relationships: relsRes.data ?? [],
+        profile_works: worksRes.data ?? [],
+        profile_lifelines: lifelinesRes.data ?? [],
+        profile_collections: collectionsRes.data ?? [],
+      };
 
       // If collectionSlug is provided, verify profile belongs to collection
       if (collectionSlug) {
@@ -88,52 +88,49 @@ export function useProfileData({ slug, collectionSlug }: UseProfileDataOptions) 
         }
       }
 
-      // Get lifelines associated with this profile
-      const { data: profileLifelines, error: lifelinesError } = await supabase
-        .from('profile_lifelines')
-        .select(`
-          relationship_type,
-          lifeline:lifelines (
-            id,
-            slug,
-            title
-          )
-        `)
-        .eq('profile_id', profile.id);
-
-      if (lifelinesError) throw lifelinesError;
-
-      fullProfile.profile_lifelines = profileLifelines;
-
-      return fullProfile as ProfileWithRelations;
+      return fullProfile;
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
   });
-}
 
-// Hook to get associated lifelines for a profile
-export function useProfileLifelines(profileId: string) {
-  return useQuery({
-    queryKey: ['profile-lifelines', profileId],
+  // Fetch full lifeline details with cover images (for collection context)
+  const lifelinesQuery = useQuery({
+    queryKey: ["profile-lifelines-detailed", profileQuery.data?.id, collectionSlug],
+    enabled: !!profileQuery.data?.id && !!collectionSlug,
     queryFn: async () => {
+      if (!profileQuery.data?.id) return [];
+
       const { data, error } = await supabase
-        .from('profile_lifelines')
+        .from("lifelines")
         .select(`
-          lifeline:lifelines (
-            id,
-            slug,
-            title,
-            description,
-            type,
-            image_url
-          )
+          id,
+          title,
+          slug,
+          lifeline_type,
+          collection_id,
+          cover_image:media_assets(url, alt_text)
         `)
-        .eq('profile_id', profileId);
+        .eq("profile_id", profileQuery.data.id)
+        .eq("status", "published");
 
       if (error) throw error;
-      return data?.map(item => item.lifeline).filter(Boolean) || [];
+
+      // Filter by collection if collectionSlug provided
+      if (collectionSlug) {
+        const collectionId = profileQuery.data.profile_collections?.find(
+          (pc: any) => pc.collection?.slug === collectionSlug
+        )?.collection?.id;
+
+        return collectionId ? data?.filter((l: any) => l.collection_id === collectionId) : data;
+      }
+
+      return data;
     },
-    enabled: !!profileId,
-    staleTime: 5 * 60 * 1000,
   });
+
+  return {
+    profile: profileQuery.data,
+    lifelinesData: lifelinesQuery.data,
+    isLoading: profileQuery.isLoading,
+    error: profileQuery.error || lifelinesQuery.error,
+  };
 }

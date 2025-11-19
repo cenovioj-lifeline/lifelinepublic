@@ -10,7 +10,7 @@ export default function PublicProfileDetail() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
 
-  const { data: profile, isLoading } = useProfileData({ slug: slug! });
+  const { profile, isLoading } = useProfileData(slug);
 
 
   if (isLoading) {
