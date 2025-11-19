@@ -1,8 +1,13 @@
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import type { Profile } from '@/types/database';
+import { supabase } from '@/integrations/supabase/client';
+import type { Tables } from '@/integrations/supabase/types';
+
+type Profile = Tables<'profiles'>;
 
 export interface ProfileWithRelations extends Profile {
+  fictional?: any;
+  real?: any;
+  org?: any;
   profile_collections?: Array<{
     collection?: {
       id: string;
@@ -87,6 +92,7 @@ export function useProfileData({ slug, collectionSlug }: UseProfileDataOptions) 
       const { data: profileLifelines, error: lifelinesError } = await supabase
         .from('profile_lifelines')
         .select(`
+          relationship_type,
           lifeline:lifelines (
             id,
             slug,

@@ -21,15 +21,15 @@ export function SimpleColorSchemeEditor({ initialColors, initialScheme, onChange
     initialScheme?.nav_bg_color || initialColors?.primary || "#D4B996"
   );
   const [secondaryColor, setSecondaryColor] = useState(
-    initialScheme?.nav_active_link_color || initialColors?.secondary || "#C97456"
+    initialScheme?.nav_button_color || initialColors?.secondary || "#C97456"
   );
   const [autoText, setAutoText] = useState(!initialColors?.text && !initialScheme?.nav_text_color);
   const [textColor, setTextColor] = useState(
     initialScheme?.nav_text_color || initialColors?.text || "#2C1810"
   );
-  const [autoBackground, setAutoBackground] = useState(!initialColors?.background && !initialScheme?.collection_bg_color);
+  const [autoBackground, setAutoBackground] = useState(!initialColors?.background && !initialScheme?.cards_bg);
   const [backgroundColor, setBackgroundColor] = useState(
-    initialScheme?.collection_bg_color || initialColors?.background || "#FAF8F5"
+    initialScheme?.cards_bg || initialColors?.background || "#FAF8F5"
   );
 
   // Generate full scheme when colors change

@@ -1,8 +1,8 @@
 import { Card } from "@/components/ui/card";
-import type { Profile } from "@/types/database";
+import type { ProfileWithRelations } from "@/hooks/useProfileData";
 
 interface ProfileLegacyImpactProps {
-  profile: Profile;
+  profile: ProfileWithRelations;
   collectionContext?: {
     slug: string;
     name: string;

@@ -1,7 +1,7 @@
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/lib/supabase";
-import { ProfileDetailView } from "@/components/profile/ProfileDetailView";
+import { supabase } from "@/integrations/supabase/client";
+import { ProfileDetailView } from "@/components/ProfileDetailView";
 import { useProfileData } from "@/hooks/useProfileData";
 import { LoadingState } from "@/components/ui/loading-state";
 import { ErrorState } from "@/components/ui/error-state";
