@@ -11,6 +11,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 import { LifelineViewer } from "@/components/lifeline/LifelineViewer";
+import { LifelineBookIcon } from "@/components/icons/LifelineBookIcon";
 
 export default function PublicLifelines() {
   const [selectedLifelineId, setSelectedLifelineId] = useState<string | null>(null);
@@ -121,7 +122,10 @@ export default function PublicLifelines() {
           <SelectContent>
             {filteredAndSortedLifelines?.map((lifeline) => (
               <SelectItem key={lifeline.id} value={lifeline.id}>
-                {lifeline.title}
+                <div className="flex items-center gap-2">
+                  <LifelineBookIcon size={16} />
+                  <span>{lifeline.title}</span>
+                </div>
               </SelectItem>
             ))}
           </SelectContent>

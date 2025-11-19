@@ -7,6 +7,7 @@ import { ProfileRelationships } from "./profile/ProfileRelationships";
 import { ProfileWorks } from "./profile/ProfileWorks";
 import { ProfileLegacyImpact } from "./profile/ProfileLegacyImpact";
 import { ProfilePhysicalCharacteristics } from "./profile/ProfilePhysicalCharacteristics";
+import { LifelineBookIcon } from "./icons/LifelineBookIcon";
 
 interface ProfileRelationship {
   id: string;
@@ -113,9 +114,12 @@ export function ProfileDetailView({
                   className="group block"
                 >
                   <div className="p-4 border rounded-lg bg-card hover:shadow-lg hover:border-primary/50 transition-all duration-200 cursor-pointer">
-                    <h3 className="font-semibold group-hover:text-primary transition-colors">
-                      {myLifeline.title}
-                    </h3>
+                    <div className="flex items-center gap-2">
+                      <LifelineBookIcon size={20} />
+                      <h3 className="font-semibold group-hover:text-primary transition-colors">
+                        {myLifeline.title}
+                      </h3>
+                    </div>
                     <p className="text-sm text-muted-foreground">{myLifeline.type}</p>
                   </div>
                 </Link>
@@ -134,9 +138,12 @@ export function ProfileDetailView({
                     return (
                       <Link key={lifeline.id} to={lifelinePath} className="group block">
                         <div className="p-4 border rounded-lg bg-card hover:shadow-lg hover:border-primary/50 transition-all duration-200 cursor-pointer">
-                          <h3 className="font-semibold group-hover:text-primary transition-colors">
-                            {lifeline.title}
-                          </h3>
+                          <div className="flex items-center gap-2">
+                            <LifelineBookIcon size={20} />
+                            <h3 className="font-semibold group-hover:text-primary transition-colors">
+                              {lifeline.title}
+                            </h3>
+                          </div>
                           <p className="text-sm text-muted-foreground">{lifeline.type}</p>
                         </div>
                       </Link>
