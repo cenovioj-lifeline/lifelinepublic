@@ -1,10 +1,21 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Search, ArrowUpDown } from "lucide-react";
+import { Plus, Search, ArrowUpDown, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import {
   Table,
   TableBody,
@@ -17,7 +28,12 @@ import { Badge } from "@/components/ui/badge";
 
 export default function Elections() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [electionToDelete, setElectionToDelete] = useState<any>(null);
+  const [deletionStats, setDeletionStats] = useState<any>(null);
 
   const { data: elections, isLoading } = useQuery({
     queryKey: ["elections", searchTerm],
@@ -36,6 +52,86 @@ export default function Elections() {
       return data;
     },
   });
+
+  const deleteElectionMutation = useMutation({
+    mutationFn: async (electionId: string) => {
+      const { data, error } = await supabase.functions.invoke('delete-election', {
+        body: { electionId }
+      });
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Election deleted",
+        description: `Deleted ${data.deletedCounts.ballotItems} ballot items and ${data.deletedCounts.results} results`,
+      });
+      if (data.storageFailures.length > 0) {
+        toast({
+          title: "Storage warning",
+          description: `${data.storageFailures.length} storage files could not be deleted`,
+          variant: "destructive",
+        });
+      }
+      queryClient.invalidateQueries({ queryKey: ["elections"] });
+      setDeleteDialogOpen(false);
+      setElectionToDelete(null);
+      setDeletionStats(null);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to delete election",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
+
+  const handleDeleteClick = async (election: any, e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    // Fetch deletion stats
+    const { data: ballotItems } = await supabase
+      .from('ballot_items')
+      .select('id')
+      .eq('election_id', election.id);
+    
+    const ballotItemIds = ballotItems?.map(item => item.id) || [];
+    
+    let ballotOptionsCount = 0;
+    let resultsCount = 0;
+    let favoritesCount = 0;
+    
+    if (ballotItemIds.length > 0) {
+      const { count: optionsCount } = await supabase
+        .from('ballot_options')
+        .select('*', { count: 'exact', head: true })
+        .in('ballot_item_id', ballotItemIds);
+      ballotOptionsCount = optionsCount || 0;
+    }
+
+    const { count: rCount } = await supabase
+      .from('election_results')
+      .select('*', { count: 'exact', head: true })
+      .eq('election_id', election.id);
+    resultsCount = rCount || 0;
+
+    const { count: fCount } = await supabase
+      .from('user_favorites')
+      .select('*', { count: 'exact', head: true })
+      .eq('item_id', election.id)
+      .eq('item_type', 'election');
+    favoritesCount = fCount || 0;
+
+    setElectionToDelete(election);
+    setDeletionStats({
+      ballotItems: ballotItemIds.length,
+      ballotOptions: ballotOptionsCount,
+      results: resultsCount,
+      favorites: favoritesCount,
+    });
+    setDeleteDialogOpen(true);
+  };
 
   return (
     <div className="space-y-6">
@@ -117,16 +213,25 @@ export default function Elections() {
                     {new Date(election.updated_at).toLocaleDateString()}
                   </TableCell>
                   <TableCell>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        navigate(`/elections/${election.id}`);
-                      }}
-                    >
-                      Edit
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/elections/${election.id}`);
+                        }}
+                      >
+                        Edit
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => handleDeleteClick(election, e)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))
@@ -134,6 +239,44 @@ export default function Elections() {
           </TableBody>
         </Table>
       </div>
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Mock Election Result</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete <strong>{electionToDelete?.title}</strong>?
+              <br /><br />
+              This will permanently delete:
+              <ul className="list-disc list-inside mt-2 space-y-1">
+                {deletionStats && (
+                  <>
+                    <li>{deletionStats.ballotItems} ballot items</li>
+                    <li>{deletionStats.ballotOptions} ballot options</li>
+                    <li>{deletionStats.results} election results</li>
+                    <li>{deletionStats.favorites} user favorites</li>
+                  </>
+                )}
+              </ul>
+              <br />
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (electionToDelete) {
+                  deleteElectionMutation.mutate(electionToDelete.id);
+                }
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
