@@ -53,9 +53,9 @@ export function CollectionProfileManager({ collectionId }: CollectionProfileMana
     },
   });
 
-  // Initialize selected profiles when data loads
+  // Sync selected profiles with current connections
   useEffect(() => {
-    if (currentConnections && selectedProfiles.size === 0) {
+    if (currentConnections) {
       setSelectedProfiles(new Set(currentConnections));
     }
   }, [currentConnections]);
