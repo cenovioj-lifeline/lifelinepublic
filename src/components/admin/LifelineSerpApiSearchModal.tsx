@@ -72,7 +72,6 @@ export const LifelineSerpApiSearchModal = ({
   const [importing, setImporting] = useState(false);
   const [showPositionPicker, setShowPositionPicker] = useState(false);
   const [importedImageUrl, setImportedImageUrl] = useState<string | null>(null);
-  const [mediaAssetId, setMediaAssetId] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
   // Sync modal state when lifeline or query changes
@@ -133,34 +132,34 @@ export const LifelineSerpApiSearchModal = ({
 
     setImporting(true);
     try {
-      // Step 1: Import via edge function (uploads to storage + creates media_asset)
-      const { data: importData, error: importError } = await supabase.functions.invoke(
-        'import-image-from-url',
-        {
-          body: {
-            entryId: lifelineId,
-            imageUrl: selectedUrl,
-            altText: '',
-            orderIndex: 0,
-            position: {
-              x: 50,
-              y: 50,
-              scale: 1.0
-            }
-          }
+      // Call new edge function to import lifeline cover image
+      const { data, error } = await supabase.functions.invoke('import-lifeline-cover-image', {
+        body: {
+          lifelineId: lifelineId,
+          imageUrl: selectedUrl
         }
-      );
+      });
 
-      if (importError) throw importError;
+      if (error) {
+        console.error('Import error:', error);
+        toast.error('Failed to import image');
+        return;
+      }
 
-      const { mediaId, url } = importData;
-      setMediaAssetId(mediaId);
-      setImportedImageUrl(url);
-      setShowPositionPicker(true);
+      console.log('Lifeline cover image imported:', data);
 
+      // Store the imported URL for the position picker
+      if (data?.url) {
+        setImportedImageUrl(data.url);
+        setShowPositionPicker(true);
+        toast.success('Image imported! Adjust position if needed.');
+      } else {
+        toast.error('Failed to get image URL from import');
+      }
     } catch (error) {
       console.error('Import error:', error);
       toast.error('Failed to import image');
+    } finally {
       setImporting(false);
     }
   };
@@ -171,12 +170,11 @@ export const LifelineSerpApiSearchModal = ({
 
   const updateLifelineMutation = useMutation({
     mutationFn: async (position: { x?: number; y?: number; scale?: number }) => {
-      if (!mediaAssetId || !importedImageUrl) return;
+      if (!importedImageUrl) return;
 
       const { error } = await supabase
         .from('lifelines')
         .update({
-          cover_image_id: mediaAssetId,
           cover_image_url: importedImageUrl,
           cover_image_position_x: position.x || 50,
           cover_image_position_y: position.y || 50
@@ -189,6 +187,7 @@ export const LifelineSerpApiSearchModal = ({
       toast.success('Cover image updated successfully');
       queryClient.invalidateQueries({ queryKey: ['public-lifelines'] });
       queryClient.invalidateQueries({ queryKey: ['collection-lifelines'] });
+      queryClient.invalidateQueries({ queryKey: ['public-lifelines-grid'] });
       onImportComplete();
       handleModalClose();
     },
@@ -215,7 +214,6 @@ export const LifelineSerpApiSearchModal = ({
     setImporting(false);
     setShowPositionPicker(false);
     setImportedImageUrl(null);
-    setMediaAssetId(null);
     onClose();
   };
 
