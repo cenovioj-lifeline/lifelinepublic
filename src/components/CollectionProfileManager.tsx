@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -54,11 +54,11 @@ export function CollectionProfileManager({ collectionId }: CollectionProfileMana
   });
 
   // Initialize selected profiles when data loads
-  useState(() => {
+  useEffect(() => {
     if (currentConnections && selectedProfiles.size === 0) {
       setSelectedProfiles(new Set(currentConnections));
     }
-  });
+  }, [currentConnections]);
 
   const saveMutation = useMutation({
     mutationFn: async () => {
