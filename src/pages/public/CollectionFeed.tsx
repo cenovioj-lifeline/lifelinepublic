@@ -1,8 +1,10 @@
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { CollectionLayout } from "@/components/CollectionLayout";
-import { Card, CardContent } from "@/components/ui/card";
+import { StandardizedContentCard } from "@/components/StandardizedContentCard";
+import { Button } from "@/components/ui/button";
+import { ArrowRight } from "lucide-react";
 
 export default function CollectionFeed() {
   const { slug } = useParams<{ slug: string }>();
@@ -22,10 +24,97 @@ export default function CollectionFeed() {
     },
   });
 
+  // Check if collection has custom featured items
+  const { data: hasFeaturedItems } = useQuery({
+    queryKey: ["collection-has-featured", collection?.id],
+    enabled: !!collection?.id,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("collection_featured_items")
+        .select("id")
+        .eq("collection_id", collection!.id)
+        .limit(1);
+
+      if (error) throw error;
+      return data && data.length > 0;
+    },
+  });
+
+  // Fetch lifelines for this collection
+  const { data: lifelines } = useQuery({
+    queryKey: ["collection-lifelines", collection?.id],
+    enabled: !!collection?.id && !hasFeaturedItems,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("lifelines")
+        .select(`
+          id,
+          title,
+          slug,
+          subtitle,
+          is_featured,
+          cover_image:media_assets!lifelines_cover_image_id_fkey(url, position_x, position_y)
+        `)
+        .eq("collection_id", collection!.id)
+        .eq("status", "published")
+        .order("is_featured", { ascending: false })
+        .order("cover_image_id", { ascending: false, nullsFirst: false })
+        .order("created_at", { ascending: false })
+        .limit(3);
+
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Fetch profiles for this collection
+  const { data: profiles } = useQuery({
+    queryKey: ["collection-profiles", collection?.id],
+    enabled: !!collection?.id && !hasFeaturedItems,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profile_collections")
+        .select(`
+          is_featured,
+          profiles!inner(
+            id,
+            name,
+            slug,
+            short_description,
+            avatar_image:media_assets!profiles_avatar_image_id_fkey(url, position_x, position_y)
+          )
+        `)
+        .eq("collection_id", collection!.id)
+        .eq("profiles.status", "published")
+        .order("is_featured", { ascending: false })
+        .order("profiles(avatar_image_id)", { ascending: false, nullsFirst: false })
+        .order("profiles(created_at)", { ascending: false })
+        .limit(3);
+
+      if (error) throw error;
+      return data?.map(pc => pc.profiles) as any[];
+    },
+  });
+
   if (!collection) {
     return (
       <CollectionLayout collectionTitle="Loading..." collectionSlug={slug || ""}>
         <div>Loading...</div>
+      </CollectionLayout>
+    );
+  }
+
+  // If custom featured items exist, show those instead (future implementation)
+  if (hasFeaturedItems) {
+    return (
+      <CollectionLayout
+        collectionTitle={collection.title}
+        collectionSlug={collection.slug}
+        collectionId={collection.id}
+      >
+        <div className="text-center py-12">
+          <p className="text-muted-foreground">Custom featured content configured</p>
+        </div>
       </CollectionLayout>
     );
   }
@@ -36,22 +125,64 @@ export default function CollectionFeed() {
       collectionSlug={collection.slug}
       collectionId={collection.id}
     >
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold mb-2">Collection Feed</h1>
-          <p className="text-muted-foreground">
-            Latest updates and entries from this collection
-          </p>
-        </div>
+      <div className="space-y-12">
+        {/* Lifelines Section */}
+        {lifelines && lifelines.length > 0 && (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-bold">Lifelines</h2>
+              <Link to={`/public/collections/${collection.slug}/lifelines`}>
+                <Button variant="ghost" className="gap-2">
+                  View All <ArrowRight className="h-4 w-4" />
+                </Button>
+              </Link>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {lifelines.map((lifeline: any) => (
+                <StandardizedContentCard
+                  key={lifeline.id}
+                  id={lifeline.id}
+                  title={lifeline.title}
+                  description={lifeline.subtitle || ""}
+                  imageUrl={lifeline.cover_image?.url}
+                  imagePositionX={lifeline.cover_image?.position_x}
+                  imagePositionY={lifeline.cover_image?.position_y}
+                  linkPath={`/public/collections/${collection.slug}/lifelines/${lifeline.slug}`}
+                  type="lifeline"
+                />
+              ))}
+            </div>
+          </div>
+        )}
 
-        <Card>
-          <CardContent className="py-12 text-center">
-            <p className="text-muted-foreground">
-              Feed feature coming soon. This will display the latest entries and updates
-              across all lifelines in this collection.
-            </p>
-          </CardContent>
-        </Card>
+        {/* Profiles Section */}
+        {profiles && profiles.length > 0 && (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-bold">People</h2>
+              <Link to={`/public/collections/${collection.slug}/profiles`}>
+                <Button variant="ghost" className="gap-2">
+                  View All <ArrowRight className="h-4 w-4" />
+                </Button>
+              </Link>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {profiles.map((profile: any) => (
+                <StandardizedContentCard
+                  key={profile.id}
+                  id={profile.id}
+                  title={profile.name}
+                  description={profile.short_description || ""}
+                  imageUrl={profile.avatar_image?.url}
+                  imagePositionX={profile.avatar_image?.position_x}
+                  imagePositionY={profile.avatar_image?.position_y}
+                  linkPath={`/public/collections/${collection.slug}/profiles/${profile.slug}`}
+                  type="lifeline"
+                />
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </CollectionLayout>
   );
