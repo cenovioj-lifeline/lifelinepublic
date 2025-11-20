@@ -725,6 +725,7 @@ export type Database = {
           id: string
           lifeline_id: string | null
           profile_id: string | null
+          quote_id: string | null
         }
         Insert: {
           appearance_type: string
@@ -735,6 +736,7 @@ export type Database = {
           id?: string
           lifeline_id?: string | null
           profile_id?: string | null
+          quote_id?: string | null
         }
         Update: {
           appearance_type?: string
@@ -745,6 +747,7 @@ export type Database = {
           id?: string
           lifeline_id?: string | null
           profile_id?: string | null
+          quote_id?: string | null
         }
         Relationships: [
           {
@@ -787,6 +790,13 @@ export type Database = {
             columns: ["profile_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "entity_appearances_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "collection_quotes"
             referencedColumns: ["id"]
           },
         ]
