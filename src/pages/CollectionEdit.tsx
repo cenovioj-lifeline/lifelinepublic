@@ -29,6 +29,7 @@ import { ArrowLeft } from "lucide-react";
 import { DirectImageUpload } from "@/components/DirectImageUpload";
 import { CollectionQuotesUpload } from "@/components/CollectionQuotesUpload";
 import { CollectionFeaturedProfiles } from "@/components/CollectionFeaturedProfiles";
+import { CollectionProfileManager } from "@/components/CollectionProfileManager";
 import { ImagePositionPicker } from "@/components/ImagePositionPicker";
 import { CollectionContentManager } from "@/components/CollectionContentManager";
 
@@ -446,6 +447,11 @@ export default function CollectionEdit() {
               <div className="mt-8">
                 <h3 className="text-lg font-medium mb-4">Collection Quotes</h3>
                 <CollectionQuotesUpload collectionId={id!} />
+              </div>
+
+              <div className="mt-8">
+                <h3 className="text-lg font-medium mb-4">Profile Connections</h3>
+                <CollectionProfileManager collectionId={id!} />
               </div>
 
               <div className="mt-8">
