@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Home, Users, ArrowLeft, Award, BookOpen, Menu, MoreHorizontal } from "lucide-react";
+import { LifelineBookIcon } from "@/components/icons/LifelineBookIcon";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { PublicUserMenu } from "@/components/PublicUserMenu";
@@ -94,7 +95,7 @@ export function CollectionLayout({
 
   const navItems = [
     { label: "Home", icon: Home, to: `/public/collections/${collectionSlug}` },
-    { label: "Stories", icon: BookOpen, to: `/public/collections/${collectionSlug}/lifelines` },
+    { label: "Stories", icon: LifelineBookIcon, to: `/public/collections/${collectionSlug}/lifelines` },
     { label: "People", icon: Users, to: `/public/collections/${collectionSlug}/profiles` },
     { 
       label: "Awards", 
