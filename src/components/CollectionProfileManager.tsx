@@ -41,7 +41,7 @@ export function CollectionProfileManager({ collectionId }: CollectionProfileMana
 
   // Fetch current profile connections
   const { data: currentConnections, isLoading: loadingConnections } = useQuery({
-    queryKey: ["collection-profile-connections", collectionId],
+    queryKey: ["collection-profile-ids", collectionId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("profile_collections")
@@ -95,7 +95,7 @@ export function CollectionProfileManager({ collectionId }: CollectionProfileMana
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["collection-profile-connections", collectionId] });
+      queryClient.invalidateQueries({ queryKey: ["collection-profile-ids", collectionId] });
       queryClient.invalidateQueries({ queryKey: ["collection-profiles"] });
       setHasChanges(false);
       toast({
