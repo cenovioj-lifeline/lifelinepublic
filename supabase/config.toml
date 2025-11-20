@@ -6,6 +6,9 @@ verify_jwt = true
 [functions.delete-election]
 verify_jwt = true
 
+[functions.delete-profile]
+verify_jwt = true
+
 [functions.import-image-from-url]
 verify_jwt = false
 
