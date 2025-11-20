@@ -190,6 +190,64 @@ export default function PublicCollectionDetail() {
     enabled: !!collection?.id,
   });
 
+  // Fetch lifelines when no featured items exist
+  const { data: recentLifelines } = useQuery({
+    queryKey: ["collection-recent-lifelines", collection?.id],
+    enabled: !!collection?.id && (!featuredItems || featuredItems.length === 0),
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("lifelines")
+        .select(`
+          id,
+          title,
+          slug,
+          subtitle,
+          is_featured,
+          cover_image_id,
+          created_at,
+          cover_image:media_assets!lifelines_cover_image_id_fkey(url, position_x, position_y)
+        `)
+        .eq("collection_id", collection!.id)
+        .eq("status", "published")
+        .order("is_featured", { ascending: false })
+        .order("cover_image_id", { ascending: false, nullsFirst: false })
+        .order("created_at", { ascending: false })
+        .limit(3);
+
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Fetch profiles when no featured items exist
+  const { data: recentProfiles } = useQuery({
+    queryKey: ["collection-recent-profiles", collection?.id],
+    enabled: !!collection?.id && (!featuredItems || featuredItems.length === 0),
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select(`
+          id,
+          name,
+          slug,
+          short_description,
+          avatar_image_id,
+          created_at,
+          avatar_image:media_assets!profiles_avatar_image_id_fkey(url, position_x, position_y),
+          profile_collections!inner(is_featured, collection_id)
+        `)
+        .eq("profile_collections.collection_id", collection!.id)
+        .eq("status", "published")
+        .order("profile_collections.is_featured", { ascending: false })
+        .order("avatar_image_id", { ascending: false, nullsFirst: false })
+        .order("created_at", { ascending: false })
+        .limit(3);
+
+      if (error) throw error;
+      return data;
+    },
+  });
+
   const { data: fanCount } = useQuery({
     queryKey: ["collection-fan-count", collection?.id],
     queryFn: async () => {
@@ -538,6 +596,118 @@ export default function PublicCollectionDetail() {
               </Carousel>
             )}
           </section>
+        )}
+
+        {/* Fallback: Show recent content when no featured items */}
+        {(!featuredItems || featuredItems.length === 0) && (
+          <>
+            {/* Recent Lifelines Section */}
+            {recentLifelines && recentLifelines.length > 0 && (
+              <section>
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-2xl font-bold text-[hsl(var(--scheme-title-text))]">Lifelines</h2>
+                  <Link to={`/public/collections/${collection.slug}/lifelines`}>
+                    <button className="flex items-center gap-2 text-sm hover:underline">
+                      View All <ArrowRight className="h-4 w-4" />
+                    </button>
+                  </Link>
+                </div>
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                  {recentLifelines.map((lifeline: any) => (
+                    <Link
+                      key={lifeline.id}
+                      to={`/public/collections/${collection.slug}/lifelines/${lifeline.slug}`}
+                      className="group"
+                    >
+                      <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
+                        <div className="absolute top-2 right-2 z-10">
+                          <FavoriteButton itemId={lifeline.id} itemType="lifeline" />
+                        </div>
+                        <div className="aspect-video relative bg-white overflow-hidden">
+                          {lifeline.cover_image?.url ? (
+                            <img
+                              src={lifeline.cover_image.url}
+                              alt={lifeline.title}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                              style={{
+                                objectPosition: `${lifeline.cover_image.position_x ?? 50}% ${lifeline.cover_image.position_y ?? 50}%`
+                              }}
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-gray-400">
+                              No image
+                            </div>
+                          )}
+                        </div>
+                        <CardHeader className="bg-[hsl(var(--scheme-card-bg))]">
+                          <CardTitle className="text-lg transition-colors text-[hsl(var(--scheme-card-text))]">
+                            {lifeline.title}
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent className="bg-[hsl(var(--scheme-card-bg))]">
+                          <p className="text-sm line-clamp-2 text-[hsl(var(--scheme-cards-text))]">
+                            {lifeline.subtitle || "Explore this lifeline"}
+                          </p>
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* Recent Profiles Section */}
+            {recentProfiles && recentProfiles.length > 0 && (
+              <section>
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-2xl font-bold text-[hsl(var(--scheme-title-text))]">People</h2>
+                  <Link to={`/public/collections/${collection.slug}/profiles`}>
+                    <button className="flex items-center gap-2 text-sm hover:underline">
+                      View All <ArrowRight className="h-4 w-4" />
+                    </button>
+                  </Link>
+                </div>
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                  {recentProfiles.map((profile: any) => (
+                    <Link
+                      key={profile.id}
+                      to={`/public/collections/${collection.slug}/profiles/${profile.slug}`}
+                      className="group"
+                    >
+                      <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
+                        <div className="aspect-video relative bg-white overflow-hidden">
+                          {profile.avatar_image?.url ? (
+                            <img
+                              src={profile.avatar_image.url}
+                              alt={profile.name}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                              style={{
+                                objectPosition: `${profile.avatar_image.position_x ?? 50}% ${profile.avatar_image.position_y ?? 50}%`
+                              }}
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-gray-400">
+                              No image
+                            </div>
+                          )}
+                        </div>
+                        <CardHeader className="bg-[hsl(var(--scheme-card-bg))]">
+                          <CardTitle className="text-lg transition-colors text-[hsl(var(--scheme-card-text))]">
+                            {profile.name}
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent className="bg-[hsl(var(--scheme-card-bg))]">
+                          <p className="text-sm line-clamp-2 text-[hsl(var(--scheme-cards-text))]">
+                            {profile.short_description || "View this profile"}
+                          </p>
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  ))}
+                </div>
+              </section>
+            )}
+          </>
         )}
       </div>
 
