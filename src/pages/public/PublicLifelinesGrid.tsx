@@ -1,14 +1,17 @@
 import { useState, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search } from "lucide-react";
+import { Search, Image as ImageIcon } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { FavoriteButton } from "@/components/FavoriteButton";
+import { Button } from "@/components/ui/button";
+import { useAdminAccess } from "@/lib/useAdminAccess";
+import { LifelineSerpApiSearchModal } from "@/components/admin/LifelineSerpApiSearchModal";
 
 const ITEMS_PER_PAGE = 6;
 
@@ -20,6 +23,11 @@ export default function PublicLifelinesGrid() {
   const [imageFilter, setImageFilter] = useState<"all" | "has_images" | "needs_images">("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [userId, setUserId] = useState<string | null>(null);
+  const [serpModalOpen, setSerpModalOpen] = useState(false);
+  const [selectedLifeline, setSelectedLifeline] = useState<{ id: string; title: string } | null>(null);
+  
+  const { hasAccess: isAdmin } = useAdminAccess();
+  const queryClient = useQueryClient();
 
   useState(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -246,6 +254,23 @@ export default function PublicLifelinesGrid() {
                   <div className="absolute top-2 right-2 z-10">
                     <FavoriteButton itemId={lifeline.id} itemType="lifeline" />
                   </div>
+                  {isAdmin && !lifeline.cover_image_url && (
+                    <div className="absolute top-2 left-2 z-10">
+                      <Button
+                        size="icon"
+                        variant="secondary"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setSelectedLifeline({ id: lifeline.id, title: lifeline.title });
+                          setSerpModalOpen(true);
+                        }}
+                        className="h-8 w-8 rounded-full shadow-md"
+                      >
+                        <ImageIcon className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
                   <div className="aspect-video relative bg-white overflow-hidden">
                     {lifeline.cover_image_url ? (
                       <img
@@ -317,6 +342,21 @@ export default function PublicLifelinesGrid() {
             </p>
           </CardContent>
         </Card>
+      )}
+
+      {selectedLifeline && (
+        <LifelineSerpApiSearchModal
+          open={serpModalOpen}
+          onClose={() => {
+            setSerpModalOpen(false);
+            setSelectedLifeline(null);
+          }}
+          lifelineId={selectedLifeline.id}
+          initialQuery={selectedLifeline.title}
+          onImportComplete={() => {
+            queryClient.invalidateQueries({ queryKey: ["public-lifelines-grid"] });
+          }}
+        />
       )}
     </div>
   );
