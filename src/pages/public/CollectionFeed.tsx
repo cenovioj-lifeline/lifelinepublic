@@ -88,13 +88,21 @@ export default function CollectionFeed() {
         `)
         .eq("profile_collections.collection_id", collection!.id)
         .eq("status", "published")
-        .order("profile_collections.is_featured", { ascending: false })
         .order("avatar_image_id", { ascending: false, nullsFirst: false })
         .order("created_at", { ascending: false })
-        .limit(3);
+        .limit(10);
 
       if (error) throw error;
-      return data;
+      
+      // Sort by is_featured client-side and take top 3
+      return (data || [])
+        .sort((a: any, b: any) => {
+          const aFeatured = a.profile_collections?.is_featured || false;
+          const bFeatured = b.profile_collections?.is_featured || false;
+          if (aFeatured === bFeatured) return 0;
+          return aFeatured ? -1 : 1;
+        })
+        .slice(0, 3);
     },
   });
 
