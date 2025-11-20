@@ -100,30 +100,37 @@ export function useProfileData(slug: string | undefined, options?: UseProfileDat
       if (!profileQuery.data?.id) return [];
 
       const { data, error } = await supabase
-        .from("lifelines")
+        .from("profile_lifelines")
         .select(`
-          id,
-          title,
-          slug,
-          lifeline_type,
-          collection_id,
-          cover_image:media_assets(url, alt_text)
+          relationship_type,
+          lifeline:lifelines!profile_lifelines_lifeline_id_fkey(
+            id,
+            title,
+            slug,
+            lifeline_type,
+            collection_id,
+            cover_image:media_assets(url, alt_text)
+          )
         `)
-        .eq("profile_id", profileQuery.data.id)
-        .eq("status", "published");
+        .eq("profile_id", profileQuery.data.id);
 
       if (error) throw error;
 
-      // Filter by collection if collectionSlug provided
+      // Flatten the data structure and filter by collection if collectionSlug provided
+      const flattenedData = data?.map((item: any) => ({
+        ...item.lifeline,
+        relationship_type: item.relationship_type
+      })).filter((l: any) => l.id && l.slug); // Only include valid lifelines
+
       if (collectionSlug) {
         const collectionId = profileQuery.data.profile_collections?.find(
           (pc: any) => pc.collection?.slug === collectionSlug
         )?.collection?.id;
 
-        return collectionId ? data?.filter((l: any) => l.collection_id === collectionId) : data;
+        return collectionId ? flattenedData?.filter((l: any) => l.collection_id === collectionId) : flattenedData;
       }
 
-      return data;
+      return flattenedData;
     },
   });
 
