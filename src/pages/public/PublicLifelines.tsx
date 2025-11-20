@@ -12,19 +12,27 @@ import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 import { LifelineViewer } from "@/components/lifeline/LifelineViewer";
 import { LifelineBookIcon } from "@/components/icons/LifelineBookIcon";
+import { useAdminAccess } from "@/lib/useAdminAccess";
+import { LifelineSerpApiSearchModal } from "@/components/admin/LifelineSerpApiSearchModal";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { FavoriteButton } from "@/components/FavoriteButton";
 
 export default function PublicLifelines() {
   const [selectedLifelineId, setSelectedLifelineId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState<"name" | "type">("name");
   const [filterType, setFilterType] = useState<string>("all");
+  const { hasAccess: isAdmin } = useAdminAccess();
+  const [serpModalOpen, setSerpModalOpen] = useState(false);
+  const [selectedLifeline, setSelectedLifeline] = useState<{ id: string; title: string } | null>(null);
 
-  const { data: lifelines } = useQuery({
+  const { data: lifelines, refetch } = useQuery({
     queryKey: ["public-lifelines"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("lifelines")
-        .select("id, title, slug, lifeline_type, subject")
+        .select("id, title, slug, lifeline_type, subject, cover_image_url")
         .eq("status", "published")
         .eq("visibility", "public")
         .order("title");
@@ -133,6 +141,22 @@ export default function PublicLifelines() {
       </div>
 
       {selectedLifelineId && <LifelineViewer lifelineId={selectedLifelineId} />}
+
+      {/* SerpAPI Modal */}
+      {isAdmin && selectedLifeline && (
+        <LifelineSerpApiSearchModal
+          open={serpModalOpen}
+          onClose={() => {
+            setSerpModalOpen(false);
+            setSelectedLifeline(null);
+          }}
+          lifelineId={selectedLifeline.id}
+          initialQuery={selectedLifeline.title}
+          onImportComplete={() => {
+            refetch();
+          }}
+        />
+      )}
     </div>
   );
 }
