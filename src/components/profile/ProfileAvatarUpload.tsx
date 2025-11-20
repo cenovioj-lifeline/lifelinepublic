@@ -1,0 +1,243 @@
+import { useState, DragEvent } from "react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Profile, getInitials } from "@/types/profile";
+import { useAdminAccess } from "@/lib/useAdminAccess";
+import { uploadImage } from "@/lib/storage";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { ImagePositionPicker } from "@/components/ImagePositionPicker";
+import { Upload } from "lucide-react";
+
+interface ProfileAvatarUploadProps {
+  profile: Profile & { 
+    avatar_image?: { 
+      url: string; 
+      alt_text?: string;
+      id?: string;
+      position_x?: number;
+      position_y?: number;
+      scale?: number;
+    };
+  };
+  onImageUpdate?: () => void;
+}
+
+export function ProfileAvatarUpload({ profile, onImageUpdate }: ProfileAvatarUploadProps) {
+  const { hasAccess } = useAdminAccess();
+  const { toast } = useToast();
+  const [isDragging, setIsDragging] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [showPositionPicker, setShowPositionPicker] = useState(false);
+  const [uploadedImageUrl, setUploadedImageUrl] = useState<string>("");
+  const [uploadedImageId, setUploadedImageId] = useState<string>("");
+
+  const positionX = profile.avatar_image?.position_x ?? 50;
+  const positionY = profile.avatar_image?.position_y ?? 50;
+  const scale = profile.avatar_image?.scale ?? 1;
+
+  const hasImage = Boolean(profile.avatar_image?.url || profile.primary_image_url);
+
+  const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
+    if (!hasAccess || hasImage || isUploading) return;
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: DragEvent<HTMLDivElement>) => {
+    if (!hasAccess || hasImage || isUploading) return;
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDrop = async (e: DragEvent<HTMLDivElement>) => {
+    if (!hasAccess || hasImage || isUploading) return;
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+
+    const files = Array.from(e.dataTransfer.files);
+    if (files.length === 0) return;
+
+    const file = files[0];
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Invalid file type",
+        description: "Please upload an image file",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Validate file size (10MB max)
+    if (file.size > 10 * 1024 * 1024) {
+      toast({
+        title: "File too large",
+        description: "Please upload an image smaller than 10MB",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    await handleUpload(file);
+  };
+
+  const handleUpload = async (file: File) => {
+    setIsUploading(true);
+    try {
+      // Upload to storage
+      const { url, path } = await uploadImage(file, "media-uploads");
+
+      // Create media_asset record
+      const { data: mediaAsset, error: mediaError } = await supabase
+        .from("media_assets")
+        .insert({
+          url,
+          filename: path,
+          type: "image",
+          alt_text: `Avatar for ${profile.name}`,
+          position_x: 50,
+          position_y: 50,
+          scale: 1
+        })
+        .select()
+        .single();
+
+      if (mediaError) throw mediaError;
+
+      // Update profile
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .update({
+          avatar_image_id: mediaAsset.id,
+          primary_image_url: url,
+          primary_image_path: path
+        })
+        .eq("id", profile.id);
+
+      if (profileError) throw profileError;
+
+      toast({
+        title: "Image uploaded",
+        description: "Now position your avatar image"
+      });
+
+      // Open position picker
+      setUploadedImageUrl(url);
+      setUploadedImageId(mediaAsset.id);
+      setShowPositionPicker(true);
+
+    } catch (error) {
+      console.error("Upload error:", error);
+      toast({
+        title: "Upload failed",
+        description: "Failed to upload image. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handlePositionChange = async (position: { x: number; y: number; scale: number }) => {
+    try {
+      // Update media_asset with new position
+      const { error: mediaError } = await supabase
+        .from("media_assets")
+        .update({
+          position_x: position.x,
+          position_y: position.y,
+          scale: position.scale
+        })
+        .eq("id", uploadedImageId);
+
+      if (mediaError) throw mediaError;
+
+      toast({
+        title: "Position saved",
+        description: "Avatar image updated successfully"
+      });
+
+      setShowPositionPicker(false);
+      onImageUpdate?.();
+
+    } catch (error) {
+      console.error("Position update error:", error);
+      toast({
+        title: "Update failed",
+        description: "Failed to save position. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  return (
+    <>
+      <div
+        className={`relative ${hasAccess && !hasImage && !isUploading ? 'cursor-pointer' : ''}`}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+      >
+        <Avatar className={`h-32 w-32 flex-shrink-0 transition-all ${
+          isDragging ? 'ring-4 ring-primary scale-105' : ''
+        } ${hasAccess && !hasImage ? 'ring-2 ring-dashed ring-muted-foreground/30' : ''}`}>
+          <AvatarImage 
+            src={profile.avatar_image?.url || profile.primary_image_url || undefined} 
+            alt={profile.avatar_image?.alt_text || profile.name}
+            style={{
+              objectPosition: `${positionX}% ${positionY}%`,
+              transform: `scale(${scale})`,
+              transformOrigin: `${positionX}% ${positionY}%`
+            }}
+          />
+          <AvatarFallback className="text-2xl">
+            {getInitials(profile.name)}
+          </AvatarFallback>
+        </Avatar>
+
+        {hasAccess && !hasImage && !isUploading && (
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            {isDragging && (
+              <div className="absolute inset-0 bg-primary/20 rounded-full flex items-center justify-center">
+                <div className="text-center">
+                  <Upload className="h-8 w-8 mx-auto mb-1 text-primary" />
+                  <p className="text-xs font-medium text-primary">Drop to upload</p>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {isUploading && (
+          <div className="absolute inset-0 bg-background/80 rounded-full flex items-center justify-center">
+            <p className="text-xs font-medium">Uploading...</p>
+          </div>
+        )}
+      </div>
+
+      {hasAccess && !hasImage && !isUploading && (
+        <p className="text-xs text-muted-foreground text-center">
+          Drag image here
+        </p>
+      )}
+
+      <ImagePositionPicker
+        open={showPositionPicker}
+        onOpenChange={setShowPositionPicker}
+        imageUrl={uploadedImageUrl}
+        onPositionChange={handlePositionChange}
+        initialPosition={{
+          x: 50,
+          y: 50,
+          scale: 1
+        }}
+        title="Position Avatar Image"
+        viewType="avatar"
+      />
+    </>
+  );
+}

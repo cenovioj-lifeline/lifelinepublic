@@ -1,10 +1,10 @@
 import { useState } from "react";
-import { Profile, getInitials } from "@/types/profile";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Profile } from "@/types/profile";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useAdminAccess } from "@/lib/useAdminAccess";
 import { ProfileSerpApiSearchModal } from "@/components/admin/ProfileSerpApiSearchModal";
+import { ProfileAvatarUpload } from "./ProfileAvatarUpload";
 
 interface ProfileHeroProps {
   profile: Profile & { 
@@ -25,28 +25,14 @@ export function ProfileHero({ profile, onImageUpdate }: ProfileHeroProps) {
   const { hasAccess } = useAdminAccess();
   const [showSerpModal, setShowSerpModal] = useState(false);
 
-  const positionX = profile.avatar_image?.position_x ?? 50;
-  const positionY = profile.avatar_image?.position_y ?? 50;
-  const scale = profile.avatar_image?.scale ?? 1;
-
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row gap-6 items-start">
         <div className="flex flex-col items-center gap-2">
-          <Avatar className="h-32 w-32 flex-shrink-0">
-            <AvatarImage 
-              src={profile.avatar_image?.url || profile.primary_image_url || undefined} 
-              alt={profile.avatar_image?.alt_text || profile.name}
-              style={{
-                objectPosition: `${positionX}% ${positionY}%`,
-                transform: `scale(${scale})`,
-                transformOrigin: `${positionX}% ${positionY}%`
-              }}
-            />
-            <AvatarFallback className="text-2xl">
-              {getInitials(profile.name)}
-            </AvatarFallback>
-          </Avatar>
+          <ProfileAvatarUpload 
+            profile={profile} 
+            onImageUpdate={onImageUpdate}
+          />
           
           {hasAccess && (
             <Button
