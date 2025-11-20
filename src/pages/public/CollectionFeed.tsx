@@ -53,6 +53,8 @@ export default function CollectionFeed() {
           slug,
           subtitle,
           is_featured,
+          cover_image_id,
+          created_at,
           cover_image:media_assets!lifelines_cover_image_id_fkey(url, position_x, position_y)
         `)
         .eq("collection_id", collection!.id)
@@ -81,14 +83,16 @@ export default function CollectionFeed() {
             name,
             slug,
             short_description,
+            avatar_image_id,
+            created_at,
             avatar_image:media_assets!profiles_avatar_image_id_fkey(url, position_x, position_y)
           )
         `)
         .eq("collection_id", collection!.id)
         .eq("profiles.status", "published")
         .order("is_featured", { ascending: false })
-        .order("profiles(avatar_image_id)", { ascending: false, nullsFirst: false })
-        .order("profiles(created_at)", { ascending: false })
+        .order("avatar_image_id", { ascending: false, nullsFirst: false })
+        .order("created_at", { ascending: false })
         .limit(3);
 
       if (error) throw error;
