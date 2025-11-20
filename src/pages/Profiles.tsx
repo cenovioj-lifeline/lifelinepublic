@@ -1,10 +1,21 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search } from "lucide-react";
+import { Search, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import {
   Table,
   TableBody,
@@ -24,8 +35,12 @@ import {
 
 export default function Profiles() {
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
   const [collectionFilter, setCollectionFilter] = useState<string>("all");
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [profileToDelete, setProfileToDelete] = useState<any>(null);
 
   const { data: collections } = useQuery({
     queryKey: ["collections"],
@@ -84,6 +99,45 @@ export default function Profiles() {
       }
     },
   });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (profileId: string) => {
+      const { data, error } = await supabase.functions.invoke('delete-profile', {
+        body: { profileId },
+      });
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["profiles"] });
+      toast({
+        title: "Profile deleted",
+        description: `Successfully deleted profile and ${data.stats.profile_works} works, ${data.stats.profile_relationships} relationships, ${data.stats.profile_collections} collection memberships`,
+      });
+      setShowDeleteDialog(false);
+      setProfileToDelete(null);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete profile",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleDeleteClick = (profile: any, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setProfileToDelete(profile);
+    setShowDeleteDialog(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (profileToDelete) {
+      deleteMutation.mutate(profileToDelete.id);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -167,16 +221,26 @@ export default function Profiles() {
                     {new Date(profile.updated_at).toLocaleDateString()}
                   </TableCell>
                   <TableCell>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        navigate(`/profiles/${profile.id}`);
-                      }}
-                    >
-                      Edit
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/profiles/${profile.id}`);
+                        }}
+                      >
+                        Edit
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => handleDeleteClick(profile, e)}
+                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))
@@ -184,6 +248,40 @@ export default function Profiles() {
           </TableBody>
         </Table>
       </div>
+
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Profile</AlertDialogTitle>
+            <AlertDialogDescription className="space-y-2">
+              <p>
+                Are you sure you want to delete <strong>{profileToDelete?.name}</strong>?
+              </p>
+              <p className="text-sm">This will permanently delete:</p>
+              <ul className="text-sm list-disc list-inside space-y-1">
+                <li>Profile works and achievements</li>
+                <li>Profile relationships</li>
+                <li>Collection memberships</li>
+                <li>Lifeline associations</li>
+                <li>Avatar image</li>
+              </ul>
+              <p className="text-sm font-semibold text-destructive mt-2">
+                ⚠️ Warning: Lifelines linked to this profile will remain but will no longer reference this profile.
+              </p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={deleteMutation.isPending}
+            >
+              {deleteMutation.isPending ? "Deleting..." : "Delete Profile"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
