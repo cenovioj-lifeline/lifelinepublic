@@ -14,26 +14,74 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export default function Profiles() {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
+  const [collectionFilter, setCollectionFilter] = useState<string>("all");
 
-  const { data: profiles, isLoading } = useQuery({
-    queryKey: ["profiles", searchTerm],
+  const { data: collections } = useQuery({
+    queryKey: ["collections"],
     queryFn: async () => {
-      let query = supabase
-        .from("profiles")
-        .select("*")
-        .order("updated_at", { ascending: false });
-
-      if (searchTerm) {
-        query = query.or(`name.ilike.%${searchTerm}%,slug.ilike.%${searchTerm}%`);
-      }
-
-      const { data, error } = await query;
+      const { data, error } = await supabase
+        .from("collections")
+        .select("id, slug, title")
+        .eq("status", "published")
+        .order("title");
       if (error) throw error;
       return data;
+    },
+  });
+
+  const { data: profiles, isLoading } = useQuery({
+    queryKey: ["profiles", searchTerm, collectionFilter],
+    queryFn: async () => {
+      if (collectionFilter === "all") {
+        // Show all profiles when no collection filter is applied
+        let query = supabase
+          .from("profiles")
+          .select("*")
+          .order("updated_at", { ascending: false });
+
+        if (searchTerm) {
+          query = query.or(`name.ilike.%${searchTerm}%,slug.ilike.%${searchTerm}%`);
+        }
+
+        const { data, error } = await query;
+        if (error) throw error;
+        return data;
+      } else {
+        // Filter by collection
+        let query = supabase
+          .from("profiles")
+          .select(`
+            *,
+            profile_collections!inner(collection_id)
+          `)
+          .eq("profile_collections.collection_id", collectionFilter)
+          .order("updated_at", { ascending: false });
+
+        if (searchTerm) {
+          query = query.or(`name.ilike.%${searchTerm}%,slug.ilike.%${searchTerm}%`);
+        }
+
+        const { data, error } = await query;
+        if (error) throw error;
+        
+        // Remove duplicates if a profile is in multiple collections
+        const uniqueProfiles = Array.from(
+          new Map(data?.map(p => [p.id, p])).values()
+        );
+        
+        return uniqueProfiles;
+      }
     },
   });
 
@@ -56,6 +104,19 @@ export default function Profiles() {
             className="pl-9"
           />
         </div>
+        <Select value={collectionFilter} onValueChange={setCollectionFilter}>
+          <SelectTrigger className="w-[200px]">
+            <SelectValue placeholder="All Collections" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Collections</SelectItem>
+            {collections?.map((collection) => (
+              <SelectItem key={collection.id} value={collection.id}>
+                {collection.title}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="rounded-md border">

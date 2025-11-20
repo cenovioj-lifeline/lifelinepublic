@@ -8,6 +8,13 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Search } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 type ProfileType = "all" | "person_real" | "person_fictional" | "entity" | "organization";
 
@@ -15,36 +22,89 @@ export default function PublicProfiles() {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [typeFilter, setTypeFilter] = useState<ProfileType>("all");
+  const [collectionFilter, setCollectionFilter] = useState<string>("all");
 
-  const { data: profiles, isLoading } = useQuery({
-    queryKey: ["public-profiles", searchTerm, typeFilter],
+  const { data: collections } = useQuery({
+    queryKey: ["collections"],
     queryFn: async () => {
-      let query = supabase
-        .from("profiles")
-        .select(`
-          id,
-          slug,
-          name,
-          short_description,
-          subject_type,
-          reality_status,
-          avatar_image_id,
-          media_assets:avatar_image_id(url)
-        `)
+      const { data, error } = await supabase
+        .from("collections")
+        .select("id, slug, title")
         .eq("status", "published")
-        .order("updated_at", { ascending: false });
-
-      if (searchTerm) {
-        query = query.or(`name.ilike.%${searchTerm}%,short_description.ilike.%${searchTerm}%`);
-      }
-
-      if (typeFilter !== "all") {
-        query = query.eq("subject_type", typeFilter);
-      }
-
-      const { data, error } = await query;
+        .order("title");
       if (error) throw error;
       return data;
+    },
+  });
+
+  const { data: profiles, isLoading } = useQuery({
+    queryKey: ["public-profiles", searchTerm, typeFilter, collectionFilter],
+    queryFn: async () => {
+      if (collectionFilter === "all") {
+        // Show all profiles when no collection filter is applied
+        let query = supabase
+          .from("profiles")
+          .select(`
+            id,
+            slug,
+            name,
+            short_description,
+            subject_type,
+            reality_status,
+            avatar_image_id,
+            media_assets:avatar_image_id(url)
+          `)
+          .eq("status", "published")
+          .order("updated_at", { ascending: false });
+
+        if (searchTerm) {
+          query = query.or(`name.ilike.%${searchTerm}%,short_description.ilike.%${searchTerm}%`);
+        }
+
+        if (typeFilter !== "all") {
+          query = query.eq("subject_type", typeFilter);
+        }
+
+        const { data, error } = await query;
+        if (error) throw error;
+        return data;
+      } else {
+        // Filter by collection
+        let query = supabase
+          .from("profiles")
+          .select(`
+            id,
+            slug,
+            name,
+            short_description,
+            subject_type,
+            reality_status,
+            avatar_image_id,
+            media_assets:avatar_image_id(url),
+            profile_collections!inner(collection_id)
+          `)
+          .eq("status", "published")
+          .eq("profile_collections.collection_id", collectionFilter)
+          .order("updated_at", { ascending: false });
+
+        if (searchTerm) {
+          query = query.or(`name.ilike.%${searchTerm}%,short_description.ilike.%${searchTerm}%`);
+        }
+
+        if (typeFilter !== "all") {
+          query = query.eq("subject_type", typeFilter);
+        }
+
+        const { data, error } = await query;
+        if (error) throw error;
+        
+        // Remove duplicates if a profile is in multiple collections
+        const uniqueProfiles = Array.from(
+          new Map(data?.map(p => [p.id, p])).values()
+        );
+        
+        return uniqueProfiles;
+      }
     },
   });
 
@@ -67,15 +127,30 @@ export default function PublicProfiles() {
         </p>
       </div>
 
-      {/* Search Bar */}
-      <div className="relative max-w-md">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Search profiles..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-10"
-        />
+      {/* Search and Filters */}
+      <div className="flex flex-col sm:flex-row gap-4">
+        <div className="relative flex-1 max-w-md">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search profiles..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+        <Select value={collectionFilter} onValueChange={setCollectionFilter}>
+          <SelectTrigger className="w-full sm:w-[200px]">
+            <SelectValue placeholder="All Collections" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Collections</SelectItem>
+            {collections?.map((collection) => (
+              <SelectItem key={collection.id} value={collection.id}>
+                {collection.title}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Type Filter */}
