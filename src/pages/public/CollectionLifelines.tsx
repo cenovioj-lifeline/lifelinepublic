@@ -10,6 +10,9 @@ import { Search } from "lucide-react";
 import { useState, useMemo } from "react";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { FavoriteButton } from "@/components/FavoriteButton";
+import { useAdminAccess } from "@/lib/useAdminAccess";
+import { LifelineSerpApiSearchModal } from "@/components/admin/LifelineSerpApiSearchModal";
+import { Button } from "@/components/ui/button";
 
 const ITEMS_PER_PAGE = 6;
 
@@ -22,6 +25,9 @@ export default function CollectionLifelines() {
   const [imageFilter, setImageFilter] = useState<"all" | "has_images" | "needs_images">("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [userId, setUserId] = useState<string | null>(null);
+  const { hasAccess: isAdmin } = useAdminAccess();
+  const [serpModalOpen, setSerpModalOpen] = useState(false);
+  const [selectedLifeline, setSelectedLifeline] = useState<{ id: string; title: string } | null>(null);
 
   useState(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -44,7 +50,7 @@ export default function CollectionLifelines() {
     },
   });
 
-  const { data: lifelines, isLoading } = useQuery({
+  const { data: lifelines, isLoading, refetch } = useQuery({
     queryKey: ["collection-lifelines-all", collection?.id],
     queryFn: async () => {
       if (!collection?.id) return [];
@@ -278,7 +284,21 @@ export default function CollectionLifelines() {
                 className="group relative"
               >
                 <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
-                  <div className="absolute top-2 right-2 z-10">
+                  <div className="absolute top-2 right-2 z-10 flex gap-2">
+                    {isAdmin && (
+                      <Button
+                        size="icon"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setSelectedLifeline({ id: lifeline.id, title: lifeline.title });
+                          setSerpModalOpen(true);
+                        }}
+                        className="bg-purple-600 hover:bg-purple-700 text-white"
+                      >
+                        <Search className="h-4 w-4" />
+                      </Button>
+                    )}
                     <FavoriteButton itemId={lifeline.id} itemType="lifeline" />
                   </div>
                   <div className="aspect-video relative overflow-hidden bg-white">
@@ -356,6 +376,22 @@ export default function CollectionLifelines() {
           </Card>
         )}
       </div>
+
+      {/* SerpAPI Modal */}
+      {isAdmin && selectedLifeline && (
+        <LifelineSerpApiSearchModal
+          open={serpModalOpen}
+          onClose={() => {
+            setSerpModalOpen(false);
+            setSelectedLifeline(null);
+          }}
+          lifelineId={selectedLifeline.id}
+          initialQuery={selectedLifeline.title}
+          onImportComplete={() => {
+            refetch();
+          }}
+        />
+      )}
     </CollectionLayout>
   );
 }
