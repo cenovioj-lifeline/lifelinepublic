@@ -135,20 +135,27 @@ export const LifelineSerpApiSearchModal = ({
     try {
       // Step 1: Import via edge function (uploads to storage + creates media_asset)
       const { data: importData, error: importError } = await supabase.functions.invoke(
-        'import-profile-image',
+        'import-image-from-url',
         {
           body: {
+            entryId: lifelineId,
             imageUrl: selectedUrl,
-            profileId: lifelineId
+            altText: '',
+            orderIndex: 0,
+            position: {
+              x: 50,
+              y: 50,
+              scale: 1.0
+            }
           }
         }
       );
 
       if (importError) throw importError;
 
-      const { mediaId, publicUrl } = importData;
+      const { mediaId, url } = importData;
       setMediaAssetId(mediaId);
-      setImportedImageUrl(publicUrl);
+      setImportedImageUrl(url);
       setShowPositionPicker(true);
 
     } catch (error) {
