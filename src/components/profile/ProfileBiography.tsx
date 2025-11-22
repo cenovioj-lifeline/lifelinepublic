@@ -3,9 +3,13 @@ import { Card } from "@/components/ui/card";
 
 interface ProfileBiographyProps {
   profile: Profile;
+  collectionContext?: {
+    slug: string;
+    name: string;
+  };
 }
 
-export function ProfileBiography({ profile }: ProfileBiographyProps) {
+export function ProfileBiography({ profile, collectionContext }: ProfileBiographyProps) {
   const fictional = profile.extended_data?.fictional;
   const legacy = profile.extended_data?.legacy;
   const org = profile.extended_data?.organization;
@@ -17,12 +21,16 @@ export function ProfileBiography({ profile }: ProfileBiographyProps) {
   if (!content) return null;
 
   return (
-    <Card className="p-6">
+    <Card className={`p-6 ${
+      collectionContext
+        ? 'bg-[hsl(var(--scheme-cards-bg))] border-[hsl(var(--scheme-cards-border))] text-[hsl(var(--scheme-cards-text))]'
+        : ''
+    }`}>
       <h2 className="text-xl font-bold mb-4">
-        {fictional?.character_arc_summary ? "Character Arc" : 
+        {fictional?.character_arc_summary ? "Character Arc" :
          org?.mission_purpose ? "Mission" : "Overview"}
       </h2>
-      <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">
+      <p className={`leading-relaxed whitespace-pre-wrap ${collectionContext ? 'opacity-90' : 'text-muted-foreground'}`}>
         {content}
       </p>
     </Card>

@@ -9,7 +9,7 @@ interface ProfilePhysicalCharacteristicsProps {
 
 export function ProfilePhysicalCharacteristics({ profile }: ProfilePhysicalCharacteristicsProps) {
   const physical = profile.extended_data?.physical;
-  
+
   if (!physical) return null;
 
   const attributes = [];
@@ -39,12 +39,12 @@ export function ProfilePhysicalCharacteristics({ profile }: ProfilePhysicalChara
   return (
     <Card className="p-6">
       <h2 className="text-xl font-bold mb-4">Physical Characteristics</h2>
-      
+
       <div className="space-y-6">
         {hasAttributes && (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {attributes.map((attr, index) => (
-              <div key={index} className="p-3 border rounded-lg">
+              <div key={index} className="p-3 border rounded-lg bg-white">
                 <div className="text-xs text-muted-foreground mb-1">
                   {attr.label}
                 </div>
@@ -103,7 +103,7 @@ export function ProfilePhysicalCharacteristics({ profile }: ProfilePhysicalChara
         )}
 
         {physical.why_notable && (
-          <div className="p-3 bg-muted rounded-lg">
+          <div className="p-3 border rounded-lg bg-white">
             <p className="text-sm italic">{physical.why_notable}</p>
           </div>
         )}

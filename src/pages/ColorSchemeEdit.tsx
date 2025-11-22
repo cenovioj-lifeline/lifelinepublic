@@ -1,51 +1,15 @@
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { AdminLayout } from "@/components/AdminLayout";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { ArrowLeft, Eye } from "lucide-react";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { ArrowLeft } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { COLOR_MAPPINGS } from "@/hooks/useColorScheme";
-
-type ColorSchemeForm = {
-  name: string;
-  description: string;
-  nav_bg_color: string;
-  nav_text_color: string;
-  nav_button_color: string;
-  ll_display_bg: string;
-  ll_graph_positive: string;
-  ll_graph_negative: string;
-  ll_entry_title_text: string;
-  ll_entry_contributor_button: string;
-  ll_graph_bg: string;
-  ch_banner_text: string;
-  ch_actions_bg: string;
-  ch_actions_border: string;
-  ch_actions_icon: string;
-  ch_actions_text: string;
-  cards_bg: string;
-  cards_border: string;
-  cards_text: string;
-  title_text: string;
-  award_bg: string;
-  award_border: string;
-};
+import { ColorSchemeEditorFull, ColorScheme } from "@/components/admin/ColorSchemeEditorFull";
 
 export default function ColorSchemeEdit() {
   const { id } = useParams();
@@ -54,34 +18,11 @@ export default function ColorSchemeEdit() {
   const queryClient = useQueryClient();
   const isNew = id === "new";
 
-  const form = useForm<ColorSchemeForm>({
-    defaultValues: {
-      name: "",
-      description: "",
-      nav_bg_color: "#1a1a1a",
-      nav_text_color: "#ffffff",
-      nav_button_color: "#FF6B35",
-      ll_display_bg: "#F5E6D3",
-      ll_graph_positive: "#22C55E",
-      ll_graph_negative: "#EF4444",
-      ll_entry_title_text: "#1a1a1a",
-      ll_entry_contributor_button: "#8B5CF6",
-      ll_graph_bg: "#FFFFFF",
-      ch_banner_text: "#FFFFFF",
-      ch_actions_bg: "#F5E6D3",
-      ch_actions_border: "#E0D4C0",
-      ch_actions_icon: "#1a1a1a",
-      ch_actions_text: "#1a1a1a",
-      cards_bg: "#FFFFFF",
-      cards_border: "#E0E0E0",
-      cards_text: "#1a1a1a",
-      title_text: "#1a1a1a",
-      award_bg: "#F5E6D3",
-      award_border: "#E0D4C0",
-    },
-  });
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [colors, setColors] = useState<ColorScheme | null>(null);
 
-  const { data: colorScheme } = useQuery({
+  const { data: colorScheme, isLoading } = useQuery({
     queryKey: ["color-scheme", id],
     queryFn: async () => {
       if (isNew) return null;
@@ -98,12 +39,27 @@ export default function ColorSchemeEdit() {
 
   useEffect(() => {
     if (colorScheme) {
-      form.reset(colorScheme);
+      setName(colorScheme.name || "");
+      setDescription(colorScheme.description || "");
     }
-  }, [colorScheme, form]);
+  }, [colorScheme]);
+
+  const handleColorSchemeChange = (newColors: ColorScheme) => {
+    setColors(newColors);
+  };
 
   const saveMutation = useMutation({
-    mutationFn: async (data: ColorSchemeForm) => {
+    mutationFn: async () => {
+      if (!colors) {
+        throw new Error("Please configure colors before saving");
+      }
+
+      const data = {
+        name,
+        description,
+        ...colors,
+      };
+
       if (isNew) {
         const { error } = await supabase.from("color_schemes").insert(data);
         if (error) throw error;
@@ -132,43 +88,16 @@ export default function ColorSchemeEdit() {
     },
   });
 
-  const onSubmit = (data: ColorSchemeForm) => {
-    saveMutation.mutate(data);
-  };
-
-  const renderColorField = (fieldKey: keyof typeof COLOR_MAPPINGS) => {
-    const config = COLOR_MAPPINGS[fieldKey];
-    return (
-      <FormField
-        key={fieldKey}
-        control={form.control}
-        name={fieldKey}
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>{config.label}</FormLabel>
-            <div className="flex gap-2">
-              <FormControl>
-                <Input
-                  {...field}
-                  placeholder="#000000"
-                  className="font-mono"
-                />
-              </FormControl>
-              <Input
-                type="color"
-                value={field.value}
-                onChange={(e) => field.onChange(e.target.value)}
-                className="w-16 h-10 cursor-pointer"
-              />
-            </div>
-            <FormDescription className="text-xs">
-              Used in: {config.uses.join(", ")}
-            </FormDescription>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-    );
+  const handleSave = () => {
+    if (!name.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "Please provide a name for the color scheme",
+        variant: "destructive",
+      });
+      return;
+    }
+    saveMutation.mutate();
   };
 
   return (
@@ -183,131 +112,73 @@ export default function ColorSchemeEdit() {
               {isNew ? "New Color Scheme" : "Edit Color Scheme"}
             </h1>
             <p className="text-muted-foreground">
-              Define 20 semantic colors that will be reused intelligently across your site
+              Configure all color values with live preview
             </p>
           </div>
         </div>
 
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Basic Information</CardTitle>
-                <CardDescription>Name and describe this color scheme</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Name</FormLabel>
-                      <FormControl>
-                        <Input {...field} placeholder="My Color Scheme" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="description"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Description</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          {...field}
-                          placeholder="Describe this color scheme..."
-                          rows={3}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Color Definitions (20 Colors)</CardTitle>
-                <CardDescription>
-                  Each color has a semantic label and shows where it's used. Undefined elements
-                  will inherit from these colors based on context.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Accordion type="multiple" className="w-full">
-                  <AccordionItem value="navigation">
-                    <AccordionTrigger>Navigation Colors (3)</AccordionTrigger>
-                    <AccordionContent className="space-y-4 pt-4">
-                      {renderColorField("nav_bg_color")}
-                      {renderColorField("nav_text_color")}
-                      {renderColorField("nav_button_color")}
-                    </AccordionContent>
-                  </AccordionItem>
-
-                  <AccordionItem value="lifeline-display">
-                    <AccordionTrigger>Lifeline Display Colors (6)</AccordionTrigger>
-                    <AccordionContent className="space-y-4 pt-4">
-                      {renderColorField("ll_display_bg")}
-                      {renderColorField("ll_graph_positive")}
-                      {renderColorField("ll_graph_negative")}
-                      {renderColorField("ll_entry_title_text")}
-                      {renderColorField("ll_entry_contributor_button")}
-                      {renderColorField("ll_graph_bg")}
-                    </AccordionContent>
-                  </AccordionItem>
-
-                  <AccordionItem value="collection-home">
-                    <AccordionTrigger>Collection Home Colors (5)</AccordionTrigger>
-                    <AccordionContent className="space-y-4 pt-4">
-                      {renderColorField("ch_banner_text")}
-                      {renderColorField("ch_actions_bg")}
-                      {renderColorField("ch_actions_border")}
-                      {renderColorField("ch_actions_icon")}
-                      {renderColorField("ch_actions_text")}
-                    </AccordionContent>
-                  </AccordionItem>
-
-                  <AccordionItem value="cards">
-                    <AccordionTrigger>Cards Colors (3)</AccordionTrigger>
-                    <AccordionContent className="space-y-4 pt-4">
-                      {renderColorField("cards_bg")}
-                      {renderColorField("cards_border")}
-                      {renderColorField("cards_text")}
-                    </AccordionContent>
-                  </AccordionItem>
-
-                  <AccordionItem value="awards">
-                    <AccordionTrigger>Award/Title Colors (3)</AccordionTrigger>
-                    <AccordionContent className="space-y-4 pt-4">
-                      {renderColorField("title_text")}
-                      {renderColorField("award_bg")}
-                      {renderColorField("award_border")}
-                    </AccordionContent>
-                  </AccordionItem>
-                </Accordion>
-              </CardContent>
-            </Card>
-
-            <div className="flex gap-2">
-              <Button type="submit" disabled={saveMutation.isPending}>
-                {saveMutation.isPending ? "Saving..." : isNew ? "Create Scheme" : "Update Scheme"}
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => navigate("/admin/color-schemes")}
-              >
-                Cancel
-              </Button>
+        <Card>
+          <CardHeader>
+            <CardTitle>Basic Information</CardTitle>
+            <CardDescription>Name and describe this color scheme</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <label htmlFor="name" className="text-sm font-medium">
+                Name
+              </label>
+              <Input
+                id="name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="My Color Scheme"
+                className="mt-1.5"
+              />
             </div>
-          </form>
-        </Form>
+
+            <div>
+              <label htmlFor="description" className="text-sm font-medium">
+                Description
+              </label>
+              <Textarea
+                id="description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Describe this color scheme..."
+                rows={3}
+                className="mt-1.5"
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        {isLoading ? (
+          <Card>
+            <CardContent className="p-6">
+              <div className="text-center text-muted-foreground">Loading color scheme...</div>
+            </CardContent>
+          </Card>
+        ) : (
+          <ColorSchemeEditorFull
+            initialColors={colorScheme || undefined}
+            onChange={handleColorSchemeChange}
+          />
+        )}
+
+        <div className="flex gap-2">
+          <Button onClick={handleSave} disabled={saveMutation.isPending || !colors}>
+            {saveMutation.isPending ? "Saving..." : isNew ? "Create Scheme" : "Update Scheme"}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => navigate("/admin/color-schemes")}
+          >
+            Cancel
+          </Button>
+        </div>
       </div>
     </AdminLayout>
   );
 }
+

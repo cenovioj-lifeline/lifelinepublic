@@ -5,9 +5,13 @@ import { Award, Sparkles, TrendingUp, AlertCircle } from "lucide-react";
 
 interface ProfileLegacyImpactProps {
   profile: Profile;
+  collectionContext?: {
+    slug: string;
+    name: string;
+  };
 }
 
-export function ProfileLegacyImpact({ profile }: ProfileLegacyImpactProps) {
+export function ProfileLegacyImpact({ profile, collectionContext }: ProfileLegacyImpactProps) {
   const legacy = profile.extended_data?.legacy;
   
   if (!legacy) return null;
@@ -53,13 +57,17 @@ export function ProfileLegacyImpact({ profile }: ProfileLegacyImpactProps) {
   if (sections.length === 0) return null;
 
   return (
-    <Card className="p-6">
+    <Card className={`p-6 ${
+      collectionContext
+        ? 'bg-[hsl(var(--scheme-cards-bg))] border-[hsl(var(--scheme-cards-border))] text-[hsl(var(--scheme-cards-text))]'
+        : ''
+    }`}>
       <h2 className="text-xl font-bold mb-4">Legacy & Impact</h2>
       <Tabs defaultValue={sections[0].id} className="w-full">
         <TabsList className="grid w-full" style={{ gridTemplateColumns: `repeat(${sections.length}, 1fr)` }}>
           {sections.map((section) => (
             <TabsTrigger key={section.id} value={section.id} className="flex items-center gap-2">
-              {section.icon}
+              <span className={collectionContext ? 'opacity-70' : ''}>{section.icon}</span>
               <span className="hidden sm:inline">{section.label}</span>
             </TabsTrigger>
           ))}
@@ -74,7 +82,7 @@ export function ProfileLegacyImpact({ profile }: ProfileLegacyImpactProps) {
                   : []
               ).map((item: any, index: number) => (
                 <li key={index} className="flex gap-3">
-                  <span className="text-primary mt-1.5">•</span>
+                  <span className={collectionContext ? 'opacity-70 mt-1.5' : 'text-primary mt-1.5'}>•</span>
                   <span className="flex-1">{String(item)}</span>
                 </li>
               ))}

@@ -254,6 +254,47 @@ export function useColorScheme(collectionId?: string) {
           }
         }
       });
+
+      // Bridge mapping: Connect Tailwind semantic colors to color scheme
+      // This ensures pages using Tailwind utilities (bg-background, text-foreground, etc.)
+      // automatically use the collection's color scheme instead of hardcoded defaults
+
+      // Main page colors
+
+      root.style.setProperty('--foreground', hexToHSL(colorScheme.cards_text)); // Main content text
+
+      // Card colors
+      root.style.setProperty('--card', hexToHSL(colorScheme.cards_bg)); // Card backgrounds
+      root.style.setProperty('--card-foreground', hexToHSL(colorScheme.cards_text)); // Card text
+
+      // Border/divider colors
+      root.style.setProperty('--border', hexToHSL(colorScheme.cards_border)); // Borders and dividers
+      root.style.setProperty('--input', hexToHSL(colorScheme.cards_border)); // Input borders
+
+      // Primary/accent colors (used for buttons, links, focus states)
+      root.style.setProperty('--primary', hexToHSL(colorScheme.nav_button_color)); // Primary buttons, CTAs
+      root.style.setProperty('--primary-foreground', hexToHSL(colorScheme.nav_text_color)); // Text on primary buttons
+      root.style.setProperty('--ring', hexToHSL(colorScheme.nav_button_color)); // Focus rings
+
+      // Secondary colors
+      root.style.setProperty('--secondary', hexToHSL(colorScheme.ll_graph_positive)); // Secondary actions
+      root.style.setProperty('--secondary-foreground', hexToHSL(colorScheme.cards_text)); // Text on secondary
+
+      // Accent colors
+      root.style.setProperty('--accent', hexToHSL(colorScheme.award_bg)); // Accent elements
+      root.style.setProperty('--accent-foreground', hexToHSL(colorScheme.cards_text)); // Text on accent
+
+      // Muted/subtle colors
+      root.style.setProperty('--muted', hexToHSL(colorScheme.ll_graph_bg)); // Subtle backgrounds
+      root.style.setProperty('--muted-foreground', hexToHSL(colorScheme.cards_text)); // Muted text
+
+      // Destructive/error colors
+      root.style.setProperty('--destructive', hexToHSL(colorScheme.ll_graph_negative)); // Error states
+      root.style.setProperty('--destructive-foreground', hexToHSL(colorScheme.nav_text_color)); // Error text
+
+      // Popover colors (modals, dropdowns, tooltips)
+      root.style.setProperty('--popover', hexToHSL(colorScheme.cards_bg)); // Popover background
+      root.style.setProperty('--popover-foreground', hexToHSL(colorScheme.cards_text)); // Popover text
     }
   }, [colorScheme]);
 

@@ -58,10 +58,7 @@ export function useProfileData(slug: string | undefined, options?: UseProfileDat
           .eq("profile_id", baseProfile.id),
         supabase
           .from("profile_lifelines")
-          .select(`
-            relationship_type,
-            lifeline:lifelines!profile_lifelines_lifeline_id_fkey(id, slug, title, lifeline_type)
-          `)
+          .select(`lifeline:lifelines!profile_lifelines_lifeline_id_fkey(id, slug, title, lifeline_type)`)
           .eq("profile_id", baseProfile.id),
         supabase
           .from("profile_collections")
@@ -99,38 +96,40 @@ export function useProfileData(slug: string | undefined, options?: UseProfileDat
     queryFn: async () => {
       if (!profileQuery.data?.id) return [];
 
-      const { data, error } = await supabase
+      // Query through the junction table since lifelines don't have profile_id
+      let query = supabase
         .from("profile_lifelines")
         .select(`
-          relationship_type,
-          lifeline:lifelines!profile_lifelines_lifeline_id_fkey(
+          lifeline:lifelines!inner(
             id,
             title,
             slug,
             lifeline_type,
             collection_id,
+            status,
             cover_image:media_assets(url, alt_text)
           )
         `)
-        .eq("profile_id", profileQuery.data.id);
+        .eq("profile_id", profileQuery.data.id)
+        .eq("lifelines.status", "published");
 
-      if (error) throw error;
-
-      // Flatten the data structure and filter by collection if collectionSlug provided
-      const flattenedData = data?.map((item: any) => ({
-        ...item.lifeline,
-        relationship_type: item.relationship_type
-      })).filter((l: any) => l.id && l.slug); // Only include valid lifelines
-
+      // Filter by collection if collectionSlug provided
       if (collectionSlug) {
         const collectionId = profileQuery.data.profile_collections?.find(
           (pc: any) => pc.collection?.slug === collectionSlug
         )?.collection?.id;
 
-        return collectionId ? flattenedData?.filter((l: any) => l.collection_id === collectionId) : flattenedData;
+        if (collectionId) {
+          query = query.eq("lifelines.collection_id", collectionId);
+        }
       }
 
-      return flattenedData;
+      const { data, error } = await query;
+
+      if (error) throw error;
+
+      // Extract the lifeline objects from the junction table results
+      return data?.map((item: any) => item.lifeline).filter(Boolean) ?? [];
     },
   });
 

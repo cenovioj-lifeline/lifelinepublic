@@ -9,7 +9,7 @@ All colors MUST be HSL.
 @layer base {
   :root {
     /* Default colors - can be overridden by global color settings */
-    --background: var(--global-bg, 0 0% 100%);
+    --background: 0 0% 100%;
     --foreground: var(--global-text, 222 47% 11%);
 
     --card: var(--global-card-bg, 0 0% 100%);

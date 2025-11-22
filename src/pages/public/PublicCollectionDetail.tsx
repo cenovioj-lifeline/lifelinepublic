@@ -72,9 +72,9 @@ export default function PublicCollectionDetail() {
           .eq("collection_id", collection.id),
         entryIds.length > 0
           ? supabase
-              .from("entry_votes")
-              .select("id", { count: "exact", head: true })
-              .in("entry_id", entryIds)
+            .from("entry_votes")
+            .select("id", { count: "exact", head: true })
+            .in("entry_id", entryIds)
           : { count: 0 },
       ]);
 
@@ -204,8 +204,10 @@ export default function PublicCollectionDetail() {
           subtitle,
           is_featured,
           cover_image_id,
-          created_at,
-          cover_image:media_assets!lifelines_cover_image_id_fkey(url, position_x, position_y)
+          cover_image_url,
+          cover_image_position_x,
+          cover_image_position_y,
+          created_at
         `)
         .eq("collection_id", collection!.id)
         .eq("status", "published")
@@ -232,8 +234,8 @@ export default function PublicCollectionDetail() {
           slug,
           short_description,
           avatar_image_id,
+          primary_image_url,
           created_at,
-          avatar_image:media_assets!profiles_avatar_image_id_fkey(url, position_x, position_y),
           profile_collections!inner(is_featured, collection_id)
         `)
         .eq("profile_collections.collection_id", collection!.id)
@@ -243,7 +245,7 @@ export default function PublicCollectionDetail() {
         .limit(10);
 
       if (error) throw error;
-      
+
       // Sort by is_featured client-side and take top 3
       return (data || [])
         .sort((a: any, b: any) => {
@@ -632,13 +634,13 @@ export default function PublicCollectionDetail() {
                           <FavoriteButton itemId={lifeline.id} itemType="lifeline" />
                         </div>
                         <div className="aspect-video relative bg-white overflow-hidden">
-                          {lifeline.cover_image?.url ? (
+                          {lifeline.cover_image_url ? (
                             <img
-                              src={lifeline.cover_image.url}
+                              src={lifeline.cover_image_url}
                               alt={lifeline.title}
                               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                               style={{
-                                objectPosition: `${lifeline.cover_image.position_x ?? 50}% ${lifeline.cover_image.position_y ?? 50}%`
+                                objectPosition: `${lifeline.cover_image_position_x ?? 50}% ${lifeline.cover_image_position_y ?? 50}%`
                               }}
                             />
                           ) : (
@@ -684,14 +686,11 @@ export default function PublicCollectionDetail() {
                     >
                       <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
                         <div className="aspect-video relative bg-white overflow-hidden">
-                          {profile.avatar_image?.url ? (
+                          {profile.primary_image_url ? (
                             <img
-                              src={profile.avatar_image.url}
+                              src={profile.primary_image_url}
                               alt={profile.name}
                               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                              style={{
-                                objectPosition: `${profile.avatar_image.position_x ?? 50}% ${profile.avatar_image.position_y ?? 50}%`
-                              }}
                             />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center text-gray-400">

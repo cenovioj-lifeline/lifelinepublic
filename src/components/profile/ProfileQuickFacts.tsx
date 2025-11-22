@@ -4,9 +4,13 @@ import { Card } from "@/components/ui/card";
 
 interface ProfileQuickFactsProps {
   profile: Profile;
+  collectionContext?: {
+    slug: string;
+    name: string;
+  };
 }
 
-export function ProfileQuickFacts({ profile }: ProfileQuickFactsProps) {
+export function ProfileQuickFacts({ profile, collectionContext }: ProfileQuickFactsProps) {
   const facts: Array<{ icon: React.ReactNode; label: string; value: string }> = [];
 
   const bio = profile.extended_data?.biographical;
@@ -117,14 +121,18 @@ export function ProfileQuickFacts({ profile }: ProfileQuickFactsProps) {
   if (facts.length === 0) return null;
 
   return (
-    <Card className="p-6">
+    <Card className={`p-6 ${
+      collectionContext
+        ? 'bg-[hsl(var(--scheme-cards-bg))] border-[hsl(var(--scheme-cards-border))] text-[hsl(var(--scheme-cards-text))]'
+        : ''
+    }`}>
       <h2 className="text-xl font-bold mb-4">Quick Facts</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {facts.map((fact, index) => (
           <div key={index} className="flex gap-3 items-start">
-            <div className="text-primary mt-0.5">{fact.icon}</div>
+            <div className={collectionContext ? 'opacity-70 mt-0.5' : 'text-primary mt-0.5'}>{fact.icon}</div>
             <div className="flex-1">
-              <div className="text-sm font-medium text-muted-foreground">
+              <div className={`text-sm font-medium ${collectionContext ? 'opacity-70' : 'text-muted-foreground'}`}>
                 {fact.label}
               </div>
               <div className="text-sm">{fact.value}</div>

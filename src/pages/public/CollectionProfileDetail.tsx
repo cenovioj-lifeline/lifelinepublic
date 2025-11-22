@@ -33,10 +33,27 @@ export default function CollectionProfileDetail() {
     );
   }
 
-  const collection = (profile.profile_collections as any[])?.[0]?.collection;
+  // Find the collection that matches the URL slug for reliable data extraction
+  const collection = (profile.profile_collections as any[])?.find(
+    (pc: any) => pc.collection?.slug === collectionSlug
+  )?.collection;
+
   const associatedLifelines = (profile.profile_lifelines as any[])
     ?.map((pl: any) => ({ ...pl.lifeline, relationship_type: pl.relationship_type }))
     .filter(Boolean) || [];
+
+  // Defensive: If collection not found in profile data, don't render
+  if (!collection) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4 p-4">
+        <p className="text-base text-muted-foreground">Collection data not found for this profile</p>
+        <Button onClick={() => navigate(`/public/collections/${collectionSlug}/profiles`)}>
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back to Profiles
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <CollectionLayout
@@ -48,7 +65,6 @@ export default function CollectionProfileDetail() {
         <ProfileDetailView
           profile={profile as any}
           associatedLifelines={lifelinesData ?? associatedLifelines}
-          collections={[]}
           collectionContext={{
             slug: collectionSlug!,
             name: collection.title
