@@ -30,7 +30,6 @@ const items = [
   { title: "Profiles", url: "/profiles", icon: Users },
   { title: "MER", fullTitle: "Mock Election Results", url: "/elections", icon: Award },
   { title: "Tags", url: "/tags", icon: Tag },
-  { title: "Media", url: "/media", icon: Image },
   { title: "Fan Contributions", url: "/fan-contributions", icon: Heart },
   { title: "User Requests", url: "/user-requests", icon: FileQuestion },
   { title: "Load Lifelines", url: "/load-lifelines", icon: Upload },
