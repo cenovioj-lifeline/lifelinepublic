@@ -1,4 +1,5 @@
 import { useAuth } from "@/lib/auth";
+import { useAdminAccess } from "@/lib/useAdminAccess";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -9,12 +10,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { User, LogOut } from "lucide-react";
+import { User, LogOut, Shield } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 
 export function PublicUserMenu() {
   const { user, signOut } = useAuth();
+  const { hasAccess } = useAdminAccess();
   const navigate = useNavigate();
 
   const handleSignOut = async () => {
@@ -49,6 +51,15 @@ export function PublicUserMenu() {
           <User className="mr-2 h-4 w-4" />
           Profile
         </DropdownMenuItem>
+        {hasAccess && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => navigate("/admin")}>
+              <Shield className="mr-2 h-4 w-4" />
+              Admin
+            </DropdownMenuItem>
+          </>
+        )}
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleSignOut}>
           <LogOut className="mr-2 h-4 w-4" />

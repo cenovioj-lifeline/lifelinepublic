@@ -90,7 +90,7 @@ export function SimpleColorSchemeEditor({ initialColors, initialScheme, onChange
         }
       });
 
-      return existingColors as GeneratedColorScheme;
+      return existingColors as unknown as GeneratedColorScheme;
     }
 
     // Otherwise generate from the colors
@@ -133,7 +133,7 @@ export function SimpleColorSchemeEditor({ initialColors, initialScheme, onChange
       });
 
       setOverrides(existingColors);
-      setGeneratedScheme(existingColors as GeneratedColorScheme);
+      setGeneratedScheme(existingColors as unknown as GeneratedColorScheme);
     }
   }, [initialScheme]);
 

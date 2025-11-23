@@ -25,7 +25,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ArrowLeft } from "lucide-react";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { ArrowLeft, ChevronDown } from "lucide-react";
 import { DirectImageUpload } from "@/components/DirectImageUpload";
 import { CollectionQuotesUpload } from "@/components/CollectionQuotesUpload";
 import { CollectionFeaturedProfiles } from "@/components/CollectionFeaturedProfiles";
@@ -58,6 +63,9 @@ export default function CollectionEdit() {
   const queryClient = useQueryClient();
   const isNew = id === "new";
   const [heroImageUrl, setHeroImageUrl] = useState<string | null>(null);
+  const [isProfileSectionOpen, setIsProfileSectionOpen] = useState(false);
+  const [isFeaturedProfilesOpen, setIsFeaturedProfilesOpen] = useState(false);
+  const [isContentSectionOpen, setIsContentSectionOpen] = useState(false);
 
   const { data: colorSchemes } = useQuery({
     queryKey: ["color-schemes"],
@@ -449,20 +457,59 @@ export default function CollectionEdit() {
                 <CollectionQuotesUpload collectionId={id!} />
               </div>
 
-              <div className="mt-8">
-                <h3 className="text-lg font-medium mb-4">Profile Connections</h3>
-                <CollectionProfileManager collectionId={id!} />
-              </div>
+              <Collapsible
+                open={isProfileSectionOpen}
+                onOpenChange={setIsProfileSectionOpen}
+                className="mt-8"
+              >
+                <CollapsibleTrigger className="flex items-center gap-2 w-full">
+                  <h3 className="text-lg font-medium">Profile Connections</h3>
+                  <ChevronDown
+                    className={`h-4 w-4 transition-transform ${
+                      isProfileSectionOpen ? "rotate-180" : ""
+                    }`}
+                  />
+                </CollapsibleTrigger>
+                <CollapsibleContent className="mt-4">
+                  <CollectionProfileManager collectionId={id!} />
+                </CollapsibleContent>
+              </Collapsible>
 
-              <div className="mt-8">
-                <h3 className="text-lg font-medium mb-4">Featured Profiles</h3>
-                <CollectionFeaturedProfiles collectionId={id!} />
-              </div>
+              <Collapsible
+                open={isFeaturedProfilesOpen}
+                onOpenChange={setIsFeaturedProfilesOpen}
+                className="mt-8"
+              >
+                <CollapsibleTrigger className="flex items-center gap-2 w-full">
+                  <h3 className="text-lg font-medium">Featured Profiles</h3>
+                  <ChevronDown
+                    className={`h-4 w-4 transition-transform ${
+                      isFeaturedProfilesOpen ? "rotate-180" : ""
+                    }`}
+                  />
+                </CollapsibleTrigger>
+                <CollapsibleContent className="mt-4">
+                  <CollectionFeaturedProfiles collectionId={id!} />
+                </CollapsibleContent>
+              </Collapsible>
 
-              <div className="mt-8">
-                <h3 className="text-lg font-medium mb-4">Collection Content</h3>
-                <CollectionContentManager collectionId={id!} />
-              </div>
+              <Collapsible
+                open={isContentSectionOpen}
+                onOpenChange={setIsContentSectionOpen}
+                className="mt-8"
+              >
+                <CollapsibleTrigger className="flex items-center gap-2 w-full">
+                  <h3 className="text-lg font-medium">Collection Content</h3>
+                  <ChevronDown
+                    className={`h-4 w-4 transition-transform ${
+                      isContentSectionOpen ? "rotate-180" : ""
+                    }`}
+                  />
+                </CollapsibleTrigger>
+                <CollapsibleContent className="mt-4">
+                  <CollectionContentManager collectionId={id!} />
+                </CollapsibleContent>
+              </Collapsible>
             </>
           )}
 
