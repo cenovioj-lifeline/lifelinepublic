@@ -25,14 +25,14 @@ export default function PublicLifelines() {
   const [filterType, setFilterType] = useState<string>("all");
   const { hasAccess: isAdmin } = useAdminAccess();
   const [serpModalOpen, setSerpModalOpen] = useState(false);
-  const [selectedLifeline, setSelectedLifeline] = useState<{ id: string; title: string } | null>(null);
+  const [selectedLifeline, setSelectedLifeline] = useState<{ id: string; title: string; serpapi_query?: string | null } | null>(null);
 
   const { data: lifelines, refetch } = useQuery({
     queryKey: ["public-lifelines"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("lifelines")
-        .select("id, title, slug, lifeline_type, subject, cover_image_url")
+        .select("id, title, slug, lifeline_type, subject, cover_image_url, serpapi_query")
         .eq("status", "published")
         .eq("visibility", "public")
         .order("title");
@@ -151,7 +151,7 @@ export default function PublicLifelines() {
             setSelectedLifeline(null);
           }}
           lifelineId={selectedLifeline.id}
-          initialQuery={selectedLifeline.title}
+          initialQuery={selectedLifeline.serpapi_query || ''}
           onImportComplete={() => {
             refetch();
           }}

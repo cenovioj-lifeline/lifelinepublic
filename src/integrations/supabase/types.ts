@@ -1264,6 +1264,7 @@ export type Database = {
           is_featured: boolean | null
           lifeline_type: Database["public"]["Enums"]["lifeline_type"]
           profile_id: string | null
+          serpapi_query: string | null
           slug: string
           status: Database["public"]["Enums"]["content_status"]
           subject: string | null
@@ -1288,6 +1289,7 @@ export type Database = {
           is_featured?: boolean | null
           lifeline_type?: Database["public"]["Enums"]["lifeline_type"]
           profile_id?: string | null
+          serpapi_query?: string | null
           slug: string
           status?: Database["public"]["Enums"]["content_status"]
           subject?: string | null
@@ -1312,6 +1314,7 @@ export type Database = {
           is_featured?: boolean | null
           lifeline_type?: Database["public"]["Enums"]["lifeline_type"]
           profile_id?: string | null
+          serpapi_query?: string | null
           slug?: string
           status?: Database["public"]["Enums"]["content_status"]
           subject?: string | null
