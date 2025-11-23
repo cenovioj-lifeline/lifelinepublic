@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Image as ImageIcon } from "lucide-react";
+import { Search, Image as ImageIcon, Trash2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -12,6 +12,8 @@ import { FavoriteButton } from "@/components/FavoriteButton";
 import { Button } from "@/components/ui/button";
 import { useAdminAccess } from "@/lib/useAdminAccess";
 import { LifelineSerpApiSearchModal } from "@/components/admin/LifelineSerpApiSearchModal";
+import { deleteImage } from "@/lib/storage";
+import { toast } from "sonner";
 
 const ITEMS_PER_PAGE = 6;
 
@@ -40,7 +42,7 @@ export default function PublicLifelinesGrid() {
     queryFn: async () => {
       const { data: lifelinesData, error } = await supabase
         .from("lifelines")
-        .select("*")
+        .select("*, serpapi_query")
         .eq("status", "published")
         .eq("visibility", "public")
         .order("created_at", { ascending: false });
@@ -147,6 +149,34 @@ export default function PublicLifelinesGrid() {
     currentPage * ITEMS_PER_PAGE
   );
 
+  const handleDeleteCoverImage = async (lifelineId: string, coverImagePath: string | null, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (!confirm("Are you sure you want to delete this cover image?")) return;
+
+    try {
+      // Delete from storage if path exists
+      if (coverImagePath) {
+        await deleteImage(coverImagePath);
+      }
+
+      // Update database
+      const { error } = await supabase
+        .from("lifelines")
+        .update({ cover_image_url: null, cover_image_path: null })
+        .eq("id", lifelineId);
+
+      if (error) throw error;
+
+      toast.success("Cover image deleted successfully");
+      queryClient.invalidateQueries({ queryKey: ["public-lifelines-grid"] });
+    } catch (error) {
+      console.error("Error deleting cover image:", error);
+      toast.error("Failed to delete cover image");
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -251,7 +281,17 @@ export default function PublicLifelinesGrid() {
                 className="group relative"
               >
                 <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
-                  <div className="absolute top-2 right-2 z-10">
+                  <div className="absolute top-2 right-2 z-10 flex gap-2">
+                    {isAdmin && lifeline.cover_image_url && (
+                      <Button
+                        size="icon"
+                        variant="destructive"
+                        onClick={(e) => handleDeleteCoverImage(lifeline.id, lifeline.cover_image_path, e)}
+                        className="h-8 w-8"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
                     <FavoriteButton itemId={lifeline.id} itemType="lifeline" />
                   </div>
                   {isAdmin && !lifeline.cover_image_url && (
@@ -262,7 +302,7 @@ export default function PublicLifelinesGrid() {
                         onClick={(e) => {
                           e.preventDefault();
                           e.stopPropagation();
-                          setSelectedLifeline({ id: lifeline.id, title: lifeline.title });
+                          setSelectedLifeline({ id: lifeline.id, title: lifeline.title, serpapi_query: lifeline.serpapi_query });
                           setSerpModalOpen(true);
                         }}
                         className="h-8 w-8 rounded-full shadow-md"

@@ -6,13 +6,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search } from "lucide-react";
+import { Search, Trash2 } from "lucide-react";
 import { useState, useMemo } from "react";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { FavoriteButton } from "@/components/FavoriteButton";
 import { useAdminAccess } from "@/lib/useAdminAccess";
 import { LifelineSerpApiSearchModal } from "@/components/admin/LifelineSerpApiSearchModal";
 import { Button } from "@/components/ui/button";
+import { deleteImage } from "@/lib/storage";
+import { toast } from "sonner";
 
 const ITEMS_PER_PAGE = 6;
 
@@ -167,6 +169,34 @@ export default function CollectionLifelines() {
     currentPage * ITEMS_PER_PAGE
   );
 
+  const handleDeleteCoverImage = async (lifelineId: string, coverImagePath: string | null, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (!confirm("Are you sure you want to delete this cover image?")) return;
+
+    try {
+      // Delete from storage if path exists
+      if (coverImagePath) {
+        await deleteImage(coverImagePath);
+      }
+
+      // Update database
+      const { error } = await supabase
+        .from("lifelines")
+        .update({ cover_image_url: null, cover_image_path: null })
+        .eq("id", lifelineId);
+
+      if (error) throw error;
+
+      toast.success("Cover image deleted successfully");
+      refetch();
+    } catch (error) {
+      console.error("Error deleting cover image:", error);
+      toast.error("Failed to delete cover image");
+    }
+  };
+
   if (!collection) {
     return (
       <CollectionLayout collectionTitle="Loading..." collectionSlug={slug || ""}>
@@ -285,16 +315,26 @@ export default function CollectionLifelines() {
               >
                 <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
                   <div className="absolute top-2 right-2 z-10 flex gap-2">
+                    {isAdmin && lifeline.cover_image_url && (
+                      <Button
+                        size="icon"
+                        variant="destructive"
+                        onClick={(e) => handleDeleteCoverImage(lifeline.id, lifeline.cover_image_path, e)}
+                        className="h-8 w-8"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
                     {isAdmin && (
                       <Button
                         size="icon"
                         onClick={(e) => {
                           e.preventDefault();
                           e.stopPropagation();
-                          setSelectedLifeline({ id: lifeline.id, title: lifeline.title });
+                          setSelectedLifeline({ id: lifeline.id, title: lifeline.title, serpapi_query: lifeline.serpapi_query });
                           setSerpModalOpen(true);
                         }}
-                        className="bg-purple-600 hover:bg-purple-700 text-white"
+                        className="bg-purple-600 hover:bg-purple-700 text-white h-8 w-8"
                       >
                         <Search className="h-4 w-4" />
                       </Button>
