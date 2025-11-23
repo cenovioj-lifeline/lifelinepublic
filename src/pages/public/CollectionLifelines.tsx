@@ -27,7 +27,7 @@ export default function CollectionLifelines() {
   const [userId, setUserId] = useState<string | null>(null);
   const { hasAccess: isAdmin } = useAdminAccess();
   const [serpModalOpen, setSerpModalOpen] = useState(false);
-  const [selectedLifeline, setSelectedLifeline] = useState<{ id: string; title: string } | null>(null);
+  const [selectedLifeline, setSelectedLifeline] = useState<{ id: string; title: string; serpapi_query?: string | null } | null>(null);
 
   useState(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -57,7 +57,7 @@ export default function CollectionLifelines() {
 
     const { data: lifelinesData, error } = await supabase
       .from("lifelines")
-      .select("*")
+      .select("*, serpapi_query")
       .eq("collection_id", collection.id)
       .eq("status", "published")
       .order("created_at", { ascending: false });
@@ -386,7 +386,7 @@ export default function CollectionLifelines() {
             setSelectedLifeline(null);
           }}
           lifelineId={selectedLifeline.id}
-          initialQuery={selectedLifeline.title}
+          initialQuery={selectedLifeline.serpapi_query || ''}
           onImportComplete={() => {
             refetch();
           }}

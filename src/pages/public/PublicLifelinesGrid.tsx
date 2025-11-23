@@ -24,7 +24,7 @@ export default function PublicLifelinesGrid() {
   const [currentPage, setCurrentPage] = useState(1);
   const [userId, setUserId] = useState<string | null>(null);
   const [serpModalOpen, setSerpModalOpen] = useState(false);
-  const [selectedLifeline, setSelectedLifeline] = useState<{ id: string; title: string } | null>(null);
+  const [selectedLifeline, setSelectedLifeline] = useState<{ id: string; title: string; serpapi_query?: string | null } | null>(null);
   
   const { hasAccess: isAdmin } = useAdminAccess();
   const queryClient = useQueryClient();
@@ -352,7 +352,7 @@ export default function PublicLifelinesGrid() {
             setSelectedLifeline(null);
           }}
           lifelineId={selectedLifeline.id}
-          initialQuery={selectedLifeline.title}
+          initialQuery={selectedLifeline.serpapi_query || ''}
           onImportComplete={() => {
             queryClient.invalidateQueries({ queryKey: ["public-lifelines-grid"] });
           }}
