@@ -5,6 +5,9 @@ export interface MobileSuperlative {
     id: string;
     name: string;
     photo_url: string | null;
+    position_x?: number;
+    position_y?: number;
+    scale?: number;
     initials: string;
     color: string;
     slug: string;
@@ -80,6 +83,9 @@ export const transformElectionResults = (
         id: winnerProfile?.id || '',
         name: winnerProfile?.name || result.winner_name || 'Unknown',
         photo_url: winnerProfile?.avatar?.url || null,
+        position_x: winnerProfile?.avatar?.position_x,
+        position_y: winnerProfile?.avatar?.position_y,
+        scale: winnerProfile?.avatar?.scale,
         initials: generateInitials(winnerProfile?.name || result.winner_name || 'Unknown'),
         color: getColorForId(winnerProfile?.id || result.id),
         slug: winnerProfile?.slug || '',

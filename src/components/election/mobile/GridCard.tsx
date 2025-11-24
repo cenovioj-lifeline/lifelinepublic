@@ -23,6 +23,11 @@ export const GridCard = ({ superlative, onClick }: GridCardProps) => {
           src={superlative.winner.photo_url || undefined} 
           alt={superlative.winner.name}
           className="object-cover"
+          style={{
+            objectPosition: `${superlative.winner.position_x ?? 50}% ${superlative.winner.position_y ?? 50}%`,
+            transform: `scale(${superlative.winner.scale ?? 1})`,
+            transformOrigin: `${superlative.winner.position_x ?? 50}% ${superlative.winner.position_y ?? 50}%`
+          }}
         />
         <AvatarFallback 
           className="text-4xl font-bold text-white"
