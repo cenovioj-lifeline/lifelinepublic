@@ -36,7 +36,7 @@ export default function CollectionProfiles() {
           role_in_collection,
           profiles!inner(
             *,
-            avatar_image:media_assets!profiles_avatar_image_id_fkey(url, alt_text)
+            avatar_image:media_assets!profiles_avatar_image_id_fkey(url, alt_text, position_x, position_y, scale)
           )
         `)
         .eq("collection_id", collection.id);
@@ -100,6 +100,11 @@ export default function CollectionProfiles() {
                           <AvatarImage
                             src={profile.avatar_image.url}
                             alt={profile.name}
+                            style={{
+                              objectPosition: `${profile.avatar_image.position_x ?? 50}% ${profile.avatar_image.position_y ?? 50}%`,
+                              transform: `scale(${profile.avatar_image.scale ?? 1})`,
+                              transformOrigin: `${profile.avatar_image.position_x ?? 50}% ${profile.avatar_image.position_y ?? 50}%`
+                            }}
                           />
                         )}
                         <AvatarFallback>
