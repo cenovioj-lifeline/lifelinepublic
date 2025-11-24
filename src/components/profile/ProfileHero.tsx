@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useAdminAccess } from "@/lib/useAdminAccess";
 import { ProfileSerpApiSearchModal } from "@/components/admin/ProfileSerpApiSearchModal";
 import { ProfileAvatarUpload } from "./ProfileAvatarUpload";
+import { ProfileImageEditor } from "./ProfileImageEditor";
 
 interface ProfileHeroProps {
   profile: Profile & {
@@ -25,6 +26,8 @@ export function ProfileHero({ profile, onImageUpdate }: ProfileHeroProps) {
   const { hasAccess } = useAdminAccess();
   const [showSerpModal, setShowSerpModal] = useState(false);
 
+  const hasImage = profile.avatar_image?.url || profile.primary_image_url;
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row gap-6 items-start">
@@ -35,14 +38,23 @@ export function ProfileHero({ profile, onImageUpdate }: ProfileHeroProps) {
           />
 
           {hasAccess && (
-            <Button
-              variant="default"
-              size="sm"
-              onClick={() => setShowSerpModal(true)}
-              className="text-xs"
-            >
-              Image
-            </Button>
+            <div className="flex gap-2">
+              {hasImage ? (
+                <ProfileImageEditor
+                  profile={profile}
+                  onImageUpdate={onImageUpdate}
+                />
+              ) : (
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={() => setShowSerpModal(true)}
+                  className="text-xs"
+                >
+                  Add Image
+                </Button>
+              )}
+            </div>
           )}
         </div>
 
