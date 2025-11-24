@@ -53,7 +53,10 @@ export default function CollectionQuotes() {
             slug,
             avatar_image:media_assets!avatar_image_id(
               url,
-              alt_text
+              alt_text,
+              position_x,
+              position_y,
+              scale
             )
           )
         `)
@@ -146,6 +149,11 @@ export default function CollectionQuotes() {
                           <AvatarImage 
                             src={quote.author_profile.avatar_image?.url} 
                             alt={quote.author_profile.avatar_image?.alt_text || quote.author_profile.name}
+                            style={{
+                              objectPosition: `${quote.author_profile.avatar_image?.position_x ?? 50}% ${quote.author_profile.avatar_image?.position_y ?? 50}%`,
+                              transform: `scale(${quote.author_profile.avatar_image?.scale ?? 1})`,
+                              transformOrigin: `${quote.author_profile.avatar_image?.position_x ?? 50}% ${quote.author_profile.avatar_image?.position_y ?? 50}%`
+                            }}
                           />
                           <AvatarFallback style={{ backgroundColor: generateAvatarColor(quote.author_profile.name) }}>
                             {generateInitials(quote.author_profile.name)}

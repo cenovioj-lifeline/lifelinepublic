@@ -90,7 +90,7 @@ export function useElectionData(slug: string | undefined, options?: UseElectionD
           if (avatarIds.length > 0) {
             const { data: avatarsData } = await supabase
               .from("media_assets")
-              .select("id, url")
+              .select("id, url, position_x, position_y, scale")
               .in("id", avatarIds);
 
             if (avatarsData) {
