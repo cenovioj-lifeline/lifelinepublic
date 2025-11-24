@@ -12,8 +12,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { QuoteSubmissionDialog } from "@/components/QuoteSubmissionDialog";
 import { Plus } from "lucide-react";
+import { generateInitials, generateAvatarColor } from "@/lib/avatarUtils";
 
 export default function CollectionQuotes() {
   const { slug } = useParams<{ slug: string }>();
@@ -43,7 +45,18 @@ export default function CollectionQuotes() {
 
       let query = supabase
         .from("collection_quotes")
-        .select("*")
+        .select(`
+          *,
+          author_profile:profiles!author_profile_id(
+            id,
+            name,
+            slug,
+            avatar_image:media_assets!avatar_image_id(
+              url,
+              alt_text
+            )
+          )
+        `)
         .eq("collection_id", collection.id)
         .order("created_at", { ascending: false });
 
@@ -125,17 +138,32 @@ export default function CollectionQuotes() {
                 className="hover:shadow-lg transition-shadow"
               >
                 <CardContent className="pt-6">
-                  <p className="text-lg italic mb-3" style={{ color: "hsl(var(--scheme-cards-text))" }}>"{quote.quote}"</p>
-                  {quote.author && (
-                    <p
-                      className="text-sm font-semibold mb-1"
-                      style={{ color: "hsl(var(--scheme-title-text))" }}
-                    >
-                      — {quote.author}
-                    </p>
-                  )}
-                  {quote.context && (
-                    <p className="text-xs" style={{ color: "hsl(var(--scheme-cards-text))" }}>{quote.context}</p>
+                  <p className="text-lg italic mb-4" style={{ color: "hsl(var(--scheme-cards-text))" }}>"{quote.quote}"</p>
+                  {(quote.author || quote.author_profile) && (
+                    <div className="flex items-center gap-3">
+                      {quote.author_profile && (
+                        <Avatar className="h-10 w-10">
+                          <AvatarImage 
+                            src={quote.author_profile.avatar_image?.url} 
+                            alt={quote.author_profile.avatar_image?.alt_text || quote.author_profile.name}
+                          />
+                          <AvatarFallback style={{ backgroundColor: generateAvatarColor(quote.author_profile.name) }}>
+                            {generateInitials(quote.author_profile.name)}
+                          </AvatarFallback>
+                        </Avatar>
+                      )}
+                      <div>
+                        <p
+                          className="text-sm font-semibold mb-1"
+                          style={{ color: "hsl(var(--scheme-title-text))" }}
+                        >
+                          — {quote.author_profile?.name || quote.author}
+                        </p>
+                        {quote.context && (
+                          <p className="text-xs" style={{ color: "hsl(var(--scheme-cards-text))" }}>{quote.context}</p>
+                        )}
+                      </div>
+                    </div>
                   )}
                 </CardContent>
               </Card>

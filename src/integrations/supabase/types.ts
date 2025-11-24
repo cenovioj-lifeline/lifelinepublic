@@ -183,6 +183,8 @@ export type Database = {
       collection_quotes: {
         Row: {
           author: string | null
+          author_profile_id: string | null
+          author_profile_ids: string[] | null
           collection_id: string
           context: string | null
           created_at: string
@@ -191,6 +193,8 @@ export type Database = {
         }
         Insert: {
           author?: string | null
+          author_profile_id?: string | null
+          author_profile_ids?: string[] | null
           collection_id: string
           context?: string | null
           created_at?: string
@@ -199,6 +203,8 @@ export type Database = {
         }
         Update: {
           author?: string | null
+          author_profile_id?: string | null
+          author_profile_ids?: string[] | null
           collection_id?: string
           context?: string | null
           created_at?: string
@@ -206,6 +212,13 @@ export type Database = {
           quote?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "collection_quotes_author_profile_id_fkey"
+            columns: ["author_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "collection_quotes_collection_id_fkey"
             columns: ["collection_id"]
@@ -1018,6 +1031,7 @@ export type Database = {
           lifeline_id: string
           media_id: string | null
           quote_author: string | null
+          quote_author_profile_id: string | null
           quote_context: string | null
           quote_text: string | null
           reviewed_at: string | null
@@ -1038,6 +1052,7 @@ export type Database = {
           lifeline_id: string
           media_id?: string | null
           quote_author?: string | null
+          quote_author_profile_id?: string | null
           quote_context?: string | null
           quote_text?: string | null
           reviewed_at?: string | null
@@ -1058,6 +1073,7 @@ export type Database = {
           lifeline_id?: string
           media_id?: string | null
           quote_author?: string | null
+          quote_author_profile_id?: string | null
           quote_context?: string | null
           quote_text?: string | null
           reviewed_at?: string | null
@@ -1094,6 +1110,13 @@ export type Database = {
             columns: ["media_id"]
             isOneToOne: false
             referencedRelation: "media_assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fan_contributions_quote_author_profile_id_fkey"
+            columns: ["quote_author_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
