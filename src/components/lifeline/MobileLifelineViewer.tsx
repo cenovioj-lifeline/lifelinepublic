@@ -11,6 +11,8 @@ import { StorySlide } from './mobile/StorySlide';
 import { MinimalQuote } from './mobile/MinimalQuote';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useParams } from 'react-router-dom';
+import { ContributionButton } from '@/components/ContributionButton';
+import { useAuth } from '@/lib/auth';
 
 interface MobileLifelineViewerProps {
   lifelineId: string;
@@ -18,6 +20,7 @@ interface MobileLifelineViewerProps {
 
 export const MobileLifelineViewer = ({ lifelineId }: MobileLifelineViewerProps) => {
   const { collectionSlug } = useParams();
+  const { user } = useAuth();
   
   // Fetch collection settings for quotes
   const { data: collection } = useQuery({
@@ -42,10 +45,23 @@ export const MobileLifelineViewer = ({ lifelineId }: MobileLifelineViewerProps) 
     collection?.quote_frequency || 3
   );
 
-  const { data: entries, isLoading } = useQuery({
-    queryKey: ['lifeline-entries-mobile', lifelineId],
+  const { data: lifeline } = useQuery({
+    queryKey: ['lifeline', lifelineId],
     queryFn: async () => {
       const { data, error } = await supabase
+        .from('lifelines')
+        .select('title, subtitle')
+        .eq('id', lifelineId)
+        .single();
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: entries, isLoading } = useQuery({
+    queryKey: ['lifeline-entries-mobile', lifelineId, user?.id],
+    queryFn: async () => {
+      let query = supabase
         .from('entries')
         .select(`
           id,
@@ -56,6 +72,8 @@ export const MobileLifelineViewer = ({ lifelineId }: MobileLifelineViewerProps) 
           occurred_on,
           order_index,
           sentiment,
+          contribution_status,
+          contributed_by_user_id,
           entry_media (
             id,
             locked,
@@ -65,9 +83,20 @@ export const MobileLifelineViewer = ({ lifelineId }: MobileLifelineViewerProps) 
             )
           )
         `)
-        .eq('lifeline_id', lifelineId)
-        .order('order_index', { ascending: true });
+        .eq('lifeline_id', lifelineId);
 
+      // Filter visibility based on user
+      if (user) {
+        query = query.or(
+          `contribution_status.in.(approved,auto_approved),contributed_by_user_id.eq.${user.id}`
+        );
+      } else {
+        query = query.in('contribution_status', ['approved', 'auto_approved']);
+      }
+
+      query = query.order('order_index', { ascending: true });
+
+      const { data, error } = await query;
       if (error) throw error;
       return transformEntriesToMobile(data || []);
     },
@@ -156,6 +185,15 @@ export const MobileLifelineViewer = ({ lifelineId }: MobileLifelineViewerProps) 
           onDismiss={dismissQuote}
         />
       )}
+
+      {/* Floating contribution button */}
+      <ContributionButton
+        context="lifeline"
+        lifelineId={lifelineId}
+        lifelineTitle={lifeline?.title}
+        currentEntryId={currentEntry?.id}
+        floating
+      />
     </div>
   );
 };

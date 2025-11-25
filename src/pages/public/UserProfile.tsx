@@ -10,13 +10,19 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Pencil, Save, X } from "lucide-react";
+import { Pencil, Save, X, Trash2 } from "lucide-react";
 import { ImageUpload } from "@/components/ImageUpload";
 import { PasswordInput } from "@/components/ui/password-input";
+import { ContributionStatusBadge } from "@/components/ContributionStatusBadge";
+import { EditContributionDialog } from "@/components/EditContributionDialog";
+import { EditQuoteContributionDialog } from "@/components/EditQuoteContributionDialog";
+import { useContributionPreference } from "@/hooks/useContributionPreference";
+import { Switch } from "@/components/ui/switch";
 
 export default function UserProfile() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { hideButton, updatePreference } = useContributionPreference();
   const [isEditing, setIsEditing] = useState(false);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -24,6 +30,8 @@ export default function UserProfile() {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [editingContribution, setEditingContribution] = useState<any>(null);
+  const [editingQuote, setEditingQuote] = useState<any>(null);
 
   const { data: profile, isLoading: profileLoading } = useQuery({
     queryKey: ["user-profile", user?.id],
@@ -149,16 +157,22 @@ export default function UserProfile() {
     },
   });
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "approved":
-        return <Badge variant="default">Approved</Badge>;
-      case "rejected":
-        return <Badge variant="destructive">Rejected</Badge>;
-      default:
-        return <Badge variant="secondary">Pending</Badge>;
-    }
-  };
+  const deleteContributionMutation = useMutation({
+    mutationFn: async (contributionId: string) => {
+      const { error } = await supabase
+        .from("fan_contributions")
+        .delete()
+        .eq("id", contributionId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["user-contributions"] });
+      toast.success("Contribution deleted");
+    },
+    onError: () => {
+      toast.error("Failed to delete contribution");
+    },
+  });
 
   const displayName = profile?.first_name || profile?.last_name
     ? `${profile?.first_name || ""} ${profile?.last_name || ""}`.trim()
@@ -178,6 +192,26 @@ export default function UserProfile() {
 
   return (
     <div className="container mx-auto px-4 py-8 space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Contribution Settings</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium">Show Contribute Button</p>
+                <p className="text-sm text-muted-foreground">
+                  Display the contribute button when viewing lifelines and quotes
+                </p>
+              </div>
+              <Switch 
+                checked={!hideButton}
+                onCheckedChange={(checked) => updatePreference(!checked)}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>My Profile</CardTitle>
@@ -296,37 +330,107 @@ export default function UserProfile() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead>Type</TableHead>
                   <TableHead>Lifeline</TableHead>
                   <TableHead>Title</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Submitted</TableHead>
-                  <TableHead>Admin Message</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {contributions?.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center text-muted-foreground">
+                    <TableCell colSpan={6} className="text-center text-muted-foreground">
                       No contributions yet
                     </TableCell>
                   </TableRow>
                 ) : (
-                  contributions?.map((contribution) => (
-                    <TableRow key={contribution.id}>
-                      <TableCell>{contribution.lifelines?.title}</TableCell>
-                      <TableCell>{contribution.title}</TableCell>
-                      <TableCell>{getStatusBadge(contribution.status)}</TableCell>
-                      <TableCell>
-                        {new Date(contribution.created_at).toLocaleDateString()}
-                      </TableCell>
-                      <TableCell>{contribution.admin_message || "—"}</TableCell>
-                    </TableRow>
-                  ))
+                  contributions?.map((contribution) => {
+                    const isPending = ['pending', 'rejected'].includes(contribution.status);
+                    return (
+                      <TableRow key={contribution.id}>
+                        <TableCell>
+                          <Badge variant="outline">
+                            {contribution.contribution_type === "quote" ? "Quote" : 
+                             contribution.contribution_type === "image" ? "Image" : "Event"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>{contribution.lifelines?.title}</TableCell>
+                        <TableCell>
+                          {contribution.contribution_type === "quote" 
+                            ? contribution.quote_text?.substring(0, 50) + "..."
+                            : contribution.title}
+                        </TableCell>
+                        <TableCell>
+                          <ContributionStatusBadge 
+                            status={contribution.status}
+                            adminMessage={contribution.admin_message}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          {new Date(contribution.created_at).toLocaleDateString()}
+                        </TableCell>
+                        <TableCell>
+                          {isPending && (
+                            <div className="flex gap-2">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => {
+                                  if (contribution.contribution_type === "quote") {
+                                    setEditingQuote(contribution);
+                                  } else {
+                                    setEditingContribution(contribution);
+                                  }
+                                }}
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => {
+                                  if (confirm("Delete this contribution?")) {
+                                    deleteContributionMutation.mutate(contribution.id);
+                                  }
+                                }}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
                 )}
               </TableBody>
             </Table>
           </CardContent>
         </Card>
+
+        {editingContribution && (
+          <EditContributionDialog
+            open={!!editingContribution}
+            onOpenChange={(open) => !open && setEditingContribution(null)}
+            entryId={editingContribution.entry_id || ""}
+            initialTitle={editingContribution.title || ""}
+            initialDescription={editingContribution.description}
+            initialScore={editingContribution.score}
+          />
+        )}
+
+        {editingQuote && (
+          <EditQuoteContributionDialog
+            open={!!editingQuote}
+            onOpenChange={(open) => !open && setEditingQuote(null)}
+            quoteId={editingQuote.id}
+            initialQuote={editingQuote.quote_text}
+            initialAuthor={editingQuote.quote_author}
+            initialContext={editingQuote.quote_context}
+          />
+        )}
       </div>
   );
 }
