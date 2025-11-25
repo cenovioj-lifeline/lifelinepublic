@@ -182,34 +182,52 @@ export type Database = {
       }
       collection_quotes: {
         Row: {
+          admin_message: string | null
           author: string | null
           author_profile_id: string | null
           author_profile_ids: string[] | null
           collection_id: string
           context: string | null
+          contributed_by_user_id: string | null
+          contribution_status: string | null
           created_at: string
           id: string
           quote: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          submitted_at: string | null
         }
         Insert: {
+          admin_message?: string | null
           author?: string | null
           author_profile_id?: string | null
           author_profile_ids?: string[] | null
           collection_id: string
           context?: string | null
+          contributed_by_user_id?: string | null
+          contribution_status?: string | null
           created_at?: string
           id?: string
           quote: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          submitted_at?: string | null
         }
         Update: {
+          admin_message?: string | null
           author?: string | null
           author_profile_id?: string | null
           author_profile_ids?: string[] | null
           collection_id?: string
           context?: string | null
+          contributed_by_user_id?: string | null
+          contribution_status?: string | null
           created_at?: string
           id?: string
           quote?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          submitted_at?: string | null
         }
         Relationships: [
           {
@@ -819,6 +837,7 @@ export type Database = {
           age_at_event: number | null
           collection_id: string | null
           contributed_by_user_id: string | null
+          contribution_status: string | null
           created_at: string
           details: string | null
           id: string
@@ -840,6 +859,7 @@ export type Database = {
           age_at_event?: number | null
           collection_id?: string | null
           contributed_by_user_id?: string | null
+          contribution_status?: string | null
           created_at?: string
           details?: string | null
           id?: string
@@ -861,6 +881,7 @@ export type Database = {
           age_at_event?: number | null
           collection_id?: string | null
           contributed_by_user_id?: string | null
+          contribution_status?: string | null
           created_at?: string
           details?: string | null
           id?: string
@@ -1872,6 +1893,7 @@ export type Database = {
       user_preferences: {
         Row: {
           created_at: string
+          hide_contribution_button: boolean | null
           hide_person_lifeline_disclaimer: boolean | null
           id: string
           updated_at: string
@@ -1879,6 +1901,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          hide_contribution_button?: boolean | null
           hide_person_lifeline_disclaimer?: boolean | null
           id?: string
           updated_at?: string
@@ -1886,6 +1909,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          hide_contribution_button?: boolean | null
           hide_person_lifeline_disclaimer?: boolean | null
           id?: string
           updated_at?: string
