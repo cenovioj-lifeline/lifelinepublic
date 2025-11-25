@@ -58,7 +58,7 @@ export function useProfileData(slug: string | undefined, options?: UseProfileDat
           .eq("profile_id", baseProfile.id),
         supabase
           .from("profile_lifelines")
-          .select(`lifeline:lifelines!profile_lifelines_lifeline_id_fkey(id, slug, title, lifeline_type)`)
+          .select(`relationship_type, lifeline:lifelines!profile_lifelines_lifeline_id_fkey(id, slug, title, lifeline_type)`)
           .eq("profile_id", baseProfile.id),
         supabase
           .from("profile_collections")
@@ -100,6 +100,7 @@ export function useProfileData(slug: string | undefined, options?: UseProfileDat
       let query = supabase
         .from("profile_lifelines")
         .select(`
+          relationship_type,
           lifeline:lifelines!inner(
             id,
             title,
@@ -128,8 +129,8 @@ export function useProfileData(slug: string | undefined, options?: UseProfileDat
 
       if (error) throw error;
 
-      // Extract the lifeline objects from the junction table results
-      return data?.map((item: any) => item.lifeline).filter(Boolean) ?? [];
+      // Extract the lifeline objects from the junction table results, including relationship_type
+      return data?.map((item: any) => ({ ...item.lifeline, relationship_type: item.relationship_type })).filter(Boolean) ?? [];
     },
   });
 
