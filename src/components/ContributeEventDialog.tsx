@@ -19,6 +19,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Trophy } from "lucide-react";
 import { uploadImage } from "@/lib/storage";
 import { Loader2 } from "lucide-react";
+import { useSuperFan } from "@/hooks/useSuperFan";
 
 interface ContributeEventDialogProps {
   open: boolean;
@@ -41,6 +42,7 @@ export function ContributeEventDialog({
 }: ContributeEventDialogProps) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { isSuperFan } = useSuperFan();
   const [title, setTitle] = useState("");
   const [score, setScore] = useState("");
   const [description, setDescription] = useState("");
@@ -84,6 +86,8 @@ export function ContributeEventDialog({
         throw new Error("Not authenticated");
       }
 
+      const contributionStatus = isSuperFan ? 'auto_approved' : 'pending';
+
       if (contributePictureMode) {
         // Upload image first
         if (!imageFile) {
@@ -109,6 +113,16 @@ export function ContributeEventDialog({
 
         if (mediaError) throw mediaError;
 
+        // For super fans, immediately create entry_images record
+        if (isSuperFan) {
+          await supabase.from('entry_images').insert({
+            entry_id: selectedEntryId,
+            image_url: url,
+            image_path: path,
+            locked: false
+          });
+        }
+
         // Create contribution
         const { error } = await supabase.from("fan_contributions").insert({
           user_id: user.id,
@@ -116,6 +130,7 @@ export function ContributeEventDialog({
           contribution_type: "image",
           entry_ref: selectedEntryId,
           media_id: mediaAsset.id,
+          status: contributionStatus
         });
 
         if (error) throw error;
@@ -128,14 +143,38 @@ export function ContributeEventDialog({
           title,
           score: score ? parseInt(score) : null,
           description,
+          status: contributionStatus
         });
 
         if (error) throw error;
+
+        // For super fans, immediately create the entry
+        if (isSuperFan) {
+          await supabase.from('entries').insert({
+            lifeline_id: lifelineId,
+            title,
+            score: score ? parseInt(score) : null,
+            details: description,
+            contribution_status: 'auto_approved',
+            is_fan_contributed: true,
+            contributed_by_user_id: user.id,
+            order_index: 999 // Will be reordered by admin
+          });
+        }
       }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["user-contributions"] });
-      toast.success("Contribution submitted for review!");
+      queryClient.invalidateQueries({ queryKey: ["lifeline"] });
+      
+      if (isSuperFan) {
+        toast.success(contributePictureMode 
+          ? "Your image is now live and visible to everyone!"
+          : "Your event is now live and visible to everyone!");
+      } else {
+        toast.success("Contribution submitted for review!");
+      }
+      
       setTitle("");
       setScore("");
       setDescription("");

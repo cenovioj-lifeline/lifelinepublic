@@ -23,6 +23,7 @@ import {
 import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Trophy, Search } from "lucide-react";
+import { useSuperFan } from "@/hooks/useSuperFan";
 
 interface QuoteSubmissionDialogProps {
   open: boolean;
@@ -41,6 +42,7 @@ export function QuoteSubmissionDialog({
 }: QuoteSubmissionDialogProps) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { isSuperFan } = useSuperFan();
   const [quoteText, setQuoteText] = useState("");
   const [author, setAuthor] = useState("");
   const [context, setContext] = useState("");
@@ -86,6 +88,9 @@ export function QuoteSubmissionDialog({
         throw new Error("Not authenticated");
       }
 
+      const contributionStatus = isSuperFan ? 'auto_approved' : 'pending';
+
+      // Create contribution record
       const { error } = await supabase.from("fan_contributions").insert({
         user_id: user.id,
         lifeline_id: collectionId,
@@ -94,13 +99,34 @@ export function QuoteSubmissionDialog({
         quote_author: author || null,
         quote_author_profile_id: selectedProfileId || null,
         quote_context: context || null,
+        status: contributionStatus
       });
 
       if (error) throw error;
+
+      // For super fans, immediately create the quote
+      if (isSuperFan) {
+        await supabase.from('collection_quotes').insert({
+          collection_id: collectionId,
+          quote: quoteText,
+          author,
+          author_profile_id: selectedProfileId || null,
+          context,
+          contribution_status: 'auto_approved',
+          contributed_by_user_id: user.id
+        });
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["user-contributions"] });
-      toast.success("Quote submitted for review!");
+      queryClient.invalidateQueries({ queryKey: ["collection-quotes"] });
+      
+      if (isSuperFan) {
+        toast.success("Your quote is now live and visible to everyone!");
+      } else {
+        toast.success("Quote submitted for review!");
+      }
+      
       onOpenChange(false);
     },
     onError: (error) => {
