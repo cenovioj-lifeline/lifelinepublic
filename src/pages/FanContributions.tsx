@@ -13,6 +13,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Dialog,
   DialogContent,
@@ -31,6 +32,7 @@ export default function FanContributions() {
   const [expandedUserId, setExpandedUserId] = useState<string | null>(null);
   const [superFanStates, setSuperFanStates] = useState<Record<string, boolean>>({});
   const [allUsersSuperFanStates, setAllUsersSuperFanStates] = useState<Record<string, boolean>>({});
+  const [statusFilter, setStatusFilter] = useState<string>("all");
 
   const { data: contributions, isLoading } = useQuery({
     queryKey: ["fan-contributions-admin"],
@@ -145,7 +147,7 @@ export default function FanContributions() {
       message,
     }: {
       contributionId: string;
-      status: "approved" | "rejected";
+      status: "approved" | "rejected" | "pending";
       message: string;
     }) => {
       const contribution = contributions?.find((c) => c.id === contributionId);
@@ -251,7 +253,7 @@ export default function FanContributions() {
     },
   });
 
-  const handleReview = (status: "approved" | "rejected") => {
+  const handleReview = (status: "approved" | "rejected" | "pending") => {
     if (!selectedContribution) return;
     reviewMutation.mutate({
       contributionId: selectedContribution.id,
@@ -347,8 +349,19 @@ export default function FanContributions() {
       </div>
 
       <div className="rounded-md border">
-        <div className="p-4 border-b bg-muted/30">
-          <h2 className="text-xl font-semibold">Contributions</h2>
+        <div className="p-4 border-b bg-muted/30 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <h2 className="text-xl font-semibold">Contributions</h2>
+          </div>
+          <Tabs value={statusFilter} onValueChange={setStatusFilter}>
+            <TabsList>
+              <TabsTrigger value="all">All</TabsTrigger>
+              <TabsTrigger value="pending">Pending</TabsTrigger>
+              <TabsTrigger value="auto_approved">Auto-Approved</TabsTrigger>
+              <TabsTrigger value="approved">Confirmed</TabsTrigger>
+              <TabsTrigger value="rejected">Rejected</TabsTrigger>
+            </TabsList>
+          </Tabs>
         </div>
         <Table>
           <TableHeader>
@@ -369,14 +382,18 @@ export default function FanContributions() {
                   Loading...
                 </TableCell>
               </TableRow>
-            ) : contributions?.length === 0 ? (
+            ) : contributions?.filter((c) => 
+                statusFilter === "all" || c.status === statusFilter
+              ).length === 0 ? (
               <TableRow>
                 <TableCell colSpan={7} className="text-center">
-                  No contributions found
+                  {statusFilter === "all" ? "No contributions found" : `No ${statusFilter} contributions`}
                 </TableCell>
               </TableRow>
             ) : (
-              contributions?.map((contribution) => (
+              contributions?.filter((c) => 
+                statusFilter === "all" || c.status === statusFilter
+              ).map((contribution) => (
                 <>
                   <TableRow key={contribution.id}>
                     <TableCell>
@@ -417,13 +434,20 @@ export default function FanContributions() {
                       </div>
                     </TableCell>
                   <TableCell>
-                    <Badge variant="outline">
-                      {contribution.contribution_type === "image" 
-                        ? "Image" 
-                        : contribution.contribution_type === "quote"
-                        ? "Quote"
-                        : "Event"}
-                    </Badge>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline">
+                        {contribution.contribution_type === "image" 
+                          ? "Image" 
+                          : contribution.contribution_type === "quote"
+                          ? "Quote"
+                          : "Event"}
+                      </Badge>
+                      {contribution.status === "auto_approved" && superFanStates[contribution.user_id] && (
+                        <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 border-yellow-300">
+                          ⭐ Super Fan
+                        </Badge>
+                      )}
+                    </div>
                   </TableCell>
                   <TableCell>{contribution.lifelines?.title || "—"}</TableCell>
                   <TableCell className="max-w-xs truncate">
@@ -546,7 +570,9 @@ export default function FanContributions() {
                   id="adminMessage"
                   value={adminMessage}
                   onChange={(e) => setAdminMessage(e.target.value)}
-                  placeholder="Add a message for the user (optional)"
+                  placeholder={selectedContribution.status === "rejected" 
+                    ? "Provide feedback to help the contributor improve..."
+                    : "Add a message for the user (optional)"}
                   rows={3}
                 />
               </div>
@@ -569,7 +595,41 @@ export default function FanContributions() {
                   </Button>
                 </div>
               )}
-              {selectedContribution.status !== "pending" && (
+              {selectedContribution.status === "auto_approved" && (
+                <div className="flex gap-2 justify-end">
+                  <Button
+                    variant="outline"
+                    onClick={() => handleReview("rejected")}
+                    disabled={reviewMutation.isPending}
+                  >
+                    <X className="h-4 w-4 mr-2" />
+                    Reject
+                  </Button>
+                  <Button
+                    onClick={() => handleReview("approved")}
+                    disabled={reviewMutation.isPending}
+                  >
+                    <Check className="h-4 w-4 mr-2" />
+                    Confirm
+                  </Button>
+                </div>
+              )}
+              {selectedContribution.status === "rejected" && (
+                <div className="flex gap-2 justify-end">
+                  <Button
+                    onClick={() => handleReview("pending")}
+                    disabled={reviewMutation.isPending}
+                  >
+                    Revert to Pending
+                  </Button>
+                </div>
+              )}
+              {selectedContribution.status === "approved" && (
+                <div className="text-sm text-muted-foreground text-center py-2">
+                  This contribution has been confirmed and is final.
+                </div>
+              )}
+              {selectedContribution.status !== "pending" && selectedContribution.status !== "auto_approved" && selectedContribution.status !== "rejected" && selectedContribution.status !== "approved" && (
                 <div className="text-sm text-muted-foreground">
                   Status: {getStatusBadge(selectedContribution.status)}
                 </div>

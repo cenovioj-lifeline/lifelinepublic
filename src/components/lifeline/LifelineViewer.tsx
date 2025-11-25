@@ -35,6 +35,10 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import { useGlobalColors } from "@/hooks/useGlobalColors";
+import { LifelineSerpApiSearchModal } from "../admin/LifelineSerpApiSearchModal";
+import { useAdminAccess } from "@/lib/useAdminAccess";
+import { ContributionButton } from "@/components/ContributionButton";
+import { ContributionStatusBadge } from "@/components/ContributionStatusBadge";
 
 interface LifelineViewerProps {
   lifelineId: string;
@@ -774,48 +778,22 @@ export function LifelineViewer({
                       </Link>
                     </p>
                   )}
+                {selected.contributed_by_user_id === user?.id && selected.contribution_status !== 'approved' && (
+                  <div className="pb-2">
+                    <ContributionStatusBadge 
+                      status={selected.contribution_status || 'pending'}
+                      adminMessage={selected.admin_message}
+                    />
+                  </div>
+                )}
+                
                 <div className="pt-4 flex justify-center gap-2">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button 
-                        size="sm"
-                        className="bg-[hsl(var(--scheme-ll-entry-contributor))] hover:bg-[hsl(var(--scheme-ll-entry-contributor)/.8)] text-white border-0"
-                      >
-                        <Menu className="h-4 w-4 mr-2" />
-                        Contributor menu
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent 
-                      align="center"
-                      style={{
-                        backgroundColor: "hsl(var(--scheme-card-bg))",
-                        borderColor: "hsl(var(--scheme-card-border))",
-                        color: "hsl(var(--scheme-cards-text))",
-                        zIndex: 9999
-                      }}
-                    >
-                      <DropdownMenuItem 
-                        onClick={() => {
-                          setContributePictureMode(false);
-                          setContributeDialogOpen(true);
-                        }}
-                        style={{ color: "hsl(var(--scheme-cards-text))" }}
-                      >
-                        <Plus className="h-4 w-4 mr-2" />
-                        Add a new event
-                      </DropdownMenuItem>
-                      <DropdownMenuItem 
-                        onClick={() => {
-                          setContributePictureMode(true);
-                          setContributeDialogOpen(true);
-                        }}
-                        style={{ color: "hsl(var(--scheme-cards-text))" }}
-                      >
-                        <ImageIcon className="h-4 w-4 mr-2" />
-                        Add a picture to an event
-                      </DropdownMenuItem>
-                     </DropdownMenuContent>
-                  </DropdownMenu>
+                  <ContributionButton
+                    context="lifeline"
+                    lifelineId={lifelineId}
+                    lifelineTitle={lifeline?.title}
+                    currentEntryId={selected.id}
+                  />
 
                   {/* Admin SerpAPI Button - Only for cenovioj@gmail.com */}
                   {isAdmin && (
