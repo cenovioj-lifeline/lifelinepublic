@@ -69,16 +69,23 @@ export function useElectionData(slug: string | undefined, options?: UseElectionD
       if (resultsError) throw resultsError;
       if (!resultsData) return [];
 
-      // Fetch profiles for winners
+      // Fetch profiles for winners - handle both singular and array fields
       const profileIds = resultsData
-        .filter(r => r.winner_profile_ids && r.winner_profile_ids.length > 0)
-        .flatMap(r => r.winner_profile_ids);
+        .flatMap(r => {
+          const ids = [];
+          if (r.winner_profile_id) ids.push(r.winner_profile_id);
+          if (r.winner_profile_ids && r.winner_profile_ids.length > 0) {
+            ids.push(...r.winner_profile_ids);
+          }
+          return ids;
+        })
+        .filter((id, index, self) => id && self.indexOf(id) === index); // Remove duplicates
 
       let profilesMap: Record<string, any> = {};
       if (profileIds.length > 0) {
         const { data: profilesData } = await supabase
           .from("profiles")
-          .select("id, name, slug, avatar_image_id")
+          .select("id, name, slug, avatar_image_id, primary_image_url")
           .in("id", profileIds);
 
         if (profilesData) {
@@ -111,10 +118,23 @@ export function useElectionData(slug: string | undefined, options?: UseElectionD
         }
       }
 
-      return resultsData.map(result => ({
-        ...result,
-        profiles: result.winner_profile_ids?.map(id => profilesMap[id]).filter(Boolean) || []
-      }));
+      return resultsData.map(result => {
+        const profiles = [];
+        // Add profile from singular field
+        if (result.winner_profile_id && profilesMap[result.winner_profile_id]) {
+          profiles.push(profilesMap[result.winner_profile_id]);
+        }
+        // Add profiles from array field
+        if (result.winner_profile_ids) {
+          result.winner_profile_ids.forEach(id => {
+            if (profilesMap[id]) profiles.push(profilesMap[id]);
+          });
+        }
+        return {
+          ...result,
+          profiles: profiles.filter(Boolean)
+        };
+      });
     },
   });
 

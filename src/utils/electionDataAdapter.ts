@@ -82,7 +82,7 @@ export const transformElectionResults = (
       winner: {
         id: winnerProfile?.id || '',
         name: winnerProfile?.name || result.winner_name || 'Unknown',
-        photo_url: winnerProfile?.avatar?.url || null,
+        photo_url: winnerProfile?.avatar?.url || winnerProfile?.primary_image_url || null,
         position_x: winnerProfile?.avatar?.position_x,
         position_y: winnerProfile?.avatar?.position_y,
         scale: winnerProfile?.avatar?.scale,
