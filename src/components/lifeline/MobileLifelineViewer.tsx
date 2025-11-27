@@ -12,6 +12,7 @@ import { MinimalQuote } from './mobile/MinimalQuote';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useParams } from 'react-router-dom';
 import { ContributionButton } from '@/components/ContributionButton';
+import { CommunityContributionMenu } from '@/components/CommunityContributionMenu';
 import { useAuth } from '@/lib/auth';
 
 interface MobileLifelineViewerProps {
@@ -187,12 +188,11 @@ export const MobileLifelineViewer = ({ lifelineId }: MobileLifelineViewerProps) 
       )}
 
       {/* Floating contribution button */}
-      <ContributionButton
-        context="lifeline"
+      <CommunityContributionMenu
         lifelineId={lifelineId}
-        lifelineTitle={lifeline?.title}
+        lifelineTitle={lifeline?.title || ""}
         currentEntryId={currentEntry?.id}
-        floating
+        className="fixed bottom-4 right-4 z-50"
       />
     </div>
   );

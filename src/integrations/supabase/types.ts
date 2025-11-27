@@ -180,6 +180,35 @@ export type Database = {
           },
         ]
       }
+      collection_members: {
+        Row: {
+          collection_id: string
+          id: string
+          joined_at: string | null
+          user_id: string
+        }
+        Insert: {
+          collection_id: string
+          id?: string
+          joined_at?: string | null
+          user_id: string
+        }
+        Update: {
+          collection_id?: string
+          id?: string
+          joined_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "collection_members_collection_id_fkey"
+            columns: ["collection_id"]
+            isOneToOne: false
+            referencedRelation: "collections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       collection_quotes: {
         Row: {
           admin_message: string | null

@@ -38,6 +38,7 @@ import { useGlobalColors } from "@/hooks/useGlobalColors";
 import { LifelineSerpApiSearchModal } from "../admin/LifelineSerpApiSearchModal";
 import { useAdminAccess } from "@/lib/useAdminAccess";
 import { ContributionButton } from "@/components/ContributionButton";
+import { CommunityContributionMenu } from "@/components/CommunityContributionMenu";
 import { ContributionStatusBadge } from "@/components/ContributionStatusBadge";
 
 interface LifelineViewerProps {
@@ -788,10 +789,9 @@ export function LifelineViewer({
                 )}
                 
                 <div className="pt-4 flex justify-center gap-2">
-                  <ContributionButton
-                    context="lifeline"
+                  <CommunityContributionMenu
                     lifelineId={lifelineId}
-                    lifelineTitle={lifeline?.title}
+                    lifelineTitle={lifeline?.title || ""}
                     currentEntryId={selected.id}
                   />
 
