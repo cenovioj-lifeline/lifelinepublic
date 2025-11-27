@@ -139,33 +139,6 @@ export function CommunityContributionMenu({
             </Button>
           </div>
         </div>
-
-        <ContributeEventDialog
-          open={showEventDialog}
-          onOpenChange={setShowEventDialog}
-          lifelineId={lifelineId}
-          lifelineTitle={lifelineTitle}
-          initialEntryId={currentEntryId}
-          contributePictureMode={contributePictureMode}
-          onSignInRequired={() => {
-            setShowEventDialog(false);
-            setShowAuthModal(true);
-          }}
-        />
-
-        <AlertDialog open={constructionOpen} onOpenChange={setConstructionOpen}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Site Under Construction</AlertDialogTitle>
-              <AlertDialogDescription>
-                This feature is still under construction and will be available soon.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogAction>OK</AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
       </>
     );
   }
@@ -183,6 +156,33 @@ export function CommunityContributionMenu({
       >
         Community Contribution Menu
       </Button>
+
+      <ContributeEventDialog
+        open={showEventDialog}
+        onOpenChange={setShowEventDialog}
+        lifelineId={lifelineId}
+        lifelineTitle={lifelineTitle}
+        initialEntryId={currentEntryId}
+        contributePictureMode={contributePictureMode}
+        onSignInRequired={() => {
+          setShowEventDialog(false);
+          setShowAuthModal(true);
+        }}
+      />
+
+      <AlertDialog open={constructionOpen} onOpenChange={setConstructionOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Site Under Construction</AlertDialogTitle>
+            <AlertDialogDescription>
+              This feature is still under construction and will be available soon.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction>OK</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <PublicAuthModal open={showAuthModal} onOpenChange={setShowAuthModal} />
     </>
