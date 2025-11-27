@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { PlusCircle } from "lucide-react";
+import { PlusCircle, FileText, Image } from "lucide-react";
 import { useContributionPreference } from "@/hooks/useContributionPreference";
 import { ContributionWelcomeDialog, shouldShowWelcome } from "./ContributionWelcomeDialog";
 import { ContributeEventDialog } from "./ContributeEventDialog";
@@ -8,6 +8,13 @@ import { QuoteSubmissionDialog } from "./QuoteSubmissionDialog";
 import { useAuth } from "@/lib/auth";
 import { PublicAuthModal } from "./PublicAuthModal";
 import { cn } from "@/lib/utils";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 
 interface ContributionButtonProps {
   context: "lifeline" | "quotes";
@@ -37,6 +44,7 @@ export function ContributionButton({
   const { user } = useAuth();
   const { hideButton, loading, updatePreference } = useContributionPreference();
   const [showWelcome, setShowWelcome] = useState(false);
+  const [showContributionMenu, setShowContributionMenu] = useState(false);
   const [showEventDialog, setShowEventDialog] = useState(false);
   const [showQuoteDialog, setShowQuoteDialog] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -62,11 +70,22 @@ export function ContributionButton({
   const handleContinue = () => {
     setShowWelcome(false);
     if (context === "lifeline") {
-      setShowEventDialog(true);
-      setContributePictureMode(false);
+      setShowContributionMenu(true);
     } else if (context === "quotes") {
       setShowQuoteDialog(true);
     }
+  };
+
+  const handleEventContribution = () => {
+    setShowContributionMenu(false);
+    setContributePictureMode(false);
+    setShowEventDialog(true);
+  };
+
+  const handlePictureContribution = () => {
+    setShowContributionMenu(false);
+    setContributePictureMode(true);
+    setShowEventDialog(true);
   };
 
   const handleHideButton = (hide: boolean) => {
@@ -94,6 +113,45 @@ export function ContributionButton({
         onContinue={handleContinue}
         onHideButton={handleHideButton}
       />
+
+      <Dialog open={showContributionMenu} onOpenChange={setShowContributionMenu}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>What would you like to contribute?</DialogTitle>
+            <DialogDescription>
+              Choose the type of contribution you'd like to make
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-3 py-4">
+            <Button
+              onClick={handleEventContribution}
+              variant="outline"
+              className="h-auto flex-col items-start gap-2 p-4"
+            >
+              <div className="flex items-center gap-2">
+                <FileText className="h-5 w-5" />
+                <span className="font-semibold">Add Event</span>
+              </div>
+              <p className="text-sm text-muted-foreground text-left">
+                Submit a new event with title, score, and description
+              </p>
+            </Button>
+            <Button
+              onClick={handlePictureContribution}
+              variant="outline"
+              className="h-auto flex-col items-start gap-2 p-4"
+            >
+              <div className="flex items-center gap-2">
+                <Image className="h-5 w-5" />
+                <span className="font-semibold">Add Picture</span>
+              </div>
+              <p className="text-sm text-muted-foreground text-left">
+                Upload an image for an existing event
+              </p>
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {context === "lifeline" && lifelineId && (
         <ContributeEventDialog
