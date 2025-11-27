@@ -7,8 +7,10 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowRight, Share2, Rss, Users, Settings } from "lucide-react";
 import { CollectionShareModal } from "@/components/CollectionShareModal";
+import { JoinCommunityDialog } from "@/components/JoinCommunityDialog";
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { PublicAuthModal } from "@/components/PublicAuthModal";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { FavoriteButton } from "@/components/FavoriteButton";
 
@@ -17,6 +19,8 @@ export default function PublicCollectionDetail() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [shareModalOpen, setShareModalOpen] = useState(false);
+  const [joinDialogOpen, setJoinDialogOpen] = useState(false);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
   const [voteFlipped, setVoteFlipped] = useState(false);
   const [followFlipped, setFollowFlipped] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
@@ -258,30 +262,18 @@ export default function PublicCollectionDetail() {
     },
   });
 
-  const { data: fanCount } = useQuery({
-    queryKey: ["collection-fan-count", collection?.id],
+  const { data: memberCount } = useQuery({
+    queryKey: ["collection-member-count", collection?.id],
     queryFn: async () => {
       if (!collection?.id) return 0;
 
-      // Get lifelines in this collection
-      const { data: collectionLifelines } = await supabase
-        .from("lifelines")
-        .select("id")
+      const { count, error } = await supabase
+        .from("collection_members")
+        .select("*", { count: "exact", head: true })
         .eq("collection_id", collection.id);
 
-      const lifelineIds = collectionLifelines?.map((l) => l.id) || [];
-
-      // Get unique users who favorited this collection OR any lifeline in it
-      const { data: favorites, error } = await supabase
-        .from("user_favorites")
-        .select("user_id")
-        .or(`and(item_type.eq.collection,item_id.eq.${collection.id}),and(item_type.eq.lifeline,item_id.in.(${lifelineIds.join(",")}))`);
-
       if (error) throw error;
-
-      // Count unique user_ids
-      const uniqueUsers = new Set(favorites?.map((f) => f.user_id) || []);
-      return uniqueUsers.size;
+      return count || 0;
     },
     enabled: !!collection?.id,
   });
@@ -516,6 +508,7 @@ export default function PublicCollectionDetail() {
           <Card
             className="cursor-pointer hover:shadow-lg transition-shadow"
             style={{ backgroundColor: 'hsl(var(--scheme-ch-actions-bg))', borderColor: 'hsl(var(--scheme-ch-actions-border))' }}
+            onClick={() => setJoinDialogOpen(true)}
           >
             <CardContent className="p-3 md:p-6 text-center">
               <Users
@@ -523,7 +516,7 @@ export default function PublicCollectionDetail() {
                 style={{ color: 'hsl(var(--scheme-ch-actions-icon))' }}
               />
               <div className="text-[10px] md:text-sm mt-1" style={{ color: 'hsl(var(--scheme-ch-actions-text))' }}>
-                {fanCount || 0} Fans
+                {memberCount || 0} Members
               </div>
             </CardContent>
           </Card>
@@ -723,6 +716,22 @@ export default function PublicCollectionDetail() {
         onOpenChange={setShareModalOpen}
         collectionSlug={collection.slug}
         collectionTitle={collection.title}
+      />
+
+      <JoinCommunityDialog
+        open={joinDialogOpen}
+        onOpenChange={setJoinDialogOpen}
+        collectionId={collection.id}
+        collectionTitle={collection.title}
+        onSignInRequired={() => {
+          setJoinDialogOpen(false);
+          setAuthModalOpen(true);
+        }}
+      />
+
+      <PublicAuthModal
+        open={authModalOpen}
+        onOpenChange={setAuthModalOpen}
       />
     </CollectionLayout>
   );
