@@ -176,7 +176,7 @@ export function CommunityContributionMenu({
         onClick={handleButtonClick}
         className={cn(
           "shadow-md transition-all duration-200",
-          "bg-[hsl(var(--scheme-ll-entry-contributor-button))] hover:bg-[hsl(var(--scheme-ll-entry-contributor-button))]/90",
+          "bg-[hsl(var(--scheme-ll-entry-contributor))] hover:bg-[hsl(var(--scheme-ll-entry-contributor))]/90",
           "text-white",
           className
         )}
