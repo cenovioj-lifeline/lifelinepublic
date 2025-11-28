@@ -30,6 +30,7 @@ export const MobileElectionViewer = ({ electionId, collectionSlug }: MobileElect
       if (error) throw error;
       return data;
     },
+    enabled: !!electionId && electionId.length > 0,
   });
 
   const { data: results, isLoading: resultsLoading } = useQuery({
@@ -90,7 +91,7 @@ export const MobileElectionViewer = ({ electionId, collectionSlug }: MobileElect
         profiles: result.winner_profile_ids?.map((id: string) => profilesMap[id]).filter(Boolean) || []
       }));
     },
-    enabled: !!electionId,
+    enabled: !!electionId && electionId.length > 0,
   });
 
   // Fetch category ordering
