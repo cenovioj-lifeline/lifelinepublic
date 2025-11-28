@@ -120,16 +120,24 @@ export function useElectionData(slug: string | undefined, options?: UseElectionD
 
       return resultsData.map(result => {
         const profiles = [];
+        const addedIds = new Set<string>();
+        
         // Add profile from singular field
         if (result.winner_profile_id && profilesMap[result.winner_profile_id]) {
           profiles.push(profilesMap[result.winner_profile_id]);
+          addedIds.add(result.winner_profile_id);
         }
-        // Add profiles from array field
+        
+        // Add profiles from array field (only if not already added)
         if (result.winner_profile_ids) {
           result.winner_profile_ids.forEach(id => {
-            if (profilesMap[id]) profiles.push(profilesMap[id]);
+            if (profilesMap[id] && !addedIds.has(id)) {
+              profiles.push(profilesMap[id]);
+              addedIds.add(id);
+            }
           });
         }
+        
         return {
           ...result,
           profiles: profiles.filter(Boolean)
