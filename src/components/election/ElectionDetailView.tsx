@@ -162,21 +162,6 @@ export function ElectionDetailView({ election, groupedResults, collectionContext
                                                         </p>
                                                     )}
                                                 </div>
-                                                <div className="flex flex-col items-end gap-2">
-                                                    {result.vote_count && (
-                                                        <div className="text-right">
-                                                            <div className="text-2xl font-bold text-[hsl(var(--scheme-nav-button))]">
-                                                                {result.vote_count.toLocaleString()}
-                                                            </div>
-                                                            <div className="text-xs text-[hsl(var(--scheme-cards-text))] opacity-70">votes</div>
-                                                        </div>
-                                                    )}
-                                                    {result.percentage && (
-                                                        <Badge variant="secondary" className="text-sm bg-[hsl(var(--scheme-nav-button))] text-[hsl(var(--scheme-nav-text))]">
-                                                            {result.percentage}%
-                                                        </Badge>
-                                                    )}
-                                                </div>
                                             </div>
                                         </CardContent>
                                     ))}
