@@ -10,12 +10,17 @@ export default function PublicElectionDetail() {
   useColorScheme();
   const isMobile = useIsMobile();
   const { slug } = useParams<{ slug: string }>();
-  const { election, groupedResults, isLoading } = useElectionData(slug);
+  const { election, results, groupedResults, categoryOrdering, isLoading } = useElectionData(slug);
 
   if (isMobile && election?.id) {
     return (
       <PublicLayout>
-        <MobileElectionViewer electionId={election.id} />
+        <MobileElectionViewer 
+          electionId={election.id} 
+          election={election}
+          results={results || []}
+          categoryOrdering={categoryOrdering}
+        />
       </PublicLayout>
     );
   }

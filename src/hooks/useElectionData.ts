@@ -191,6 +191,7 @@ export function useElectionData(slug: string | undefined, options?: UseElectionD
     results,
     groupedResults,
     collection,
+    categoryOrdering: categoryOrdering || {},
     isLoading,
   };
 }
