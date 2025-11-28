@@ -11,7 +11,7 @@ export default function CollectionElectionDetail() {
   const isMobile = useIsMobile();
   const { collectionSlug, electionSlug } = useParams<{ collectionSlug: string; electionSlug: string }>();
   
-  const { election, groupedResults, collection, isLoading } = useElectionData(electionSlug, {
+  const { election, results, groupedResults, collection, categoryOrdering, isLoading } = useElectionData(electionSlug, {
     collectionSlug,
   });
 
@@ -46,7 +46,13 @@ export default function CollectionElectionDetail() {
         collectionSlug={collectionSlug!}
         collectionId={collection?.id}
       >
-        <MobileElectionViewer electionId={election.id} collectionSlug={collectionSlug} />
+        <MobileElectionViewer 
+          electionId={election.id} 
+          election={election}
+          results={results || []}
+          categoryOrdering={categoryOrdering}
+          collectionSlug={collectionSlug} 
+        />
       </CollectionLayout>
     );
   }
