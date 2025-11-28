@@ -16,6 +16,7 @@ export default function PublicCollections() {
   const [featuredOpen, setFeaturedOpen] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
+  const [sortBy, setSortBy] = useState<"name" | "members" | "image">("name");
   const [currentPage, setCurrentPage] = useState(1);
   const [userId, setUserId] = useState<string | null>(null);
 
@@ -30,7 +31,10 @@ export default function PublicCollections() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("collections")
-        .select("*")
+        .select(`
+          *,
+          collection_members(count)
+        `)
         .eq("status", "published")
         .order("is_featured", { ascending: false })
         .order("title");
@@ -72,8 +76,24 @@ export default function PublicCollections() {
       filtered = filtered.filter((collection) => favorites.includes(collection.id));
     }
 
-    return filtered;
-  }, [nonFeaturedCollections, searchTerm, showFavoritesOnly, favorites]);
+    // Apply sorting
+    const sorted = [...filtered].sort((a, b) => {
+      if (sortBy === "name") {
+        return a.title.localeCompare(b.title);
+      } else if (sortBy === "members") {
+        const aCount = (a as any).collection_members?.[0]?.count || 0;
+        const bCount = (b as any).collection_members?.[0]?.count || 0;
+        return bCount - aCount; // Descending
+      } else if (sortBy === "image") {
+        const aHasImage = a.hero_image_url ? 1 : 0;
+        const bHasImage = b.hero_image_url ? 1 : 0;
+        return bHasImage - aHasImage; // Collections with images first
+      }
+      return 0;
+    });
+
+    return sorted;
+  }, [nonFeaturedCollections, searchTerm, showFavoritesOnly, favorites, sortBy]);
 
   const totalPages = Math.ceil(filteredCollections.length / ITEMS_PER_PAGE);
   const paginatedCollections = filteredCollections.slice(
@@ -162,6 +182,23 @@ export default function PublicCollections() {
               className="pl-10"
             />
           </div>
+
+          <Select
+            value={sortBy}
+            onValueChange={(val: "name" | "members" | "image") => {
+              setSortBy(val);
+              setCurrentPage(1);
+            }}
+          >
+            <SelectTrigger className="w-full sm:w-[180px]">
+              <SelectValue placeholder="Sort by..." />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="name">Sort by Name</SelectItem>
+              <SelectItem value="members">Sort by Members</SelectItem>
+              <SelectItem value="image">Has Image</SelectItem>
+            </SelectContent>
+          </Select>
 
           {userId && (
             <Select
