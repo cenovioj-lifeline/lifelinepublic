@@ -72,8 +72,8 @@ function AppContent() {
           <Route path="/home" element={<Navigate to="/" replace />} />
           <Route path="/public/lifelines" element={<PublicLayout><PublicLifelinesGrid /></PublicLayout>} />
           <Route path="/public/lifelines/:slug" element={<PublicLifelineDetail />} />
-            <Route path="/public/collections" element={<PublicLayout><PublicCollections /></PublicLayout>} />
-            <Route path="/public/collections/all" element={<PublicCollectionsGrid />} />
+          <Route path="/public/collections" element={<PublicLayout><PublicCollections /></PublicLayout>} />
+          <Route path="/public/collections/all" element={<Navigate to="/public/collections" replace />} />
           <Route path="/public/collections/:slug" element={<PublicCollectionDetail />} />
           <Route path="/public/collections/:slug/feed" element={<CollectionFeed />} />
           <Route path="/public/collections/:slug/settings" element={<CollectionSettings />} />
