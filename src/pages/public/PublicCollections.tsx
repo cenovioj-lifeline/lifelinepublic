@@ -63,7 +63,7 @@ export default function PublicCollections() {
   const nonFeaturedCollections = collections?.filter((c) => !c.is_featured) || [];
 
   const filteredCollections = useMemo(() => {
-    let filtered = nonFeaturedCollections;
+    let filtered = collections || [];
 
     if (searchTerm) {
       filtered = filtered.filter((collection) =>
@@ -93,7 +93,7 @@ export default function PublicCollections() {
     });
 
     return sorted;
-  }, [nonFeaturedCollections, searchTerm, showFavoritesOnly, favorites, sortBy]);
+  }, [collections, searchTerm, showFavoritesOnly, favorites, sortBy]);
 
   const totalPages = Math.ceil(filteredCollections.length / ITEMS_PER_PAGE);
   const paginatedCollections = filteredCollections.slice(
