@@ -1,13 +1,30 @@
+import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Search, ChevronDown } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Button } from "@/components/ui/button";
-import { FavoriteButton } from "@/components/FavoriteButton";
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
+import { CollectionCard } from "@/components/CollectionCard";
+
+const ITEMS_PER_PAGE = 6;
 
 export default function PublicCollections() {
+  const [featuredOpen, setFeaturedOpen] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [userId, setUserId] = useState<string | null>(null);
+
+  useState(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      setUserId(data.user?.id || null);
+    });
+  });
+
   const { data: collections, isLoading } = useQuery({
     queryKey: ["public-collections"],
     queryFn: async () => {
@@ -22,6 +39,47 @@ export default function PublicCollections() {
       return data;
     },
   });
+
+  const { data: favorites } = useQuery({
+    queryKey: ["user-favorites-collections", userId],
+    queryFn: async () => {
+      if (!userId) return [];
+      const { data, error } = await supabase
+        .from("user_favorites")
+        .select("item_id")
+        .eq("user_id", userId)
+        .eq("item_type", "collection");
+      if (error) throw error;
+      return data.map((f) => f.item_id);
+    },
+    enabled: !!userId,
+  });
+
+  const featuredCollections = collections?.filter((c) => c.is_featured) || [];
+  const nonFeaturedCollections = collections?.filter((c) => !c.is_featured) || [];
+
+  const filteredCollections = useMemo(() => {
+    let filtered = nonFeaturedCollections;
+
+    if (searchTerm) {
+      filtered = filtered.filter((collection) =>
+        collection.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        collection.description?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    if (showFavoritesOnly && favorites) {
+      filtered = filtered.filter((collection) => favorites.includes(collection.id));
+    }
+
+    return filtered;
+  }, [nonFeaturedCollections, searchTerm, showFavoritesOnly, favorites]);
+
+  const totalPages = Math.ceil(filteredCollections.length / ITEMS_PER_PAGE);
+  const paginatedCollections = filteredCollections.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
 
   if (isLoading) {
     return (
@@ -39,9 +97,6 @@ export default function PublicCollections() {
     );
   }
 
-  const featuredCollections = collections?.filter((c) => c.is_featured) || [];
-  const otherCollections = collections?.filter((c) => !c.is_featured) || [];
-
   return (
     <div className="space-y-8">
       <div>
@@ -52,112 +107,131 @@ export default function PublicCollections() {
       </div>
 
       {featuredCollections.length > 0 && (
-        <section>
-          <h2 className="text-2xl font-semibold mb-4">Featured Collections</h2>
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {featuredCollections.map((collection) => (
-              <Link
-                key={collection.id}
-                to={`/public/collections/${collection.slug}`}
-                className="group relative"
-              >
-                <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
-                  <div className="absolute top-2 right-2 z-10">
-                    <FavoriteButton itemId={collection.id} itemType="collection" />
-                  </div>
-                  <div className="aspect-video relative bg-white overflow-hidden">
-                    {collection.hero_image_url ? (
-                      <img
-                        src={collection.hero_image_url}
-                        alt={collection.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        style={{
-                          objectPosition: `${collection.card_image_position_x || 50}% ${collection.card_image_position_y || 50}%`,
-                        }}
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-gray-400">
-                        No image
-                      </div>
-                    )}
-                  </div>
-                  <CardHeader className="bg-[hsl(var(--scheme-card-bg))]">
-                    <div className="flex items-start justify-between gap-2">
-                      <CardTitle className="text-xl transition-colors text-[hsl(var(--scheme-card-text))]">
-                        {collection.title}
-                      </CardTitle>
-                      <Badge variant="secondary">Featured</Badge>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="bg-[hsl(var(--scheme-card-bg))]">
-                    <p className="text-[hsl(var(--scheme-cards-text))] line-clamp-3">
-                      {collection.description || "Explore this collection"}
-                    </p>
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {otherCollections.length > 0 && (
-        <section>
+        <Collapsible open={featuredOpen} onOpenChange={setFeaturedOpen}>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-2xl font-semibold">All Collections</h2>
-            <Link to="/public/collections/all">
-              <Button variant="outline">View All</Button>
-            </Link>
+            <h2 className="text-2xl font-semibold">Featured Collections</h2>
+            <CollapsibleTrigger className="hover:opacity-75 transition-opacity">
+              <ChevronDown
+                className={`h-5 w-5 transition-transform duration-200 ${featuredOpen ? "" : "-rotate-90"}`}
+              />
+            </CollapsibleTrigger>
           </div>
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {otherCollections.slice(0, 6).map((collection) => (
-              <Link
-                key={collection.id}
-                to={`/public/collections/${collection.slug}`}
-                className="group relative"
-              >
-                <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
-                  <div className="absolute top-2 right-2 z-10">
-                    <FavoriteButton itemId={collection.id} itemType="collection" />
-                  </div>
-                  <div className="aspect-video relative bg-white overflow-hidden">
-                    {collection.hero_image_url ? (
-                      <img
-                        src={collection.hero_image_url}
-                        alt={collection.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        style={{
-                          objectPosition: `${collection.card_image_position_x || 50}% ${collection.card_image_position_y || 50}%`,
-                        }}
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-gray-400">
-                        No image
-                      </div>
-                    )}
-                  </div>
-                  <CardHeader className="bg-[hsl(var(--scheme-card-bg))]">
-                    <CardTitle className="text-xl transition-colors text-[hsl(var(--scheme-card-text))]">
-                      {collection.title}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="bg-[hsl(var(--scheme-card-bg))]">
-                    <p className="text-[hsl(var(--scheme-cards-text))] line-clamp-3">
-                      {collection.description || "Explore this collection"}
-                    </p>
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
-          </div>
-        </section>
+          <CollapsibleContent className="space-y-4">
+            <Carousel
+              opts={{
+                align: "start",
+                loop: false,
+              }}
+              className="w-full"
+            >
+              <CarouselContent className="-ml-4">
+                {featuredCollections.map((collection) => (
+                  <CarouselItem
+                    key={collection.id}
+                    className="pl-4 basis-full md:basis-1/2 lg:basis-1/3"
+                  >
+                    <CollectionCard collection={collection} showFeaturedBadge />
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              {featuredCollections.length > 3 && (
+                <>
+                  <CarouselPrevious className="hidden md:flex" />
+                  <CarouselNext className="hidden md:flex" />
+                </>
+              )}
+            </Carousel>
+          </CollapsibleContent>
+        </Collapsible>
       )}
 
-      {collections?.length === 0 && (
-        <div className="text-center py-12">
-          <p className="text-muted-foreground">No collections available yet</p>
+      <section className="space-y-4">
+        <h2 className="text-2xl font-semibold">All Collections</h2>
+
+        <div className="flex flex-col sm:flex-row gap-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="text"
+              placeholder="Search collections..."
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="pl-10"
+            />
+          </div>
+
+          {userId && (
+            <Select
+              value={showFavoritesOnly ? "favorites" : "all"}
+              onValueChange={(val) => {
+                setShowFavoritesOnly(val === "favorites");
+                setCurrentPage(1);
+              }}
+            >
+              <SelectTrigger className="w-full sm:w-[200px]">
+                <SelectValue placeholder="Filter..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Collections</SelectItem>
+                <SelectItem value="favorites">Favorites Only</SelectItem>
+              </SelectContent>
+            </Select>
+          )}
         </div>
-      )}
+
+        {paginatedCollections.length > 0 ? (
+          <>
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {paginatedCollections.map((collection) => (
+                <CollectionCard key={collection.id} collection={collection} />
+              ))}
+            </div>
+
+            {totalPages > 1 && (
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious
+                      onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                      className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                    />
+                  </PaginationItem>
+                  {[...Array(totalPages)].map((_, i) => (
+                    <PaginationItem key={i}>
+                      <PaginationLink
+                        onClick={() => setCurrentPage(i + 1)}
+                        isActive={currentPage === i + 1}
+                        className="cursor-pointer"
+                      >
+                        {i + 1}
+                      </PaginationLink>
+                    </PaginationItem>
+                  ))}
+                  <PaginationItem>
+                    <PaginationNext
+                      onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                      className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            )}
+          </>
+        ) : (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground">
+              {showFavoritesOnly
+                ? "No favorite collections found."
+                : searchTerm
+                ? "No collections match your search criteria."
+                : "No collections available yet."}
+            </p>
+          </div>
+        )}
+      </section>
     </div>
   );
 }
