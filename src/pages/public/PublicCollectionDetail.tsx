@@ -13,6 +13,15 @@ import { useToast } from "@/hooks/use-toast";
 import { PublicAuthModal } from "@/components/PublicAuthModal";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { FavoriteButton } from "@/components/FavoriteButton";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export default function PublicCollectionDetail() {
   const { slug } = useParams<{ slug: string }>();
@@ -21,6 +30,7 @@ export default function PublicCollectionDetail() {
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [joinDialogOpen, setJoinDialogOpen] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [constructionAlertOpen, setConstructionAlertOpen] = useState(false);
   const [voteFlipped, setVoteFlipped] = useState(false);
   const [followFlipped, setFollowFlipped] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
@@ -482,7 +492,7 @@ export default function PublicCollectionDetail() {
           <Card
             className="cursor-pointer hover:shadow-lg transition-shadow"
             style={{ backgroundColor: 'hsl(var(--scheme-actions-bg))', borderColor: 'hsl(var(--scheme-actions-border))' }}
-            onClick={() => navigate(`/public/collections/${collection.slug}/feed`)}
+            onClick={() => setConstructionAlertOpen(true)}
           >
             <CardContent className="p-3 md:p-6 text-center">
               <Rss
@@ -733,6 +743,20 @@ export default function PublicCollectionDetail() {
         open={authModalOpen}
         onOpenChange={setAuthModalOpen}
       />
+
+      <AlertDialog open={constructionAlertOpen} onOpenChange={setConstructionAlertOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Site Under Construction</AlertDialogTitle>
+            <AlertDialogDescription>
+              This feature is still under construction and will be available soon.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction>OK</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </CollectionLayout>
   );
 }
