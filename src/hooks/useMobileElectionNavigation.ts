@@ -1,52 +1,52 @@
-import { useState, useCallback } from 'react';
-import { MobileSuperlative, MobileCategory } from '@/utils/electionDataAdapter';
+import { useState, useCallback, useMemo } from 'react';
+import { MobileSuperlative, MobileCategory, NavigationItem, buildNavigationList } from '@/utils/electionDataAdapter';
 
 export const useMobileElectionNavigation = (categories: MobileCategory[]) => {
-  const [selectedSuperlative, setSelectedSuperlative] = useState<MobileSuperlative | null>(null);
+  const [currentIndex, setCurrentIndex] = useState<number | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
 
+  // Build flat navigation list
+  const navigationList = useMemo(() => buildNavigationList(categories), [categories]);
+
+  // Get current item
+  const currentItem = currentIndex !== null ? navigationList[currentIndex] : null;
+
   const openDetail = useCallback((superlative: MobileSuperlative) => {
-    setSelectedSuperlative(superlative);
-    setIsDetailOpen(true);
-  }, []);
+    // Find the superlative in the navigation list
+    const index = navigationList.findIndex(
+      item => item.type === 'superlative' && item.superlative.id === superlative.id
+    );
+    if (index !== -1) {
+      setCurrentIndex(index);
+      setIsDetailOpen(true);
+    }
+  }, [navigationList]);
 
   const closeDetail = useCallback(() => {
     setIsDetailOpen(false);
-    setTimeout(() => setSelectedSuperlative(null), 300);
+    setTimeout(() => setCurrentIndex(null), 300);
   }, []);
 
   const navigateDetail = useCallback((direction: 'prev' | 'next') => {
-    if (!selectedSuperlative) return;
+    if (currentIndex === null) return;
 
-    const currentCategory = categories.find(c => c.id === selectedSuperlative.category.toLowerCase().replace(/\s+/g, '-'));
-    if (!currentCategory) return;
-
-    const currentIndex = currentCategory.superlatives.findIndex(s => s.id === selectedSuperlative.id);
-    if (currentIndex === -1) return;
-
-    let newIndex = direction === 'next' ? currentIndex + 1 : currentIndex - 1;
+    const newIndex = direction === 'next' ? currentIndex + 1 : currentIndex - 1;
     
-    if (newIndex >= 0 && newIndex < currentCategory.superlatives.length) {
-      setSelectedSuperlative(currentCategory.superlatives[newIndex]);
+    if (newIndex >= 0 && newIndex < navigationList.length) {
+      setCurrentIndex(newIndex);
     }
-  }, [selectedSuperlative, categories]);
+  }, [currentIndex, navigationList]);
 
   const canNavigate = useCallback((direction: 'prev' | 'next'): boolean => {
-    if (!selectedSuperlative) return false;
-
-    const currentCategory = categories.find(c => c.id === selectedSuperlative.category.toLowerCase().replace(/\s+/g, '-'));
-    if (!currentCategory) return false;
-
-    const currentIndex = currentCategory.superlatives.findIndex(s => s.id === selectedSuperlative.id);
-    if (currentIndex === -1) return false;
+    if (currentIndex === null) return false;
 
     return direction === 'next' 
-      ? currentIndex < currentCategory.superlatives.length - 1
+      ? currentIndex < navigationList.length - 1
       : currentIndex > 0;
-  }, [selectedSuperlative, categories]);
+  }, [currentIndex, navigationList]);
 
   return {
-    selectedSuperlative,
+    currentItem,
     isDetailOpen,
     openDetail,
     closeDetail,

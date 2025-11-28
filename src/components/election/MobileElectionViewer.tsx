@@ -93,19 +93,19 @@ export const MobileElectionViewer = ({ electionId, collectionSlug }: MobileElect
     enabled: !!electionId,
   });
 
-  const { data: categoryOrdering = {} } = useQuery<Record<string, number>>({
-    queryKey: ['election-category-order', electionId],
+  // Fetch category ordering
+  const { data: categoryOrdering = {}, isLoading: orderingLoading } = useQuery<Record<string, number>>({
+    queryKey: ['election-category-order'],
     queryFn: async () => {
-      const result = await (supabase as any)
+      const { data, error } = await supabase
         .from('election_category_order')
-        .select('category, display_order')
-        .eq('election_id', electionId);
+        .select('category, display_order');
       
-      if (result.error) throw result.error;
-      if (!result.data) return {};
+      if (error) throw error;
+      if (!data) return {};
       
       const orderMap: Record<string, number> = {};
-      result.data.forEach((item: any) => {
+      data.forEach((item: any) => {
         orderMap[item.category] = item.display_order;
       });
       return orderMap;
@@ -113,7 +113,15 @@ export const MobileElectionViewer = ({ electionId, collectionSlug }: MobileElect
   });
 
   const categories = results ? transformElectionResults(results, categoryOrdering) : [];
-  const navigation = useMobileElectionNavigation(categories);
+  
+  const {
+    currentItem,
+    isDetailOpen,
+    openDetail,
+    closeDetail,
+    navigateDetail,
+    canNavigate,
+  } = useMobileElectionNavigation(categories);
 
   useEffect(() => {
     if (categories.length > 0 && !activeCategory) {
@@ -131,7 +139,7 @@ export const MobileElectionViewer = ({ electionId, collectionSlug }: MobileElect
 
   const shouldShowReadMore = election?.description && election.description.length > 120;
 
-  if (electionLoading || resultsLoading) {
+  if (electionLoading || resultsLoading || orderingLoading) {
     return (
       <div className="min-h-screen bg-background p-4">
         <Skeleton className="h-8 w-3/4 mb-2" />
@@ -186,19 +194,19 @@ export const MobileElectionViewer = ({ electionId, collectionSlug }: MobileElect
             key={category.id}
             category={category}
             defaultExpanded={index < 2}
-            onCardClick={navigation.openDetail}
+            onCardClick={openDetail}
           />
         ))}
       </div>
 
       {/* Detail Sheet */}
       <DetailSheet
-        superlative={navigation.selectedSuperlative}
-        isOpen={navigation.isDetailOpen}
-        onClose={navigation.closeDetail}
-        onNavigate={navigation.navigateDetail}
-        canNavigatePrev={navigation.canNavigate('prev')}
-        canNavigateNext={navigation.canNavigate('next')}
+        item={currentItem}
+        isOpen={isDetailOpen}
+        onClose={closeDetail}
+        onNavigate={navigateDetail}
+        canNavigatePrev={canNavigate('prev')}
+        canNavigateNext={canNavigate('next')}
         collectionSlug={collectionSlug}
       />
     </div>

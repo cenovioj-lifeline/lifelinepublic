@@ -1,14 +1,14 @@
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { useSwipeable } from "react-swipeable";
 import { cn } from "@/lib/utils";
-import { MobileSuperlative } from "@/utils/electionDataAdapter";
+import { NavigationItem } from "@/utils/electionDataAdapter";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 
 interface DetailSheetProps {
-  superlative: MobileSuperlative | null;
+  item: NavigationItem | null;
   isOpen: boolean;
   onClose: () => void;
   onNavigate: (direction: 'prev' | 'next') => void;
@@ -18,7 +18,7 @@ interface DetailSheetProps {
 }
 
 export const DetailSheet = ({ 
-  superlative, 
+  item, 
   isOpen, 
   onClose, 
   onNavigate,
@@ -34,8 +34,84 @@ export const DetailSheet = ({
     delta: 50,
   });
 
-  if (!superlative) return null;
+  if (!item) return null;
 
+  // Category header view
+  if (item.type === 'category-header') {
+    return (
+      <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
+        <SheetContent 
+          side="bottom" 
+          className={cn(
+            "h-[85vh] rounded-t-3xl p-0",
+            "animate-slide-up"
+          )}
+          {...handlers}
+        >
+          <div className="h-full flex flex-col">
+            {/* Drag handle */}
+            <div className="flex justify-center py-3">
+              <div className="w-12 h-1 bg-muted-foreground/30 rounded-full" />
+            </div>
+
+            {/* Close button */}
+            <button
+              onClick={onClose}
+              className="absolute top-4 right-4 z-50 p-2 rounded-full bg-background/80 backdrop-blur-sm hover:bg-muted"
+            >
+              <X className="h-5 w-5" />
+            </button>
+
+            {/* Category intro content */}
+            <div className="flex-1 flex flex-col items-center justify-center px-6 pb-6 gap-6">
+              <div className="text-8xl mb-4 animate-bounce">
+                {item.category.icon}
+              </div>
+              
+              <SheetHeader className="text-center">
+                <SheetTitle className="text-3xl font-bold">
+                  {item.category.name}
+                </SheetTitle>
+              </SheetHeader>
+
+              <div className="text-xl text-muted-foreground">
+                {item.category.superlatives.length} {item.category.superlatives.length === 1 ? 'Award' : 'Awards'}
+              </div>
+
+              <div className="w-16 h-1 bg-primary/20 rounded-full" />
+            </div>
+
+            {/* Navigation buttons */}
+            <div className="flex gap-3 p-6 border-t border-border bg-background">
+              <Button
+                variant="outline"
+                size="lg"
+                onClick={() => onNavigate('prev')}
+                disabled={!canNavigatePrev}
+                className="flex-1"
+              >
+                <ChevronLeft className="h-5 w-5 mr-2" />
+                Previous
+              </Button>
+              <Button
+                variant="outline"
+                size="lg"
+                onClick={() => onNavigate('next')}
+                disabled={!canNavigateNext}
+                className="flex-1"
+              >
+                Next
+                <ChevronRight className="h-5 w-5 ml-2" />
+              </Button>
+            </div>
+          </div>
+        </SheetContent>
+      </Sheet>
+    );
+  }
+
+  // Superlative detail view
+  const superlative = item.superlative;
   const profileLink = collectionSlug 
     ? `/public/collections/${collectionSlug}/profiles/${superlative.winner.slug}`
     : `/public/profiles/${superlative.winner.slug}`;
