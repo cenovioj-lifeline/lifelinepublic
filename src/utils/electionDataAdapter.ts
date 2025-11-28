@@ -26,6 +26,10 @@ export interface MobileCategory {
   order: number;
 }
 
+export type NavigationItem = 
+  | { type: 'category-header'; category: MobileCategory; categoryIndex: number }
+  | { type: 'superlative'; superlative: MobileSuperlative; categoryIndex: number; superlativeIndex: number };
+
 const FALLBACK_COLORS = [
   'hsl(var(--primary))',
   'hsl(217, 91%, 60%)',
@@ -98,4 +102,17 @@ export const transformElectionResults = (
   });
 
   return Object.values(grouped).sort((a, b) => a.order - b.order);
+};
+
+export const buildNavigationList = (categories: MobileCategory[]): NavigationItem[] => {
+  const items: NavigationItem[] = [];
+  categories.forEach((category, categoryIndex) => {
+    // Add category header as first item
+    items.push({ type: 'category-header', category, categoryIndex });
+    // Add all superlatives in this category
+    category.superlatives.forEach((superlative, superlativeIndex) => {
+      items.push({ type: 'superlative', superlative, categoryIndex, superlativeIndex });
+    });
+  });
+  return items;
 };
