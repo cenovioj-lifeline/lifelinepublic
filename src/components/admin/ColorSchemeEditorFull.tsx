@@ -83,9 +83,11 @@ export function ColorSchemeEditorFull({ initialColors, onChange }: ColorSchemeEd
 
   useEffect(() => {
     if (initialColors) {
-      setColors(prev => ({ ...prev, ...initialColors }));
+      const newColors = { ...DEFAULT_COLORS, ...initialColors };
+      setColors(newColors);
+      onChange(newColors);
     }
-  }, [initialColors]);
+  }, [initialColors, onChange]);
 
   const handleColorChange = (field: keyof ColorScheme, value: string) => {
     const newColors = { ...colors, [field]: value };
