@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Loader2, ExternalLink, Calendar } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { differenceInMonths } from 'date-fns';
 
 interface FeedViewerProps {
   entries: FeedEntry[];
@@ -35,17 +36,50 @@ export const FeedViewer = ({
     : "#dc2626";
   const newCollectionColor = "#2563eb"; // Blue for new collections
 
+  // Pre-process entries to add date metadata for time axis
+  const entriesWithDateContext = useMemo(() => {
+    if (!entries || entries.length === 0) return [];
+    
+    let lastYear: number | null = null;
+    let lastMonth: number | null = null;
+    
+    return entries.map((entry, index) => {
+      const year = entry.date.getFullYear();
+      const month = entry.date.getMonth();
+      const isNewYear = year !== lastYear;
+      const isNewMonth = month !== lastMonth || isNewYear;
+      
+      // Calculate gap from previous entry
+      const prevEntry = index > 0 ? entries[index - 1] : null;
+      const gapMonths = prevEntry 
+        ? Math.abs(differenceInMonths(entry.date, prevEntry.date))
+        : 0;
+      
+      lastYear = year;
+      lastMonth = month;
+      
+      return {
+        ...entry,
+        showYear: isNewYear,
+        showMonth: isNewMonth,
+        gapMonths,
+        year,
+        monthName: entry.date.toLocaleDateString('en-US', { month: 'short' })
+      };
+    });
+  }, [entries]);
+
   // Auto-select first entry when entries load
   useEffect(() => {
-    if (entries && entries.length > 0 && !selectedEntry) {
-      setSelectedEntry(entries[0]);
+    if (entriesWithDateContext && entriesWithDateContext.length > 0 && !selectedEntry) {
+      setSelectedEntry(entriesWithDateContext[0]);
     }
-  }, [entries, selectedEntry]);
+  }, [entriesWithDateContext, selectedEntry]);
 
   const currentIndex = useMemo(() => {
-    if (!selectedEntry || !entries) return -1;
-    return entries.findIndex((e) => e.id === selectedEntry.id);
-  }, [selectedEntry, entries]);
+    if (!selectedEntry || !entriesWithDateContext) return -1;
+    return entriesWithDateContext.findIndex((e) => e.id === selectedEntry.id);
+  }, [selectedEntry, entriesWithDateContext]);
 
   const scrollToEntry = (entryId: string) => {
     const entryElement = entryRefs.current[entryId];
@@ -73,19 +107,28 @@ export const FeedViewer = ({
   };
 
   const handlePrevious = () => {
-    if (currentIndex > 0 && entries) {
-      const newEntry = entries[currentIndex - 1];
+    if (currentIndex > 0 && entriesWithDateContext) {
+      const newEntry = entriesWithDateContext[currentIndex - 1];
       setSelectedEntry(newEntry);
       scrollToEntry(newEntry.id);
     }
   };
 
   const handleNext = () => {
-    if (currentIndex < (entries?.length || 0) - 1 && entries) {
-      const newEntry = entries[currentIndex + 1];
+    if (currentIndex < (entriesWithDateContext?.length || 0) - 1 && entriesWithDateContext) {
+      const newEntry = entriesWithDateContext[currentIndex + 1];
       setSelectedEntry(newEntry);
       scrollToEntry(newEntry.id);
     }
+  };
+
+  // Helper to format gap text
+  const formatGap = (months: number) => {
+    if (months >= 12) {
+      const years = Math.floor(months / 12);
+      return `${years} year${years > 1 ? 's' : ''}`;
+    }
+    return `${months} month${months > 1 ? 's' : ''}`;
   };
 
   // Scroll to selected entry when selection changes
@@ -103,7 +146,7 @@ export const FeedViewer = ({
     );
   }
 
-  if (entries.length === 0) {
+  if (entriesWithDateContext.length === 0) {
     return (
       <Card className="p-12 text-center">
         <h3 className="text-xl font-semibold mb-2">No entries found</h3>
@@ -127,7 +170,7 @@ export const FeedViewer = ({
           }}
         >
           <div className="relative min-h-full" style={{ paddingTop: '2px', paddingBottom: '2px' }}>
-            {entries.map((entry) => {
+            {entriesWithDateContext.map((entry, index) => {
               const isSelected = entry.id === selectedEntry?.id;
               const isNewCollection = entry.type === 'new_collection';
               const positive = isNewCollection || (entry.score >= 0);
@@ -139,123 +182,149 @@ export const FeedViewer = ({
               const barColor = isNewCollection ? newCollectionColor : (positive ? positiveColor : negativeColor);
 
               return (
-                <div
-                  key={entry.id}
-                  ref={(el) => (entryRefs.current[entry.id] = el)}
-                  className={cn(
-                    "grid grid-cols-2 gap-0 cursor-pointer transition-colors duration-200",
-                    isSelected && "bg-gray-50/50"
+                <>
+                  {/* Gap indicator if significant time jump */}
+                  {entry.gapMonths > 6 && index > 0 && (
+                    <div className="col-span-3 py-2 px-4 text-center text-xs text-muted-foreground bg-gray-50 border-y border-gray-200">
+                      ↑ {formatGap(entry.gapMonths)} earlier
+                    </div>
                   )}
-                  style={{ minHeight: '100px' }}
-                  onClick={() => setSelectedEntry(entry)}
-                >
-                  {positive ? (
-                    <>
-                      {/* Left column - Score box at left end, stem extends to center */}
-                      <div className="flex items-center justify-end relative pr-0 py-3">
-                        {/* Vertical centerline extending full height */}
-                        <div className="absolute right-0 top-0 bottom-0 w-[2px]" style={{ backgroundColor: '#565D6D' }} />
-                        <div className="flex items-center justify-end" style={{ width: `${stemWidthPercent}%` }}>
-                          {/* Score box at left end - square on right side */}
+                  
+                  <div
+                    key={entry.id}
+                    ref={(el) => (entryRefs.current[entry.id] = el)}
+                    className={cn(
+                      "grid grid-cols-[70px_1fr_1fr] gap-0 cursor-pointer transition-colors duration-200",
+                      isSelected && "bg-gray-50/50"
+                    )}
+                    style={{ minHeight: '100px' }}
+                    onClick={() => setSelectedEntry(entry)}
+                  >
+                    {/* Time axis column */}
+                    <div className="flex flex-col items-center justify-center text-xs text-muted-foreground border-r border-gray-200 py-3">
+                      {entry.showYear && (
+                        <span className="font-bold text-sm">{entry.year}</span>
+                      )}
+                      {entry.showMonth && (
+                        <span className="text-[10px] mt-0.5">{entry.monthName}</span>
+                      )}
+                    </div>
+                    {positive ? (
+                      <>
+                        {/* Left column - Score box at left end, stem extends to center */}
+                        <div className="flex items-center justify-end relative pr-0 py-3">
+                          {/* Vertical centerline extending full height */}
+                          <div className="absolute right-0 top-0 bottom-0 w-[2px]" style={{ backgroundColor: '#565D6D' }} />
+                          <div className="flex items-center justify-end" style={{ width: `${stemWidthPercent}%` }}>
+                            {/* Score box at left end - square on right side */}
+                            <div
+                              className="flex-shrink-0 w-[50px] h-[50px] rounded-l-lg flex items-center justify-center font-bold text-xl border-[3px] bg-white z-10 relative"
+                              style={{
+                                borderColor: barColor,
+                                color: barColor
+                              }}
+                            >
+                              {score}
+                            </div>
+                            {/* Horizontal stem bar extending to center */}
+                            <div
+                              className="flex-1 h-[50px]"
+                              style={{
+                                background: barColor
+                              }}
+                            />
+                          </div>
+                        </div>
+                        {/* Right column - Chat bubble */}
+                        <div className="flex items-center pl-4 py-3">
                           <div
-                            className="flex-shrink-0 w-[50px] h-[50px] rounded-l-lg flex items-center justify-center font-bold text-xl border-[3px] bg-white z-10 relative"
-                            style={{
-                              borderColor: barColor,
-                              color: barColor
-                            }}
+                            className={cn(
+                              "relative bg-white rounded-2xl px-4 py-3 max-w-[90%] transition-all duration-300",
+                              isSelected && "border-[3px] shadow-lg"
+                            )}
+                            style={isSelected ? { borderColor: barColor } : {}}
                           >
-                            {score}
-                          </div>
-                          {/* Horizontal stem bar extending to center */}
-                          <div
-                            className="flex-1 h-[50px]"
-                            style={{
-                              background: barColor
-                            }}
-                          />
-                        </div>
-                      </div>
-                      {/* Right column - Chat bubble */}
-                      <div className="flex items-center pl-4 py-3">
-                        <div
-                          className={cn(
-                            "relative bg-white rounded-2xl px-4 py-3 max-w-[90%] transition-all duration-300",
-                            isSelected && "border-[3px] shadow-lg"
-                          )}
-                          style={isSelected ? { borderColor: barColor } : {}}
-                        >
-                          {/* Triangle pointer */}
-                          <div
-                            className="absolute left-[-10px] top-[30px] w-0 h-0 border-t-[15px] border-b-0 border-r-[15px] border-transparent"
-                            style={{
-                              borderRightColor: 'white'
-                            }}
-                          />
-                          <div className="font-bold text-sm mb-1 text-[hsl(var(--scheme-ll-entry-title))]">
-                            {isNewCollection ? `🎉 ${entry.collectionTitle}` : entry.entryTitle}
-                          </div>
-                          <div className="text-xs text-[hsl(var(--scheme-cards-text))] line-clamp-2">
-                            {isNewCollection 
-                              ? entry.collectionDescription || 'New collection added!' 
-                              : entry.entryDescription || entry.entryTitle
-                            }
+                            {/* Triangle pointer */}
+                            <div
+                              className="absolute left-[-10px] top-[30px] w-0 h-0 border-t-[15px] border-b-0 border-r-[15px] border-transparent"
+                              style={{
+                                borderRightColor: 'white'
+                              }}
+                            />
+                            <div className="font-bold text-sm mb-1 text-[hsl(var(--scheme-ll-entry-title))]">
+                              {isNewCollection ? `🎉 ${entry.collectionTitle}` : entry.entryTitle}
+                            </div>
+                            <div className="text-xs text-[hsl(var(--scheme-cards-text))] line-clamp-2">
+                              {isNewCollection 
+                                ? entry.collectionDescription || 'New collection added!' 
+                                : entry.entryDescription || entry.entryTitle
+                              }
+                            </div>
+                            {/* Inline date */}
+                            <div className="text-[10px] text-muted-foreground mt-1.5 opacity-70">
+                              {entry.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      {/* Left column - Chat bubble */}
-                      <div className="flex items-center justify-end pr-4 relative py-3">
-                        {/* Vertical centerline extending full height */}
-                        <div className="absolute right-0 top-0 bottom-0 w-[2px]" style={{ backgroundColor: '#565D6D' }} />
-                        <div
-                          className={cn(
-                            "relative bg-white rounded-2xl px-4 py-3 max-w-[90%] transition-all duration-300",
-                            isSelected && "border-[3px] shadow-lg"
-                          )}
-                          style={isSelected ? { borderColor: barColor } : {}}
-                        >
-                          {/* Triangle pointer */}
+                      </>
+                    ) : (
+                      <>
+                        {/* Left column - Chat bubble */}
+                        <div className="flex items-center justify-end pr-4 relative py-3">
+                          {/* Vertical centerline extending full height */}
+                          <div className="absolute right-0 top-0 bottom-0 w-[2px]" style={{ backgroundColor: '#565D6D' }} />
                           <div
-                            className="absolute right-[-10px] top-[30px] w-0 h-0 border-t-[15px] border-b-0 border-l-[15px] border-transparent"
-                            style={{
-                              borderLeftColor: 'white'
-                            }}
-                          />
-                          <div className="font-bold text-sm mb-1 text-[hsl(var(--scheme-ll-entry-title))]">
-                            {entry.entryTitle}
-                          </div>
-                          <div className="text-xs text-[hsl(var(--scheme-cards-text))] line-clamp-2">
-                            {entry.entryDescription || entry.entryTitle}
-                          </div>
-                        </div>
-                      </div>
-                      {/* Right column - Stem extends from center, score box at right end */}
-                      <div className="flex items-center justify-start pl-0 py-3">
-                        <div className="flex items-center justify-start" style={{ width: `${stemWidthPercent}%` }}>
-                          {/* Horizontal stem bar extending from center */}
-                          <div
-                            className="flex-1 h-[50px]"
-                            style={{
-                              background: barColor
-                            }}
-                          />
-                          {/* Score box at right end - square on left side */}
-                          <div
-                            className="flex-shrink-0 w-[50px] h-[50px] rounded-r-lg flex items-center justify-center font-bold text-xl border-[3px] bg-white z-10 relative"
-                            style={{
-                              borderColor: barColor,
-                              color: barColor
-                            }}
+                            className={cn(
+                              "relative bg-white rounded-2xl px-4 py-3 max-w-[90%] transition-all duration-300",
+                              isSelected && "border-[3px] shadow-lg"
+                            )}
+                            style={isSelected ? { borderColor: barColor } : {}}
                           >
-                            {score}
+                            {/* Triangle pointer */}
+                            <div
+                              className="absolute right-[-10px] top-[30px] w-0 h-0 border-t-[15px] border-b-0 border-l-[15px] border-transparent"
+                              style={{
+                                borderLeftColor: 'white'
+                              }}
+                            />
+                            <div className="font-bold text-sm mb-1 text-[hsl(var(--scheme-ll-entry-title))]">
+                              {entry.entryTitle}
+                            </div>
+                            <div className="text-xs text-[hsl(var(--scheme-cards-text))] line-clamp-2">
+                              {entry.entryDescription || entry.entryTitle}
+                            </div>
+                            {/* Inline date */}
+                            <div className="text-[10px] text-muted-foreground mt-1.5 opacity-70">
+                              {entry.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </>
-                  )}
-                </div>
+                        {/* Right column - Stem extends from center, score box at right end */}
+                        <div className="flex items-center justify-start pl-0 py-3">
+                          <div className="flex items-center justify-start" style={{ width: `${stemWidthPercent}%` }}>
+                            {/* Horizontal stem bar extending from center */}
+                            <div
+                              className="flex-1 h-[50px]"
+                              style={{
+                                background: barColor
+                              }}
+                            />
+                            {/* Score box at right end - square on left side */}
+                            <div
+                              className="flex-shrink-0 w-[50px] h-[50px] rounded-r-lg flex items-center justify-center font-bold text-xl border-[3px] bg-white z-10 relative"
+                              style={{
+                                borderColor: barColor,
+                                color: barColor
+                              }}
+                            >
+                              {score}
+                            </div>
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </>
               );
             })}
             
@@ -300,13 +369,13 @@ export const FeedViewer = ({
                   </Button>
                 </div>
                 <div className="text-sm font-semibold text-center text-[hsl(var(--scheme-nav-text))]">
-                  Entry {currentIndex + 1} of {entries.length}
+                  Entry {currentIndex + 1} of {entriesWithDateContext.length}
                 </div>
                 <div className="justify-self-end">
                   <Button
                     size="sm"
                     onClick={handleNext}
-                    disabled={currentIndex === entries.length - 1}
+                    disabled={currentIndex === entriesWithDateContext.length - 1}
                     className="w-[100px] text-sm px-2 bg-[hsl(var(--scheme-nav-button))] hover:bg-[hsl(var(--scheme-nav-button)/.8)] text-[hsl(var(--scheme-nav-text))] border-[hsl(var(--scheme-nav-button))]"
                   >
                     Next →
