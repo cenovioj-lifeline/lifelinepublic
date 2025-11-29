@@ -72,16 +72,19 @@ export default function FeedSetup() {
       data.forEach(item => {
         if (!lifelineMap.has(item.id)) {
           const collection = Array.isArray(item.collections) ? item.collections[0] : item.collections;
+          const entriesArray = Array.isArray(item.entries) ? item.entries : [];
+          
           lifelineMap.set(item.id, {
             id: item.id,
             title: item.title,
             collection_id: item.collection_id || 'standalone',
             collection_title: collection?.title || 'Standalone Lifelines',
-            dated_entries: 0,
+            dated_entries: entriesArray.length > 0 ? entriesArray.length : 1,
           });
+        } else {
+          // If we see the same lifeline again, increment (handles flat row structure)
+          lifelineMap.get(item.id)!.dated_entries++;
         }
-        const lifeline = lifelineMap.get(item.id)!;
-        lifeline.dated_entries++;
       });
 
       return Array.from(lifelineMap.values());
