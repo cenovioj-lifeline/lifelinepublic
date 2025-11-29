@@ -54,6 +54,7 @@ import UserRequests from "./pages/UserRequests";
 import ColorSchemes from "./pages/ColorSchemes";
 import ColorSchemeEdit from "./pages/ColorSchemeEdit";
 import TestImageImport from "./pages/TestImageImport";
+import ImportNewsImages from "./pages/ImportNewsImages";
 import LifelineImageManager from "./pages/LifelineImageManager";
 import Feed from "./pages/public/Feed";
 import FeedSetup from "./pages/public/FeedSetup";
@@ -303,6 +304,16 @@ function AppContent() {
                 <ProtectedRoute>
                   <AdminLayout>
                     <TestImageImport />
+                  </AdminLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/import-news-images"
+              element={
+                <ProtectedRoute>
+                  <AdminLayout>
+                    <ImportNewsImages />
                   </AdminLayout>
                 </ProtectedRoute>
               }
