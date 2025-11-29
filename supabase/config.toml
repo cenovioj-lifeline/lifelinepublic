@@ -35,3 +35,6 @@ verify_jwt = false
 
 [functions.export-collection-data]
 verify_jwt = false
+
+[functions.cleanup-duplicate-lifelines]
+verify_jwt = false
