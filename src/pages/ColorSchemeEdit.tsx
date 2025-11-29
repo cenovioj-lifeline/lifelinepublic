@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -44,9 +44,9 @@ export default function ColorSchemeEdit() {
     }
   }, [colorScheme]);
 
-  const handleColorSchemeChange = (newColors: ColorScheme) => {
+  const handleColorSchemeChange = useCallback((newColors: ColorScheme) => {
     setColors(newColors);
-  };
+  }, []);
 
   const saveMutation = useMutation({
     mutationFn: async () => {
