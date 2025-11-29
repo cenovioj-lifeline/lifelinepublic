@@ -52,37 +52,33 @@ export default function Feed() {
 
   if (allEntries.length === 0) {
     return (
-      <div className="container mx-auto px-4 py-12">
-        <Card className="p-12 text-center max-w-2xl mx-auto">
-          <h2 className="text-2xl font-bold mb-4">Your Feed is Empty</h2>
-          <p className="text-muted-foreground mb-6">
-            The lifelines you selected don't have any dated events yet. 
-            Try adding more lifelines to your feed.
-          </p>
-          <Button onClick={() => navigate('/feed/setup')}>
-            Adjust Feed Settings
-          </Button>
-        </Card>
-      </div>
+      <Card className="p-12 text-center max-w-2xl mx-auto">
+        <h2 className="text-2xl font-bold mb-4">Your Feed is Empty</h2>
+        <p className="text-muted-foreground mb-6">
+          The lifelines you selected don't have any dated events yet. 
+          Try adding more lifelines to your feed.
+        </p>
+        <Button onClick={() => navigate('/feed/setup')}>
+          Adjust Feed Settings
+        </Button>
+      </Card>
     );
   }
 
   if (isMobile) {
     return (
-      <div className="h-screen flex flex-col">
-        <MobileFeedViewer
-          entries={allEntries}
-          isLoading={feedQuery.isLoading}
-          hasNextPage={feedQuery.hasNextPage || false}
-          isFetchingNextPage={feedQuery.isFetchingNextPage}
-          fetchNextPage={feedQuery.fetchNextPage}
-        />
-      </div>
+      <MobileFeedViewer
+        entries={allEntries}
+        isLoading={feedQuery.isLoading}
+        hasNextPage={feedQuery.hasNextPage || false}
+        isFetchingNextPage={feedQuery.isFetchingNextPage}
+        fetchNextPage={feedQuery.fetchNextPage}
+      />
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <>
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold mb-2">My Feed</h1>
@@ -101,6 +97,6 @@ export default function Feed() {
         isFetchingNextPage={feedQuery.isFetchingNextPage}
         fetchNextPage={feedQuery.fetchNextPage}
       />
-    </div>
+    </>
   );
 }

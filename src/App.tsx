@@ -96,8 +96,8 @@ function AppContent() {
           <Route path="/public/more" element={<PublicLayout><PublicMore /></PublicLayout>} />
           <Route path="/public/collections/:slug/more" element={<CollectionMore />} />
           <Route path="/public/contributors" element={<PublicLayout><TopContributors /></PublicLayout>} />
-          <Route path="/feed" element={<Feed />} />
-          <Route path="/feed/setup" element={<FeedSetup />} />
+            <Route path="/feed" element={<PublicLayout><Feed /></PublicLayout>} />
+            <Route path="/feed/setup" element={<PublicLayout><FeedSetup /></PublicLayout>} />
           <Route path="/auth" element={<AdminAuth />} />
             
             {/* Admin Routes */}
