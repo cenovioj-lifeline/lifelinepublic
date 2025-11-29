@@ -1919,6 +1919,35 @@ export type Database = {
         }
         Relationships: []
       }
+      user_feed_subscriptions: {
+        Row: {
+          created_at: string
+          id: string
+          lifeline_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          lifeline_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          lifeline_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_feed_subscriptions_lifeline_id_fkey"
+            columns: ["lifeline_id"]
+            isOneToOne: false
+            referencedRelation: "lifelines"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_preferences: {
         Row: {
           created_at: string

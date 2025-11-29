@@ -55,6 +55,8 @@ import ColorSchemes from "./pages/ColorSchemes";
 import ColorSchemeEdit from "./pages/ColorSchemeEdit";
 import TestImageImport from "./pages/TestImageImport";
 import LifelineImageManager from "./pages/LifelineImageManager";
+import Feed from "./pages/public/Feed";
+import FeedSetup from "./pages/public/FeedSetup";
 
 const queryClient = new QueryClient();
 
@@ -94,6 +96,9 @@ function AppContent() {
           <Route path="/public/more" element={<PublicLayout><PublicMore /></PublicLayout>} />
           <Route path="/public/collections/:slug/more" element={<CollectionMore />} />
           <Route path="/public/contributors" element={<PublicLayout><TopContributors /></PublicLayout>} />
+          <Route path="/feed" element={<Feed />} />
+          <Route path="/feed/setup" element={<FeedSetup />} />
+          <Route path="/auth" element={<AdminAuth />} />
             
             {/* Admin Routes */}
             <Route
