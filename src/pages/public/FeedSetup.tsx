@@ -15,7 +15,7 @@ import { useFeedSubscriptions } from '@/hooks/useFeedData';
 interface LifelineWithCollection {
   id: string;
   title: string;
-  collection_id: string;
+  collection_id: string | null;
   collection_title: string;
   dated_entries: number;
 }
@@ -54,7 +54,7 @@ export default function FeedSetup() {
           id,
           title,
           collection_id,
-          collections!inner (
+          collections (
             title
           ),
           entries!inner (
@@ -75,8 +75,8 @@ export default function FeedSetup() {
           lifelineMap.set(item.id, {
             id: item.id,
             title: item.title,
-            collection_id: item.collection_id!,
-            collection_title: collection?.title || 'Unknown Collection',
+            collection_id: item.collection_id || 'standalone',
+            collection_title: collection?.title || 'Standalone Lifelines',
             dated_entries: 0,
           });
         }
