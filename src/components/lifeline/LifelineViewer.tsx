@@ -57,10 +57,6 @@ export function LifelineViewer({
   const { user } = useAuth();
   const { isSuperFan } = useSuperFan();
 
-  // Mobile view
-  if (isMobile) {
-    return <MobileLifelineViewer lifelineId={lifelineId} />;
-  }
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [contributeDialogOpen, setContributeDialogOpen] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -161,7 +157,7 @@ export function LifelineViewer({
       
       return data;
     },
-    enabled: !!lifelineId,
+    enabled: !isMobile && !!lifelineId,
   });
 
   // Process entries: sort by score if it's a "list" type with uniform sentiment
@@ -355,6 +351,11 @@ export function LifelineViewer({
 
   // Check if user is admin
   const isAdmin = user?.email === 'cenovioj@gmail.com';
+
+  // Mobile view - render after all hooks are called
+  if (isMobile) {
+    return <MobileLifelineViewer lifelineId={lifelineId} />;
+  }
 
   if (!lifeline || !entries) {
     return <div>Loading...</div>;
