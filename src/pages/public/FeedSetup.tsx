@@ -177,9 +177,8 @@ export default function FeedSetup() {
   if (!user) return null;
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="max-w-4xl mx-auto p-6">
-        <div className="mb-8">
+    <div className="max-w-4xl mx-auto">
+      <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">Set Up Your Feed</h1>
           <p className="text-muted-foreground">
             Select which lifelines you want to follow. Events from these lifelines will appear in your personalized feed.
@@ -289,10 +288,9 @@ export default function FeedSetup() {
                 Saving...
               </>
             ) : (
-              'Save Feed'
-            )}
-          </Button>
-        </div>
+          'Save Feed'
+        )}
+      </Button>
       </div>
     </div>
   );
