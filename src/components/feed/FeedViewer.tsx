@@ -4,7 +4,7 @@ import { FeedEntry } from '@/hooks/useFeedData';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
-import { Loader2, ExternalLink } from 'lucide-react';
+import { Loader2, ExternalLink, Calendar } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface FeedViewerProps {
@@ -344,9 +344,17 @@ export const FeedViewer = ({
                       +{selectedEntry.score}
                     </Badge>
                   </div>
-                  <h2 className="text-3xl font-bold mb-4 text-[hsl(var(--scheme-title-text))]">
+                  <h2 className="text-3xl font-bold mb-2 text-[hsl(var(--scheme-title-text))]">
                     {selectedEntry.collectionTitle}
                   </h2>
+                  <div className="flex items-center gap-1.5 text-sm text-[hsl(var(--scheme-cards-text))] opacity-70 mb-4">
+                    <Calendar className="h-4 w-4" />
+                    Added {selectedEntry.date.toLocaleDateString('en-US', { 
+                      year: 'numeric', 
+                      month: 'long', 
+                      day: 'numeric' 
+                    })}
+                  </div>
                   {selectedEntry.collectionDescription && (
                     <p className="text-[hsl(var(--scheme-cards-text))] mb-6 leading-relaxed">
                       {selectedEntry.collectionDescription}
@@ -384,6 +392,14 @@ export const FeedViewer = ({
                       <h2 className="text-2xl font-bold text-[hsl(var(--scheme-ll-entry-title))]">
                         {selectedEntry.entryTitle}
                       </h2>
+                      <div className="flex items-center gap-1.5 text-sm text-[hsl(var(--scheme-cards-text))] opacity-70 mt-1">
+                        <Calendar className="h-4 w-4" />
+                        {selectedEntry.date.toLocaleDateString('en-US', { 
+                          year: 'numeric', 
+                          month: 'long', 
+                          day: 'numeric' 
+                        })}
+                      </div>
                     </div>
                   </div>
                   {selectedEntry.entryDescription && (
