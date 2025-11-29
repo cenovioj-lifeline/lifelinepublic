@@ -184,7 +184,7 @@ export default function Home() {
   });
 
   const quickActionCards = [
-    { icon: Rss, label: "Feed", onClick: () => setConstructionAlertOpen(true) },
+    { icon: Rss, label: "Feed", onClick: () => navigate('/feed') },
     { icon: FileQuestion, label: "Request", onClick: () => setRequestDialogOpen(true) },
     { icon: Share2, label: "Share", onClick: () => setShareModalOpen(true) },
     { icon: Settings, label: "Settings", onClick: () => setConstructionAlertOpen(true) },
