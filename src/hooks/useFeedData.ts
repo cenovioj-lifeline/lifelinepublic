@@ -86,7 +86,7 @@ export const useFeedData = (userId: string | undefined) => {
             title,
             slug,
             collection_id,
-            collections!inner (
+            collections (
               id,
               title,
               slug
@@ -130,7 +130,8 @@ export const useFeedData = (userId: string | undefined) => {
       // Transform entries
       const feedEntries: FeedEntry[] = entriesData?.map(entry => {
         const lifeline = Array.isArray(entry.lifelines) ? entry.lifelines[0] : entry.lifelines;
-        const collection = lifeline?.collections;
+        const collectionData = lifeline?.collections;
+        const collection = Array.isArray(collectionData) ? collectionData[0] : collectionData;
         const profile = lifeline?.profiles;
         const profileMedia = profile?.media_assets;
         const entryMedia = entry.entry_media?.[0]?.media_assets;
