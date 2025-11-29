@@ -37,6 +37,7 @@ import { CollectionFeaturedProfiles } from "@/components/CollectionFeaturedProfi
 import { CollectionProfileManager } from "@/components/CollectionProfileManager";
 import { ImagePositionPicker } from "@/components/ImagePositionPicker";
 import { CollectionContentManager } from "@/components/CollectionContentManager";
+import { CollectionDuplicateCleanup } from "@/components/CollectionDuplicateCleanup";
 
 const collectionFormSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -66,6 +67,7 @@ export default function CollectionEdit() {
   const [isProfileSectionOpen, setIsProfileSectionOpen] = useState(false);
   const [isFeaturedProfilesOpen, setIsFeaturedProfilesOpen] = useState(false);
   const [isContentSectionOpen, setIsContentSectionOpen] = useState(false);
+  const [isDuplicateCleanupOpen, setIsDuplicateCleanupOpen] = useState(false);
 
   const { data: colorSchemes } = useQuery({
     queryKey: ["color-schemes"],
@@ -508,6 +510,24 @@ export default function CollectionEdit() {
                 </CollapsibleTrigger>
                 <CollapsibleContent className="mt-4">
                   <CollectionContentManager collectionId={id!} />
+                </CollapsibleContent>
+              </Collapsible>
+
+              <Collapsible
+                open={isDuplicateCleanupOpen}
+                onOpenChange={setIsDuplicateCleanupOpen}
+                className="mt-8"
+              >
+                <CollapsibleTrigger className="flex items-center gap-2 w-full">
+                  <h3 className="text-lg font-medium">Duplicate Lifeline Cleanup</h3>
+                  <ChevronDown
+                    className={`h-4 w-4 transition-transform ${
+                      isDuplicateCleanupOpen ? "rotate-180" : ""
+                    }`}
+                  />
+                </CollapsibleTrigger>
+                <CollapsibleContent className="mt-4">
+                  <CollectionDuplicateCleanup collectionId={id!} />
                 </CollapsibleContent>
               </Collapsible>
             </>
