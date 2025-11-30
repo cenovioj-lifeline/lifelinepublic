@@ -4,6 +4,7 @@ import { FeedEntry } from '@/hooks/useFeedData';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Loader2, ExternalLink, Calendar, ArrowUp, Eye, EyeOff } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { differenceInMonths } from 'date-fns';
@@ -34,6 +35,7 @@ export const FeedViewer = ({
   const [isScrolling, setIsScrolling] = useState(false);
   const [highlightedEntryId, setHighlightedEntryId] = useState<string | null>(null);
   const [showBackToTop, setShowBackToTop] = useState(false);
+  const [timelineStyle, setTimelineStyle] = useState<'timeline-left' | 'inline-pills' | 'no-dates'>('timeline-left');
   const timelineRef = useRef<HTMLDivElement>(null);
   const entryRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
   const yearHeaderRefs = useRef<{ [year: number]: HTMLDivElement | null }>({});
@@ -243,6 +245,19 @@ export const FeedViewer = ({
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-full">
         {/* Left Panel - Timeline Graph */}
         <div className="flex flex-col h-full overflow-hidden">
+          {/* Date Display Style Filter */}
+          <div className="mb-3 flex justify-end">
+            <Select value={timelineStyle} onValueChange={(value: any) => setTimelineStyle(value)}>
+              <SelectTrigger className="w-[140px] h-9">
+                <SelectValue placeholder="Date display" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="timeline-left">Timeline Left</SelectItem>
+                <SelectItem value="inline-pills">Inline Pills</SelectItem>
+                <SelectItem value="no-dates">No Dates</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
           {/* Fixed Year Header - Shows year of highlighted entry during scroll, or selected entry */}
           {(() => {
             const highlightedEntry = entriesWithDateContext.find(e => e.id === highlightedEntryId);
@@ -299,16 +314,31 @@ export const FeedViewer = ({
                     <div
                       ref={(el) => (entryRefs.current[entry.id] = el)}
                       className={cn(
-                        "grid grid-cols-[1fr_1fr] gap-0 cursor-pointer transition-colors duration-150 py-3 rounded-lg",
+                        "grid gap-0 cursor-pointer transition-colors duration-150 py-3 rounded-lg",
+                        timelineStyle === 'timeline-left' ? "grid-cols-[70px_1fr_1fr]" : "grid-cols-[1fr_1fr]",
                         (isScrolling ? entry.id === highlightedEntryId : isSelected) && "bg-gray-100"
                       )}
                       onClick={() => setSelectedEntry(entry)}
                     >
+                      {/* TIMELINE AXIS COLUMN - Only show in timeline-left mode */}
+                      {timelineStyle === 'timeline-left' && (
+                        <div className="relative flex items-center justify-center border-r border-gray-200">
+                          {/* Vertical timeline line */}
+                          <div className="absolute left-1/2 top-0 bottom-0 w-[1px] -translate-x-1/2 bg-gray-300" />
+                          
+                          {/* Date pill centered on line */}
+                          {!entry.showYear && (
+                            <div className="relative z-10 px-2 py-0.5 bg-white border border-gray-300 rounded-full text-[9px] font-semibold text-gray-600 shadow-sm whitespace-nowrap">
+                              {entry.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                            </div>
+                          )}
+                        </div>
+                      )}
                       {positive ? (
                         <>
                           <div className="flex items-center justify-end relative pr-0">
-                  {/* Date pill - ONLY show if NOT immediately after year header */}
-                  {!entry.showYear && !(index > 0 && entriesWithDateContext[index - 1]?.showYear) && (
+                  {/* Date pill - ONLY show in inline-pills mode and NOT immediately after year header */}
+                  {timelineStyle === 'inline-pills' && !entry.showYear && !(index > 0 && entriesWithDateContext[index - 1]?.showYear) && (
                     <div className="absolute right-[60%] top-0 px-2 py-0.5 bg-white border border-gray-300 rounded-full text-[9px] font-semibold text-gray-600 shadow-sm z-5">
                       {entry.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                     </div>
@@ -397,8 +427,8 @@ export const FeedViewer = ({
                             </div>
                           </div>
                           <div className="flex items-center justify-start pl-0">
-                            {/* Date pill - ONLY show if NOT immediately after year header */}
-                            {!entry.showYear && !(index > 0 && entriesWithDateContext[index - 1]?.showYear) && (
+                            {/* Date pill - ONLY show in inline-pills mode and NOT immediately after year header */}
+                            {timelineStyle === 'inline-pills' && !entry.showYear && !(index > 0 && entriesWithDateContext[index - 1]?.showYear) && (
                               <div className="absolute left-[40%] -translate-x-full top-0 px-2 py-0.5 bg-white border border-gray-300 rounded-full text-[9px] font-semibold text-gray-600 shadow-sm z-5">
                                 {entry.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                               </div>
