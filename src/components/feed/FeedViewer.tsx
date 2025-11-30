@@ -177,10 +177,10 @@ export const FeedViewer = ({
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-full">
         {/* Left Panel - Timeline Graph */}
         <div className="flex flex-col h-full overflow-hidden">
-          {/* Fixed Year Header - Shows year at top of visible scroll area */}
-          {(visibleYear || entriesWithDateContext[0]?.year) && (
+          {/* Fixed Year Header - Shows year of selected entry, or visible scroll year */}
+          {(selectedEntry?.date?.getFullYear() || visibleYear || entriesWithDateContext[0]?.year) && (
             <div className="bg-gray-800 text-white font-bold py-2 px-4 text-center rounded-t-lg flex-shrink-0">
-              {visibleYear || entriesWithDateContext[0]?.year}
+              {selectedEntry?.date?.getFullYear() || visibleYear || entriesWithDateContext[0]?.year}
             </div>
           )}
           
@@ -211,7 +211,7 @@ export const FeedViewer = ({
                     {entry.showYear && (
                       <div 
                         ref={(el) => (yearHeaderRefs.current[entry.year] = el)}
-                        className="bg-gray-700 text-white font-bold py-2 px-4 text-center mx-4 rounded-lg mb-2 mt-2"
+                        className="bg-gray-700 text-white font-bold py-2 px-4 text-center mx-4 rounded-lg mb-2 mt-2 z-10 relative"
                       >
                         {entry.year}
                       </div>
