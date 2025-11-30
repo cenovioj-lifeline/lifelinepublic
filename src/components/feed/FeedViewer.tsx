@@ -309,7 +309,7 @@ export const FeedViewer = ({
                           <div className="flex items-center justify-end relative pr-0">
                   {/* Date pill - ONLY show if NOT immediately after year header */}
                   {!entry.showYear && !(index > 0 && entriesWithDateContext[index - 1]?.showYear) && (
-                    <div className="absolute right-[52%] -top-1 px-2 py-0.5 bg-white border border-gray-300 rounded-full text-[9px] font-semibold text-gray-600 shadow-sm z-20">
+                    <div className="absolute right-[60%] top-0 px-2 py-0.5 bg-white border border-gray-300 rounded-full text-[9px] font-semibold text-gray-600 shadow-sm z-5">
                       {entry.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                     </div>
                   )}
@@ -399,7 +399,7 @@ export const FeedViewer = ({
                           <div className="flex items-center justify-start pl-0">
                             {/* Date pill - ONLY show if NOT immediately after year header */}
                             {!entry.showYear && !(index > 0 && entriesWithDateContext[index - 1]?.showYear) && (
-                              <div className="absolute left-[48%] -translate-x-full -top-1 px-2 py-0.5 bg-white border border-gray-300 rounded-full text-[9px] font-semibold text-gray-600 shadow-sm z-20">
+                              <div className="absolute left-[40%] -translate-x-full top-0 px-2 py-0.5 bg-white border border-gray-300 rounded-full text-[9px] font-semibold text-gray-600 shadow-sm z-5">
                                 {entry.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                               </div>
                             )}
