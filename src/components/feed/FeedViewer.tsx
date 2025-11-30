@@ -276,7 +276,7 @@ export const FeedViewer = ({
               <div 
                 className="absolute w-[1px] bg-gray-300" 
                 style={{ 
-                  left: '35px', // Center of 70px timeline column
+                  left: '25px', // Center of 50px timeline column
                   top: 0,
                   bottom: 0,
                   zIndex: 0
@@ -287,7 +287,7 @@ export const FeedViewer = ({
               <div 
                 className="absolute w-[2px] bg-[#565D6D]" 
                 style={{ 
-                  left: 'calc(50% + 35px)', // 50% of container + half of timeline column = exact center of graph area
+                  left: 'calc(50% + 25px)', // 50% of container + half of timeline column = exact center of graph area
                   top: 0,
                   bottom: 0,
                   zIndex: 0
@@ -306,7 +306,7 @@ export const FeedViewer = ({
                   <div key={`wrapper-${entry.id}`}>
                     {/* Year break header - appears when year changes AND not same as first entry year (which is in sticky header) */}
                     {entry.showYear && entry.year !== entriesWithDateContext[0]?.year && (
-                      <div className="grid gap-0 grid-cols-[70px_1fr_1fr]">
+                      <div className="grid gap-0 grid-cols-[50px_1fr_1fr]">
                         {/* Timeline axis column - line continues through year header */}
                         <div className="relative flex items-center justify-center">
                         </div>
@@ -324,11 +324,28 @@ export const FeedViewer = ({
                     <div
                       ref={(el) => (entryRefs.current[entry.id] = el)}
                       className={cn(
-                        "grid gap-0 cursor-pointer transition-colors duration-150 py-3 rounded-lg grid-cols-[70px_1fr_1fr]",
+                        "grid gap-0 cursor-pointer transition-colors duration-150 py-3 rounded-lg grid-cols-[50px_1fr_1fr] relative",
                         (isScrolling ? entry.id === highlightedEntryId : isSelected) && "bg-gray-100"
                       )}
                       onClick={() => setSelectedEntry(entry)}
                     >
+                      {/* Eye icon - upper right of entire gray area */}
+                      {(isScrolling ? entry.id === highlightedEntryId : isSelected) && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onToggleSeen(entry.id);
+                          }}
+                          className="absolute top-2 right-2 z-40 p-1.5 rounded-full hover:bg-gray-200 transition-colors"
+                          title={seenIds.has(entry.id) ? "Mark as unseen" : "Mark as seen"}
+                        >
+                          {seenIds.has(entry.id) ? (
+                            <EyeOff className="h-4 w-4 text-gray-600" />
+                          ) : (
+                            <Eye className="h-4 w-4 text-gray-600" />
+                          )}
+                        </button>
+                      )}
                       {/* TIMELINE AXIS COLUMN */}
                       <div className="relative flex items-center justify-center">
                         {/* Date pill centered on line - using numeric format for narrow width */}
@@ -344,7 +361,7 @@ export const FeedViewer = ({
                                 className="flex-shrink-0 w-[50px] h-[50px] rounded-l-lg flex items-center justify-center font-bold text-xl border-[3px] bg-white z-10 relative"
                                 style={{ borderColor: barColor, color: barColor }}
                               >
-                                {score}
+                                {isNewCollection ? 'NC' : score}
                               </div>
                               <div 
                                 className="flex-1 h-[50px] flex items-center justify-center" 
@@ -359,24 +376,6 @@ export const FeedViewer = ({
                             </div>
                           </div>
                            <div className="flex items-center pl-4 relative">
-                            {/* Seen icon - only visible when highlighted or selected */}
-                            {(isScrolling ? entry.id === highlightedEntryId : isSelected) && (
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  onToggleSeen(entry.id);
-                                }}
-                                className="absolute top-1 right-1 p-1.5 rounded-full hover:bg-gray-200 transition-colors z-30"
-                                title={seenIds.has(entry.id) ? "Mark as unseen" : "Mark as seen"}
-                              >
-                                {seenIds.has(entry.id) ? (
-                                  <EyeOff className="h-4 w-4 text-gray-600" />
-                                ) : (
-                                  <Eye className="h-4 w-4 text-gray-600" />
-                                )}
-                              </button>
-                            )}
-                            
                             <div
                               className={cn(
                                 "relative bg-white rounded-2xl px-4 py-3 max-w-[90%] transition-all duration-300",
@@ -386,10 +385,10 @@ export const FeedViewer = ({
                             >
                               <div className="absolute left-[-10px] top-[30px] w-0 h-0 border-t-[15px] border-b-0 border-r-[15px] border-transparent" style={{ borderRightColor: 'white' }} />
                               <div className="font-bold text-sm mb-1 text-[hsl(var(--scheme-ll-entry-title))]">
-                                {isNewCollection ? `🎉 ${entry.collectionTitle}` : entry.entryTitle}
+                                {isNewCollection ? `🎉 ${entry.collectionTitle}` : (entry.collectionTitle || entry.lifelineTitle || 'News')}
                               </div>
                               <div className="text-xs text-[hsl(var(--scheme-cards-text))] line-clamp-2">
-                                {isNewCollection ? entry.collectionDescription || 'New collection added!' : entry.entryDescription || entry.entryTitle}
+                                {isNewCollection ? entry.collectionDescription || 'New collection added!' : entry.entryTitle}
                               </div>
                             </div>
                           </div>
@@ -397,24 +396,6 @@ export const FeedViewer = ({
                        ) : (
                         <>
                           <div className="flex items-center justify-end pr-4 relative">
-                            {/* Seen icon - only visible when highlighted or selected */}
-                            {(isScrolling ? entry.id === highlightedEntryId : isSelected) && (
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  onToggleSeen(entry.id);
-                                }}
-                                className="absolute top-1 right-1 p-1.5 rounded-full hover:bg-gray-200 transition-colors z-30"
-                                title={seenIds.has(entry.id) ? "Mark as unseen" : "Mark as seen"}
-                              >
-                                {seenIds.has(entry.id) ? (
-                                  <EyeOff className="h-4 w-4 text-gray-600" />
-                                ) : (
-                                  <Eye className="h-4 w-4 text-gray-600" />
-                                )}
-                              </button>
-                            )}
-                            
                             <div
                               className={cn(
                                 "relative bg-white rounded-2xl px-4 py-3 max-w-[90%] transition-all duration-300",
@@ -424,10 +405,10 @@ export const FeedViewer = ({
                             >
                               <div className="absolute right-[-10px] top-[30px] w-0 h-0 border-t-[15px] border-b-0 border-l-[15px] border-transparent" style={{ borderLeftColor: 'white' }} />
                               <div className="font-bold text-sm mb-1 text-[hsl(var(--scheme-ll-entry-title))]">
-                                {entry.entryTitle}
+                                {entry.collectionTitle || entry.lifelineTitle || 'News'}
                               </div>
                               <div className="text-xs text-[hsl(var(--scheme-cards-text))] line-clamp-2">
-                                {entry.entryDescription || entry.entryTitle}
+                                {entry.entryTitle}
                               </div>
                             </div>
                           </div>
@@ -559,6 +540,17 @@ export const FeedViewer = ({
                         day: 'numeric'
                       })}
                     </span>
+                    <button
+                      onClick={() => onToggleSeen(selectedEntry.id)}
+                      className="ml-2 p-1 hover:bg-muted rounded-md transition-colors"
+                      title={seenIds.has(selectedEntry.id) ? "Mark as unseen" : "Mark as seen"}
+                    >
+                      {seenIds.has(selectedEntry.id) ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
+                    </button>
                   </div>
 
                   <div className="text-[hsl(var(--scheme-cards-text))] mb-6 whitespace-pre-wrap">
@@ -620,6 +612,17 @@ export const FeedViewer = ({
                         day: 'numeric'
                       })}
                     </span>
+                    <button
+                      onClick={() => onToggleSeen(selectedEntry.id)}
+                      className="ml-2 p-1 hover:bg-muted rounded-md transition-colors"
+                      title={seenIds.has(selectedEntry.id) ? "Mark as unseen" : "Mark as seen"}
+                    >
+                      {seenIds.has(selectedEntry.id) ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
+                    </button>
                   </div>
 
                   <div className="text-[hsl(var(--scheme-cards-text))] mb-6">
