@@ -155,7 +155,7 @@ export const FeedViewer = ({
               scrollbarColor: '#565D6D #f0f0f0'
             }}
           >
-            <div className="relative min-h-full" style={{ paddingTop: '2px', paddingBottom: '2px' }}>
+            <div className="relative" style={{ paddingTop: '2px', paddingBottom: '2px' }}>
               {entriesWithDateContext.map((entry, index) => {
                 const isSelected = entry.id === selectedEntry?.id;
                 const isNewCollection = entry.type === 'new_collection';
@@ -177,8 +177,8 @@ export const FeedViewer = ({
                     <div
                       ref={(el) => (entryRefs.current[entry.id] = el)}
                       className={cn(
-                        "grid grid-cols-[1fr_1fr] gap-0 cursor-pointer transition-colors duration-200 py-3",
-                        isSelected && "ring-2 ring-offset-2 ring-blue-500"
+                        "grid grid-cols-[1fr_1fr] gap-0 cursor-pointer transition-colors duration-200 py-3 rounded-lg",
+                        isSelected && "bg-gray-100"
                       )}
                       onClick={() => setSelectedEntry(entry)}
                     >
@@ -187,8 +187,8 @@ export const FeedViewer = ({
                           <div className="flex items-center justify-end relative pr-0">
                             <div className="absolute right-0 top-0 bottom-0 w-[2px]" style={{ backgroundColor: '#565D6D' }} />
                             <div className="flex items-center justify-end relative" style={{ width: `${stemWidthPercent}%` }}>
-                              {/* Date pill on centerline */}
-                              <div className="absolute right-[-28px] top-2 px-2 py-1 bg-white border border-gray-300 rounded-full text-[9px] font-semibold text-gray-600 shadow-sm z-20">
+                              {/* Date pill above bar, left of centerline */}
+                              <div className="absolute right-[100%] top-[-20px] mr-2 px-2 py-1 bg-white border border-gray-300 rounded-full text-[9px] font-semibold text-gray-600 shadow-sm z-20">
                                 {entry.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                               </div>
                               <div
@@ -240,8 +240,8 @@ export const FeedViewer = ({
                           </div>
                           <div className="flex items-center justify-start pl-0">
                             <div className="flex items-center justify-start relative" style={{ width: `${stemWidthPercent}%` }}>
-                              {/* Date pill on centerline */}
-                              <div className="absolute left-[-28px] top-2 px-2 py-1 bg-white border border-gray-300 rounded-full text-[9px] font-semibold text-gray-600 shadow-sm z-20">
+                              {/* Date pill above bar, left of centerline */}
+                              <div className="absolute right-[100%] top-[-20px] mr-2 px-2 py-1 bg-white border border-gray-300 rounded-full text-[9px] font-semibold text-gray-600 shadow-sm z-20">
                                 {entry.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                               </div>
                               <div className="flex-1 h-[50px]" style={{ background: barColor }} />
@@ -367,20 +367,13 @@ export const FeedViewer = ({
                     </div>
                   )}
                   
-                  <div className="flex items-center gap-3 mb-3">
-                    <Badge 
-                      className="text-lg px-4 py-1" 
-                      style={{ 
-                        backgroundColor: newCollectionColor,
-                        color: 'white'
-                      }}
-                    >
-                      +10
-                    </Badge>
-                    <h2 className="text-2xl font-bold text-[hsl(var(--scheme-ll-entry-title))]">
-                      🎉 {selectedEntry.collectionTitle}
-                    </h2>
+                  <div className="flex flex-wrap items-center gap-2 mb-2">
+                    <Badge className="bg-green-600 text-white">New Collection</Badge>
+                    <Badge variant="outline">+10</Badge>
                   </div>
+                  <h2 className="text-2xl font-bold mb-2 text-[hsl(var(--scheme-ll-entry-title))]">
+                    {selectedEntry.collectionTitle}
+                  </h2>
 
                   <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
                     <Calendar className="h-4 w-4" />
@@ -398,8 +391,8 @@ export const FeedViewer = ({
                   </div>
 
                   <Link to={`/collections/${selectedEntry.collectionId}`}>
-                    <Button className="w-full bg-[hsl(var(--scheme-nav-button))] hover:bg-[hsl(var(--scheme-nav-button))]/90">
-                      Explore Collection
+                    <Button variant="outline" className="text-primary">
+                      Explore Collection <ExternalLink className="ml-2 h-4 w-4" />
                     </Button>
                   </Link>
                 </>
