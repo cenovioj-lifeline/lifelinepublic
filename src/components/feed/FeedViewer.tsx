@@ -155,7 +155,10 @@ export const FeedViewer = ({
               scrollbarColor: '#565D6D #f0f0f0'
             }}
           >
-            <div className="relative" style={{ paddingTop: '2px', paddingBottom: '2px' }}>
+            <div className="relative min-h-full" style={{ paddingTop: '2px', paddingBottom: '2px' }}>
+              {/* Continuous centerline spanning entire timeline */}
+              <div className="absolute left-1/2 top-0 bottom-0 w-[2px] -translate-x-1/2 z-0" style={{ backgroundColor: '#565D6D' }} />
+              
               {entriesWithDateContext.map((entry, index) => {
                 const isSelected = entry.id === selectedEntry?.id;
                 const isNewCollection = entry.type === 'new_collection';
@@ -185,10 +188,9 @@ export const FeedViewer = ({
                       {positive ? (
                         <>
                           <div className="flex items-center justify-end relative pr-0">
-                            <div className="absolute right-0 top-0 bottom-0 w-[2px]" style={{ backgroundColor: '#565D6D' }} />
                             <div className="flex items-center justify-end relative" style={{ width: `${stemWidthPercent}%` }}>
-                              {/* Date pill above bar, left of centerline */}
-                              <div className="absolute right-[100%] top-[-20px] mr-2 px-2 py-1 bg-white border border-gray-300 rounded-full text-[9px] font-semibold text-gray-600 shadow-sm z-20">
+                              {/* Date pill - fixed position left of centerline */}
+                              <div className="absolute left-[calc(50%-60px)] top-[-20px] px-2 py-1 bg-white border border-gray-300 rounded-full text-[9px] font-semibold text-gray-600 shadow-sm z-20">
                                 {entry.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                               </div>
                               <div
@@ -221,7 +223,6 @@ export const FeedViewer = ({
                       ) : (
                         <>
                           <div className="flex items-center justify-end pr-4 relative">
-                            <div className="absolute right-0 top-0 bottom-0 w-[2px]" style={{ backgroundColor: '#565D6D' }} />
                             <div
                               className={cn(
                                 "relative bg-white rounded-2xl px-4 py-3 max-w-[90%] transition-all duration-300",
@@ -240,8 +241,8 @@ export const FeedViewer = ({
                           </div>
                           <div className="flex items-center justify-start pl-0">
                             <div className="flex items-center justify-start relative" style={{ width: `${stemWidthPercent}%` }}>
-                              {/* Date pill above bar, left of centerline */}
-                              <div className="absolute right-[100%] top-[-20px] mr-2 px-2 py-1 bg-white border border-gray-300 rounded-full text-[9px] font-semibold text-gray-600 shadow-sm z-20">
+                              {/* Date pill - fixed position left of centerline */}
+                              <div className="absolute left-[calc(50%-60px)] top-[-20px] px-2 py-1 bg-white border border-gray-300 rounded-full text-[9px] font-semibold text-gray-600 shadow-sm z-20">
                                 {entry.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                               </div>
                               <div className="flex-1 h-[50px]" style={{ background: barColor }} />
@@ -287,6 +288,29 @@ export const FeedViewer = ({
         {selectedEntry && (
           <div className="flex flex-col h-full">
             <div className="overflow-y-auto flex-1 bg-white rounded-lg p-6">
+              {/* Navigation at Top with Coral Styling */}
+              <div className="flex justify-between items-center mb-6 pb-4 border-b">
+                <Button
+                  onClick={handlePrevious}
+                  disabled={currentIndex === 0}
+                  size="sm"
+                  className="bg-[#e07857] hover:bg-[#d06847] text-white disabled:bg-gray-300"
+                >
+                  Previous
+                </Button>
+                <div className="text-sm font-medium text-gray-600">
+                  Entry {currentIndex + 1} of {entriesWithDateContext.length}
+                </div>
+                <Button
+                  onClick={handleNext}
+                  disabled={currentIndex === (entriesWithDateContext?.length || 0) - 1}
+                  size="sm"
+                  className="bg-[#e07857] hover:bg-[#d06847] text-white disabled:bg-gray-300"
+                >
+                  Next
+                </Button>
+              </div>
+
               {selectedEntry.type === 'lifeline_entry' ? (
                 <>
                   {selectedEntry.entryImage && (
@@ -397,29 +421,6 @@ export const FeedViewer = ({
                   </Link>
                 </>
               )}
-            </div>
-
-            {/* Navigation */}
-            <div className="flex items-center justify-between bg-white rounded-lg p-4 mt-4">
-              <Button
-                onClick={handlePrevious}
-                disabled={currentIndex === 0}
-                variant="outline"
-                size="sm"
-              >
-                Previous
-              </Button>
-              <span className="text-sm text-muted-foreground">
-                Entry {currentIndex + 1} of {entriesWithDateContext.length}
-              </span>
-              <Button
-                onClick={handleNext}
-                disabled={currentIndex === entriesWithDateContext.length - 1}
-                variant="outline"
-                size="sm"
-              >
-                Next
-              </Button>
             </div>
           </div>
         )}
