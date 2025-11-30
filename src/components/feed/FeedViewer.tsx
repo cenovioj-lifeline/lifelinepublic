@@ -24,8 +24,10 @@ export const FeedViewer = ({
   fetchNextPage,
 }: FeedViewerProps) => {
   const [selectedEntry, setSelectedEntry] = useState<FeedEntry | null>(null);
+  const [visibleYear, setVisibleYear] = useState<number | null>(null);
   const timelineRef = useRef<HTMLDivElement>(null);
   const entryRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
+  const yearHeaderRefs = useRef<{ [year: number]: HTMLDivElement | null }>({});
 
   // Get colors from CSS variables with fallbacks
   const positiveColor = getComputedStyle(document.documentElement).getPropertyValue('--scheme-ll-graph-positive') 
@@ -123,6 +125,34 @@ export const FeedViewer = ({
     }
   }, [selectedEntry?.id]);
 
+  // Track visible year based on scroll position
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!timelineRef.current) return;
+      const containerTop = timelineRef.current.getBoundingClientRect().top;
+      
+      // Find which year header is closest to (but above) the container top
+      let currentYear = entriesWithDateContext[0]?.year;
+      
+      Object.entries(yearHeaderRefs.current).forEach(([year, el]) => {
+        if (el) {
+          const rect = el.getBoundingClientRect();
+          if (rect.top <= containerTop + 60) { // 60px threshold for header height
+            currentYear = parseInt(year);
+          }
+        }
+      });
+      
+      setVisibleYear(currentYear);
+    };
+    
+    const container = timelineRef.current;
+    container?.addEventListener('scroll', handleScroll);
+    handleScroll(); // Initial check
+    
+    return () => container?.removeEventListener('scroll', handleScroll);
+  }, [entriesWithDateContext]);
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-[600px]">
@@ -147,10 +177,10 @@ export const FeedViewer = ({
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-full">
         {/* Left Panel - Timeline Graph */}
         <div className="flex flex-col h-full overflow-hidden">
-          {/* Fixed Year Header - Always shows current entry's year */}
-          {selectedEntry && (
+          {/* Fixed Year Header - Shows year at top of visible scroll area */}
+          {(visibleYear || entriesWithDateContext[0]?.year) && (
             <div className="bg-gray-800 text-white font-bold py-2 px-4 text-center rounded-t-lg flex-shrink-0">
-              {selectedEntry.date.getFullYear()}
+              {visibleYear || entriesWithDateContext[0]?.year}
             </div>
           )}
           
@@ -176,15 +206,26 @@ export const FeedViewer = ({
                 const barColor = isNewCollection ? newCollectionColor : (positive ? positiveColor : negativeColor);
                 
                 return (
-                  <div
-                    key={entry.id}
-                    ref={(el) => (entryRefs.current[entry.id] = el)}
-                    className={cn(
-                      "grid grid-cols-[1fr_1fr] gap-0 cursor-pointer transition-colors duration-200 py-3 rounded-lg",
-                      isSelected && "bg-gray-100"
+                  <div key={`wrapper-${entry.id}`}>
+                    {/* Year break header - appears when year changes */}
+                    {entry.showYear && (
+                      <div 
+                        ref={(el) => (yearHeaderRefs.current[entry.year] = el)}
+                        className="bg-gray-700 text-white font-bold py-2 px-4 text-center mx-4 rounded-lg mb-2 mt-2"
+                      >
+                        {entry.year}
+                      </div>
                     )}
-                    onClick={() => setSelectedEntry(entry)}
-                  >
+                    
+                    {/* Entry row */}
+                    <div
+                      ref={(el) => (entryRefs.current[entry.id] = el)}
+                      className={cn(
+                        "grid grid-cols-[1fr_1fr] gap-0 cursor-pointer transition-colors duration-200 py-3 rounded-lg",
+                        isSelected && "bg-gray-100"
+                      )}
+                      onClick={() => setSelectedEntry(entry)}
+                    >
                       {positive ? (
                         <>
                           <div className="flex items-center justify-end relative pr-0">
@@ -257,6 +298,7 @@ export const FeedViewer = ({
                         </>
                       )}
                     </div>
+                  </div>
                 );
               })}
               
