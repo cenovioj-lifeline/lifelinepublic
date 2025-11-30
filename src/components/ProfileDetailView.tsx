@@ -8,6 +8,8 @@ import { ProfileWorks } from "./profile/ProfileWorks";
 import { ProfileLegacyImpact } from "./profile/ProfileLegacyImpact";
 import { ProfilePhysicalCharacteristics } from "./profile/ProfilePhysicalCharacteristics";
 import { LifelineBookIcon } from "./icons/LifelineBookIcon";
+import { Trophy, Quote } from "lucide-react";
+import { Card, CardContent } from "./ui/card";
 
 interface ProfileRelationship {
   id: string;
@@ -50,6 +52,8 @@ interface ProfileDetailViewProps {
   profile: ProfileWithRelations;
   associatedLifelines?: any[];
   collections?: any[];
+  awards?: any[];
+  quotes?: any[];
   collectionContext?: {
     slug: string;
     name: string;
@@ -60,6 +64,8 @@ export function ProfileDetailView({
   profile,
   associatedLifelines = [],
   collections = [],
+  awards = [],
+  quotes = [],
   collectionContext,
 }: ProfileDetailViewProps) {
   return (
@@ -155,6 +161,78 @@ export function ProfileDetailView({
           </>
         );
       })()}
+
+      {awards && awards.length > 0 && (
+        <section className="space-y-4">
+          <h2 className="text-2xl font-bold flex items-center gap-2">
+            <Trophy className="h-6 w-6 text-yellow-500" />
+            Mock Election Awards
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {awards.map((award: any) => (
+              <Link
+                key={award.id}
+                to={collectionContext
+                  ? `/public/collections/${collectionContext.slug}/elections/${award.election.slug}`
+                  : `/public/elections/${award.election.slug}`
+                }
+                className="group block"
+              >
+                <Card className="hover:shadow-lg hover:border-primary/50 transition-all duration-200 cursor-pointer">
+                  <CardContent className="p-4">
+                    <div className="flex items-start gap-3">
+                      <Trophy className="h-5 w-5 text-yellow-500 mt-1 flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold group-hover:text-primary transition-colors line-clamp-2">
+                          {award.category}
+                        </h3>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          {award.election.title}
+                        </p>
+                        {award.percentage && (
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {award.percentage}% of votes
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {quotes && quotes.length > 0 && (
+        <section className="space-y-4">
+          <h2 className="text-2xl font-bold flex items-center gap-2">
+            <Quote className="h-6 w-6" />
+            Notable Quotes
+          </h2>
+          <div className="space-y-4">
+            {quotes.map((quoteItem: any) => (
+              <Card key={quoteItem.id}>
+                <CardContent className="p-4">
+                  <div className="flex gap-3">
+                    <Quote className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-1" />
+                    <div className="flex-1">
+                      <blockquote className="text-lg italic">
+                        "{quoteItem.quote}"
+                      </blockquote>
+                      {quoteItem.context && (
+                        <p className="text-sm text-muted-foreground mt-2">
+                          {quoteItem.context}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </section>
+      )}
 
       {collections && collections.length > 0 && (
         <section className="space-y-4">
