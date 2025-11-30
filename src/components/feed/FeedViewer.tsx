@@ -25,9 +25,12 @@ export const FeedViewer = ({
 }: FeedViewerProps) => {
   const [selectedEntry, setSelectedEntry] = useState<FeedEntry | null>(null);
   const [visibleYear, setVisibleYear] = useState<number | null>(null);
+  const [isScrolling, setIsScrolling] = useState(false);
+  const [highlightedEntryId, setHighlightedEntryId] = useState<string | null>(null);
   const timelineRef = useRef<HTMLDivElement>(null);
   const entryRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
   const yearHeaderRefs = useRef<{ [year: number]: HTMLDivElement | null }>({});
+  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Get colors from CSS variables with fallbacks
   const positiveColor = getComputedStyle(document.documentElement).getPropertyValue('--scheme-ll-graph-positive') 
@@ -125,32 +128,78 @@ export const FeedViewer = ({
     }
   }, [selectedEntry?.id]);
 
-  // Track visible year based on scroll position
+  // Track visible year and handle scroll-driven selection
   useEffect(() => {
     const handleScroll = () => {
       if (!timelineRef.current) return;
-      const containerTop = timelineRef.current.getBoundingClientRect().top;
       
-      // Find which year header is closest to (but above) the container top
-      let currentYear = entriesWithDateContext[0]?.year;
+      // Mark as scrolling
+      setIsScrolling(true);
       
-      Object.entries(yearHeaderRefs.current).forEach(([year, el]) => {
+      // Clear previous timeout
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
+      }
+      
+      const container = timelineRef.current;
+      const containerRect = container.getBoundingClientRect();
+      const containerTop = containerRect.top;
+      const targetY = containerTop + containerRect.height * 0.25; // Focus zone at 25% from top
+      
+      // Find which entry is at the target position (focus zone)
+      let closestEntry: FeedEntry | null = null;
+      let closestDistance = Infinity;
+      
+      entriesWithDateContext.forEach((entry) => {
+        const el = entryRefs.current[entry.id];
         if (el) {
           const rect = el.getBoundingClientRect();
-          if (rect.top <= containerTop + 60) { // 60px threshold for header height
-            currentYear = parseInt(year);
+          const entryCenter = rect.top + rect.height / 2;
+          const distance = Math.abs(entryCenter - targetY);
+          
+          if (distance < closestDistance) {
+            closestDistance = distance;
+            closestEntry = entry;
           }
         }
       });
       
+      // Update highlighted entry (visual only during scroll)
+      if (closestEntry) {
+        setHighlightedEntryId(closestEntry.id);
+      }
+      
+      // Track visible year for year headers
+      let currentYear = entriesWithDateContext[0]?.year;
+      Object.entries(yearHeaderRefs.current).forEach(([year, el]) => {
+        if (el) {
+          const rect = el.getBoundingClientRect();
+          if (rect.top <= containerTop + 60) {
+            currentYear = parseInt(year);
+          }
+        }
+      });
       setVisibleYear(currentYear);
+      
+      // Debounce: After 250ms of no scrolling, commit selection
+      scrollTimeoutRef.current = setTimeout(() => {
+        setIsScrolling(false);
+        if (closestEntry) {
+          setSelectedEntry(closestEntry);
+        }
+      }, 250);
     };
     
     const container = timelineRef.current;
     container?.addEventListener('scroll', handleScroll);
     handleScroll(); // Initial check
     
-    return () => container?.removeEventListener('scroll', handleScroll);
+    return () => {
+      container?.removeEventListener('scroll', handleScroll);
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
+      }
+    };
   }, [entriesWithDateContext]);
 
   if (isLoading) {
@@ -177,10 +226,22 @@ export const FeedViewer = ({
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-full">
         {/* Left Panel - Timeline Graph */}
         <div className="flex flex-col h-full overflow-hidden">
-          {/* Fixed Year Header - Shows year of selected entry, or visible scroll year */}
-          {(selectedEntry?.date?.getFullYear() || visibleYear || entriesWithDateContext[0]?.year) && (
+          {/* Fixed Year Header - Shows year of highlighted entry during scroll, or selected entry */}
+          {(() => {
+            const highlightedEntry = entriesWithDateContext.find(e => e.id === highlightedEntryId);
+            const displayYear = isScrolling 
+              ? highlightedEntry?.year
+              : selectedEntry?.date?.getFullYear();
+            return displayYear || visibleYear || entriesWithDateContext[0]?.year;
+          })() && (
             <div className="bg-gray-800 text-white font-bold py-2 px-4 text-center rounded-t-lg flex-shrink-0">
-              {selectedEntry?.date?.getFullYear() || visibleYear || entriesWithDateContext[0]?.year}
+              {(() => {
+                const highlightedEntry = entriesWithDateContext.find(e => e.id === highlightedEntryId);
+                const displayYear = isScrolling 
+                  ? highlightedEntry?.year
+                  : selectedEntry?.date?.getFullYear();
+                return displayYear || visibleYear || entriesWithDateContext[0]?.year;
+              })()}
             </div>
           )}
           
@@ -221,8 +282,8 @@ export const FeedViewer = ({
                     <div
                       ref={(el) => (entryRefs.current[entry.id] = el)}
                       className={cn(
-                        "grid grid-cols-[1fr_1fr] gap-0 cursor-pointer transition-colors duration-200 py-3 rounded-lg",
-                        isSelected && "bg-gray-100"
+                        "grid grid-cols-[1fr_1fr] gap-0 cursor-pointer transition-colors duration-150 py-3 rounded-lg",
+                        (isScrolling ? entry.id === highlightedEntryId : isSelected) && "bg-gray-100"
                       )}
                       onClick={() => setSelectedEntry(entry)}
                     >
@@ -354,7 +415,13 @@ export const FeedViewer = ({
                 </div>
               </div>
 
-              {selectedEntry.type === 'lifeline_entry' ? (
+              {isScrolling ? (
+                // Show scrolling indicator
+                <div className="flex items-center justify-center h-64 text-muted-foreground">
+                  <Loader2 className="h-6 w-6 animate-spin mr-2" />
+                  <span>Scrolling...</span>
+                </div>
+              ) : selectedEntry.type === 'lifeline_entry' ? (
                 <>
                   {selectedEntry.entryImage && (
                     <div className="mb-4 rounded-lg overflow-hidden">
