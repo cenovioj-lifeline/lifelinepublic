@@ -147,9 +147,16 @@ export const FeedViewer = ({
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-full">
         {/* Left Panel - Timeline Graph */}
         <div className="flex flex-col h-full">
+          {/* Fixed Year Header - Always shows current entry's year */}
+          {selectedEntry && (
+            <div className="bg-gray-800 text-white font-bold py-2 px-4 text-center rounded-t-lg">
+              {selectedEntry.date.getFullYear()}
+            </div>
+          )}
+          
           <div
             ref={timelineRef}
-            className="bg-[hsl(var(--scheme-ll-graph-bg))] rounded-lg p-5 overflow-y-auto flex-1"
+            className="bg-[hsl(var(--scheme-ll-graph-bg))] rounded-b-lg p-5 overflow-y-auto flex-1"
             style={{
               scrollbarWidth: 'thin',
               scrollbarColor: '#565D6D #f0f0f0'
@@ -169,15 +176,8 @@ export const FeedViewer = ({
                 const barColor = isNewCollection ? newCollectionColor : (positive ? positiveColor : negativeColor);
                 
                 return (
-                  <div key={entry.id}>
-                    {/* Sticky Year Header */}
-                    {entry.showYear && (
-                      <div className="sticky top-0 z-20 bg-gray-800 text-white font-bold py-2 px-4 text-center mb-3">
-                        {entry.year}
-                      </div>
-                    )}
-                    
-                    <div
+                  <div
+                    key={entry.id}
                       ref={(el) => (entryRefs.current[entry.id] = el)}
                       className={cn(
                         "grid grid-cols-[1fr_1fr] gap-0 cursor-pointer transition-colors duration-200 py-3 rounded-lg",
@@ -188,11 +188,11 @@ export const FeedViewer = ({
                       {positive ? (
                         <>
                           <div className="flex items-center justify-end relative pr-0">
+                            {/* Date pill - positioned outside bar container, fixed near centerline */}
+                            <div className="absolute right-[52%] top-0 px-2 py-0.5 bg-white border border-gray-300 rounded-full text-[9px] font-semibold text-gray-600 shadow-sm z-20">
+                              {entry.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                            </div>
                             <div className="flex items-center justify-end relative" style={{ width: `${stemWidthPercent}%` }}>
-                              {/* Date pill - fixed position left of centerline */}
-                              <div className="absolute left-[calc(50%-60px)] top-[-20px] px-2 py-1 bg-white border border-gray-300 rounded-full text-[9px] font-semibold text-gray-600 shadow-sm z-20">
-                                {entry.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                              </div>
                               <div
                                 className="flex-shrink-0 w-[50px] h-[50px] rounded-l-lg flex items-center justify-center font-bold text-xl border-[3px] bg-white z-10 relative"
                                 style={{ borderColor: barColor, color: barColor }}
@@ -240,11 +240,11 @@ export const FeedViewer = ({
                             </div>
                           </div>
                           <div className="flex items-center justify-start pl-0">
+                            {/* Date pill - positioned outside bar container, fixed near centerline */}
+                            <div className="absolute left-[48%] -translate-x-full top-0 px-2 py-0.5 bg-white border border-gray-300 rounded-full text-[9px] font-semibold text-gray-600 shadow-sm z-20">
+                              {entry.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                            </div>
                             <div className="flex items-center justify-start relative" style={{ width: `${stemWidthPercent}%` }}>
-                              {/* Date pill - fixed position left of centerline */}
-                              <div className="absolute left-[calc(50%-60px)] top-[-20px] px-2 py-1 bg-white border border-gray-300 rounded-full text-[9px] font-semibold text-gray-600 shadow-sm z-20">
-                                {entry.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                              </div>
                               <div className="flex-1 h-[50px]" style={{ background: barColor }} />
                               <div
                                 className="flex-shrink-0 w-[50px] h-[50px] rounded-r-lg flex items-center justify-center font-bold text-xl border-[3px] bg-white z-10 relative"
@@ -257,7 +257,6 @@ export const FeedViewer = ({
                         </>
                       )}
                     </div>
-                  </div>
                 );
               })}
               
@@ -280,35 +279,37 @@ export const FeedViewer = ({
                   </Button>
                 </div>
               )}
-            </div>
           </div>
         </div>
+      </div>
 
         {/* Right Panel - Entry Detail */}
         {selectedEntry && (
           <div className="flex flex-col h-full">
             <div className="overflow-y-auto flex-1 bg-white rounded-lg p-6">
-              {/* Navigation at Top with Coral Styling */}
-              <div className="flex justify-between items-center mb-6 pb-4 border-b">
-                <Button
-                  onClick={handlePrevious}
-                  disabled={currentIndex === 0}
-                  size="sm"
-                  className="bg-[#e07857] hover:bg-[#d06847] text-white disabled:bg-gray-300"
-                >
-                  Previous
-                </Button>
-                <div className="text-sm font-medium text-gray-600">
-                  Entry {currentIndex + 1} of {entriesWithDateContext.length}
+              {/* Navigation Header with Dark Blue Background */}
+              <div className="bg-[hsl(var(--scheme-nav-bg))] rounded-t-lg px-4 py-3 -mx-6 -mt-6 mb-6">
+                <div className="flex justify-between items-center">
+                  <Button
+                    onClick={handlePrevious}
+                    disabled={currentIndex === 0}
+                    size="sm"
+                    className="bg-[#e07857] hover:bg-[#d06847] text-white disabled:bg-gray-300"
+                  >
+                    ← Prev
+                  </Button>
+                  <div className="text-sm font-medium text-white">
+                    Entry {currentIndex + 1} of {entriesWithDateContext.length}
+                  </div>
+                  <Button
+                    onClick={handleNext}
+                    disabled={currentIndex === (entriesWithDateContext?.length || 0) - 1}
+                    size="sm"
+                    className="bg-[#e07857] hover:bg-[#d06847] text-white disabled:bg-gray-300"
+                  >
+                    Next →
+                  </Button>
                 </div>
-                <Button
-                  onClick={handleNext}
-                  disabled={currentIndex === (entriesWithDateContext?.length || 0) - 1}
-                  size="sm"
-                  className="bg-[#e07857] hover:bg-[#d06847] text-white disabled:bg-gray-300"
-                >
-                  Next
-                </Button>
               </div>
 
               {selectedEntry.type === 'lifeline_entry' ? (
@@ -415,7 +416,7 @@ export const FeedViewer = ({
                   </div>
 
                   <Link to={`/collections/${selectedEntry.collectionId}`}>
-                    <Button variant="outline" className="text-primary">
+                    <Button className="bg-[#e07857] hover:bg-[#d06847] text-white">
                       Explore Collection <ExternalLink className="ml-2 h-4 w-4" />
                     </Button>
                   </Link>
