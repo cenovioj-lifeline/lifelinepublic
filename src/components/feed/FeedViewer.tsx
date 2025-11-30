@@ -365,7 +365,7 @@ export const FeedViewer = ({
               
               {/* Load More Button */}
               {hasNextPage && (
-                <div className="flex justify-center py-4">
+                <div className="flex justify-center py-4 z-10 relative">
                   <Button
                     onClick={() => fetchNextPage()}
                     disabled={isFetchingNextPage}
@@ -397,7 +397,7 @@ export const FeedViewer = ({
                     onClick={handlePrevious}
                     disabled={currentIndex === 0}
                     size="sm"
-                    className="bg-[#e07857] hover:bg-[#d06847] text-white disabled:bg-gray-300"
+                    className="bg-[hsl(var(--scheme-nav-button))] hover:bg-[hsl(var(--scheme-nav-button))]/90 text-white disabled:bg-gray-300"
                   >
                     ← Prev
                   </Button>
@@ -408,7 +408,7 @@ export const FeedViewer = ({
                     onClick={handleNext}
                     disabled={currentIndex === (entriesWithDateContext?.length || 0) - 1}
                     size="sm"
-                    className="bg-[#e07857] hover:bg-[#d06847] text-white disabled:bg-gray-300"
+                    className="bg-[hsl(var(--scheme-nav-button))] hover:bg-[hsl(var(--scheme-nav-button))]/90 text-white disabled:bg-gray-300"
                   >
                     Next →
                   </Button>

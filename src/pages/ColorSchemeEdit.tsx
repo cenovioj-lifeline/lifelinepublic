@@ -49,15 +49,11 @@ export default function ColorSchemeEdit() {
   }, []);
 
   const saveMutation = useMutation({
-    mutationFn: async () => {
-      if (!colors) {
-        throw new Error("Please configure colors before saving");
-      }
-
+    mutationFn: async (vars: { name: string; description: string; colors: ColorScheme }) => {
       const data = {
-        name,
-        description,
-        ...colors,
+        name: vars.name,
+        description: vars.description,
+        ...vars.colors,
       };
 
       if (isNew) {
@@ -97,7 +93,15 @@ export default function ColorSchemeEdit() {
       });
       return;
     }
-    saveMutation.mutate();
+    if (!colors) {
+      toast({
+        title: "Validation Error",
+        description: "Please configure colors before saving",
+        variant: "destructive",
+      });
+      return;
+    }
+    saveMutation.mutate({ name, description, colors });
   };
 
   return (
