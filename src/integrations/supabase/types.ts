@@ -1919,6 +1919,24 @@ export type Database = {
         }
         Relationships: []
       }
+      user_feed_seen: {
+        Row: {
+          entry_id: string
+          seen_at: string
+          user_id: string
+        }
+        Insert: {
+          entry_id: string
+          seen_at?: string
+          user_id: string
+        }
+        Update: {
+          entry_id?: string
+          seen_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_feed_subscriptions: {
         Row: {
           created_at: string
