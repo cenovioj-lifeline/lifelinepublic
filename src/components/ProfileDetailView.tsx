@@ -183,27 +183,29 @@ export function ProfileDetailView({
                 }
                 className="group block"
               >
-                <Card className="bg-gradient-to-r from-amber-50 to-yellow-50 border-amber-200 hover:shadow-lg hover:border-yellow-400 transition-all">
+                <Card className="bg-card border hover:shadow-lg hover:border-primary/50 transition-all">
                   <CardContent className="p-6">
                     <div className="flex items-start gap-4">
                       <Trophy className="h-8 w-8 text-yellow-500 flex-shrink-0 mt-1" />
                       <div className="flex-1">
-                        <h3 className="text-xl font-bold text-amber-900 group-hover:text-amber-700 transition-colors">
+                        <h3 className="text-xl font-bold group-hover:text-primary transition-colors">
                           {award.category}
                         </h3>
-                        
-                        <p className="text-sm text-amber-700/80 mt-1">
+                        <p className="text-sm text-muted-foreground mt-1">
                           {award.election.title}
                         </p>
-                        
-                        {award.notes && (
-                          <p className="mt-3 text-base text-gray-700 italic">
-                            "{award.notes}"
+                        {award.winner_name && (
+                          <p className="text-sm mt-2">
+                            Winner: {award.winner_name}
                           </p>
                         )}
-                        
+                        {award.notes && (
+                          <p className="mt-3 text-base text-muted-foreground italic">
+                            {award.notes}
+                          </p>
+                        )}
                         {award.percentage && (
-                          <p className="text-xs text-amber-600 mt-2">
+                          <p className="text-xs text-muted-foreground mt-2">
                             {award.percentage}% of votes
                           </p>
                         )}

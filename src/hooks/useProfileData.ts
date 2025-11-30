@@ -154,6 +154,8 @@ export function useProfileData(slug: string | undefined, options?: UseProfileDat
           id,
           category,
           superlative_category,
+          notes,
+          winner_name,
           percentage,
           vote_count,
           election:mock_elections!inner(
