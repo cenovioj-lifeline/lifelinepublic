@@ -146,17 +146,17 @@ export const FeedViewer = ({
     <Card className="p-6 pb-4 border-[hsl(var(--scheme-nav-bg))] bg-[hsl(var(--scheme-ll-display-bg))]" style={{ height: 'calc(100dvh - 160px)' }}>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-full">
         {/* Left Panel - Timeline Graph */}
-        <div className="flex flex-col h-full">
+        <div className="flex flex-col h-full overflow-hidden">
           {/* Fixed Year Header - Always shows current entry's year */}
           {selectedEntry && (
-            <div className="bg-gray-800 text-white font-bold py-2 px-4 text-center rounded-t-lg">
+            <div className="bg-gray-800 text-white font-bold py-2 px-4 text-center rounded-t-lg flex-shrink-0">
               {selectedEntry.date.getFullYear()}
             </div>
           )}
           
           <div
             ref={timelineRef}
-            className="bg-[hsl(var(--scheme-ll-graph-bg))] rounded-b-lg p-5 overflow-y-auto flex-1"
+            className="bg-[hsl(var(--scheme-ll-graph-bg))] rounded-b-lg p-5 overflow-y-auto overflow-x-hidden flex-1 min-h-0"
             style={{
               scrollbarWidth: 'thin',
               scrollbarColor: '#565D6D #f0f0f0'
@@ -178,18 +178,18 @@ export const FeedViewer = ({
                 return (
                   <div
                     key={entry.id}
-                      ref={(el) => (entryRefs.current[entry.id] = el)}
-                      className={cn(
-                        "grid grid-cols-[1fr_1fr] gap-0 cursor-pointer transition-colors duration-200 py-3 rounded-lg",
-                        isSelected && "bg-gray-100"
-                      )}
-                      onClick={() => setSelectedEntry(entry)}
-                    >
+                    ref={(el) => (entryRefs.current[entry.id] = el)}
+                    className={cn(
+                      "grid grid-cols-[1fr_1fr] gap-0 cursor-pointer transition-colors duration-200 py-3 rounded-lg",
+                      isSelected && "bg-gray-100"
+                    )}
+                    onClick={() => setSelectedEntry(entry)}
+                  >
                       {positive ? (
                         <>
                           <div className="flex items-center justify-end relative pr-0">
-                            {/* Date pill - positioned outside bar container, fixed near centerline */}
-                            <div className="absolute right-[52%] top-0 px-2 py-0.5 bg-white border border-gray-300 rounded-full text-[9px] font-semibold text-gray-600 shadow-sm z-20">
+                            {/* Date pill - positioned at top of row, left of centerline */}
+                            <div className="absolute right-[52%] -top-1 px-2 py-0.5 bg-white border border-gray-300 rounded-full text-[9px] font-semibold text-gray-600 shadow-sm z-20">
                               {entry.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                             </div>
                             <div className="flex items-center justify-end relative" style={{ width: `${stemWidthPercent}%` }}>
@@ -240,8 +240,8 @@ export const FeedViewer = ({
                             </div>
                           </div>
                           <div className="flex items-center justify-start pl-0">
-                            {/* Date pill - positioned outside bar container, fixed near centerline */}
-                            <div className="absolute left-[48%] -translate-x-full top-0 px-2 py-0.5 bg-white border border-gray-300 rounded-full text-[9px] font-semibold text-gray-600 shadow-sm z-20">
+                            {/* Date pill - positioned at top of row, left of centerline */}
+                            <div className="absolute left-[48%] -translate-x-full -top-1 px-2 py-0.5 bg-white border border-gray-300 rounded-full text-[9px] font-semibold text-gray-600 shadow-sm z-20">
                               {entry.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                             </div>
                             <div className="flex items-center justify-start relative" style={{ width: `${stemWidthPercent}%` }}>
