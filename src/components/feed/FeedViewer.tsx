@@ -272,6 +272,27 @@ export const FeedViewer = ({
             }}
           >
             <div className="relative min-h-full" style={{ paddingTop: '2px', paddingBottom: '2px' }}>
+              {/* Continuous timeline line - absolute positioned at container level */}
+              <div 
+                className="absolute w-[1px] bg-gray-300" 
+                style={{ 
+                  left: '35px', // Center of 70px timeline column
+                  top: 0,
+                  bottom: 0,
+                  zIndex: 0
+                }}
+              />
+              
+              {/* Continuous graph centerline - absolute positioned at container level */}
+              <div 
+                className="absolute w-[2px] bg-[#565D6D]" 
+                style={{ 
+                  left: 'calc(70px + 50%)', // 70px timeline column + half of remaining space
+                  top: 0,
+                  bottom: 0,
+                  zIndex: 0
+                }}
+              />
               {entriesWithDateContext.map((entry, index) => {
                 const isSelected = entry.id === selectedEntry?.id;
                 const isNewCollection = entry.type === 'new_collection';
@@ -287,8 +308,7 @@ export const FeedViewer = ({
                     {entry.showYear && entry.year !== entriesWithDateContext[0]?.year && (
                       <div className="grid gap-0 grid-cols-[70px_1fr_1fr]">
                         {/* Timeline axis column - line continues through year header */}
-                        <div className="relative flex items-center justify-center border-r border-gray-200">
-                          <div className="absolute left-1/2 top-0 bottom-0 w-[1px] -translate-x-1/2 bg-gray-300" />
+                        <div className="relative flex items-center justify-center">
                         </div>
                         {/* Year header spanning both graph columns */}
                         <div 
@@ -310,10 +330,7 @@ export const FeedViewer = ({
                       onClick={() => setSelectedEntry(entry)}
                     >
                       {/* TIMELINE AXIS COLUMN */}
-                      <div className="relative flex items-center justify-center border-r border-gray-200">
-                        {/* Vertical timeline line */}
-                        <div className="absolute left-1/2 top-0 bottom-0 w-[1px] -translate-x-1/2 bg-gray-300" />
-                        
+                      <div className="relative flex items-center justify-center">
                         {/* Date pill centered on line - using numeric format for narrow width */}
                         <div className="relative z-10 px-2 py-0.5 bg-white border border-gray-300 rounded-full text-[9px] font-semibold text-gray-600 shadow-sm whitespace-nowrap">
                           {entry.date.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric' })}
@@ -321,7 +338,7 @@ export const FeedViewer = ({
                       </div>
                       {positive ? (
                         <>
-                          <div className="flex items-center justify-end relative pr-0 border-r-[2px] border-[#565D6D]">
+                          <div className="flex items-center justify-end relative pr-0">
                             <div className="flex items-center justify-end relative" style={{ width: `${stemWidthPercent}%` }}>
                               <div
                                 className="flex-shrink-0 w-[50px] h-[50px] rounded-l-lg flex items-center justify-center font-bold text-xl border-[3px] bg-white z-10 relative"
@@ -370,7 +387,7 @@ export const FeedViewer = ({
                         </>
                        ) : (
                         <>
-                          <div className="flex items-center justify-end pr-4 relative border-r-[2px] border-[#565D6D]">
+                          <div className="flex items-center justify-end pr-4 relative">
                             {/* Seen icon - only visible when highlighted or selected */}
                             {(isScrolling ? entry.id === highlightedEntryId : isSelected) && (
                               <button
