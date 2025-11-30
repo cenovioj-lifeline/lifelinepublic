@@ -307,10 +307,12 @@ export const FeedViewer = ({
                       {positive ? (
                         <>
                           <div className="flex items-center justify-end relative pr-0">
-                            {/* Date pill - positioned at top of row, left of centerline */}
-                            <div className="absolute right-[52%] -top-1 px-2 py-0.5 bg-white border border-gray-300 rounded-full text-[9px] font-semibold text-gray-600 shadow-sm z-20">
-                              {entry.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                            </div>
+                            {/* Date pill - ONLY show if NOT immediately after year header */}
+                            {!entry.showYear && (
+                              <div className="absolute right-[52%] -top-1 px-2 py-0.5 bg-white border border-gray-300 rounded-full text-[9px] font-semibold text-gray-600 shadow-sm z-20">
+                                {entry.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                              </div>
+                            )}
                             <div className="flex items-center justify-end relative" style={{ width: `${stemWidthPercent}%` }}>
                               <div
                                 className="flex-shrink-0 w-[50px] h-[50px] rounded-l-lg flex items-center justify-center font-bold text-xl border-[3px] bg-white z-10 relative"
@@ -395,10 +397,12 @@ export const FeedViewer = ({
                             </div>
                           </div>
                           <div className="flex items-center justify-start pl-0">
-                            {/* Date pill - positioned at top of row, left of centerline */}
-                            <div className="absolute left-[48%] -translate-x-full -top-1 px-2 py-0.5 bg-white border border-gray-300 rounded-full text-[9px] font-semibold text-gray-600 shadow-sm z-20">
-                              {entry.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                            </div>
+                            {/* Date pill - ONLY show if NOT immediately after year header */}
+                            {!entry.showYear && (
+                              <div className="absolute left-[48%] -translate-x-full -top-1 px-2 py-0.5 bg-white border border-gray-300 rounded-full text-[9px] font-semibold text-gray-600 shadow-sm z-20">
+                                {entry.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                              </div>
+                            )}
                             <div className="flex items-center justify-start relative" style={{ width: `${stemWidthPercent}%` }}>
                               <div className="flex-1 h-[50px]" style={{ background: barColor }} />
                               <div
