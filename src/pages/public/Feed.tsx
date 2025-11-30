@@ -1,8 +1,9 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/lib/auth';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useFeedData, useFeedSubscriptions } from '@/hooks/useFeedData';
+import { useSeenEntries, useMarkSeen, useUnmarkSeen } from '@/hooks/useFeedSeen';
 import { FeedViewer } from '@/components/feed/FeedViewer';
 import { MobileFeedViewer } from '@/components/feed/MobileFeedViewer';
 import { Button } from '@/components/ui/button';
@@ -13,6 +14,7 @@ export default function Feed() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const isMobile = useIsMobile();
+  const [seenFilter, setSeenFilter] = useState<'unseen' | 'seen' | 'all'>('unseen');
 
   // Redirect if not logged in
   useEffect(() => {
@@ -35,6 +37,19 @@ export default function Feed() {
   const feedQuery = useFeedData(user?.id);
 
   const allEntries = feedQuery.data?.pages?.flatMap(page => page.entries) || [];
+
+  // Seen entries management
+  const { data: seenIds = new Set<string>() } = useSeenEntries(user?.id);
+  const markSeen = useMarkSeen(user?.id);
+  const unmarkSeen = useUnmarkSeen(user?.id);
+
+  const handleToggleSeen = (entryId: string) => {
+    if (seenIds.has(entryId)) {
+      unmarkSeen.mutate(entryId);
+    } else {
+      markSeen.mutate(entryId);
+    }
+  };
 
   if (!user) return null;
 
@@ -73,6 +88,9 @@ export default function Feed() {
         hasNextPage={feedQuery.hasNextPage || false}
         isFetchingNextPage={feedQuery.isFetchingNextPage}
         fetchNextPage={feedQuery.fetchNextPage}
+        seenIds={seenIds}
+        seenFilter={seenFilter}
+        onToggleSeen={handleToggleSeen}
       />
     );
   }
@@ -90,12 +108,41 @@ export default function Feed() {
           Adjust Feed
         </Button>
       </div>
+      
+      {/* Filter Bar */}
+      <div className="flex gap-2 mb-4">
+        <Button 
+          variant={seenFilter === 'unseen' ? 'default' : 'outline'}
+          onClick={() => setSeenFilter('unseen')}
+          size="sm"
+        >
+          Unseen
+        </Button>
+        <Button 
+          variant={seenFilter === 'all' ? 'default' : 'outline'}
+          onClick={() => setSeenFilter('all')}
+          size="sm"
+        >
+          All
+        </Button>
+        <Button 
+          variant={seenFilter === 'seen' ? 'default' : 'outline'}
+          onClick={() => setSeenFilter('seen')}
+          size="sm"
+        >
+          Seen
+        </Button>
+      </div>
+      
       <FeedViewer
         entries={allEntries}
         isLoading={feedQuery.isLoading}
         hasNextPage={feedQuery.hasNextPage || false}
         isFetchingNextPage={feedQuery.isFetchingNextPage}
         fetchNextPage={feedQuery.fetchNextPage}
+        seenIds={seenIds}
+        seenFilter={seenFilter}
+        onToggleSeen={handleToggleSeen}
       />
     </>
   );

@@ -4,7 +4,7 @@ import { FeedEntry } from '@/hooks/useFeedData';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
-import { Loader2, ExternalLink, Calendar } from 'lucide-react';
+import { Loader2, ExternalLink, Calendar, ArrowUp, Eye, EyeOff } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { differenceInMonths } from 'date-fns';
 
@@ -14,6 +14,9 @@ interface FeedViewerProps {
   hasNextPage: boolean;
   isFetchingNextPage: boolean;
   fetchNextPage: () => void;
+  seenIds: Set<string>;
+  seenFilter: 'unseen' | 'seen' | 'all';
+  onToggleSeen: (entryId: string) => void;
 }
 
 export const FeedViewer = ({
@@ -22,11 +25,15 @@ export const FeedViewer = ({
   hasNextPage,
   isFetchingNextPage,
   fetchNextPage,
+  seenIds,
+  seenFilter,
+  onToggleSeen,
 }: FeedViewerProps) => {
   const [selectedEntry, setSelectedEntry] = useState<FeedEntry | null>(null);
   const [visibleYear, setVisibleYear] = useState<number | null>(null);
   const [isScrolling, setIsScrolling] = useState(false);
   const [highlightedEntryId, setHighlightedEntryId] = useState<string | null>(null);
+  const [showBackToTop, setShowBackToTop] = useState(false);
   const timelineRef = useRef<HTMLDivElement>(null);
   const entryRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
   const yearHeaderRefs = useRef<{ [year: number]: HTMLDivElement | null }>({});
@@ -41,18 +48,25 @@ export const FeedViewer = ({
     : "#dc2626";
   const newCollectionColor = "#2563eb"; // Blue for new collections
 
+  // Filter entries based on seen status
+  const filteredEntries = useMemo(() => {
+    if (seenFilter === 'all') return entries;
+    if (seenFilter === 'seen') return entries.filter(e => seenIds.has(e.id));
+    return entries.filter(e => !seenIds.has(e.id)); // unseen
+  }, [entries, seenIds, seenFilter]);
+
   // Pre-process entries to add date metadata for sticky year headers
   const entriesWithDateContext = useMemo(() => {
-    if (!entries || entries.length === 0) return [];
+    if (!filteredEntries || filteredEntries.length === 0) return [];
     
     let lastYear: number | null = null;
     
-    return entries.map((entry, index) => {
+    return filteredEntries.map((entry, index) => {
       const year = entry.date.getFullYear();
       const isNewYear = year !== lastYear;
       
       // Calculate gap from previous entry
-      const prevEntry = index > 0 ? entries[index - 1] : null;
+      const prevEntry = index > 0 ? filteredEntries[index - 1] : null;
       const gapMonths = prevEntry 
         ? Math.abs(differenceInMonths(entry.date, prevEntry.date))
         : 0;
@@ -66,7 +80,7 @@ export const FeedViewer = ({
         year
       };
     });
-  }, [entries]);
+  }, [filteredEntries]);
 
   // Auto-select first entry when entries load
   useEffect(() => {
@@ -145,6 +159,9 @@ export const FeedViewer = ({
       const containerRect = container.getBoundingClientRect();
       const containerTop = containerRect.top;
       const targetY = containerTop + containerRect.height * 0.25; // Focus zone at 25% from top
+      
+      // Track scroll position for back-to-top button
+      setShowBackToTop(container.scrollTop > 300);
       
       // Find which entry is at the target position (focus zone)
       let closestEntry: FeedEntry | null = null;
@@ -304,7 +321,25 @@ export const FeedViewer = ({
                               <div className="flex-1 h-[50px]" style={{ background: barColor }} />
                             </div>
                           </div>
-                          <div className="flex items-center pl-4">
+                           <div className="flex items-center pl-4 relative">
+                            {/* Seen icon - only visible when highlighted or selected */}
+                            {(isScrolling ? entry.id === highlightedEntryId : isSelected) && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onToggleSeen(entry.id);
+                                }}
+                                className="absolute top-1 right-1 p-1.5 rounded-full hover:bg-gray-200 transition-colors z-30"
+                                title={seenIds.has(entry.id) ? "Mark as unseen" : "Mark as seen"}
+                              >
+                                {seenIds.has(entry.id) ? (
+                                  <EyeOff className="h-4 w-4 text-gray-600" />
+                                ) : (
+                                  <Eye className="h-4 w-4 text-gray-600" />
+                                )}
+                              </button>
+                            )}
+                            
                             <div
                               className={cn(
                                 "relative bg-white rounded-2xl px-4 py-3 max-w-[90%] transition-all duration-300",
@@ -322,9 +357,27 @@ export const FeedViewer = ({
                             </div>
                           </div>
                         </>
-                      ) : (
+                       ) : (
                         <>
                           <div className="flex items-center justify-end pr-4 relative">
+                            {/* Seen icon - only visible when highlighted or selected */}
+                            {(isScrolling ? entry.id === highlightedEntryId : isSelected) && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onToggleSeen(entry.id);
+                                }}
+                                className="absolute top-1 right-1 p-1.5 rounded-full hover:bg-gray-200 transition-colors z-30"
+                                title={seenIds.has(entry.id) ? "Mark as unseen" : "Mark as seen"}
+                              >
+                                {seenIds.has(entry.id) ? (
+                                  <EyeOff className="h-4 w-4 text-gray-600" />
+                                ) : (
+                                  <Eye className="h-4 w-4 text-gray-600" />
+                                )}
+                              </button>
+                            )}
+                            
                             <div
                               className={cn(
                                 "relative bg-white rounded-2xl px-4 py-3 max-w-[90%] transition-all duration-300",
@@ -381,6 +434,22 @@ export const FeedViewer = ({
                     )}
                   </Button>
                 </div>
+              )}
+              
+              {/* Back to Top Button */}
+              {showBackToTop && (
+                <Button
+                  onClick={() => {
+                    if (timelineRef.current) {
+                      timelineRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+                    }
+                  }}
+                  className="absolute bottom-4 right-4 z-20 rounded-full bg-[hsl(var(--scheme-nav-button))] hover:bg-[hsl(var(--scheme-nav-button))]/90 shadow-lg"
+                  size="icon"
+                  title="Back to top"
+                >
+                  <ArrowUp className="h-5 w-5" />
+                </Button>
               )}
           </div>
         </div>

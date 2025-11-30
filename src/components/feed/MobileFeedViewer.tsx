@@ -15,6 +15,9 @@ interface MobileFeedViewerProps {
   hasNextPage: boolean;
   isFetchingNextPage: boolean;
   fetchNextPage: () => void;
+  seenIds: Set<string>;
+  seenFilter: 'unseen' | 'seen' | 'all';
+  onToggleSeen: (entryId: string) => void;
 }
 
 export const MobileFeedViewer = ({
@@ -23,9 +26,19 @@ export const MobileFeedViewer = ({
   hasNextPage,
   isFetchingNextPage,
   fetchNextPage,
+  seenIds,
+  seenFilter,
+  onToggleSeen,
 }: MobileFeedViewerProps) => {
   const [selectedEntry, setSelectedEntry] = useState<FeedEntry | null>(null);
   const navigate = useNavigate();
+
+  // Filter entries based on seen status
+  const filteredEntries = entries.filter(entry => {
+    if (seenFilter === 'all') return true;
+    if (seenFilter === 'seen') return seenIds.has(entry.id);
+    return !seenIds.has(entry.id); // unseen
+  });
 
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const element = e.currentTarget;
@@ -44,12 +57,17 @@ export const MobileFeedViewer = ({
     );
   }
 
-  if (entries.length === 0) {
+  if (filteredEntries.length === 0) {
     return (
       <div className="p-6 text-center">
         <h3 className="text-xl font-semibold mb-2">No entries found</h3>
         <p className="text-muted-foreground mb-4">
-          The lifelines you selected don't have any dated events yet.
+          {seenFilter === 'seen' 
+            ? 'You haven\'t marked any entries as seen yet.'
+            : seenFilter === 'unseen'
+            ? 'All entries have been marked as seen!'
+            : 'The lifelines you selected don\'t have any dated events yet.'
+          }
         </p>
         <Button onClick={() => navigate('/feed/setup')}>
           Adjust Feed Settings
@@ -75,9 +93,9 @@ export const MobileFeedViewer = ({
       {/* Feed Entries */}
       <div className="overflow-y-auto" onScroll={handleScroll}>
         <div className="p-4 space-y-3">
-          {entries.map((entry) => {
+          {filteredEntries.map((entry) => {
             const isNewCollection = entry.type === 'new_collection';
-            const maxScore = Math.max(...entries.map(e => Math.abs(e.score)));
+            const maxScore = Math.max(...filteredEntries.map(e => Math.abs(e.score)));
             const barWidth = maxScore > 0 ? (Math.abs(entry.score) / maxScore) * 50 : 0;
             const scoreColor = isNewCollection 
               ? 'hsl(var(--chart-1))' 
