@@ -10,7 +10,7 @@ export default function PublicProfileDetail() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
 
-  const { profile, isLoading } = useProfileData(slug);
+  const { profile, lifelinesData, awards, quotes, isLoading } = useProfileData(slug);
 
 
   if (isLoading) {
@@ -71,6 +71,8 @@ export default function PublicProfileDetail() {
           profile={profile as any}
           associatedLifelines={associatedLifelines}
           collections={collections}
+          awards={awards}
+          quotes={quotes}
         />
       </div>
     </PublicLayout>

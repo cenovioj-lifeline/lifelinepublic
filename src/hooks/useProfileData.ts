@@ -134,10 +134,81 @@ export function useProfileData(slug: string | undefined, options?: UseProfileDat
     },
   });
 
+  // Fetch election awards where this profile won
+  const awardsQuery = useQuery({
+    queryKey: ["profile-awards", profileQuery.data?.id, collectionSlug],
+    enabled: !!profileQuery.data?.id && !!collectionSlug,
+    queryFn: async () => {
+      if (!profileQuery.data?.id) return [];
+
+      const collectionId = profileQuery.data.profile_collections?.find(
+        (pc: any) => pc.collection?.slug === collectionSlug
+      )?.collection?.id;
+
+      if (!collectionId) return [];
+
+      // Query election results where profile is winner (check both singular and array fields)
+      const { data, error } = await supabase
+        .from("election_results")
+        .select(`
+          id,
+          category,
+          superlative_category,
+          percentage,
+          vote_count,
+          election:mock_elections!inner(
+            id,
+            title,
+            slug,
+            collection_id
+          )
+        `)
+        .eq("mock_elections.collection_id", collectionId)
+        .eq("mock_elections.status", "published")
+        .or(`winner_profile_id.eq.${profileQuery.data.id},winner_profile_ids.cs.{${profileQuery.data.id}}`);
+
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  // Fetch quotes where this profile is the author
+  const quotesQuery = useQuery({
+    queryKey: ["profile-quotes", profileQuery.data?.id, collectionSlug],
+    enabled: !!profileQuery.data?.id && !!collectionSlug,
+    queryFn: async () => {
+      if (!profileQuery.data?.id) return [];
+
+      const collectionId = profileQuery.data.profile_collections?.find(
+        (pc: any) => pc.collection?.slug === collectionSlug
+      )?.collection?.id;
+
+      if (!collectionId) return [];
+
+      // Query collection quotes where profile is author (check both singular and array fields)
+      const { data, error } = await supabase
+        .from("collection_quotes")
+        .select(`
+          id,
+          quote,
+          context,
+          author
+        `)
+        .eq("collection_id", collectionId)
+        .or(`author_profile_id.eq.${profileQuery.data.id},author_profile_ids.cs.{${profileQuery.data.id}}`)
+        .in("contribution_status", ["approved", "auto_approved"]);
+
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
   return {
     profile: profileQuery.data,
     lifelinesData: lifelinesQuery.data,
+    awards: awardsQuery.data,
+    quotes: quotesQuery.data,
     isLoading: profileQuery.isLoading,
-    error: profileQuery.error || lifelinesQuery.error,
+    error: profileQuery.error || lifelinesQuery.error || awardsQuery.error || quotesQuery.error,
   };
 }

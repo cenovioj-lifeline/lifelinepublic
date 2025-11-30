@@ -10,7 +10,7 @@ export default function CollectionProfileDetail() {
   const { collectionSlug, profileSlug } = useParams<{ collectionSlug: string; profileSlug: string }>();
   const navigate = useNavigate();
 
-  const { profile, lifelinesData, isLoading } = useProfileData(profileSlug, { collectionSlug });
+  const { profile, lifelinesData, awards, quotes, isLoading } = useProfileData(profileSlug, { collectionSlug });
 
   if (isLoading) {
     return (
@@ -65,6 +65,8 @@ export default function CollectionProfileDetail() {
         <ProfileDetailView
           profile={profile as any}
           associatedLifelines={lifelinesData ?? associatedLifelines}
+          awards={awards}
+          quotes={quotes}
           collectionContext={{
             slug: collectionSlug!,
             name: collection.title
