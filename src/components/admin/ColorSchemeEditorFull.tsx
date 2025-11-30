@@ -75,15 +75,29 @@ const DEFAULT_COLORS: ColorScheme = {
   title_text: "#352d28",
 };
 
+// Helper to extract only color fields from an object
+const extractColorFields = (obj: Record<string, unknown>): Partial<ColorScheme> => {
+  const colorKeys = Object.keys(DEFAULT_COLORS) as (keyof ColorScheme)[];
+  const result: Partial<ColorScheme> = {};
+  for (const key of colorKeys) {
+    if (key in obj && typeof obj[key] === 'string') {
+      result[key] = obj[key] as string;
+    }
+  }
+  return result;
+};
+
 export function ColorSchemeEditorFull({ initialColors, onChange }: ColorSchemeEditorFullProps) {
-  const [colors, setColors] = useState<ColorScheme>({
-    ...DEFAULT_COLORS,
-    ...initialColors,
+  const [colors, setColors] = useState<ColorScheme>(() => {
+    const colorFieldsOnly = initialColors ? extractColorFields(initialColors as Record<string, unknown>) : {};
+    return { ...DEFAULT_COLORS, ...colorFieldsOnly };
   });
 
   useEffect(() => {
     if (initialColors) {
-      const newColors = { ...DEFAULT_COLORS, ...initialColors };
+      // Only extract actual color fields, ignore name/description/id/etc
+      const colorFieldsOnly = extractColorFields(initialColors as Record<string, unknown>);
+      const newColors = { ...DEFAULT_COLORS, ...colorFieldsOnly };
       setColors(newColors);
       onChange(newColors);
     }
