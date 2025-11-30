@@ -536,18 +536,18 @@ export const FeedViewer = ({
                   <div className="border-t pt-4 space-y-2">
                     <h3 className="text-sm font-semibold text-gray-700 mb-3">View in context:</h3>
                     <div className="flex flex-col gap-2">
-                      {selectedEntry.lifelineId && selectedEntry.lifelineTitle && (
+                      {selectedEntry.lifelineSlug && selectedEntry.collectionSlug && (
                         <Link
-                          to={`/lifelines/${selectedEntry.lifelineId}`}
+                          to={`/public/collections/${selectedEntry.collectionSlug}/lifelines/${selectedEntry.lifelineSlug}`}
                           className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800 hover:underline"
                         >
                           <ExternalLink className="h-3.5 w-3.5" />
                           <span>Full Lifeline: {selectedEntry.lifelineTitle}</span>
                         </Link>
                       )}
-                      {selectedEntry.collectionId && selectedEntry.collectionTitle && (
+                      {selectedEntry.collectionSlug && selectedEntry.collectionTitle && (
                         <Link
-                          to={`/collections/${selectedEntry.collectionId}`}
+                          to={`/public/collections/${selectedEntry.collectionSlug}`}
                           className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800 hover:underline"
                         >
                           <ExternalLink className="h-3.5 w-3.5" />
@@ -593,7 +593,7 @@ export const FeedViewer = ({
                     {selectedEntry.collectionDescription || 'New collection added!'}
                   </div>
 
-                  <Link to={`/collections/${selectedEntry.collectionId}`}>
+                  <Link to={`/public/collections/${selectedEntry.collectionSlug}`}>
                     <Button className="bg-[#e07857] hover:bg-[#d06847] text-white">
                       Explore Collection <ExternalLink className="ml-2 h-4 w-4" />
                     </Button>
