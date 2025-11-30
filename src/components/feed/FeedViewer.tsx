@@ -287,7 +287,7 @@ export const FeedViewer = ({
               <div 
                 className="absolute w-[2px] bg-[#565D6D]" 
                 style={{ 
-                  left: 'calc(70px + 50%)', // 70px timeline column + half of remaining space
+                  left: 'calc(50% + 35px)', // 50% of container + half of timeline column = exact center of graph area
                   top: 0,
                   bottom: 0,
                   zIndex: 0
@@ -346,7 +346,16 @@ export const FeedViewer = ({
                               >
                                 {score}
                               </div>
-                              <div className="flex-1 h-[50px]" style={{ background: barColor }} />
+                              <div 
+                                className="flex-1 h-[50px] flex items-center justify-center" 
+                                style={{ background: barColor }}
+                              >
+                                {isNewCollection && (
+                                  <span className="text-white font-bold text-sm whitespace-nowrap">
+                                    New Collection
+                                  </span>
+                                )}
+                              </div>
                             </div>
                           </div>
                            <div className="flex items-center pl-4 relative">
