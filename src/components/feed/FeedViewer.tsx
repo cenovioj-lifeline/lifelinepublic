@@ -4,6 +4,13 @@ import { FeedEntry } from '@/hooks/useFeedData';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
 
 import { Loader2, ExternalLink, Calendar, ArrowUp, Eye, EyeOff } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -506,13 +513,34 @@ export const FeedViewer = ({
                 </div>
               ) : selectedEntry.type === 'lifeline_entry' ? (
                 <>
-                  {selectedEntry.entryImage && (
-                    <div className="mb-4 rounded-lg overflow-hidden">
-                      <img 
-                        src={selectedEntry.entryImage} 
-                        alt={selectedEntry.entryTitle}
-                        className="w-full h-[300px] object-cover"
-                      />
+                  {selectedEntry.entryImages && selectedEntry.entryImages.length > 0 && (
+                    <div className="mb-4 relative">
+                      <Carousel className="w-full">
+                        <CarouselContent>
+                          {selectedEntry.entryImages.map((img) => (
+                            <CarouselItem key={img.id}>
+                              <div className="relative overflow-hidden rounded-lg">
+                                <img
+                                  src={img.url}
+                                  alt={img.alt_text || selectedEntry.entryTitle}
+                                  className="w-full aspect-video object-cover rounded-lg"
+                                  style={{
+                                    objectPosition: `${img.position_x ?? 50}% ${img.position_y ?? 50}%`,
+                                    transform: `scale(${img.scale ?? 1})`,
+                                    transformOrigin: `${img.position_x ?? 50}% ${img.position_y ?? 50}%`
+                                  }}
+                                />
+                              </div>
+                            </CarouselItem>
+                          ))}
+                        </CarouselContent>
+                        {selectedEntry.entryImages.length > 1 && (
+                          <>
+                            <CarouselPrevious className="left-2" />
+                            <CarouselNext className="right-2" />
+                          </>
+                        )}
+                      </Carousel>
                     </div>
                   )}
                   

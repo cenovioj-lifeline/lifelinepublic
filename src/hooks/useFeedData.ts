@@ -12,6 +12,14 @@ export interface FeedEntry {
   entryTitle?: string;
   entryDescription?: string;
   entryImage?: string;
+  entryImages?: Array<{
+    id: string;
+    url: string;
+    alt_text?: string;
+    position_x?: number;
+    position_y?: number;
+    scale?: number;
+  }>;
   lifelineId?: string;
   lifelineTitle?: string;
   lifelineSlug?: string;
@@ -77,6 +85,7 @@ export const useFeedData = (userId: string | undefined) => {
         .select(`
           id,
           title,
+          summary,
           details,
           score,
           occurred_on,
@@ -102,8 +111,15 @@ export const useFeedData = (userId: string | undefined) => {
             )
           ),
           entry_media (
+            id,
+            order_index,
             media_assets (
-              url
+              id,
+              url,
+              alt_text,
+              position_x,
+              position_y,
+              scale
             )
           )
         `)
@@ -143,8 +159,16 @@ export const useFeedData = (userId: string | undefined) => {
           score: entry.score || 0,
           entryId: entry.id,
           entryTitle: entry.title,
-          entryDescription: entry.details,
+          entryDescription: entry.summary || entry.details,
           entryImage: entryMedia?.url,
+          entryImages: entry.entry_media?.map(em => ({
+            id: em.media_assets?.id || '',
+            url: em.media_assets?.url || '',
+            alt_text: em.media_assets?.alt_text,
+            position_x: em.media_assets?.position_x,
+            position_y: em.media_assets?.position_y,
+            scale: em.media_assets?.scale,
+          })).filter(img => img.url) || [],
           lifelineId: lifeline?.id,
           lifelineTitle: lifeline?.title,
           lifelineSlug: lifeline?.slug,
