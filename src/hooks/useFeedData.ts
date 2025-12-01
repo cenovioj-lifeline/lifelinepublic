@@ -1,6 +1,9 @@
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
+// The standalone News lifeline for anonymous users
+const NEWS_LIFELINE_ID = '1e08cdd8-8b93-4f31-a89f-8e208bcd212e';
+
 export interface FeedEntry {
   id: string;
   type: 'lifeline_entry' | 'new_collection';
@@ -59,27 +62,35 @@ interface FeedPageData {
   hasMore: boolean;
 }
 
+// Hook now works for both authenticated and anonymous users
 export const useFeedData = (userId: string | undefined) => {
   return useInfiniteQuery({
-    queryKey: ['feed-data', userId],
+    queryKey: ['feed-data', userId || 'anonymous'],
     initialPageParam: 0,
     queryFn: async ({ pageParam }: { pageParam: number }) => {
       const page = pageParam;
-      if (!userId) return { entries: [], hasMore: false };
       
-      // Get subscribed lifelines
-      const { data: subscriptions } = await supabase
-        .from('user_feed_subscriptions')
-        .select('lifeline_id')
-        .eq('user_id', userId);
+      let lifelineIds: string[];
       
-      if (!subscriptions || subscriptions.length === 0) {
-        return { entries: [], hasMore: false };
+      if (userId) {
+        // Authenticated user: get their subscriptions
+        const { data: subscriptions } = await supabase
+          .from('user_feed_subscriptions')
+          .select('lifeline_id')
+          .eq('user_id', userId);
+        
+        if (!subscriptions || subscriptions.length === 0) {
+          // If authenticated but no subscriptions, show News lifeline
+          lifelineIds = [NEWS_LIFELINE_ID];
+        } else {
+          lifelineIds = subscriptions.map(s => s.lifeline_id);
+        }
+      } else {
+        // Anonymous user: show only News lifeline
+        lifelineIds = [NEWS_LIFELINE_ID];
       }
       
-      const lifelineIds = subscriptions.map(s => s.lifeline_id);
-      
-      // Fetch entries with dates from subscribed lifelines
+      // Fetch entries with dates from lifelines
       const { data: entriesData, error: entriesError } = await supabase
         .from('entries')
         .select(`
@@ -208,6 +219,7 @@ export const useFeedData = (userId: string | undefined) => {
     getNextPageParam: (lastPage, allPages) => {
       return lastPage.hasMore ? allPages.length : undefined;
     },
-    enabled: !!userId,
+    // Always enabled - works for both authenticated and anonymous users
+    enabled: true,
   });
 };
