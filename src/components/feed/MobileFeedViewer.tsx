@@ -1,9 +1,10 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { FeedEntry } from '@/hooks/useFeedData';
-import { Loader2, Rss, Menu, Home, Users, Award, FolderOpen, MoreHorizontal } from 'lucide-react';
-import { MobileFeedGraph } from './MobileFeedGraph';
+import { Loader2, Rss, Menu, Home, Users, Award, FolderOpen, MoreHorizontal, ArrowUp, Settings } from 'lucide-react';
+import { MobileFeedGraph, MobileFeedGraphRef } from './MobileFeedGraph';
 import { MobileFeedDetailSheet } from './MobileFeedDetailSheet';
+import { MobileFeedSettingsSheet } from './MobileFeedSettingsSheet';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { LifelineBookIcon } from '@/components/icons/LifelineBookIcon';
@@ -18,6 +19,8 @@ interface MobileFeedViewerProps {
   seenIds: Set<string>;
   seenFilter: 'unseen' | 'seen' | 'all';
   onToggleSeen: (entryId: string) => void;
+  existingSubscriptions?: string[];
+  showSettingsOnMount?: boolean;
 }
 
 export const MobileFeedViewer = ({
@@ -29,11 +32,15 @@ export const MobileFeedViewer = ({
   seenIds,
   seenFilter,
   onToggleSeen,
+  existingSubscriptions = [],
+  showSettingsOnMount = false,
 }: MobileFeedViewerProps) => {
   const location = useLocation();
+  const graphRef = useRef<MobileFeedGraphRef>(null);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showSettings, setShowSettings] = useState(showSettingsOnMount);
   const [currentYear, setCurrentYear] = useState<number>(entries[0]?.date.getFullYear() || new Date().getFullYear());
 
   // Filter entries based on seen status
@@ -62,6 +69,10 @@ export const MobileFeedViewer = ({
     if (selectedIndex !== null && selectedIndex < filteredEntries.length - 1) {
       setSelectedIndex(selectedIndex + 1);
     }
+  };
+
+  const handleScrollToTop = () => {
+    graphRef.current?.scrollToTop();
   };
 
   const selectedEntry = selectedIndex !== null ? filteredEntries[selectedIndex] : null;
@@ -109,20 +120,8 @@ export const MobileFeedViewer = ({
     );
   }
 
-  if (filteredEntries.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center h-screen p-8 text-center">
-        <h3 className="text-xl font-semibold mb-2">No entries found</h3>
-        <p className="text-muted-foreground">
-          {seenFilter === 'seen' 
-            ? "You haven't marked any entries as seen yet."
-            : seenFilter === 'unseen'
-            ? "You've seen all entries! Check back later for new content."
-            : "The lifelines you selected don't have any dated events yet."}
-        </p>
-      </div>
-    );
-  }
+  // Show empty state but still allow settings access
+  const showEmptyState = filteredEntries.length === 0;
 
   return (
     <div className="fixed inset-0 flex flex-col bg-background">
@@ -154,17 +153,56 @@ export const MobileFeedViewer = ({
         </div>
       </header>
 
-      <div className="flex-1 overflow-auto">
-        <MobileFeedGraph
-          entries={filteredEntries}
-          selectedId={selectedEntry?.id || null}
-          onEntryClick={handleEntryClick}
-          onLoadMore={fetchNextPage}
-          hasNextPage={hasNextPage}
-          isFetchingNextPage={isFetchingNextPage}
-          currentYear={currentYear}
-          onYearChange={setCurrentYear}
-        />
+      {showEmptyState ? (
+        <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
+          <h3 className="text-xl font-semibold mb-2">No entries found</h3>
+          <p className="text-muted-foreground mb-4">
+            {seenFilter === 'seen' 
+              ? "You haven't marked any entries as seen yet."
+              : seenFilter === 'unseen'
+              ? "You've seen all entries! Check back later for new content."
+              : existingSubscriptions.length === 0
+              ? "Tap the settings button below to add lifelines to your feed."
+              : "The lifelines you selected don't have any dated events yet."}
+          </p>
+          <Button onClick={() => setShowSettings(true)}>
+            Adjust Feed Settings
+          </Button>
+        </div>
+      ) : (
+        <div className="flex-1 overflow-auto">
+          <MobileFeedGraph
+            ref={graphRef}
+            entries={filteredEntries}
+            selectedId={selectedEntry?.id || null}
+            onEntryClick={handleEntryClick}
+            onLoadMore={fetchNextPage}
+            hasNextPage={hasNextPage}
+            isFetchingNextPage={isFetchingNextPage}
+            currentYear={currentYear}
+            onYearChange={setCurrentYear}
+          />
+        </div>
+      )}
+
+      {/* Floating Action Buttons - always visible */}
+      <div className="fixed bottom-4 right-4 flex flex-col gap-2 z-50">
+        <Button
+          size="icon"
+          variant="secondary"
+          onClick={handleScrollToTop}
+          className="rounded-full shadow-lg h-10 w-10 bg-[hsl(var(--scheme-nav-button))] hover:bg-[hsl(var(--scheme-nav-button)/.9)]"
+        >
+          <ArrowUp className="h-5 w-5 text-white" />
+        </Button>
+        <Button
+          size="icon"
+          variant="secondary"
+          onClick={() => setShowSettings(true)}
+          className="rounded-full shadow-lg h-10 w-10 bg-[hsl(var(--scheme-nav-button))] hover:bg-[hsl(var(--scheme-nav-button)/.9)]"
+        >
+          <Settings className="h-5 w-5 text-white" />
+        </Button>
       </div>
 
       <MobileFeedDetailSheet
@@ -177,6 +215,12 @@ export const MobileFeedViewer = ({
         canGoNext={selectedIndex !== null && selectedIndex < filteredEntries.length - 1}
         currentIndex={selectedIndex || 0}
         totalEntries={filteredEntries.length}
+      />
+
+      <MobileFeedSettingsSheet
+        isOpen={showSettings}
+        onClose={() => setShowSettings(false)}
+        existingSubscriptions={existingSubscriptions}
       />
     </div>
   );

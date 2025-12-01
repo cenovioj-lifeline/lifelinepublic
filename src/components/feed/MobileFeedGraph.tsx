@@ -1,6 +1,7 @@
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect, useImperativeHandle, forwardRef } from 'react';
 import { FeedEntry } from '@/hooks/useFeedData';
-import { Loader2, Rss } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 interface MobileFeedGraphProps {
@@ -14,7 +15,11 @@ interface MobileFeedGraphProps {
   onYearChange: (year: number) => void;
 }
 
-export const MobileFeedGraph = ({
+export interface MobileFeedGraphRef {
+  scrollToTop: () => void;
+}
+
+export const MobileFeedGraph = forwardRef<MobileFeedGraphRef, MobileFeedGraphProps>(({
   entries,
   selectedId,
   onEntryClick,
@@ -23,9 +28,16 @@ export const MobileFeedGraph = ({
   isFetchingNextPage,
   currentYear,
   onYearChange,
-}: MobileFeedGraphProps) => {
+}, ref) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const barHeight = 48; // Locked at 48px
+
+  // Expose scrollToTop method to parent
+  useImperativeHandle(ref, () => ({
+    scrollToTop: () => {
+      scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }));
 
   // Get colors from CSS variables
   const positiveColor = getComputedStyle(document.documentElement).getPropertyValue('--scheme-ll-graph-positive') 
@@ -217,8 +229,23 @@ export const MobileFeedGraph = ({
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
           </div>
         )}
+        
+        {/* Manual Load More button */}
+        {hasNextPage && !isFetchingNextPage && (
+          <div className="flex items-center justify-center py-4">
+            <Button 
+              variant="outline" 
+              onClick={onLoadMore}
+              className="w-full max-w-xs"
+            >
+              Load More
+            </Button>
+          </div>
+        )}
       </div>
       </div>
     </div>
   );
-};
+});
+
+MobileFeedGraph.displayName = 'MobileFeedGraph';
