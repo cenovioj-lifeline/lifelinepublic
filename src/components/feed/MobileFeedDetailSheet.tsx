@@ -5,6 +5,7 @@ import { ImageHero } from '@/components/lifeline/mobile/ImageHero';
 import { EntryContent } from '@/components/lifeline/mobile/EntryContent';
 import { X, ChevronLeft, ChevronRight, ExternalLink } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useSwipeable } from 'react-swipeable';
 import {
   Carousel,
   CarouselContent,
@@ -45,11 +46,19 @@ export const MobileFeedDetailSheet = ({
     year: 'numeric' 
   });
 
+  const swipeHandlers = useSwipeable({
+    onSwipedLeft: () => canGoNext && onNext(),
+    onSwipedRight: () => canGoPrevious && onPrevious(),
+    onSwipedDown: () => onClose(),
+    trackMouse: false,
+  });
+
   return (
     <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <SheetContent 
         side="bottom" 
-        className="h-[85vh] flex flex-col p-0"
+        className="h-[85vh] flex flex-col p-0 [&>button]:hidden"
+        {...swipeHandlers}
       >
         <SheetHeader className="flex-shrink-0 p-4 border-b border-border flex flex-row items-center justify-between">
           <Button
@@ -61,11 +70,7 @@ export const MobileFeedDetailSheet = ({
             <X className="h-5 w-5" />
           </Button>
           
-          <div className="text-sm font-semibold text-muted-foreground">
-            Entry {currentIndex + 1} of {totalEntries}
-          </div>
-          
-          <div className="flex gap-1">
+          <div className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
             <Button
               variant="ghost"
               size="icon"
@@ -73,8 +78,9 @@ export const MobileFeedDetailSheet = ({
               disabled={!canGoPrevious}
               className="h-8 w-8"
             >
-              <ChevronLeft className="h-5 w-5" />
+              <ChevronLeft className="h-4 w-4" />
             </Button>
+            <span className="text-xs">swipe</span>
             <Button
               variant="ghost"
               size="icon"
@@ -82,8 +88,12 @@ export const MobileFeedDetailSheet = ({
               disabled={!canGoNext}
               className="h-8 w-8"
             >
-              <ChevronRight className="h-5 w-5" />
+              <ChevronRight className="h-4 w-4" />
             </Button>
+          </div>
+          
+          <div className="text-sm font-semibold text-muted-foreground">
+            {currentIndex + 1} / {totalEntries}
           </div>
         </SheetHeader>
 

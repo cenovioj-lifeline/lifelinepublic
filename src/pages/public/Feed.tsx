@@ -6,6 +6,7 @@ import { useFeedData, useFeedSubscriptions } from '@/hooks/useFeedData';
 import { useSeenEntries, useMarkSeen, useUnmarkSeen } from '@/hooks/useFeedSeen';
 import { FeedViewer } from '@/components/feed/FeedViewer';
 import { MobileFeedViewer } from '@/components/feed/MobileFeedViewer';
+import { PublicLayout } from '@/components/PublicLayout';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
@@ -82,23 +83,21 @@ export default function Feed() {
 
   if (isMobile) {
     return (
-      <div className="fixed inset-0">
-        <MobileFeedViewer
-          entries={allEntries}
-          isLoading={feedQuery.isLoading}
-          hasNextPage={feedQuery.hasNextPage || false}
-          isFetchingNextPage={feedQuery.isFetchingNextPage}
-          fetchNextPage={feedQuery.fetchNextPage}
-          seenIds={seenIds}
-          seenFilter={seenFilter}
-          onToggleSeen={handleToggleSeen}
-        />
-      </div>
+      <MobileFeedViewer
+        entries={allEntries}
+        isLoading={feedQuery.isLoading}
+        hasNextPage={feedQuery.hasNextPage || false}
+        isFetchingNextPage={feedQuery.isFetchingNextPage}
+        fetchNextPage={feedQuery.fetchNextPage}
+        seenIds={seenIds}
+        seenFilter={seenFilter}
+        onToggleSeen={handleToggleSeen}
+      />
     );
   }
 
   return (
-    <>
+    <PublicLayout>
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold mb-2">My Feed</h1>
@@ -146,6 +145,6 @@ export default function Feed() {
         seenFilter={seenFilter}
         onToggleSeen={handleToggleSeen}
       />
-    </>
+    </PublicLayout>
   );
 }
