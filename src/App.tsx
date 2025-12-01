@@ -58,6 +58,7 @@ import ImportNewsImages from "./pages/ImportNewsImages";
 import LifelineImageManager from "./pages/LifelineImageManager";
 import Feed from "./pages/public/Feed";
 import FeedSetup from "./pages/public/FeedSetup";
+import CollectionReport from "./pages/CollectionReport";
 
 const queryClient = new QueryClient();
 
@@ -128,6 +129,16 @@ function AppContent() {
                 <ProtectedRoute>
                   <AdminLayout>
                     <CollectionEdit />
+                  </AdminLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/collection-report"
+              element={
+                <ProtectedRoute>
+                  <AdminLayout>
+                    <CollectionReport />
                   </AdminLayout>
                 </ProtectedRoute>
               }
