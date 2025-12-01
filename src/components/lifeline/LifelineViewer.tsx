@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
-import { Plus, Star, Menu, Image as ImageIcon, ImageUp, Pencil, Check, X, Search } from "lucide-react";
+import { Plus, Star, Menu, Image as ImageIcon, ImageUp, Pencil, Check, X, Search, Calendar } from "lucide-react";
 import { ContributeEventDialog } from "@/components/ContributeEventDialog";
 import { useAuth } from "@/lib/auth";
 import { PublicAuthModal } from "@/components/PublicAuthModal";
@@ -721,6 +721,16 @@ export function LifelineViewer({
                         )}
                       </div>
                     )}
+                    <div className="flex items-center gap-1 text-sm text-muted-foreground mt-1">
+                      <Calendar className="h-3 w-3" />
+                      <span>
+                        {selected.occurred_on 
+                          ? new Date(selected.occurred_on).toLocaleDateString('en-US', { 
+                              month: 'long', day: 'numeric', year: 'numeric' 
+                            })
+                          : "No date"}
+                      </span>
+                    </div>
                   </div>
                 </div>
                 {editingDetails ? (

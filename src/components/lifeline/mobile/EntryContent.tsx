@@ -11,18 +11,16 @@ export const EntryContent = ({ date, description, rating }: EntryContentProps) =
   
   return (
     <div className="px-4 pt-3 pb-6">
-      {date && (
-        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
-          <span>{date}</span>
-          <span>•</span>
-          <span className={cn(
-            "font-semibold",
-            isPositive ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
-          )}>
-            {rating > 0 ? '+' : ''}{rating}
-          </span>
-        </div>
-      )}
+      <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
+        <span>{date || "No date"}</span>
+        <span>•</span>
+        <span className={cn(
+          "font-semibold",
+          isPositive ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
+        )}>
+          {rating > 0 ? '+' : ''}{rating}
+        </span>
+      </div>
       
       <div className="prose prose-sm max-w-none text-foreground">
         {description.split('\n').map((paragraph, i) => (
