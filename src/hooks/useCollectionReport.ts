@@ -146,14 +146,7 @@ export function useCollectionReport(collectionId: string | null) {
         return profile?.primary_image_url || profile?.avatar_image_id;
       }).length || 0;
 
-      // Fetch elections and results
-      const { data: elections } = await supabase
-        .from('mock_elections')
-        .select('id')
-        .eq('collection_id', collectionId);
-
-      const electionIds = elections?.map(e => e.id) || [];
-
+      // Fetch election results with direct join to mock_elections
       const { data: electionResults } = await supabase
         .from('election_results')
         .select(`
@@ -163,9 +156,15 @@ export function useCollectionReport(collectionId: string | null) {
           profiles:winner_profile_id (
             primary_image_url,
             avatar_image_id
+          ),
+          election:mock_elections!inner(
+            id,
+            collection_id,
+            status
           )
         `)
-        .in('election_id', electionIds);
+        .eq('mock_elections.collection_id', collectionId)
+        .eq('mock_elections.status', 'published');
 
       const merLinkedToProfiles = electionResults?.some(r => 
         r.winner_profile_id !== null || (r.winner_profile_ids && r.winner_profile_ids.length > 0)
