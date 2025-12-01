@@ -154,7 +154,7 @@ export const MobileFeedViewer = ({
         </div>
       </header>
 
-      <div className="flex-1 overflow-hidden">
+      <div className="flex-1 overflow-auto">
         <MobileFeedGraph
           entries={filteredEntries}
           selectedId={selectedEntry?.id || null}
