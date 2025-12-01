@@ -22,6 +22,7 @@ export const MobileFeedGraph = ({
 }: MobileFeedGraphProps) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [currentYear, setCurrentYear] = useState<number>(entries[0]?.date.getFullYear() || new Date().getFullYear());
+  const [barHeight, setBarHeight] = useState<number>(40);
 
   // Get colors from CSS variables
   const positiveColor = getComputedStyle(document.documentElement).getPropertyValue('--scheme-ll-graph-positive') 
@@ -80,14 +81,26 @@ export const MobileFeedGraph = ({
   });
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden">
-      {/* Sticky Feed + Year Header */}
+    <div className="flex-1 flex flex-col overflow-hidden -m-2">
+      {/* Sticky Feed + Year Header - Edge to Edge */}
       <div className="sticky top-0 z-20 bg-gray-500 text-white flex items-center justify-between px-4 py-2">
         <div className="flex items-center gap-2">
           <span className="font-bold">Feed</span>
           <Rss className="h-4 w-4" />
         </div>
-        <span className="font-bold">{currentYear}</span>
+        <div className="flex items-center gap-2">
+          <select 
+            value={barHeight} 
+            onChange={(e) => setBarHeight(Number(e.target.value))}
+            className="bg-gray-600 text-white text-xs rounded px-1 py-0.5"
+          >
+            <option value={40}>40px</option>
+            <option value={48}>48px</option>
+            <option value={56}>56px</option>
+            <option value={64}>64px</option>
+          </select>
+          <span className="font-bold">{currentYear}</span>
+        </div>
       </div>
 
       <div
@@ -97,7 +110,7 @@ export const MobileFeedGraph = ({
           scrollbarWidth: 'thin',
         }}
       >
-        <div className="relative min-h-full px-2 py-3">
+        <div className="relative min-h-full px-2 py-2">
         {/* Continuous centerline */}
         <div 
           className="absolute w-[2px] bg-[#565D6D]" 
@@ -123,7 +136,7 @@ export const MobileFeedGraph = ({
               {/* Entry row */}
               <div
                 className={cn(
-                  "grid grid-cols-2 gap-0 cursor-pointer transition-colors duration-150 py-2 px-0 rounded-lg mb-1 relative",
+                  "grid grid-cols-2 gap-0 cursor-pointer transition-colors duration-150 py-1.5 px-0 rounded-lg mb-0.5 relative",
                   isSelected && "bg-gray-100"
                 )}
                 onClick={() => onEntryClick(entry, index)}
@@ -134,14 +147,14 @@ export const MobileFeedGraph = ({
                     <div className="flex items-center justify-end pr-0">
                       <div className="flex items-center justify-end relative" style={{ width: `${stemWidthPercent}%` }}>
                         <div
-                          className="flex-shrink-0 w-[40px] h-[40px] rounded-l-lg flex items-center justify-center font-bold text-lg border-2 bg-white z-10"
-                          style={{ borderColor: barColor, color: barColor }}
+                          className="flex-shrink-0 w-[40px] rounded-l-lg flex items-center justify-center font-bold text-lg border-2 bg-white z-10"
+                          style={{ borderColor: barColor, color: barColor, height: `${barHeight}px` }}
                         >
                           {isNewCollection ? 'NC' : score}
                         </div>
                         <div 
-                          className="flex-1 h-[40px] flex items-center justify-center" 
-                          style={{ background: barColor }}
+                          className="flex-1 flex items-center justify-center" 
+                          style={{ background: barColor, height: `${barHeight}px` }}
                         >
                           {isNewCollection && (
                             <span className="text-white font-bold text-xs whitespace-nowrap">
@@ -196,12 +209,12 @@ export const MobileFeedGraph = ({
                     <div className="flex items-center pl-0">
                       <div className="flex items-center relative" style={{ width: `${stemWidthPercent}%` }}>
                         <div 
-                          className="flex-1 h-[40px]" 
-                          style={{ background: barColor }}
+                          className="flex-1" 
+                          style={{ background: barColor, height: `${barHeight}px` }}
                         />
                         <div
-                          className="flex-shrink-0 w-[40px] h-[40px] rounded-r-lg flex items-center justify-center font-bold text-lg border-2 bg-white z-10"
-                          style={{ borderColor: barColor, color: barColor }}
+                          className="flex-shrink-0 w-[40px] rounded-r-lg flex items-center justify-center font-bold text-lg border-2 bg-white z-10"
+                          style={{ borderColor: barColor, color: barColor, height: `${barHeight}px` }}
                         >
                           {score}
                         </div>
