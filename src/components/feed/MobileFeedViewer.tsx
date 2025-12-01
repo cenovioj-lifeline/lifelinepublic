@@ -170,19 +170,17 @@ export const MobileFeedViewer = ({
           </Button>
         </div>
       ) : (
-        <div className="flex-1 overflow-auto">
-          <MobileFeedGraph
-            ref={graphRef}
-            entries={filteredEntries}
-            selectedId={selectedEntry?.id || null}
-            onEntryClick={handleEntryClick}
-            onLoadMore={fetchNextPage}
-            hasNextPage={hasNextPage}
-            isFetchingNextPage={isFetchingNextPage}
-            currentYear={currentYear}
-            onYearChange={setCurrentYear}
-          />
-        </div>
+        <MobileFeedGraph
+          ref={graphRef}
+          entries={filteredEntries}
+          selectedId={selectedEntry?.id || null}
+          onEntryClick={handleEntryClick}
+          onLoadMore={fetchNextPage}
+          hasNextPage={hasNextPage}
+          isFetchingNextPage={isFetchingNextPage}
+          currentYear={currentYear}
+          onYearChange={setCurrentYear}
+        />
       )}
 
       {/* Floating Action Buttons - always visible */}

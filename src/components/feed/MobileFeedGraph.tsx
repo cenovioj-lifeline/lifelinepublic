@@ -54,18 +54,34 @@ export const MobileFeedGraph = forwardRef<MobileFeedGraphRef, MobileFeedGraphPro
       if (!scrollRef.current) return;
       
       const container = scrollRef.current;
-      const entries = container.querySelectorAll('[data-entry-year]');
+      const containerRect = container.getBoundingClientRect();
       
-      // Find the first visible entry
-      for (const entry of Array.from(entries)) {
-        const rect = entry.getBoundingClientRect();
-        if (rect.top >= 0 && rect.top < window.innerHeight / 2) {
-          const year = parseInt(entry.getAttribute('data-entry-year') || '');
-          if (year && year !== currentYear) {
-            onYearChange(year);
-          }
+      // Check year headers first (they take precedence)
+      const yearHeaders = container.querySelectorAll('[data-year-header]');
+      let detectedYear: number | null = null;
+      
+      for (const header of Array.from(yearHeaders).reverse()) {
+        const rect = header.getBoundingClientRect();
+        if (rect.top <= containerRect.top + 80) {
+          detectedYear = parseInt(header.getAttribute('data-year-header') || '');
           break;
         }
+      }
+      
+      // If no year header found above viewport, check entries
+      if (!detectedYear) {
+        const entryElements = container.querySelectorAll('[data-entry-year]');
+        for (const entry of Array.from(entryElements)) {
+          const rect = entry.getBoundingClientRect();
+          if (rect.top >= containerRect.top && rect.top < containerRect.top + 150) {
+            detectedYear = parseInt(entry.getAttribute('data-entry-year') || '');
+            break;
+          }
+        }
+      }
+      
+      if (detectedYear && detectedYear !== currentYear) {
+        onYearChange(detectedYear);
       }
       
       // Infinite scroll detection
@@ -78,9 +94,9 @@ export const MobileFeedGraph = forwardRef<MobileFeedGraphRef, MobileFeedGraphPro
     };
 
     const container = scrollRef.current;
-    container?.addEventListener('scroll', handleScroll);
+    container?.addEventListener('scroll', handleScroll, { passive: true });
     return () => container?.removeEventListener('scroll', handleScroll);
-  }, [hasNextPage, isFetchingNextPage, onLoadMore, currentYear]);
+  }, [hasNextPage, isFetchingNextPage, onLoadMore, onYearChange, entries, currentYear]);
 
   // Process entries with year breaks
   const entriesWithYears = entries.map((entry, index) => {
@@ -129,6 +145,15 @@ export const MobileFeedGraph = forwardRef<MobileFeedGraphRef, MobileFeedGraphPro
           
           return (
             <div key={entry.id} data-entry-year={entry.year}>
+              {/* Year break header - when year changes AND not the first entry */}
+              {entry.showYear && index > 0 && (
+                <div 
+                  data-year-header={entry.year}
+                  className="bg-gray-700 text-white font-bold py-2 px-4 text-center rounded-lg mb-2 mt-3 mx-2"
+                >
+                  {entry.year}
+                </div>
+              )}
               {/* Entry row */}
               <div
                 className={cn(
