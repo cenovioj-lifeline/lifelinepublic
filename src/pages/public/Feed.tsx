@@ -82,16 +82,18 @@ export default function Feed() {
 
   if (isMobile) {
     return (
-      <MobileFeedViewer
-        entries={allEntries}
-        isLoading={feedQuery.isLoading}
-        hasNextPage={feedQuery.hasNextPage || false}
-        isFetchingNextPage={feedQuery.isFetchingNextPage}
-        fetchNextPage={feedQuery.fetchNextPage}
-        seenIds={seenIds}
-        seenFilter={seenFilter}
-        onToggleSeen={handleToggleSeen}
-      />
+      <div className="fixed inset-0">
+        <MobileFeedViewer
+          entries={allEntries}
+          isLoading={feedQuery.isLoading}
+          hasNextPage={feedQuery.hasNextPage || false}
+          isFetchingNextPage={feedQuery.isFetchingNextPage}
+          fetchNextPage={feedQuery.fetchNextPage}
+          seenIds={seenIds}
+          seenFilter={seenFilter}
+          onToggleSeen={handleToggleSeen}
+        />
+      </div>
     );
   }
 

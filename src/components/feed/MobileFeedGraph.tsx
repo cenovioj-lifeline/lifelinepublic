@@ -10,6 +10,8 @@ interface MobileFeedGraphProps {
   onLoadMore: () => void;
   hasNextPage: boolean;
   isFetchingNextPage: boolean;
+  currentYear: number;
+  onYearChange: (year: number) => void;
 }
 
 export const MobileFeedGraph = ({
@@ -19,10 +21,11 @@ export const MobileFeedGraph = ({
   onLoadMore,
   hasNextPage,
   isFetchingNextPage,
+  currentYear,
+  onYearChange,
 }: MobileFeedGraphProps) => {
   const scrollRef = useRef<HTMLDivElement>(null);
-  const [currentYear, setCurrentYear] = useState<number>(entries[0]?.date.getFullYear() || new Date().getFullYear());
-  const [barHeight, setBarHeight] = useState<number>(40);
+  const barHeight = 48; // Locked at 48px
 
   // Get colors from CSS variables
   const positiveColor = getComputedStyle(document.documentElement).getPropertyValue('--scheme-ll-graph-positive') 
@@ -47,7 +50,7 @@ export const MobileFeedGraph = ({
         if (rect.top >= 0 && rect.top < window.innerHeight / 2) {
           const year = parseInt(entry.getAttribute('data-entry-year') || '');
           if (year && year !== currentYear) {
-            setCurrentYear(year);
+            onYearChange(year);
           }
           break;
         }
@@ -81,28 +84,7 @@ export const MobileFeedGraph = ({
   });
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden -m-2">
-      {/* Sticky Feed + Year Header - Edge to Edge */}
-      <div className="sticky top-0 z-20 bg-gray-500 text-white flex items-center justify-between px-4 py-2">
-        <div className="flex items-center gap-2">
-          <span className="font-bold">Feed</span>
-          <Rss className="h-4 w-4" />
-        </div>
-        <div className="flex items-center gap-2">
-          <select 
-            value={barHeight} 
-            onChange={(e) => setBarHeight(Number(e.target.value))}
-            className="bg-gray-600 text-white text-xs rounded px-1 py-0.5"
-          >
-            <option value={40}>40px</option>
-            <option value={48}>48px</option>
-            <option value={56}>56px</option>
-            <option value={64}>64px</option>
-          </select>
-          <span className="font-bold">{currentYear}</span>
-        </div>
-      </div>
-
+    <div className="flex-1 flex flex-col overflow-hidden">
       <div
         ref={scrollRef}
         className="flex-1 overflow-y-auto overflow-x-hidden bg-[hsl(var(--scheme-ll-graph-bg))]"
