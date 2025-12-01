@@ -1,6 +1,6 @@
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { FeedEntry } from '@/hooks/useFeedData';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Rss } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface MobileFeedGraphProps {
@@ -21,6 +21,7 @@ export const MobileFeedGraph = ({
   isFetchingNextPage,
 }: MobileFeedGraphProps) => {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [currentYear, setCurrentYear] = useState<number>(entries[0]?.date.getFullYear() || new Date().getFullYear());
 
   // Get colors from CSS variables
   const positiveColor = getComputedStyle(document.documentElement).getPropertyValue('--scheme-ll-graph-positive') 
@@ -31,21 +32,39 @@ export const MobileFeedGraph = ({
     : "#dc2626";
   const newCollectionColor = "#2563eb";
 
-  // Infinite scroll detection
+  // Update current year based on scroll position
   useEffect(() => {
     const handleScroll = () => {
-      if (!scrollRef.current || !hasNextPage || isFetchingNextPage) return;
+      if (!scrollRef.current) return;
       
-      const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
-      if (scrollHeight - scrollTop - clientHeight < 500) {
-        onLoadMore();
+      const container = scrollRef.current;
+      const entries = container.querySelectorAll('[data-entry-year]');
+      
+      // Find the first visible entry
+      for (const entry of Array.from(entries)) {
+        const rect = entry.getBoundingClientRect();
+        if (rect.top >= 0 && rect.top < window.innerHeight / 2) {
+          const year = parseInt(entry.getAttribute('data-entry-year') || '');
+          if (year && year !== currentYear) {
+            setCurrentYear(year);
+          }
+          break;
+        }
+      }
+      
+      // Infinite scroll detection
+      if (hasNextPage && !isFetchingNextPage) {
+        const { scrollTop, scrollHeight, clientHeight } = container;
+        if (scrollHeight - scrollTop - clientHeight < 500) {
+          onLoadMore();
+        }
       }
     };
 
     const container = scrollRef.current;
     container?.addEventListener('scroll', handleScroll);
     return () => container?.removeEventListener('scroll', handleScroll);
-  }, [hasNextPage, isFetchingNextPage, onLoadMore]);
+  }, [hasNextPage, isFetchingNextPage, onLoadMore, currentYear]);
 
   // Process entries with year breaks
   const entriesWithYears = entries.map((entry, index) => {
@@ -61,14 +80,24 @@ export const MobileFeedGraph = ({
   });
 
   return (
-    <div
-      ref={scrollRef}
-      className="flex-1 overflow-y-auto overflow-x-hidden bg-[hsl(var(--scheme-ll-graph-bg))]"
-      style={{
-        scrollbarWidth: 'thin',
-      }}
-    >
-      <div className="relative min-h-full px-3 py-4">
+    <div className="flex-1 flex flex-col overflow-hidden">
+      {/* Sticky Feed + Year Header */}
+      <div className="sticky top-0 z-20 bg-gray-500 text-white flex items-center justify-between px-4 py-2">
+        <div className="flex items-center gap-2">
+          <span className="font-bold">Feed</span>
+          <Rss className="h-4 w-4" />
+        </div>
+        <span className="font-bold">{currentYear}</span>
+      </div>
+
+      <div
+        ref={scrollRef}
+        className="flex-1 overflow-y-auto overflow-x-hidden bg-[hsl(var(--scheme-ll-graph-bg))]"
+        style={{
+          scrollbarWidth: 'thin',
+        }}
+      >
+        <div className="relative min-h-full px-2 py-3">
         {/* Continuous centerline */}
         <div 
           className="absolute w-[2px] bg-[#565D6D]" 
@@ -90,18 +119,11 @@ export const MobileFeedGraph = ({
           const barColor = isNewCollection ? newCollectionColor : (positive ? positiveColor : negativeColor);
           
           return (
-            <div key={entry.id}>
-              {/* Year header */}
-              {entry.showYear && (
-                <div className="bg-gray-700 text-white font-bold py-2 px-4 text-center rounded-lg mb-3 mt-2 z-10 relative">
-                  {entry.year}
-                </div>
-              )}
-              
+            <div key={entry.id} data-entry-year={entry.year}>
               {/* Entry row */}
               <div
                 className={cn(
-                  "grid grid-cols-2 gap-0 cursor-pointer transition-colors duration-150 py-3 px-2 rounded-lg mb-2 relative",
+                  "grid grid-cols-2 gap-0 cursor-pointer transition-colors duration-150 py-2 px-0 rounded-lg mb-1 relative",
                   isSelected && "bg-gray-100"
                 )}
                 onClick={() => onEntryClick(entry, index)}
@@ -131,17 +153,17 @@ export const MobileFeedGraph = ({
                     </div>
                     
                     {/* Chat bubble on right */}
-                    <div className="flex items-center pl-3 relative">
+                    <div className="flex items-center pl-2 relative">
                       <div
                         className={cn(
-                          "relative bg-white rounded-2xl px-3 py-2 max-w-[95%] transition-all duration-300",
+                          "relative bg-white rounded-2xl px-2 py-2 max-w-full transition-all duration-300",
                           isSelected && "border-2 shadow-lg"
                         )}
                         style={isSelected ? { borderColor: barColor } : {}}
                       >
                         <div className="absolute left-[-8px] top-[20px] w-0 h-0 border-t-[10px] border-b-0 border-r-[10px] border-transparent" style={{ borderRightColor: 'white' }} />
                         <div className="font-bold text-xs mb-0.5 text-[hsl(var(--scheme-ll-entry-title))]">
-                          {isNewCollection ? `🎉 ${entry.collectionTitle}` : (entry.collectionTitle || entry.lifelineTitle || 'News')}
+                          {isNewCollection ? entry.collectionTitle : (entry.collectionTitle || entry.lifelineTitle || 'News')}
                         </div>
                         <div className="text-[10px] text-[hsl(var(--scheme-cards-text))] line-clamp-2">
                           {isNewCollection ? entry.collectionDescription || 'New collection added!' : entry.entryTitle}
@@ -152,10 +174,10 @@ export const MobileFeedGraph = ({
                 ) : (
                   <>
                     {/* Chat bubble on left */}
-                    <div className="flex items-center justify-end pr-3 relative">
+                    <div className="flex items-center justify-end pr-2 relative">
                       <div
                         className={cn(
-                          "relative bg-white rounded-2xl px-3 py-2 max-w-[95%] transition-all duration-300",
+                          "relative bg-white rounded-2xl px-2 py-2 max-w-full transition-all duration-300",
                           isSelected && "border-2 shadow-lg"
                         )}
                         style={isSelected ? { borderColor: barColor } : {}}
@@ -198,6 +220,7 @@ export const MobileFeedGraph = ({
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
           </div>
         )}
+      </div>
       </div>
     </div>
   );
