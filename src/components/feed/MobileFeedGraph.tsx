@@ -112,7 +112,7 @@ export const MobileFeedGraph = forwardRef<MobileFeedGraphRef, MobileFeedGraphPro
   });
 
   return (
-    <div className="flex-1 flex flex-col">
+    <div className="flex-1 flex flex-col overflow-hidden">
       <div
         ref={scrollRef}
         className="flex-1 overflow-y-auto overflow-x-hidden bg-[hsl(var(--scheme-ll-graph-bg))]"
