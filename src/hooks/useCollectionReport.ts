@@ -82,32 +82,9 @@ export function useCollectionReport(collectionId: string | null) {
 
       const entriesWithImages = new Set(entryImages?.map(ei => ei.entry_id));
 
-      // Classify lifelines as person vs list
-      // Person lifelines: have entries with dates
-      // List lifelines: entries use order_index for ranking, no dates
-      const lifelineEntries = new Map<string, typeof entries>();
-      entries?.forEach(entry => {
-        const lifelineId = lifelines?.find(l => 
-          entries.filter(e => e.id === entry.id).length > 0
-        )?.id;
-        if (lifelineId) {
-          if (!lifelineEntries.has(lifelineId)) {
-            lifelineEntries.set(lifelineId, []);
-          }
-          lifelineEntries.get(lifelineId)?.push(entry);
-        }
-      });
-
-      const personLifelines = lifelines?.filter(l => {
-        const llEntries = entries?.filter(e => {
-          // Need to join through lifeline_id but we don't have it in entries
-          // Let's use a simpler approach: check if ANY entry has a date
-          return true; // We'll count by entries having dates
-        });
-        return llEntries?.some(e => e.occurred_on !== null);
-      }).length || 0;
-
-      const listLifelines = (lifelines?.length || 0) - personLifelines;
+      // Count lifelines by their type field
+      const personLifelines = lifelines?.filter(l => l.lifeline_type === 'person').length || 0;
+      const listLifelines = lifelines?.filter(l => l.lifeline_type === 'list').length || 0;
 
       // Fetch profiles linked to collection
       const { data: profileCollections } = await supabase
