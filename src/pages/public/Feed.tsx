@@ -27,12 +27,13 @@ export default function Feed() {
   // Check if user has subscriptions
   const { data: subscriptions = [], isLoading: subsLoading } = useFeedSubscriptions(user?.id);
 
-  // Redirect to setup if no subscriptions
+  // On desktop, redirect to setup if no subscriptions
+  // On mobile, we show the feed with settings sheet instead
   useEffect(() => {
-    if (!subsLoading && user && subscriptions.length === 0) {
+    if (!isMobile && !subsLoading && user && subscriptions.length === 0) {
       navigate('/feed/setup');
     }
-  }, [subscriptions, subsLoading, user, navigate]);
+  }, [subscriptions, subsLoading, user, navigate, isMobile]);
 
   // Fetch feed data
   const feedQuery = useFeedData(user?.id);
@@ -62,8 +63,27 @@ export default function Feed() {
     );
   }
 
-  if (subscriptions.length === 0) {
-    return null; // Will redirect to setup
+  // On desktop with no subscriptions, will redirect (handled in useEffect)
+  if (!isMobile && subscriptions.length === 0) {
+    return null;
+  }
+
+  // Mobile view - show feed with settings sheet option (auto-opens if no subscriptions)
+  if (isMobile) {
+    return (
+      <MobileFeedViewer
+        entries={allEntries}
+        isLoading={feedQuery.isLoading}
+        hasNextPage={feedQuery.hasNextPage || false}
+        isFetchingNextPage={feedQuery.isFetchingNextPage}
+        fetchNextPage={feedQuery.fetchNextPage}
+        seenIds={seenIds}
+        seenFilter={seenFilter}
+        onToggleSeen={handleToggleSeen}
+        existingSubscriptions={subscriptions}
+        showSettingsOnMount={subscriptions.length === 0}
+      />
+    );
   }
 
   if (allEntries.length === 0) {
@@ -78,21 +98,6 @@ export default function Feed() {
           Adjust Feed Settings
         </Button>
       </Card>
-    );
-  }
-
-  if (isMobile) {
-    return (
-      <MobileFeedViewer
-        entries={allEntries}
-        isLoading={feedQuery.isLoading}
-        hasNextPage={feedQuery.hasNextPage || false}
-        isFetchingNextPage={feedQuery.isFetchingNextPage}
-        fetchNextPage={feedQuery.fetchNextPage}
-        seenIds={seenIds}
-        seenFilter={seenFilter}
-        onToggleSeen={handleToggleSeen}
-      />
     );
   }
 
