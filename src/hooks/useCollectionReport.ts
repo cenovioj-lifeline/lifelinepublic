@@ -63,7 +63,7 @@ export function useCollectionReport(collectionId: string | null) {
       // Fetch lifelines
       const { data: lifelines } = await supabase
         .from('lifelines')
-        .select('id, cover_image_id, lifeline_type')
+        .select('id, cover_image_id, cover_image_url, lifeline_type')
         .eq('collection_id', collectionId);
 
       const lifelineIds = lifelines?.map(l => l.id) || [];
@@ -178,7 +178,7 @@ export function useCollectionReport(collectionId: string | null) {
 
       // Calculate percentages
       const lifelineCoverImagePercentage = lifelines && lifelines.length > 0
-        ? (lifelines.filter(l => l.cover_image_id).length / lifelines.length) * 100
+        ? (lifelines.filter(l => l.cover_image_id || l.cover_image_url).length / lifelines.length) * 100
         : 0;
 
       const entryDatePercentage = entries && entries.length > 0
