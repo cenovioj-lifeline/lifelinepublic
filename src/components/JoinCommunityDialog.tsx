@@ -198,32 +198,33 @@ export function JoinCommunityDialog({
               <span className="text-4xl font-bold">#{membershipInfo?.member_number}</span>
             </div>
 
-            {/* Privacy toggle */}
-            <div className="flex items-center space-x-2">
-              <Checkbox 
-                id="hidden-from-list"
-                checked={hiddenFromList} 
-                onCheckedChange={(checked) => handleHiddenToggle(checked === true)}
-                disabled={updateHiddenMutation.isPending}
-              />
-              <label 
-                htmlFor="hidden-from-list" 
-                className="text-sm cursor-pointer"
+            {/* Link to members page + Privacy toggle grouped */}
+            <div className="space-y-3">
+              <Link 
+                to={`/public/collections/${collectionSlug}/members`}
+                onClick={() => onOpenChange(false)}
               >
-                Hide my name from member list
-              </label>
+                <Button variant="outline" className="w-full">
+                  <Users className="h-4 w-4 mr-2" />
+                  See All Members
+                </Button>
+              </Link>
+              
+              <div className="flex items-center space-x-2">
+                <Checkbox 
+                  id="hidden-from-list"
+                  checked={hiddenFromList} 
+                  onCheckedChange={(checked) => handleHiddenToggle(checked === true)}
+                  disabled={updateHiddenMutation.isPending}
+                />
+                <label 
+                  htmlFor="hidden-from-list" 
+                  className="text-sm text-muted-foreground cursor-pointer"
+                >
+                  Hide my name from member list
+                </label>
+              </div>
             </div>
-
-            {/* Link to members page */}
-            <Link 
-              to={`/public/collections/${collectionSlug}/members`}
-              onClick={() => onOpenChange(false)}
-            >
-              <Button variant="outline" className="w-full">
-                <Users className="h-4 w-4 mr-2" />
-                See All Members
-              </Button>
-            </Link>
 
             {/* Close button */}
             <div className="flex justify-end">
