@@ -43,8 +43,8 @@ export default function CollectionMembers() {
     enabled: !!slug,
   });
 
-  // Apply color scheme
-  useColorScheme(collection?.color_scheme_id || null);
+  // Apply color scheme - pass collection ID, not color_scheme_id
+  useColorScheme(collection?.id || null);
 
   // Fetch members with their profiles and calculated member numbers
   const { data: members, isLoading: isLoadingMembers } = useQuery({

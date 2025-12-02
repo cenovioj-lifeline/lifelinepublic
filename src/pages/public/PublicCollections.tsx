@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
@@ -7,8 +7,9 @@ import { Search, ChevronDown } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious, type CarouselApi } from "@/components/ui/carousel";
 import { CollectionCard } from "@/components/CollectionCard";
+import { cn } from "@/lib/utils";
 
 const ITEMS_PER_PAGE = 6;
 
@@ -19,6 +20,20 @@ export default function PublicCollections() {
   const [sortBy, setSortBy] = useState<"name" | "members" | "image">("name");
   const [currentPage, setCurrentPage] = useState(1);
   const [userId, setUserId] = useState<string | null>(null);
+  const [carouselApi, setCarouselApi] = useState<CarouselApi>();
+  const [currentSlide, setCurrentSlide] = useState(0);
+
+  // Track carousel slide changes
+  useEffect(() => {
+    if (!carouselApi) return;
+    
+    const onSelect = () => {
+      setCurrentSlide(carouselApi.selectedScrollSnap());
+    };
+    
+    carouselApi.on("select", onSelect);
+    return () => { carouselApi.off("select", onSelect); };
+  }, [carouselApi]);
 
   useState(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -122,7 +137,8 @@ export default function PublicCollections() {
       <div>
         <h1 className="text-3xl md:text-4xl font-bold mb-2">Collections</h1>
         <p className="text-muted-foreground">
-          Explore curated collections of lifelines, stories, and elections
+          Fictional worlds. Real people. Unfolding events. Personal journeys.<br />
+          Each collection is designed around the story it tells.
         </p>
       </div>
 
@@ -139,16 +155,17 @@ export default function PublicCollections() {
           <CollapsibleContent className="space-y-4">
             <Carousel
               opts={{
-                align: "start",
+                align: "center",
                 loop: false,
               }}
+              setApi={setCarouselApi}
               className="w-full"
             >
               <CarouselContent className="-ml-4">
                 {featuredCollections.map((collection) => (
                   <CarouselItem
                     key={collection.id}
-                    className="pl-4 basis-full md:basis-1/2 lg:basis-1/3"
+                    className="pl-4 basis-[85%] sm:basis-full md:basis-1/2 lg:basis-1/3"
                   >
                     <CollectionCard collection={collection} showFeaturedBadge />
                   </CarouselItem>
@@ -161,6 +178,23 @@ export default function PublicCollections() {
                 </>
               )}
             </Carousel>
+            
+            {/* Pagination dots - mobile only */}
+            <div className="flex justify-center gap-2 md:hidden">
+              {featuredCollections.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => carouselApi?.scrollTo(index)}
+                  className={cn(
+                    "w-2 h-2 rounded-full transition-colors",
+                    currentSlide === index 
+                      ? "bg-primary" 
+                      : "bg-muted-foreground/30"
+                  )}
+                  aria-label={`Go to slide ${index + 1}`}
+                />
+              ))}
+            </div>
           </CollapsibleContent>
         </Collapsible>
       )}
