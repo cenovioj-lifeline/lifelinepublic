@@ -164,26 +164,41 @@ export const MobileFeedGraph = forwardRef<MobileFeedGraphRef, MobileFeedGraphPro
               >
                 {positive ? (
                   <>
-                    {/* Score box + bar on left */}
+                    {/* Score box + bar on left (or hero image for new collections) */}
                     <div className="flex items-center justify-end pr-0">
-                      <div className="flex items-center justify-end relative" style={{ width: `${stemWidthPercent}%` }}>
-                        <div
-                          className="flex-shrink-0 w-[40px] rounded-l-lg flex items-center justify-center font-bold text-lg border-2 bg-white z-10"
-                          style={{ borderColor: barColor, color: barColor, height: `${barHeight}px` }}
-                        >
-                          {isNewCollection ? 'NC' : score}
+                      {isNewCollection && entry.collectionHeroImage ? (
+                        // Hero image for new collection
+                        <div className="relative" style={{ height: `${barHeight}px`, width: '100%', maxWidth: '150px' }}>
+                          <img 
+                            src={entry.collectionHeroImage} 
+                            alt={entry.collectionTitle || 'New Collection'}
+                            className="w-full h-full object-cover rounded-l-lg"
+                          />
+                          <div className="absolute bottom-1 left-1 bg-blue-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">
+                            NC
+                          </div>
                         </div>
-                        <div 
-                          className="flex-1 flex items-center justify-center" 
-                          style={{ background: barColor, height: `${barHeight}px` }}
-                        >
-                          {isNewCollection && (
-                            <span className="text-white font-bold text-xs whitespace-nowrap">
-                              New Collection
-                            </span>
-                          )}
+                      ) : (
+                        // Score bar (default or fallback for collections without images)
+                        <div className="flex items-center justify-end relative" style={{ width: `${stemWidthPercent}%` }}>
+                          <div
+                            className="flex-shrink-0 w-[40px] rounded-l-lg flex items-center justify-center font-bold text-lg border-2 bg-white z-10"
+                            style={{ borderColor: barColor, color: barColor, height: `${barHeight}px` }}
+                          >
+                            {isNewCollection ? 'NC' : score}
+                          </div>
+                          <div 
+                            className="flex-1 flex items-center justify-center" 
+                            style={{ background: barColor, height: `${barHeight}px` }}
+                          >
+                            {isNewCollection && (
+                              <span className="text-white font-bold text-xs whitespace-nowrap">
+                                New Collection
+                              </span>
+                            )}
+                          </div>
                         </div>
-                      </div>
+                      )}
                     </div>
                     
                     {/* Chat bubble on right */}
