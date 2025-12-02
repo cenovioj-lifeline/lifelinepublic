@@ -733,6 +733,7 @@ export default function PublicCollectionDetail() {
         onOpenChange={setJoinDialogOpen}
         collectionId={collection.id}
         collectionTitle={collection.title}
+        collectionSlug={collection.slug}
         onSignInRequired={() => {
           setJoinDialogOpen(false);
           setAuthModalOpen(true);

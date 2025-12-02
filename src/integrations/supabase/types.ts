@@ -183,18 +183,21 @@ export type Database = {
       collection_members: {
         Row: {
           collection_id: string
+          hidden_from_list: boolean
           id: string
           joined_at: string | null
           user_id: string
         }
         Insert: {
           collection_id: string
+          hidden_from_list?: boolean
           id?: string
           joined_at?: string | null
           user_id: string
         }
         Update: {
           collection_id?: string
+          hidden_from_list?: boolean
           id?: string
           joined_at?: string | null
           user_id?: string
