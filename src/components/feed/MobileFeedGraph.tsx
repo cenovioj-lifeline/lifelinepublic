@@ -167,15 +167,25 @@ export const MobileFeedGraph = forwardRef<MobileFeedGraphRef, MobileFeedGraphPro
                     {/* Score box + bar on left (or hero image for new collections) */}
                     <div className="flex items-center justify-end pr-0">
                       {isNewCollection && entry.collectionHeroImage ? (
-                        // Hero image for new collection
-                        <div className="relative" style={{ height: `${barHeight}px`, width: '100%', maxWidth: '150px' }}>
-                          <img 
-                            src={entry.collectionHeroImage} 
-                            alt={entry.collectionTitle || 'New Collection'}
-                            className="w-full h-full object-cover rounded-l-lg"
-                          />
-                          <div className="absolute bottom-1 left-1 bg-blue-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">
-                            NC
+                        // Hero image with vertical NEW ribbon
+                        <div className="flex items-center justify-end" style={{ width: `${stemWidthPercent}%` }}>
+                          <div 
+                            className="flex-shrink-0 bg-[#4a5d23] flex items-center justify-center rounded-l-lg"
+                            style={{ height: `${barHeight}px`, width: '24px' }}
+                          >
+                            <span 
+                              className="text-white font-bold text-[10px] tracking-wider"
+                              style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}
+                            >
+                              NEW
+                            </span>
+                          </div>
+                          <div className="flex-1 overflow-hidden" style={{ height: `${barHeight}px` }}>
+                            <img 
+                              src={entry.collectionHeroImage} 
+                              alt={entry.collectionTitle || 'New Collection'}
+                              className="w-full h-full object-cover"
+                            />
                           </div>
                         </div>
                       ) : (
