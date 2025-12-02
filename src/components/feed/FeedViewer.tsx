@@ -364,15 +364,25 @@ export const FeedViewer = ({
                         <>
                           <div className="flex items-center justify-end relative pr-0">
                             {isNewCollection && entry.collectionHeroImage ? (
-                              // Hero image for new collection
-                              <div className="relative" style={{ height: '50px', width: '100%', maxWidth: '200px' }}>
-                                <img 
-                                  src={entry.collectionHeroImage} 
-                                  alt={entry.collectionTitle || 'New Collection'}
-                                  className="w-full h-full object-cover rounded-l-lg"
-                                />
-                                <div className="absolute bottom-1 left-1 bg-blue-600 text-white text-xs font-bold px-2 py-1 rounded">
-                                  NC
+                              // Hero image with vertical NEW ribbon
+                              <div className="flex items-center justify-end" style={{ width: `${stemWidthPercent}%` }}>
+                                <div 
+                                  className="flex-shrink-0 bg-[#4a5d23] flex items-center justify-center rounded-l-lg"
+                                  style={{ height: '50px', width: '28px' }}
+                                >
+                                  <span 
+                                    className="text-white font-bold text-xs tracking-wider"
+                                    style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}
+                                  >
+                                    NEW
+                                  </span>
+                                </div>
+                                <div className="flex-1 overflow-hidden" style={{ height: '50px' }}>
+                                  <img 
+                                    src={entry.collectionHeroImage} 
+                                    alt={entry.collectionTitle || 'New Collection'}
+                                    className="w-full h-full object-cover"
+                                  />
                                 </div>
                               </div>
                             ) : (
