@@ -53,6 +53,7 @@ const collectionFormSchema = z.object({
   hero_image_position_y: z.number(),
   card_image_position_x: z.number(),
   card_image_position_y: z.number(),
+  created_at: z.string().optional(),
 });
 
 type CollectionForm = z.infer<typeof collectionFormSchema>;
@@ -101,6 +102,7 @@ export default function CollectionEdit() {
       hero_image_position_y: 50,
       card_image_position_x: 50,
       card_image_position_y: 50,
+      created_at: "",
     },
   });
 
@@ -119,6 +121,13 @@ export default function CollectionEdit() {
     enabled: !isNew,
   });
 
+  // Helper to format date for datetime-local input
+  const formatDateForInput = (dateString: string | null) => {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    return date.toISOString().slice(0, 16);
+  };
+
   useEffect(() => {
     if (collection) {
       form.reset({
@@ -135,6 +144,7 @@ export default function CollectionEdit() {
         hero_image_position_y: collection.hero_image_position_y ?? 50,
         card_image_position_x: collection.card_image_position_x ?? 50,
         card_image_position_y: collection.card_image_position_y ?? 50,
+        created_at: formatDateForInput(collection.created_at),
       });
       setHeroImageUrl(collection.hero_image_url || "");
     } else if (isNew && defaultScheme) {
@@ -146,7 +156,7 @@ export default function CollectionEdit() {
     mutationFn: async (data: CollectionForm) => {
       const { data: { user } } = await supabase.auth.getUser();
       
-      const payload = {
+      const basePayload = {
         title: data.title,
         slug: data.slug,
         description: data.description || null,
@@ -164,14 +174,19 @@ export default function CollectionEdit() {
       
       if (isNew) {
         const { error } = await supabase.from("collections").insert({
-          ...payload,
+          ...basePayload,
           created_by: user?.id,
         });
         if (error) throw error;
       } else {
+        // Include created_at only for updates
+        const updatePayload = data.created_at 
+          ? { ...basePayload, created_at: new Date(data.created_at).toISOString() }
+          : basePayload;
+        
         const { error } = await supabase
           .from("collections")
-          .update(payload)
+          .update(updatePayload)
           .eq("id", id);
         if (error) throw error;
       }
@@ -380,6 +395,26 @@ export default function CollectionEdit() {
               </FormItem>
             )}
           />
+
+          {!isNew && (
+            <FormField
+              control={form.control}
+              name="created_at"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Feed Date</FormLabel>
+                  <FormControl>
+                    <Input type="datetime-local" {...field} />
+                  </FormControl>
+                  <FormDescription>
+                    Collections created in the last 30 days appear as "New Collection" in feeds. 
+                    Adjust this date to control when the collection appears new.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
 
           <FormField
             control={form.control}

@@ -170,7 +170,7 @@ export const MobileFeedGraph = forwardRef<MobileFeedGraphRef, MobileFeedGraphPro
                         // Hero image with vertical NEW ribbon
                         <div className="flex items-center justify-end" style={{ width: `${stemWidthPercent}%` }}>
                           <div 
-                            className="flex-shrink-0 bg-[#4a5d23] flex items-center justify-center rounded-l-lg"
+                            className="flex-shrink-0 bg-[#2563eb] flex items-center justify-center rounded-l-lg"
                             style={{ height: `${barHeight}px`, width: '24px' }}
                           >
                             <span 
