@@ -363,24 +363,39 @@ export const FeedViewer = ({
                       {positive ? (
                         <>
                           <div className="flex items-center justify-end relative pr-0">
-                            <div className="flex items-center justify-end relative" style={{ width: `${stemWidthPercent}%` }}>
-                              <div
-                                className="flex-shrink-0 w-[50px] h-[50px] rounded-l-lg flex items-center justify-center font-bold text-xl border-[3px] bg-white z-10 relative"
-                                style={{ borderColor: barColor, color: barColor }}
-                              >
-                                {isNewCollection ? 'NC' : score}
+                            {isNewCollection && entry.collectionHeroImage ? (
+                              // Hero image for new collection
+                              <div className="relative" style={{ height: '50px', width: '100%', maxWidth: '200px' }}>
+                                <img 
+                                  src={entry.collectionHeroImage} 
+                                  alt={entry.collectionTitle || 'New Collection'}
+                                  className="w-full h-full object-cover rounded-l-lg"
+                                />
+                                <div className="absolute bottom-1 left-1 bg-blue-600 text-white text-xs font-bold px-2 py-1 rounded">
+                                  NC
+                                </div>
                               </div>
-                              <div 
-                                className="flex-1 h-[50px] flex items-center justify-center" 
-                                style={{ background: barColor }}
-                              >
-                                {isNewCollection && (
-                                  <span className="text-white font-bold text-sm whitespace-nowrap">
-                                    New Collection
-                                  </span>
-                                )}
+                            ) : (
+                              // Score bar (default or fallback for collections without images)
+                              <div className="flex items-center justify-end relative" style={{ width: `${stemWidthPercent}%` }}>
+                                <div
+                                  className="flex-shrink-0 w-[50px] h-[50px] rounded-l-lg flex items-center justify-center font-bold text-xl border-[3px] bg-white z-10 relative"
+                                  style={{ borderColor: barColor, color: barColor }}
+                                >
+                                  {isNewCollection ? 'NC' : score}
+                                </div>
+                                <div 
+                                  className="flex-1 h-[50px] flex items-center justify-center" 
+                                  style={{ background: barColor }}
+                                >
+                                  {isNewCollection && (
+                                    <span className="text-white font-bold text-sm whitespace-nowrap">
+                                      New Collection
+                                    </span>
+                                  )}
+                                </div>
                               </div>
-                            </div>
+                            )}
                           </div>
                            <div className="flex items-center pl-4 relative">
                             <div
