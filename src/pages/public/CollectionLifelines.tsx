@@ -237,10 +237,10 @@ export default function CollectionLifelines() {
           </p>
         </div>
 
-        {/* Search, Sort, and Filter Controls */}
-        <div className="flex flex-col gap-4">
-          {/* Search bar - always visible */}
-          <div className="relative">
+        {/* Search, Sort, and Filter Controls - Single Row */}
+        <div className="flex items-center gap-2">
+          {/* Search bar */}
+          <div className="relative w-2/3 sm:w-1/3">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               type="text"
@@ -254,66 +254,85 @@ export default function CollectionLifelines() {
             />
           </div>
 
-          {/* Mobile: Filter Button | Desktop: Inline Filters */}
-          <div className="flex gap-2">
-            {/* Mobile Filter Button (visible only on small screens) */}
-            <div className="sm:hidden">
-              <Sheet open={filterSheetOpen} onOpenChange={setFilterSheetOpen}>
-                <SheetTrigger asChild>
-                  <Button variant="outline" className="relative">
-                    <SlidersHorizontal className="h-4 w-4 mr-2" />
-                    Filters
-                    {activeFilterCount > 0 && (
-                      <Badge variant="secondary" className="ml-2 h-5 min-w-5 px-1">
-                        {activeFilterCount}
-                      </Badge>
-                    )}
-                  </Button>
-                </SheetTrigger>
-                <SheetContent side="bottom" className="h-[90vh]">
-                  <SheetHeader>
-                    <SheetTitle>Filter Lifelines</SheetTitle>
-                  </SheetHeader>
-                  <div className="space-y-4 py-6">
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Sort By</label>
-                      <Select value={sortBy} onValueChange={(value: "name" | "type") => setSortBy(value)}>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="name">Name</SelectItem>
-                          <SelectItem value="type">Type</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
+          {/* Mobile: Filter Button */}
+          <div className="sm:hidden flex-1 flex justify-end">
+            <Sheet open={filterSheetOpen} onOpenChange={setFilterSheetOpen}>
+              <SheetTrigger asChild>
+                <Button variant="outline" className="relative w-full">
+                  <SlidersHorizontal className="h-4 w-4 mr-2" />
+                  Filters
+                  {activeFilterCount > 0 && (
+                    <Badge variant="secondary" className="ml-2 h-5 min-w-5 px-1">
+                      {activeFilterCount}
+                    </Badge>
+                  )}
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="bottom" className="h-[90vh]">
+                <SheetHeader>
+                  <SheetTitle>Filter Lifelines</SheetTitle>
+                </SheetHeader>
+                <div className="space-y-4 py-6">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Sort By</label>
+                    <Select value={sortBy} onValueChange={(value: "name" | "type") => setSortBy(value)}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="name">Name</SelectItem>
+                        <SelectItem value="type">Type</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Type</label>
-                      <Select value={filterType} onValueChange={(val) => {
-                        setFilterType(val);
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Type</label>
+                    <Select value={filterType} onValueChange={(val) => {
+                      setFilterType(val);
+                      setCurrentPage(1);
+                    }}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Types</SelectItem>
+                        {lifelineTypes.map((type) => (
+                          <SelectItem key={type} value={type}>
+                            {type.charAt(0).toUpperCase() + type.slice(1)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Image Status</label>
+                    <Select
+                      value={imageFilter}
+                      onValueChange={(val: "all" | "has_images" | "needs_images") => {
+                        setImageFilter(val);
                         setCurrentPage(1);
-                      }}>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">All Types</SelectItem>
-                          {lifelineTypes.map((type) => (
-                            <SelectItem key={type} value={type}>
-                              {type.charAt(0).toUpperCase() + type.slice(1)}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Stories</SelectItem>
+                        <SelectItem value="has_images">Has Images (≥80%)</SelectItem>
+                        <SelectItem value="needs_images">Needs Images (&lt;80%)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
 
+                  {userId && (
                     <div className="space-y-2">
-                      <label className="text-sm font-medium">Image Status</label>
+                      <label className="text-sm font-medium">Show</label>
                       <Select
-                        value={imageFilter}
-                        onValueChange={(val: "all" | "has_images" | "needs_images") => {
-                          setImageFilter(val);
+                        value={showFavoritesOnly ? "favorites" : "all"}
+                        onValueChange={(val) => {
+                          setShowFavoritesOnly(val === "favorites");
                           setCurrentPage(1);
                         }}
                       >
@@ -321,111 +340,89 @@ export default function CollectionLifelines() {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="all">All Stories</SelectItem>
-                          <SelectItem value="has_images">Has Images (≥80%)</SelectItem>
-                          <SelectItem value="needs_images">Needs Images (&lt;80%)</SelectItem>
+                          <SelectItem value="all">All Lifelines</SelectItem>
+                          <SelectItem value="favorites">Favorites Only</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
+                  )}
+                </div>
+                <SheetFooter className="flex-row gap-2">
+                  <Button variant="outline" onClick={clearAllFilters} className="flex-1">
+                    <X className="h-4 w-4 mr-2" />
+                    Clear All
+                  </Button>
+                  <Button onClick={() => setFilterSheetOpen(false)} className="flex-1">
+                    Apply
+                  </Button>
+                </SheetFooter>
+              </SheetContent>
+            </Sheet>
+          </div>
 
-                    {userId && (
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium">Show</label>
-                        <Select
-                          value={showFavoritesOnly ? "favorites" : "all"}
-                          onValueChange={(val) => {
-                            setShowFavoritesOnly(val === "favorites");
-                            setCurrentPage(1);
-                          }}
-                        >
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="all">All Lifelines</SelectItem>
-                            <SelectItem value="favorites">Favorites Only</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    )}
-                  </div>
-                  <SheetFooter className="flex-row gap-2">
-                    <Button variant="outline" onClick={clearAllFilters} className="flex-1">
-                      <X className="h-4 w-4 mr-2" />
-                      Clear All
-                    </Button>
-                    <Button onClick={() => setFilterSheetOpen(false)} className="flex-1">
-                      Apply
-                    </Button>
-                  </SheetFooter>
-                </SheetContent>
-              </Sheet>
-            </div>
+          {/* Desktop: Inline Filters */}
+          <div className="hidden sm:flex gap-2 flex-1 justify-end flex-wrap">
+            <Select value={sortBy} onValueChange={(value: "name" | "type") => setSortBy(value)}>
+              <SelectTrigger className="w-[140px]">
+                <SelectValue placeholder="Sort by..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="name">Sort by Name</SelectItem>
+                <SelectItem value="type">Sort by Type</SelectItem>
+              </SelectContent>
+            </Select>
 
-            {/* Desktop: Inline Filters (hidden on mobile) */}
-            <div className="hidden sm:flex gap-2 flex-wrap">
-              <Select value={sortBy} onValueChange={(value: "name" | "type") => setSortBy(value)}>
-                <SelectTrigger className="w-[140px]">
-                  <SelectValue placeholder="Sort by..." />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="name">Sort by Name</SelectItem>
-                  <SelectItem value="type">Sort by Type</SelectItem>
-                </SelectContent>
-              </Select>
+            <Select value={filterType} onValueChange={(val) => {
+              setFilterType(val);
+              setCurrentPage(1);
+            }}>
+              <SelectTrigger className="w-[140px]">
+                <SelectValue placeholder="Filter by type..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Types</SelectItem>
+                {lifelineTypes.map((type) => (
+                  <SelectItem key={type} value={type}>
+                    {type.charAt(0).toUpperCase() + type.slice(1)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
 
-              <Select value={filterType} onValueChange={(val) => {
-                setFilterType(val);
+            <Select
+              value={imageFilter}
+              onValueChange={(val: "all" | "has_images" | "needs_images") => {
+                setImageFilter(val);
                 setCurrentPage(1);
-              }}>
-                <SelectTrigger className="w-[140px]">
-                  <SelectValue placeholder="Filter by type..." />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Types</SelectItem>
-                  {lifelineTypes.map((type) => (
-                    <SelectItem key={type} value={type}>
-                      {type.charAt(0).toUpperCase() + type.slice(1)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              }}
+            >
+              <SelectTrigger className="w-[160px]">
+                <SelectValue placeholder="Image status..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Stories</SelectItem>
+                <SelectItem value="has_images">Has Images (≥80%)</SelectItem>
+                <SelectItem value="needs_images">Needs Images (&lt;80%)</SelectItem>
+              </SelectContent>
+            </Select>
 
+            {userId && (
               <Select
-                value={imageFilter}
-                onValueChange={(val: "all" | "has_images" | "needs_images") => {
-                  setImageFilter(val);
+                value={showFavoritesOnly ? "favorites" : "all"}
+                onValueChange={(val) => {
+                  setShowFavoritesOnly(val === "favorites");
                   setCurrentPage(1);
                 }}
               >
-                <SelectTrigger className="w-[160px]">
-                  <SelectValue placeholder="Image status..." />
+                <SelectTrigger className="w-[140px]">
+                  <SelectValue placeholder="Filter..." />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Stories</SelectItem>
-                  <SelectItem value="has_images">Has Images (≥80%)</SelectItem>
-                  <SelectItem value="needs_images">Needs Images (&lt;80%)</SelectItem>
+                  <SelectItem value="all">All Lifelines</SelectItem>
+                  <SelectItem value="favorites">Favorites Only</SelectItem>
                 </SelectContent>
               </Select>
-
-              {userId && (
-                <Select
-                  value={showFavoritesOnly ? "favorites" : "all"}
-                  onValueChange={(val) => {
-                    setShowFavoritesOnly(val === "favorites");
-                    setCurrentPage(1);
-                  }}
-                >
-                  <SelectTrigger className="w-[140px]">
-                    <SelectValue placeholder="Filter..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Lifelines</SelectItem>
-                    <SelectItem value="favorites">Favorites Only</SelectItem>
-                  </SelectContent>
-                </Select>
-              )}
-            </div>
+            )}
           </div>
         </div>
 

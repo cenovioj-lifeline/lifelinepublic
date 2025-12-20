@@ -3,37 +3,23 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, ChevronDown } from "lucide-react";
+import { Search, SlidersHorizontal, X } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious, type CarouselApi } from "@/components/ui/carousel";
 import { CollectionCard } from "@/components/CollectionCard";
-import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetFooter } from "@/components/ui/sheet";
+import { Badge } from "@/components/ui/badge";
 
 const ITEMS_PER_PAGE = 6;
 
 export default function PublicCollections() {
-  const [featuredOpen, setFeaturedOpen] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const [sortBy, setSortBy] = useState<"name" | "members" | "image">("name");
   const [currentPage, setCurrentPage] = useState(1);
   const [userId, setUserId] = useState<string | null>(null);
-  const [carouselApi, setCarouselApi] = useState<CarouselApi>();
-  const [currentSlide, setCurrentSlide] = useState(0);
-
-  // Track carousel slide changes
-  useEffect(() => {
-    if (!carouselApi) return;
-    
-    const onSelect = () => {
-      setCurrentSlide(carouselApi.selectedScrollSnap());
-    };
-    
-    carouselApi.on("select", onSelect);
-    return () => { carouselApi.off("select", onSelect); };
-  }, [carouselApi]);
+  const [filterSheetOpen, setFilterSheetOpen] = useState(false);
 
   useState(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -74,8 +60,16 @@ export default function PublicCollections() {
     enabled: !!userId,
   });
 
-  const featuredCollections = collections?.filter((c) => c.is_featured) || [];
-  const nonFeaturedCollections = collections?.filter((c) => !c.is_featured) || [];
+  const activeFilterCount = [
+    showFavoritesOnly,
+    sortBy !== "name"
+  ].filter(Boolean).length;
+
+  const clearAllFilters = () => {
+    setSortBy("name");
+    setShowFavoritesOnly(false);
+    setCurrentPage(1);
+  };
 
   const filteredCollections = useMemo(() => {
     let filtered = collections || [];
@@ -119,9 +113,9 @@ export default function PublicCollections() {
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <div>
-          <Skeleton className="h-10 w-48 mb-2" />
-          <Skeleton className="h-6 w-96" />
+        <div className="flex items-center gap-2">
+          <Skeleton className="h-10 w-2/3 sm:w-1/3" />
+          <Skeleton className="h-10 flex-1 sm:w-[180px]" />
         </div>
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {[...Array(6)].map((_, i) => (
@@ -133,90 +127,99 @@ export default function PublicCollections() {
   }
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl md:text-4xl font-bold mb-2">Collections</h1>
-        <p className="text-muted-foreground">
-          Fictional worlds. Real people. Unfolding events. Personal journeys.<br />
-          Each collection is designed around the story it tells.
-        </p>
-      </div>
+    <div className="space-y-6">
+      {/* Search and Filters - Single Row */}
+      <div className="flex items-center gap-2">
+        {/* Search bar */}
+        <div className="relative w-2/3 sm:w-1/3">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            type="text"
+            placeholder="Search collections..."
+            value={searchTerm}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="pl-10"
+          />
+        </div>
 
-      {featuredCollections.length > 0 && (
-        <Collapsible open={featuredOpen} onOpenChange={setFeaturedOpen}>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-2xl font-semibold">Featured Collections</h2>
-            <CollapsibleTrigger className="hover:opacity-75 transition-opacity">
-              <ChevronDown
-                className={`h-5 w-5 transition-transform duration-200 ${featuredOpen ? "" : "-rotate-90"}`}
-              />
-            </CollapsibleTrigger>
-          </div>
-          <CollapsibleContent className="space-y-4">
-            <Carousel
-              opts={{
-                align: "center",
-                loop: false,
-              }}
-              setApi={setCarouselApi}
-              className="w-full"
-            >
-              <CarouselContent className="-ml-4">
-                {featuredCollections.map((collection) => (
-                  <CarouselItem
-                    key={collection.id}
-                    className="pl-4 basis-[85%] sm:basis-full md:basis-1/2 lg:basis-1/3"
+        {/* Mobile: Filter Button */}
+        <div className="sm:hidden flex-1 flex justify-end">
+          <Sheet open={filterSheetOpen} onOpenChange={setFilterSheetOpen}>
+            <SheetTrigger asChild>
+              <Button variant="outline" className="relative w-full">
+                <SlidersHorizontal className="h-4 w-4 mr-2" />
+                Filters
+                {activeFilterCount > 0 && (
+                  <Badge variant="secondary" className="ml-2 h-5 min-w-5 px-1">
+                    {activeFilterCount}
+                  </Badge>
+                )}
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="bottom" className="h-[90vh]">
+              <SheetHeader>
+                <SheetTitle>Filter Collections</SheetTitle>
+              </SheetHeader>
+              <div className="space-y-4 py-6">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Sort By</label>
+                  <Select
+                    value={sortBy}
+                    onValueChange={(val: "name" | "members" | "image") => {
+                      setSortBy(val);
+                      setCurrentPage(1);
+                    }}
                   >
-                    <CollectionCard collection={collection} showFeaturedBadge />
-                  </CarouselItem>
-                ))}
-              </CarouselContent>
-              {featuredCollections.length > 3 && (
-                <>
-                  <CarouselPrevious className="hidden md:flex" />
-                  <CarouselNext className="hidden md:flex" />
-                </>
-              )}
-            </Carousel>
-            
-            {/* Pagination dots - mobile only */}
-            <div className="flex justify-center gap-2 md:hidden">
-              {featuredCollections.map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => carouselApi?.scrollTo(index)}
-                  className={cn(
-                    "w-2 h-2 rounded-full transition-colors",
-                    currentSlide === index 
-                      ? "bg-primary" 
-                      : "bg-muted-foreground/30"
-                  )}
-                  aria-label={`Go to slide ${index + 1}`}
-                />
-              ))}
-            </div>
-          </CollapsibleContent>
-        </Collapsible>
-      )}
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="name">Name</SelectItem>
+                      <SelectItem value="members">Members</SelectItem>
+                      <SelectItem value="image">Has Image</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-      <section className="space-y-4">
-        <h2 className="text-2xl font-semibold">All Collections</h2>
+                {userId && (
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Show</label>
+                    <Select
+                      value={showFavoritesOnly ? "favorites" : "all"}
+                      onValueChange={(val) => {
+                        setShowFavoritesOnly(val === "favorites");
+                        setCurrentPage(1);
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Collections</SelectItem>
+                        <SelectItem value="favorites">Favorites Only</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+              </div>
+              <SheetFooter className="flex-row gap-2">
+                <Button variant="outline" onClick={clearAllFilters} className="flex-1">
+                  <X className="h-4 w-4 mr-2" />
+                  Clear All
+                </Button>
+                <Button onClick={() => setFilterSheetOpen(false)} className="flex-1">
+                  Apply
+                </Button>
+              </SheetFooter>
+            </SheetContent>
+          </Sheet>
+        </div>
 
-        <div className="flex flex-col sm:flex-row gap-4">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="text"
-              placeholder="Search collections..."
-              value={searchTerm}
-              onChange={(e) => {
-                setSearchTerm(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="pl-10"
-            />
-          </div>
-
+        {/* Desktop: Inline Filters */}
+        <div className="hidden sm:flex gap-2 flex-1 justify-end">
           <Select
             value={sortBy}
             onValueChange={(val: "name" | "members" | "image") => {
@@ -224,7 +227,7 @@ export default function PublicCollections() {
               setCurrentPage(1);
             }}
           >
-            <SelectTrigger className="w-full sm:w-[180px]">
+            <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Sort by..." />
             </SelectTrigger>
             <SelectContent>
@@ -242,7 +245,7 @@ export default function PublicCollections() {
                 setCurrentPage(1);
               }}
             >
-              <SelectTrigger className="w-full sm:w-[200px]">
+              <SelectTrigger className="w-[200px]">
                 <SelectValue placeholder="Filter..." />
               </SelectTrigger>
               <SelectContent>
@@ -252,57 +255,58 @@ export default function PublicCollections() {
             </Select>
           )}
         </div>
+      </div>
 
-        {paginatedCollections.length > 0 ? (
-          <>
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {paginatedCollections.map((collection) => (
-                <CollectionCard key={collection.id} collection={collection} />
-              ))}
-            </div>
-
-            {totalPages > 1 && (
-              <Pagination>
-                <PaginationContent>
-                  <PaginationItem>
-                    <PaginationPrevious
-                      onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                      className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                    />
-                  </PaginationItem>
-                  {[...Array(totalPages)].map((_, i) => (
-                    <PaginationItem key={i}>
-                      <PaginationLink
-                        onClick={() => setCurrentPage(i + 1)}
-                        isActive={currentPage === i + 1}
-                        className="cursor-pointer"
-                      >
-                        {i + 1}
-                      </PaginationLink>
-                    </PaginationItem>
-                  ))}
-                  <PaginationItem>
-                    <PaginationNext
-                      onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                      className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                    />
-                  </PaginationItem>
-                </PaginationContent>
-              </Pagination>
-            )}
-          </>
-        ) : (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground">
-              {showFavoritesOnly
-                ? "No favorite collections found."
-                : searchTerm
-                ? "No collections match your search criteria."
-                : "No collections available yet."}
-            </p>
+      {/* Collection Grid */}
+      {paginatedCollections.length > 0 ? (
+        <>
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {paginatedCollections.map((collection) => (
+              <CollectionCard key={collection.id} collection={collection} />
+            ))}
           </div>
-        )}
-      </section>
+
+          {totalPages > 1 && (
+            <Pagination>
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious
+                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                  />
+                </PaginationItem>
+                {[...Array(totalPages)].map((_, i) => (
+                  <PaginationItem key={i}>
+                    <PaginationLink
+                      onClick={() => setCurrentPage(i + 1)}
+                      isActive={currentPage === i + 1}
+                      className="cursor-pointer"
+                    >
+                      {i + 1}
+                    </PaginationLink>
+                  </PaginationItem>
+                ))}
+                <PaginationItem>
+                  <PaginationNext
+                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                    className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          )}
+        </>
+      ) : (
+        <div className="text-center py-12">
+          <p className="text-muted-foreground">
+            {showFavoritesOnly
+              ? "No favorite collections found."
+              : searchTerm
+              ? "No collections match your search criteria."
+              : "No collections available yet."}
+          </p>
+        </div>
+      )}
     </div>
   );
 }
