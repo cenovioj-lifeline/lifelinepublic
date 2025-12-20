@@ -6,6 +6,7 @@ import { transformEntriesToMobile } from '@/utils/entryDataAdapter';
 import { useMobileEntryNavigation } from '@/hooks/useMobileEntryNavigation';
 import { useCollectionQuote } from '@/hooks/useCollectionQuote';
 import { useImagePreloader } from '@/hooks/useImagePreloader';
+import { parseLifelineTitle } from '@/lib/lifelineTitle';
 import { GraphHeader } from './mobile/GraphHeader';
 import { StorySlide } from './mobile/StorySlide';
 import { MinimalQuote } from './mobile/MinimalQuote';
@@ -51,13 +52,17 @@ export const MobileLifelineViewer = ({ lifelineId }: MobileLifelineViewerProps) 
     queryFn: async () => {
       const { data, error } = await supabase
         .from('lifelines')
-        .select('title, subtitle')
+        .select('title, subtitle, lifeline_type')
         .eq('id', lifelineId)
         .single();
       if (error) throw error;
       return data;
     },
   });
+
+  const parsedTitle = lifeline 
+    ? parseLifelineTitle(lifeline.title, lifeline.lifeline_type || 'list')
+    : null;
 
   const { data: entries, isLoading } = useQuery({
     queryKey: ['lifeline-entries-mobile', lifelineId, user?.id],

@@ -2,7 +2,7 @@ import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { CollectionLayout } from "@/components/CollectionLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -17,6 +17,7 @@ import { LifelineSerpApiSearchModal } from "@/components/admin/LifelineSerpApiSe
 import { Button } from "@/components/ui/button";
 import { deleteImage } from "@/lib/storage";
 import { toast } from "sonner";
+import { parseLifelineTitle } from "@/lib/lifelineTitle";
 
 const ITEMS_PER_PAGE = 6;
 
@@ -486,10 +487,27 @@ export default function CollectionLifelines() {
                     )}
                   </div>
                   <CardHeader className="bg-[hsl(var(--scheme-card-bg))]">
-                      <CardTitle className="text-lg transition-colors text-[hsl(var(--scheme-card-text))]">
-                        {lifeline.title}
-                      </CardTitle>
-                    </CardHeader>
+                    {(() => {
+                      const parsed = parseLifelineTitle(lifeline.title, lifeline.lifeline_type);
+                      if (parsed.isPersonType) {
+                        return (
+                          <div className="space-y-0.5">
+                            <span className="text-xs font-bold uppercase tracking-wider text-[hsl(var(--scheme-nav-bg))] block">
+                              {parsed.personName}
+                            </span>
+                            <span className="text-lg font-semibold transition-colors text-[hsl(var(--scheme-card-text))] block line-clamp-2">
+                              {parsed.contextTitle}
+                            </span>
+                          </div>
+                        );
+                      }
+                      return (
+                        <span className="text-lg font-semibold transition-colors text-[hsl(var(--scheme-card-text))] line-clamp-2">
+                          {lifeline.title}
+                        </span>
+                      );
+                    })()}
+                  </CardHeader>
                   <CardContent className="bg-[hsl(var(--scheme-card-bg))]">
                     <p className="text-sm line-clamp-2 text-[hsl(var(--scheme-cards-text))]">
                       {lifeline.subtitle || lifeline.intro || "Explore this lifeline"}
