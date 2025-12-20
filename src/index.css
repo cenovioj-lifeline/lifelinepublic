@@ -8,6 +8,9 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
+    /* Consistent spacing between sections */
+    --content-section-gap: 2rem; /* 32px */
+    
     /* Default colors - can be overridden by global color settings */
     --background: 0 0% 100%;
     --foreground: var(--global-text, 222 47% 11%);

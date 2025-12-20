@@ -135,7 +135,7 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
           </nav>
         </div>
       </header>
-      <main className="container mx-auto px-4 py-6 md:py-8">{children}</main>
+      <main className="container mx-auto px-4" style={{ paddingTop: 'var(--content-section-gap)', paddingBottom: 'var(--content-section-gap)' }}>{children}</main>
       <PublicAuthModal open={authModalOpen} onOpenChange={setAuthModalOpen} />
     </div>
   );

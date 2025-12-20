@@ -267,7 +267,7 @@ export function CollectionLayout({
           </nav>
         </div>
       </header>
-      <main className="container mx-auto px-4 py-2 lg:py-6 md:py-4">
+      <main className="container mx-auto px-4" style={{ paddingTop: 'var(--content-section-gap)', paddingBottom: 'var(--content-section-gap)' }}>
         {children}
         {/* Show legacy quote popup only on non-mobile */}
         {currentQuote && !isMobile && (
