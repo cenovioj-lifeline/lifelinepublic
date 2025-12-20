@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { parseLifelineTitle } from "@/lib/lifelineTitle";
 
 interface StandardizedContentCardProps {
   id: string;
@@ -13,6 +14,7 @@ interface StandardizedContentCardProps {
   linkPath: string;
   badge?: string;
   type: 'lifeline' | 'collection' | 'election';
+  lifelineType?: string; // 'person' or 'list' - only for lifeline type cards
 }
 
 export function StandardizedContentCard({
@@ -24,7 +26,14 @@ export function StandardizedContentCard({
   imagePositionY = 50,
   linkPath,
   badge,
+  type,
+  lifelineType,
 }: StandardizedContentCardProps) {
+  // Parse title for person-type lifelines
+  const parsed = type === 'lifeline' && lifelineType 
+    ? parseLifelineTitle(title, lifelineType)
+    : null;
+
   return (
     <Link to={linkPath} className="group">
       <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
@@ -47,9 +56,20 @@ export function StandardizedContentCard({
         </div>
         <CardHeader className="bg-[hsl(var(--scheme-card-bg))]">
           <div className="flex items-start justify-between gap-2">
-            <CardTitle className="text-lg line-clamp-2 transition-colors text-[hsl(var(--scheme-card-text))]">
-              {title}
-            </CardTitle>
+            {parsed?.isPersonType ? (
+              <div className="space-y-0.5 flex-1">
+                <span className="text-xs font-bold uppercase tracking-wider text-[hsl(var(--scheme-nav-bg))] block">
+                  {parsed.personName}
+                </span>
+                <span className="text-lg font-semibold transition-colors text-[hsl(var(--scheme-card-text))] block line-clamp-2">
+                  {parsed.contextTitle}
+                </span>
+              </div>
+            ) : (
+              <span className="text-lg font-semibold line-clamp-2 transition-colors text-[hsl(var(--scheme-card-text))]">
+                {title}
+              </span>
+            )}
             {badge && <Badge variant="secondary">{badge}</Badge>}
           </div>
         </CardHeader>

@@ -17,6 +17,7 @@ import { LifelineSerpApiSearchModal } from "@/components/admin/LifelineSerpApiSe
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { FavoriteButton } from "@/components/FavoriteButton";
+import { parseLifelineTitle } from "@/lib/lifelineTitle";
 
 export default function PublicLifelines() {
   const [selectedLifelineId, setSelectedLifelineId] = useState<string | null>(null);
@@ -128,14 +129,25 @@ export default function PublicLifelines() {
             <SelectValue placeholder="Select a lifeline to view" />
           </SelectTrigger>
           <SelectContent>
-            {filteredAndSortedLifelines?.map((lifeline) => (
-              <SelectItem key={lifeline.id} value={lifeline.id}>
-                <div className="flex items-center gap-2">
-                  <LifelineBookIcon size={16} />
-                  <span>{lifeline.title}</span>
-                </div>
-              </SelectItem>
-            ))}
+            {filteredAndSortedLifelines?.map((lifeline) => {
+              const parsed = parseLifelineTitle(lifeline.title, lifeline.lifeline_type);
+              return (
+                <SelectItem key={lifeline.id} value={lifeline.id}>
+                  <div className="flex items-center gap-2">
+                    <LifelineBookIcon size={16} />
+                    {parsed.isPersonType ? (
+                      <span>
+                        <span className="font-bold uppercase text-xs tracking-wider">{parsed.personName}</span>
+                        <span className="mx-1 opacity-40">│</span>
+                        <span>{parsed.contextTitle}</span>
+                      </span>
+                    ) : (
+                      <span>{lifeline.title}</span>
+                    )}
+                  </div>
+                </SelectItem>
+              );
+            })}
           </SelectContent>
         </Select>
       </div>

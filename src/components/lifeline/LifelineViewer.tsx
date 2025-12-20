@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
+import { parseLifelineTitle } from "@/lib/lifelineTitle";
 import { Plus, Star, Menu, Image as ImageIcon, ImageUp, Pencil, Check, X, Search, Calendar } from "lucide-react";
 import { ContributeEventDialog } from "@/components/ContributeEventDialog";
 import { useAuth } from "@/lib/auth";
@@ -366,11 +367,27 @@ export function LifelineViewer({
       <CardHeader className="lg:pt-2 pt-0 px-0 bg-[hsl(var(--scheme-ll-display-bg))]">
         <div className="flex flex-col lg:flex-row items-start lg:items-start justify-between gap-2 lg:gap-0">
           <div className="flex-1">
-            <CardTitle
-              className="text-2xl lg:text-2xl md:text-xl sm:text-lg leading-tight text-[hsl(var(--scheme-title-text))]"
-            >
-              {lifeline.title}
-            </CardTitle>
+            {(() => {
+              const parsed = parseLifelineTitle(lifeline.title, lifeline.lifeline_type || lifelineType || 'list');
+              if (parsed.isPersonType) {
+                return (
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <span className="text-2xl lg:text-2xl md:text-xl sm:text-lg font-bold uppercase tracking-wide text-[hsl(var(--scheme-nav-bg))]">
+                      {parsed.personName}
+                    </span>
+                    <span className="text-[hsl(var(--scheme-nav-bg))] opacity-30 text-2xl">│</span>
+                    <span className="text-xl lg:text-xl md:text-lg sm:text-base text-[hsl(var(--scheme-muted-text))]">
+                      {parsed.contextTitle}
+                    </span>
+                  </div>
+                );
+              }
+              return (
+                <CardTitle className="text-2xl lg:text-2xl md:text-xl sm:text-lg leading-tight text-[hsl(var(--scheme-title-text))]">
+                  {lifeline.title}
+                </CardTitle>
+              );
+            })()}
             {lifeline.subtitle && (
               <p className="text-sm lg:text-base text-[hsl(var(--scheme-cards-text))] opacity-70">
                 {lifeline.subtitle}
