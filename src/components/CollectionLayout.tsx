@@ -96,7 +96,7 @@ export function CollectionLayout({
   const navItems = [
     { label: "Home", icon: Home, to: `/public/collections/${collectionSlug}` },
     { label: "Stories", icon: LifelineBookIcon, to: `/public/collections/${collectionSlug}/lifelines` },
-    { label: "People", icon: Users, to: `/public/collections/${collectionSlug}/profiles` },
+    { label: "Profiles", icon: Users, to: `/public/collections/${collectionSlug}/profiles` },
     { 
       label: "Awards", 
       icon: Award, 

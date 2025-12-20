@@ -116,7 +116,10 @@ export default function CollectionProfiles() {
                           {profile.name}
                         </CardTitle>
                         <p className="text-sm text-[hsl(var(--scheme-cards-text))]">
-                          {profile.subject_type}
+                          {profile.subject_type === "person_real" ? "Real Person" : 
+                           profile.subject_type === "person_fictional" ? "Fictional Person" : 
+                           profile.subject_type === "organization" ? "Organization" : 
+                           profile.subject_type}
                         </p>
                       </div>
                     </div>
