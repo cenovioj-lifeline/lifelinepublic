@@ -16,7 +16,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-type ProfileType = "all" | "person_real" | "person_fictional" | "entity" | "organization";
+type ProfileType = "all" | "person_real" | "person_fictional" | "organization";
 
 export default function PublicProfiles() {
   const navigate = useNavigate();
@@ -123,7 +123,7 @@ export default function PublicProfiles() {
       <div>
         <h1 className="text-3xl font-bold mb-2">Profiles</h1>
         <p className="text-muted-foreground">
-          Explore real and fictional characters, entities, and organizations
+          Explore real and fictional people, and organizations
         </p>
       </div>
 
@@ -157,9 +157,8 @@ export default function PublicProfiles() {
       <Tabs value={typeFilter} onValueChange={(v) => setTypeFilter(v as ProfileType)}>
         <TabsList className="w-full justify-start overflow-x-auto flex-nowrap">
           <TabsTrigger value="all">All</TabsTrigger>
-          <TabsTrigger value="person_real">Real</TabsTrigger>
-          <TabsTrigger value="person_fictional">Fictional</TabsTrigger>
-          <TabsTrigger value="entity">Entities</TabsTrigger>
+          <TabsTrigger value="person_real">Real People</TabsTrigger>
+          <TabsTrigger value="person_fictional">Fictional People</TabsTrigger>
           <TabsTrigger value="organization">Organizations</TabsTrigger>
         </TabsList>
       </Tabs>
