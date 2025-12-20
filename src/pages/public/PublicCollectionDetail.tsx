@@ -445,7 +445,7 @@ export default function PublicCollectionDetail() {
       collectionSlug={collection.slug}
       collectionId={collection.id}
     >
-      <div className="space-y-8">
+      <div className="space-y-4">
         {/* Hero Section */}
         <div className="relative rounded-lg overflow-hidden">
           {collection.hero_image_url ? (
