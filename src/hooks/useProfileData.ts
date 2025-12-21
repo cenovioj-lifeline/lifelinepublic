@@ -89,10 +89,10 @@ export function useProfileData(slug: string | undefined, options?: UseProfileDat
     },
   });
 
-  // Fetch full lifeline details with cover images (for collection context)
+  // Fetch full lifeline details with cover images
   const lifelinesQuery = useQuery({
     queryKey: ["profile-lifelines-detailed", profileQuery.data?.id, collectionSlug],
-    enabled: !!profileQuery.data?.id && !!collectionSlug,
+    enabled: !!profileQuery.data?.id,
     queryFn: async () => {
       if (!profileQuery.data?.id) return [];
 
@@ -137,15 +137,20 @@ export function useProfileData(slug: string | undefined, options?: UseProfileDat
   // Fetch election awards where this profile won
   const awardsQuery = useQuery({
     queryKey: ["profile-awards", profileQuery.data?.id, collectionSlug],
-    enabled: !!profileQuery.data?.id && !!collectionSlug,
+    enabled: !!profileQuery.data?.id,
     queryFn: async () => {
       if (!profileQuery.data?.id) return [];
 
-      const collectionId = profileQuery.data.profile_collections?.find(
-        (pc: any) => pc.collection?.slug === collectionSlug
-      )?.collection?.id;
+      // Get collection IDs to filter by
+      const collectionIds = collectionSlug 
+        ? [profileQuery.data.profile_collections?.find(
+            (pc: any) => pc.collection?.slug === collectionSlug
+          )?.collection?.id].filter(Boolean)
+        : profileQuery.data.profile_collections?.map(
+            (pc: any) => pc.collection?.id
+          ).filter(Boolean) ?? [];
 
-      if (!collectionId) return [];
+      if (collectionIds.length === 0) return [];
 
       // Query election results where profile is winner (check both singular and array fields)
       const { data, error } = await supabase
@@ -165,7 +170,7 @@ export function useProfileData(slug: string | undefined, options?: UseProfileDat
             collection_id
           )
         `)
-        .eq("mock_elections.collection_id", collectionId)
+        .in("mock_elections.collection_id", collectionIds)
         .eq("mock_elections.status", "published")
         .or(`winner_profile_id.eq.${profileQuery.data.id},winner_profile_ids.cs.{${profileQuery.data.id}}`);
 
@@ -177,15 +182,20 @@ export function useProfileData(slug: string | undefined, options?: UseProfileDat
   // Fetch quotes where this profile is the author
   const quotesQuery = useQuery({
     queryKey: ["profile-quotes", profileQuery.data?.id, collectionSlug],
-    enabled: !!profileQuery.data?.id && !!collectionSlug,
+    enabled: !!profileQuery.data?.id,
     queryFn: async () => {
       if (!profileQuery.data?.id) return [];
 
-      const collectionId = profileQuery.data.profile_collections?.find(
-        (pc: any) => pc.collection?.slug === collectionSlug
-      )?.collection?.id;
+      // Get collection IDs to filter by
+      const collectionIds = collectionSlug 
+        ? [profileQuery.data.profile_collections?.find(
+            (pc: any) => pc.collection?.slug === collectionSlug
+          )?.collection?.id].filter(Boolean)
+        : profileQuery.data.profile_collections?.map(
+            (pc: any) => pc.collection?.id
+          ).filter(Boolean) ?? [];
 
-      if (!collectionId) return [];
+      if (collectionIds.length === 0) return [];
 
       // Query collection quotes where profile is author (check both singular and array fields)
       const { data, error } = await supabase
@@ -196,7 +206,7 @@ export function useProfileData(slug: string | undefined, options?: UseProfileDat
           context,
           author
         `)
-        .eq("collection_id", collectionId)
+        .in("collection_id", collectionIds)
         .or(`author_profile_id.eq.${profileQuery.data.id},author_profile_ids.cs.{${profileQuery.data.id}}`)
         .in("contribution_status", ["approved", "auto_approved"]);
 
