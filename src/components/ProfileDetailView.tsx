@@ -118,18 +118,33 @@ export function ProfileDetailView({
       )}
 
       {(() => {
-        const myLifeline = associatedLifelines?.find((lifeline: any) => lifeline.relationship_type === 'subject');
-        const appearsInLifelines = associatedLifelines?.filter((lifeline: any) => lifeline.relationship_type !== 'subject');
+        // Person profiles: single subject lifeline of type 'person'
+        const myPersonLifeline = associatedLifelines?.find((lifeline: any) => 
+          lifeline.relationship_type === 'subject' && lifeline.lifeline_type === 'person'
+        );
+        
+        // Organization profiles: multiple subject lifelines of type 'org', sorted by title
+        const myOrgLifelines = associatedLifelines?.filter((lifeline: any) => 
+          lifeline.relationship_type === 'subject' && lifeline.lifeline_type === 'org'
+        )?.sort((a: any, b: any) => (a.title || '').localeCompare(b.title || ''));
+        
+        // All non-subject lifelines (appears in)
+        const appearsInLifelines = associatedLifelines?.filter((lifeline: any) => 
+          lifeline.relationship_type !== 'subject'
+        );
+
+        const isOrganization = profile.subject_type === 'Organization';
 
         return (
           <>
-            {myLifeline && (
+            {/* Person profiles: My Lifeline (single) */}
+            {myPersonLifeline && !isOrganization && (
               <section className="space-y-4">
                 <h2 className="text-2xl font-bold">My Lifeline</h2>
                 <Link 
                   to={collectionContext
-                    ? `/public/collections/${collectionContext.slug}/lifelines/${myLifeline.slug}`
-                    : `/public/lifelines/${myLifeline.slug}`
+                    ? `/public/collections/${collectionContext.slug}/lifelines/${myPersonLifeline.slug}`
+                    : `/public/lifelines/${myPersonLifeline.slug}`
                   } 
                   className="group block"
                 >
@@ -137,12 +152,40 @@ export function ProfileDetailView({
                     <div className="flex items-center gap-2">
                       <LifelineBookIcon size={20} />
                       <h3 className="font-semibold group-hover:text-primary transition-colors">
-                        {myLifeline.title}
+                        {myPersonLifeline.title}
                       </h3>
                     </div>
-                    <p className="text-sm text-muted-foreground">{myLifeline.type}</p>
+                    <p className="text-sm text-muted-foreground">{myPersonLifeline.type}</p>
                   </div>
                 </Link>
+              </section>
+            )}
+
+            {/* Organization profiles: Organization Lifelines (multiple, sorted by title) */}
+            {myOrgLifelines && myOrgLifelines.length > 0 && isOrganization && (
+              <section className="space-y-4">
+                <h2 className="text-2xl font-bold">Organization Lifelines</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {myOrgLifelines.map((lifeline: any) => {
+                    const lifelinePath = collectionContext
+                      ? `/public/collections/${collectionContext.slug}/lifelines/${lifeline.slug}`
+                      : `/public/lifelines/${lifeline.slug}`;
+                    
+                    return (
+                      <Link key={lifeline.id} to={lifelinePath} className="group block">
+                        <div className="p-4 border rounded-lg bg-card hover:shadow-lg hover:border-primary/50 transition-all duration-200 cursor-pointer">
+                          <div className="flex items-center gap-2">
+                            <LifelineBookIcon size={20} />
+                            <h3 className="font-semibold group-hover:text-primary transition-colors">
+                              {lifeline.title}
+                            </h3>
+                          </div>
+                          <p className="text-sm text-muted-foreground">{lifeline.type}</p>
+                        </div>
+                      </Link>
+                    );
+                  })}
+                </div>
               </section>
             )}
 

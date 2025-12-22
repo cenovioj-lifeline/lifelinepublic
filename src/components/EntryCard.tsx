@@ -16,7 +16,7 @@ interface EntryCardProps {
   };
   onEdit: () => void;
   onDelete: () => void;
-  lifelineType: "person" | "list" | "voting" | "event";
+  lifelineType: "person" | "list" | "voting" | "event" | "org";
 }
 
 export function EntryCard({ entry, onEdit, onDelete, lifelineType }: EntryCardProps) {

@@ -49,7 +49,7 @@ type LifelineForm = {
   intro: string;
   conclusion: string;
   visibility: "public" | "private" | "unlisted";
-  lifeline_type: "person" | "list" | "voting" | "event";
+  lifeline_type: "person" | "list" | "voting" | "event" | "org";
   status: "draft" | "published";
   collection_id: string;
   cover_image_url: string;
@@ -487,6 +487,7 @@ export default function LifelineEdit() {
                     <SelectContent>
                       <SelectItem value="person">Person</SelectItem>
                       <SelectItem value="list">List</SelectItem>
+                      <SelectItem value="org">Organization</SelectItem>
                       <SelectItem value="voting">Voting</SelectItem>
                     </SelectContent>
                   </Select>
