@@ -20,6 +20,9 @@ export interface Book {
   oneSentenceSummary?: string;
   whoShouldRead?: string;
   keyThemes?: string[];
+  coverImageUrl?: string;
+  coverImagePath?: string;
+  themeColor?: string;
   status: 'draft' | 'published' | 'archived';
   createdAt?: string;
   updatedAt?: string;
