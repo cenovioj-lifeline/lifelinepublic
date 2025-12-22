@@ -102,7 +102,7 @@ export function ProfileDetailView({
       )}
 
       {/* Books section for real-person profiles (authors) */}
-      {profile.subject_type === 'person_real' && (
+      {profile.subject_type === 'Person' && (
         <ProfileBooksSection
           profileSlug={profile.slug}
           collectionSlug={collectionContext?.slug}
