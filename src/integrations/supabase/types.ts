@@ -2330,7 +2330,7 @@ export type Database = {
     }
     Enums: {
       content_status: "draft" | "published"
-      lifeline_type: "person" | "list" | "voting" | "event"
+      lifeline_type: "person" | "list" | "voting" | "event" | "org"
       profile_type:
         | "person_real"
         | "person_fictional"
@@ -2467,7 +2467,7 @@ export const Constants = {
   public: {
     Enums: {
       content_status: ["draft", "published"],
-      lifeline_type: ["person", "list", "voting", "event"],
+      lifeline_type: ["person", "list", "voting", "event", "org"],
       profile_type: [
         "person_real",
         "person_fictional",
