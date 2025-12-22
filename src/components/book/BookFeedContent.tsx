@@ -8,10 +8,13 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { BookSidebar } from "./BookSidebar";
 import { BookFeedItem } from "./BookFeedItem";
 import { BookDashboard } from "./BookDashboard";
 import { BookMetadata } from "./BookMetadata";
+import { useAdminAccess } from "@/lib/useAdminAccess";
+import { Pencil, Plus } from "lucide-react";
 import type { Book, BookContent, ContentType } from "@/types/book";
 import { CONTENT_TYPE_CONFIG } from "@/types/book";
 
@@ -33,6 +36,7 @@ export function BookFeedContent({
   collectionSlug,
 }: BookFeedContentProps) {
   const navigate = useNavigate();
+  const { hasAccess } = useAdminAccess();
   const [activeFilter, setActiveFilter] = useState<ContentType | 'all'>('all');
 
   const filteredContent = activeFilter === 'all'
@@ -65,15 +69,51 @@ export function BookFeedContent({
       <main className="flex-1 max-w-3xl mx-auto w-full p-4 md:p-8">
         {/* Book Header (Mobile) */}
         <div className="mb-6 md:hidden">
-          <h1 className="text-2xl font-bold">{book.title}</h1>
-          {book.subtitle && (
-            <p className="text-lg text-muted-foreground mt-1">{book.subtitle}</p>
-          )}
-          <p className="text-sm text-muted-foreground mt-2">
-            by {book.authorName}
-            {book.publicationYear && ` (${book.publicationYear})`}
-          </p>
+          <div className="flex items-start justify-between gap-2">
+            <div>
+              <h1 className="text-2xl font-bold">{book.title}</h1>
+              {book.subtitle && (
+                <p className="text-lg text-muted-foreground mt-1">{book.subtitle}</p>
+              )}
+              <p className="text-sm text-muted-foreground mt-2">
+                by {book.authorName}
+                {book.publicationYear && ` (${book.publicationYear})`}
+              </p>
+            </div>
+            {hasAccess && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => navigate(`/books/${book.id}`)}
+                className="shrink-0"
+              >
+                <Pencil className="h-3.5 w-3.5" />
+              </Button>
+            )}
+          </div>
         </div>
+
+        {/* Admin Actions (Desktop) */}
+        {hasAccess && (
+          <div className="hidden md:flex gap-2 mb-6">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => navigate(`/books/${book.id}`)}
+            >
+              <Pencil className="h-4 w-4 mr-2" />
+              Edit Book
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => navigate(`/books/${book.id}?tab=content`)}
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add Content
+            </Button>
+          </div>
+        )}
 
         {/* Dashboard or Feed View */}
         {activeFilter === 'all' ? (

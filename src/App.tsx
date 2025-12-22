@@ -14,6 +14,8 @@ import Collections from "./pages/Collections";
 import CollectionEdit from "./pages/CollectionEdit";
 import Lifelines from "./pages/Lifelines";
 import Profiles from "./pages/Profiles";
+import Books from "./pages/Books";
+import BookEdit from "./pages/BookEdit";
 import Elections from "./pages/Elections";
 import Tags from "./pages/Tags";
 import LifelineEdit from "./pages/LifelineEdit";
@@ -185,6 +187,26 @@ function AppContent() {
                 <ProtectedRoute>
                   <AdminLayout>
                     <ProfileEdit />
+                  </AdminLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/books"
+              element={
+                <ProtectedRoute>
+                  <AdminLayout>
+                    <Books />
+                  </AdminLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/books/:id"
+              element={
+                <ProtectedRoute>
+                  <AdminLayout>
+                    <BookEdit />
                   </AdminLayout>
                 </ProtectedRoute>
               }
