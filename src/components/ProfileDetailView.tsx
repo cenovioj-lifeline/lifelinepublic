@@ -6,6 +6,7 @@ import { ProfileQuickFacts } from "./profile/ProfileQuickFacts";
 import { ProfileBiography } from "./profile/ProfileBiography";
 import { ProfileRelationships } from "./profile/ProfileRelationships";
 import { ProfileWorks } from "./profile/ProfileWorks";
+import { ProfileBooksSection } from "./profile/ProfileBooksSection";
 import { ProfileLegacyImpact } from "./profile/ProfileLegacyImpact";
 import { ProfilePhysicalCharacteristics } from "./profile/ProfilePhysicalCharacteristics";
 import { LifelineBookIcon } from "./icons/LifelineBookIcon";
@@ -98,6 +99,14 @@ export function ProfileDetailView({
 
       {profile.profile_works && profile.profile_works.length > 0 && (
         <ProfileWorks works={profile.profile_works} />
+      )}
+
+      {/* Books section for real-person profiles (authors) */}
+      {profile.subject_type === 'person_real' && (
+        <ProfileBooksSection
+          profileSlug={profile.slug}
+          collectionSlug={collectionContext?.slug}
+        />
       )}
 
       {hasModule(profile, 'legacy') && (

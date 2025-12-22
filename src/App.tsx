@@ -36,6 +36,7 @@ import CollectionElections from "./pages/public/CollectionElections";
 import CollectionSettings from "./pages/public/CollectionSettings";
 import PublicProfiles from "./pages/public/PublicProfiles";
 import PublicProfileDetail from "./pages/public/PublicProfileDetail";
+import BookDetailPage from "./pages/public/BookDetailPage";
 import PublicElections from "./pages/public/PublicElections";
 import PublicElectionDetail from "./pages/public/PublicElectionDetail";
 import CollectionLifelineDetail from "./pages/public/CollectionLifelineDetail";
@@ -95,6 +96,9 @@ function AppContent() {
           <Route path="/public/elections" element={<PublicLayout><PublicElections /></PublicLayout>} />
           <Route path="/public/elections/:slug" element={<PublicElectionDetail />} />
           <Route path="/public/profiles/:slug" element={<PublicProfileDetail />} />
+          {/* Book Detail Routes */}
+          <Route path="/public/profiles/:profileSlug/books/:bookSlug" element={<BookDetailPage />} />
+          <Route path="/public/collections/:collectionSlug/profiles/:profileSlug/books/:bookSlug" element={<BookDetailPage />} />
           <Route path="/profile" element={<PublicLayout><UserProfile /></PublicLayout>} />
           <Route path="/top-contributors" element={<PublicLayout><TopContributors /></PublicLayout>} />
           <Route path="/public/more" element={<PublicLayout><PublicMore /></PublicLayout>} />
