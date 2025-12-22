@@ -110,6 +110,148 @@ export type Database = {
           },
         ]
       }
+      book_content: {
+        Row: {
+          book_id: string
+          chapter_reference: string | null
+          comments: number | null
+          content: string
+          content_type: string
+          created_at: string | null
+          extended_data: Json | null
+          id: string
+          likes: number | null
+          order_index: number | null
+          rating: number | null
+          related_to: string[] | null
+          tags: string[] | null
+          title: string | null
+          updated_at: string | null
+          visual_type: string | null
+        }
+        Insert: {
+          book_id: string
+          chapter_reference?: string | null
+          comments?: number | null
+          content: string
+          content_type: string
+          created_at?: string | null
+          extended_data?: Json | null
+          id?: string
+          likes?: number | null
+          order_index?: number | null
+          rating?: number | null
+          related_to?: string[] | null
+          tags?: string[] | null
+          title?: string | null
+          updated_at?: string | null
+          visual_type?: string | null
+        }
+        Update: {
+          book_id?: string
+          chapter_reference?: string | null
+          comments?: number | null
+          content?: string
+          content_type?: string
+          created_at?: string | null
+          extended_data?: Json | null
+          id?: string
+          likes?: number | null
+          order_index?: number | null
+          rating?: number | null
+          related_to?: string[] | null
+          tags?: string[] | null
+          title?: string | null
+          updated_at?: string | null
+          visual_type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "book_content_book_id_fkey"
+            columns: ["book_id"]
+            isOneToOne: false
+            referencedRelation: "books"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      books: {
+        Row: {
+          author_name: string
+          author_profile_id: string | null
+          core_thesis: string | null
+          cover_image_path: string | null
+          cover_image_url: string | null
+          created_at: string | null
+          genre: string | null
+          id: string
+          isbn: string | null
+          key_themes: string[] | null
+          one_sentence_summary: string | null
+          page_count: number | null
+          publication_year: number | null
+          slug: string
+          status: string | null
+          subtitle: string | null
+          theme_color: string | null
+          title: string
+          updated_at: string | null
+          who_should_read: string | null
+        }
+        Insert: {
+          author_name: string
+          author_profile_id?: string | null
+          core_thesis?: string | null
+          cover_image_path?: string | null
+          cover_image_url?: string | null
+          created_at?: string | null
+          genre?: string | null
+          id?: string
+          isbn?: string | null
+          key_themes?: string[] | null
+          one_sentence_summary?: string | null
+          page_count?: number | null
+          publication_year?: number | null
+          slug: string
+          status?: string | null
+          subtitle?: string | null
+          theme_color?: string | null
+          title: string
+          updated_at?: string | null
+          who_should_read?: string | null
+        }
+        Update: {
+          author_name?: string
+          author_profile_id?: string | null
+          core_thesis?: string | null
+          cover_image_path?: string | null
+          cover_image_url?: string | null
+          created_at?: string | null
+          genre?: string | null
+          id?: string
+          isbn?: string | null
+          key_themes?: string[] | null
+          one_sentence_summary?: string | null
+          page_count?: number | null
+          publication_year?: number | null
+          slug?: string
+          status?: string | null
+          subtitle?: string | null
+          theme_color?: string | null
+          title?: string
+          updated_at?: string | null
+          who_should_read?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "books_author_profile_id_fkey"
+            columns: ["author_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       collection_custom_section_items: {
         Row: {
           collection_id: string
@@ -1576,6 +1718,48 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      profile_books: {
+        Row: {
+          book_id: string
+          created_at: string | null
+          display_order: number | null
+          id: string
+          profile_id: string
+          relationship_type: string | null
+        }
+        Insert: {
+          book_id: string
+          created_at?: string | null
+          display_order?: number | null
+          id?: string
+          profile_id: string
+          relationship_type?: string | null
+        }
+        Update: {
+          book_id?: string
+          created_at?: string | null
+          display_order?: number | null
+          id?: string
+          profile_id?: string
+          relationship_type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profile_books_book_id_fkey"
+            columns: ["book_id"]
+            isOneToOne: false
+            referencedRelation: "books"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profile_books_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profile_collections: {
         Row: {
