@@ -7,8 +7,9 @@
 
 import { useNavigate } from "react-router-dom";
 import { useProfileBooks } from "@/hooks/useBookData";
+import { useAdminAccess } from "@/lib/useAdminAccess";
 import { Skeleton } from "@/components/ui/skeleton";
-import { BookOpen } from "lucide-react";
+import { BookOpen, Pencil } from "lucide-react";
 import type { ProfileBook } from "@/types/book";
 
 interface ProfileBooksSectionProps {
@@ -18,6 +19,7 @@ interface ProfileBooksSectionProps {
 
 export function ProfileBooksSection({ profileSlug, collectionSlug }: ProfileBooksSectionProps) {
   const { data: books, isLoading, error } = useProfileBooks(profileSlug);
+  const { hasAccess } = useAdminAccess();
   const navigate = useNavigate();
 
   // Handle loading state
@@ -53,6 +55,11 @@ export function ProfileBooksSection({ profileSlug, collectionSlug }: ProfileBook
     navigate(`${basePath}/books/${book.slug}`);
   };
 
+  const handleEditClick = (bookId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    navigate(`/books/${bookId}`);
+  };
+
   return (
     <section className="space-y-4">
       <div className="flex items-center gap-2">
@@ -67,6 +74,7 @@ export function ProfileBooksSection({ profileSlug, collectionSlug }: ProfileBook
             key={book.id}
             book={book}
             onClick={() => handleBookClick(book)}
+            onEditClick={hasAccess ? (e) => handleEditClick(book.id, e) : undefined}
           />
         ))}
       </div>
@@ -77,6 +85,7 @@ export function ProfileBooksSection({ profileSlug, collectionSlug }: ProfileBook
 interface BookCoverCardProps {
   book: ProfileBook;
   onClick: () => void;
+  onEditClick?: (e: React.MouseEvent) => void;
 }
 
 // Theme color mapping for book covers
@@ -101,7 +110,7 @@ const themeColorMap: Record<string, { bg: string; text: string }> = {
   rose: { bg: 'bg-rose-700', text: 'text-rose-100' },
 };
 
-function BookCoverCard({ book, onClick }: BookCoverCardProps) {
+function BookCoverCard({ book, onClick, onEditClick }: BookCoverCardProps) {
   const themeColors = themeColorMap[book.themeColor || 'slate'] || themeColorMap.slate;
   const hasCoverImage = !!book.coverImageUrl;
 
@@ -147,6 +156,17 @@ function BookCoverCard({ book, onClick }: BookCoverCardProps) {
             {/* Spine effect */}
             <div className="absolute left-0 top-0 bottom-0 w-1 bg-black/30" />
           </div>
+        )}
+
+        {/* Admin Edit Button */}
+        {onEditClick && (
+          <button
+            onClick={onEditClick}
+            className="absolute top-2 right-2 bg-background/90 hover:bg-background rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-opacity shadow-md"
+            title="Edit book"
+          >
+            <Pencil className="h-3.5 w-3.5 text-foreground" />
+          </button>
         )}
       </div>
 
