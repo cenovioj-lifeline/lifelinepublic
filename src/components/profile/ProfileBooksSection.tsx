@@ -1,16 +1,14 @@
 /**
  * ProfileBooksSection
  *
- * Displays a "Books & Works" grid on author profile pages.
- * Fetches books via useProfileBooks hook and renders clickable cards.
+ * Displays a "Books" grid on author profile pages with book-cover style cards.
+ * Fetches books via useProfileBooks hook and renders clickable cover cards.
  */
 
 import { useNavigate } from "react-router-dom";
 import { useProfileBooks } from "@/hooks/useBookData";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { BookOpen, Calendar, ChevronRight, Users } from "lucide-react";
+import { BookOpen } from "lucide-react";
 import type { ProfileBook } from "@/types/book";
 
 interface ProfileBooksSectionProps {
@@ -25,17 +23,21 @@ export function ProfileBooksSection({ profileSlug, collectionSlug }: ProfileBook
   // Handle loading state
   if (isLoading) {
     return (
-      <Card className="p-6">
-        <div className="flex items-center gap-2 mb-4">
-          <Skeleton className="h-6 w-6 rounded" />
-          <Skeleton className="h-7 w-32" />
+      <section className="space-y-4">
+        <div className="flex items-center gap-2">
+          <Skeleton className="h-5 w-5 rounded" />
+          <Skeleton className="h-6 w-20" />
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[1, 2, 3].map((i) => (
-            <Skeleton key={i} className="h-40 w-full rounded-lg" />
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="space-y-2">
+              <Skeleton className="aspect-[2/3] w-full rounded-lg" />
+              <Skeleton className="h-4 w-3/4" />
+              <Skeleton className="h-3 w-full" />
+            </div>
           ))}
         </div>
-      </Card>
+      </section>
     );
   }
 
@@ -52,92 +54,113 @@ export function ProfileBooksSection({ profileSlug, collectionSlug }: ProfileBook
   };
 
   return (
-    <Card className="p-6">
-      <div className="flex items-center gap-2 mb-4">
+    <section className="space-y-4">
+      <div className="flex items-center gap-2">
         <BookOpen className="h-5 w-5 text-muted-foreground" />
-        <h2 className="text-xl font-bold">Books & Works</h2>
-        <Badge variant="secondary" className="ml-2">
-          {books.length}
-        </Badge>
+        <h2 className="text-xl font-bold">Books</h2>
+        <span className="text-sm text-muted-foreground">({books.length})</span>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
         {books.map((book) => (
-          <BookCard
+          <BookCoverCard
             key={book.id}
             book={book}
             onClick={() => handleBookClick(book)}
           />
         ))}
       </div>
-    </Card>
+    </section>
   );
 }
 
-interface BookCardProps {
+interface BookCoverCardProps {
   book: ProfileBook;
   onClick: () => void;
 }
 
-function BookCard({ book, onClick }: BookCardProps) {
+// Theme color mapping for book covers
+const themeColorMap: Record<string, { bg: string; text: string }> = {
+  slate: { bg: 'bg-slate-700', text: 'text-slate-100' },
+  red: { bg: 'bg-red-700', text: 'text-red-100' },
+  orange: { bg: 'bg-orange-700', text: 'text-orange-100' },
+  amber: { bg: 'bg-amber-700', text: 'text-amber-100' },
+  yellow: { bg: 'bg-yellow-600', text: 'text-yellow-100' },
+  lime: { bg: 'bg-lime-700', text: 'text-lime-100' },
+  green: { bg: 'bg-green-700', text: 'text-green-100' },
+  emerald: { bg: 'bg-emerald-700', text: 'text-emerald-100' },
+  teal: { bg: 'bg-teal-700', text: 'text-teal-100' },
+  cyan: { bg: 'bg-cyan-700', text: 'text-cyan-100' },
+  sky: { bg: 'bg-sky-700', text: 'text-sky-100' },
+  blue: { bg: 'bg-blue-700', text: 'text-blue-100' },
+  indigo: { bg: 'bg-indigo-700', text: 'text-indigo-100' },
+  violet: { bg: 'bg-violet-700', text: 'text-violet-100' },
+  purple: { bg: 'bg-purple-700', text: 'text-purple-100' },
+  fuchsia: { bg: 'bg-fuchsia-700', text: 'text-fuchsia-100' },
+  pink: { bg: 'bg-pink-700', text: 'text-pink-100' },
+  rose: { bg: 'bg-rose-700', text: 'text-rose-100' },
+};
+
+function BookCoverCard({ book, onClick }: BookCoverCardProps) {
+  const themeColors = themeColorMap[book.themeColor || 'slate'] || themeColorMap.slate;
+  const hasCoverImage = !!book.coverImageUrl;
+
   return (
     <div
-      className="group relative p-4 border rounded-lg cursor-pointer transition-all hover:shadow-md hover:border-primary/50 hover:bg-muted/50"
+      className="group cursor-pointer space-y-2"
       onClick={onClick}
     >
-      {/* Book Title */}
-      <h3 className="font-semibold text-lg line-clamp-2 pr-6 group-hover:text-primary transition-colors">
-        {book.title}
-      </h3>
-
-      {/* Subtitle */}
-      {book.subtitle && (
-        <p className="text-sm text-muted-foreground line-clamp-1 mt-1">
-          {book.subtitle}
-        </p>
-      )}
-
-      {/* Metadata Row */}
-      <div className="flex items-center gap-3 mt-3 text-sm text-muted-foreground">
-        {book.publicationYear && (
-          <span className="flex items-center gap-1">
-            <Calendar className="h-3.5 w-3.5" />
-            {book.publicationYear}
-          </span>
-        )}
-        {book.relationshipType === 'co-author' && (
-          <span className="flex items-center gap-1 text-blue-600">
-            <Users className="h-3.5 w-3.5" />
-            Co-authored
-          </span>
+      {/* Book Cover */}
+      <div className="relative aspect-[2/3] w-full overflow-hidden rounded-lg shadow-md transition-all duration-200 group-hover:shadow-xl group-hover:scale-[1.02]">
+        {hasCoverImage ? (
+          <img
+            src={book.coverImageUrl}
+            alt={`Cover of ${book.title}`}
+            className="h-full w-full object-cover"
+          />
+        ) : (
+          /* Placeholder cover with theme color */
+          <div className={`h-full w-full ${themeColors.bg} flex flex-col items-center justify-center p-4`}>
+            {/* Decorative top bar */}
+            <div className="absolute top-0 left-0 right-0 h-2 bg-black/20" />
+            
+            {/* Title on cover */}
+            <h3 className={`${themeColors.text} text-center font-serif text-sm sm:text-base font-bold leading-tight line-clamp-4 px-2`}>
+              {book.title}
+            </h3>
+            
+            {/* Subtitle if exists */}
+            {book.subtitle && (
+              <p className={`${themeColors.text}/80 text-center text-xs mt-2 line-clamp-2 px-2`}>
+                {book.subtitle}
+              </p>
+            )}
+            
+            {/* Author name at bottom */}
+            <p className={`${themeColors.text}/70 text-center text-xs mt-auto pt-4`}>
+              {book.authorName}
+            </p>
+            
+            {/* Decorative bottom bar */}
+            <div className="absolute bottom-0 left-0 right-0 h-2 bg-black/20" />
+            
+            {/* Spine effect */}
+            <div className="absolute left-0 top-0 bottom-0 w-1 bg-black/30" />
+          </div>
         )}
       </div>
 
-      {/* Summary */}
-      {book.oneSentenceSummary && (
-        <p className="text-sm text-muted-foreground line-clamp-2 mt-3">
-          {book.oneSentenceSummary}
-        </p>
-      )}
-
-      {/* Key Themes */}
-      {book.keyThemes && book.keyThemes.length > 0 && (
-        <div className="flex flex-wrap gap-1.5 mt-3">
-          {book.keyThemes.slice(0, 3).map((theme, i) => (
-            <Badge key={i} variant="outline" className="text-xs">
-              {theme}
-            </Badge>
-          ))}
-          {book.keyThemes.length > 3 && (
-            <Badge variant="outline" className="text-xs">
-              +{book.keyThemes.length - 3}
-            </Badge>
-          )}
-        </div>
-      )}
-
-      {/* Hover Arrow */}
-      <ChevronRight className="absolute top-4 right-4 h-5 w-5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+      {/* Book Info Below Cover */}
+      <div className="space-y-0.5">
+        <h3 className="font-semibold text-sm line-clamp-2 group-hover:text-primary transition-colors">
+          {book.title}
+        </h3>
+        {book.oneSentenceSummary && (
+          <p className="text-xs text-muted-foreground line-clamp-2">
+            {book.oneSentenceSummary}
+          </p>
+        )}
+      </div>
     </div>
   );
 }
