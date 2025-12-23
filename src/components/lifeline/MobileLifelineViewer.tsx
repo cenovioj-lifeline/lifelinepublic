@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useSwipeable } from 'react-swipeable';
@@ -64,7 +64,7 @@ export const MobileLifelineViewer = ({ lifelineId }: MobileLifelineViewerProps) 
     ? parseLifelineTitle(lifeline.title, lifeline.lifeline_type || 'list')
     : null;
 
-  const { data: entries, isLoading } = useQuery({
+  const { data: rawEntries, isLoading } = useQuery({
     queryKey: ['lifeline-entries-mobile', lifelineId, user?.id],
     queryFn: async () => {
       let query = supabase
@@ -104,9 +104,27 @@ export const MobileLifelineViewer = ({ lifelineId }: MobileLifelineViewerProps) 
 
       const { data, error } = await query;
       if (error) throw error;
-      return transformEntriesToMobile(data || []);
+      return data || [];
     },
   });
+
+  // Transform and sort entries - for rating type, sort by score descending then by title
+  const entries = useMemo(() => {
+    if (!rawEntries) return [];
+    
+    const transformed = transformEntriesToMobile(rawEntries);
+    
+    // For rating type, sort by score descending, then by title alphabetically
+    if (lifeline?.lifeline_type === 'rating') {
+      return transformed.sort((a, b) => {
+        const scoreDiff = (b.rating || 0) - (a.rating || 0);
+        if (scoreDiff !== 0) return scoreDiff;
+        return (a.title || '').localeCompare(b.title || '');
+      });
+    }
+    
+    return transformed;
+  }, [rawEntries, lifeline?.lifeline_type]);
 
   const {
     currentIndex,

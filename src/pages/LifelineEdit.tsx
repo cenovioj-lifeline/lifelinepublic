@@ -49,7 +49,7 @@ type LifelineForm = {
   intro: string;
   conclusion: string;
   visibility: "public" | "private" | "unlisted";
-  lifeline_type: "person" | "list" | "voting" | "event" | "org";
+  lifeline_type: "person" | "list" | "voting" | "event" | "org" | "rating";
   status: "draft" | "published";
   collection_id: string;
   cover_image_url: string;
@@ -145,8 +145,8 @@ export default function LifelineEdit() {
         .select("*")
         .eq("lifeline_id", id)
         .order(
-          lifeline?.lifeline_type === "list" || lifeline?.lifeline_type === "voting" ? "order_index" : "occurred_on",
-          { ascending: lifeline?.lifeline_type === "list" || lifeline?.lifeline_type === "voting" }
+          lifeline?.lifeline_type === "list" || lifeline?.lifeline_type === "voting" || lifeline?.lifeline_type === "rating" ? "order_index" : "occurred_on",
+          { ascending: lifeline?.lifeline_type === "list" || lifeline?.lifeline_type === "voting" || lifeline?.lifeline_type === "rating" }
         );
       if (error) throw error;
       return data;
@@ -487,6 +487,7 @@ export default function LifelineEdit() {
                     <SelectContent>
                       <SelectItem value="person">Person</SelectItem>
                       <SelectItem value="list">List</SelectItem>
+                      <SelectItem value="rating">Rating</SelectItem>
                       <SelectItem value="org">Organization</SelectItem>
                       <SelectItem value="voting">Voting</SelectItem>
                     </SelectContent>
