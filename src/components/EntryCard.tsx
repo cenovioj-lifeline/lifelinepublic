@@ -16,7 +16,7 @@ interface EntryCardProps {
   };
   onEdit: () => void;
   onDelete: () => void;
-  lifelineType: "person" | "list" | "voting" | "event" | "org";
+  lifelineType: "person" | "list" | "voting" | "event" | "org" | "rating";
 }
 
 export function EntryCard({ entry, onEdit, onDelete, lifelineType }: EntryCardProps) {
@@ -82,7 +82,7 @@ export function EntryCard({ entry, onEdit, onDelete, lifelineType }: EntryCardPr
                 <h3 className="font-semibold text-base mb-1">{entry.title}</h3>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <span>
-                    {lifelineType === "list"
+                    {lifelineType === "list" || lifelineType === "rating"
                       ? `Rank: ${entry.order_index}`
                       : formatDate(entry.occurred_on)}
                   </span>

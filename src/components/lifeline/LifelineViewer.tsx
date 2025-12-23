@@ -161,17 +161,27 @@ export function LifelineViewer({
     enabled: !isMobile && !!lifelineId,
   });
 
-  // Process entries: sort by score if it's a "list" type with uniform sentiment
+  // Process entries: sort by score for "rating" type (always) or "list" type (if uniform sentiment)
   const entries = useMemo(() => {
-    if (!rawEntries || lifelineType !== "list") return rawEntries;
+    if (!rawEntries) return rawEntries;
 
-    // Check if all entries have the same sentiment (all positive or all negative)
-    const allPositive = rawEntries.every((e) => (e.score || 0) >= 0);
-    const allNegative = rawEntries.every((e) => (e.score || 0) < 0);
+    // For "rating" type: ALWAYS sort by score descending, then by title alphabetically
+    if (lifelineType === "rating") {
+      return [...rawEntries].sort((a, b) => {
+        const scoreDiff = (b.score || 0) - (a.score || 0);
+        if (scoreDiff !== 0) return scoreDiff;
+        return (a.title || '').localeCompare(b.title || '');
+      });
+    }
 
-    if (allPositive || allNegative) {
-      // Sort by score descending (best to worst for positive, worst to best for negative)
-      return [...rawEntries].sort((a, b) => (b.score || 0) - (a.score || 0));
+    // For "list" type: only sort by score if uniform sentiment
+    if (lifelineType === "list") {
+      const allPositive = rawEntries.every((e) => (e.score || 0) >= 0);
+      const allNegative = rawEntries.every((e) => (e.score || 0) < 0);
+
+      if (allPositive || allNegative) {
+        return [...rawEntries].sort((a, b) => (b.score || 0) - (a.score || 0));
+      }
     }
 
     return rawEntries;

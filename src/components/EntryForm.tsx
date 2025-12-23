@@ -40,7 +40,7 @@ type EntryFormData = {
 };
 
 interface EntryFormProps {
-  lifelineType: "person" | "list" | "voting" | "event" | "org";
+  lifelineType: "person" | "list" | "voting" | "event" | "org" | "rating";
   defaultValues?: Partial<EntryFormData>;
   onSubmit: (data: EntryFormData) => void;
   onCancel: () => void;
@@ -173,7 +173,7 @@ export function EntryForm({
     onSubmit({ ...data, sentiment } as any);
   };
 
-  const isListType = lifelineType === "list" || lifelineType === "voting";
+  const isListType = lifelineType === "list" || lifelineType === "voting" || lifelineType === "rating";
 
   return (
     <Form {...form}>

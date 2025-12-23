@@ -101,7 +101,7 @@ export default function Lifelines() {
       }
 
       if (lifelineTypeFilter && lifelineTypeFilter !== "all") {
-        query = query.eq("lifeline_type", lifelineTypeFilter as "person" | "list" | "voting");
+        query = query.eq("lifeline_type", lifelineTypeFilter as "person" | "list" | "voting" | "rating");
       }
 
       const { data, error } = await query;
@@ -309,6 +309,7 @@ export default function Lifelines() {
             <SelectItem value="all">All Types</SelectItem>
             <SelectItem value="person">Person</SelectItem>
             <SelectItem value="list">List</SelectItem>
+            <SelectItem value="rating">Rating</SelectItem>
             <SelectItem value="voting">Voting</SelectItem>
           </SelectContent>
         </Select>
