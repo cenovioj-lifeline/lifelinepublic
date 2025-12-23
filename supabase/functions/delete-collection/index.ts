@@ -77,20 +77,21 @@ Deno.serve(async (req) => {
       }
     });
 
-    // Get all entry images for entries in these lifelines
+    // Get all entry IDs and images for entries in these lifelines
+    let entryIds: string[] = [];
     if (lifelineIds.length > 0) {
       const { data: entriesData } = await supabase
         .from('entries')
         .select('id')
         .in('lifeline_id', lifelineIds);
 
-      const entryIdsForImages = entriesData?.map(e => e.id) || [];
+      entryIds = entriesData?.map(e => e.id) || [];
 
-      if (entryIdsForImages.length > 0) {
+      if (entryIds.length > 0) {
         const { data: entryImages } = await supabase
           .from('entry_images')
           .select('image_path')
-          .in('entry_id', entryIdsForImages);
+          .in('entry_id', entryIds);
 
         entryImages?.forEach(img => {
           if (img.image_path) {
@@ -101,6 +102,7 @@ Deno.serve(async (req) => {
     }
 
     console.log(`Collected ${storagePaths.length} storage paths for deletion`);
+    console.log(`Found ${entryIds.length} entries to delete`);
 
     // Step 2: Update NULL references FIRST (before any deletes!)
     console.log('Updating references to NULL before deletion...');
@@ -109,12 +111,19 @@ Deno.serve(async (req) => {
       collection_tags: 0,
       collection_featured_items: 0,
       collection_custom_section_items: 0,
+      collection_quotes: 0,
+      collection_members: 0,
+      profile_collections: 0,
       home_page_featured: 0,
       home_page_new_content: 0,
       user_favorites_collection: 0,
       user_favorites_lifeline: 0,
       lifeline_tags: 0,
       profile_lifelines: 0,
+      user_feed_subscriptions: 0,
+      fan_contributions: 0,
+      entry_votes: 0,
+      entity_appearances: 0,
       entry_images: 0,
       entry_media: 0,
       entries: 0,
@@ -125,35 +134,35 @@ Deno.serve(async (req) => {
     };
     
     // Update mock_elections to NULL first
-    const { count: electionsCount, error: e15 } = await supabase
+    const { count: electionsCount, error: electionsError } = await supabase
       .from('mock_elections')
       .update({ collection_id: null }, { count: 'exact' })
       .eq('collection_id', collectionId);
-    if (e15) {
-      console.error('Error updating elections:', e15);
+    if (electionsError) {
+      console.error('Error updating elections:', electionsError);
       throw new Error('Failed to update elections references');
     }
     deletedCounts.elections_updated = electionsCount || 0;
 
     // Update profiles - primary_collection_id
-    const { count: profilesCount1, error: e16 } = await supabase
+    const { count: profilesCount1, error: profilesError1 } = await supabase
       .from('profiles')
       .update({ primary_collection_id: null }, { count: 'exact' })
       .eq('primary_collection_id', collectionId);
-    if (e16) {
-      console.error('Error updating profiles (collection):', e16);
+    if (profilesError1) {
+      console.error('Error updating profiles (collection):', profilesError1);
       throw new Error('Failed to update profiles collection references');
     }
 
     // Update profiles - primary_lifeline_id
     let profilesCount2 = 0;
     if (lifelineIds.length > 0) {
-      const { count, error: e17 } = await supabase
+      const { count, error: profilesError2 } = await supabase
         .from('profiles')
         .update({ primary_lifeline_id: null }, { count: 'exact' })
         .in('primary_lifeline_id', lifelineIds);
-      if (e17) {
-        console.error('Error updating profiles (lifeline):', e17);
+      if (profilesError2) {
+        console.error('Error updating profiles (lifeline):', profilesError2);
         throw new Error('Failed to update profiles lifeline references');
       }
       profilesCount2 = count || 0;
@@ -163,138 +172,222 @@ Deno.serve(async (req) => {
     console.log(`Updated ${deletedCounts.elections_updated} elections and ${deletedCounts.profiles_updated} profiles`);
 
     // Step 3: Delete database records in correct order
+    
     // Delete collection_tags
-    const { error: e1 } = await supabase
+    const { count: tagsCount, error: tagsError } = await supabase
       .from('collection_tags')
-      .delete()
+      .delete({ count: 'exact' })
       .eq('collection_id', collectionId);
-    if (e1) console.error('Error deleting collection_tags:', e1);
+    if (tagsError) console.error('Error deleting collection_tags:', tagsError);
+    else deletedCounts.collection_tags = tagsCount || 0;
 
     // Delete collection_featured_items
-    const { error: e2 } = await supabase
+    const { count: featuredCount, error: featuredError } = await supabase
       .from('collection_featured_items')
-      .delete()
+      .delete({ count: 'exact' })
       .eq('collection_id', collectionId);
-    if (e2) console.error('Error deleting collection_featured_items:', e2);
+    if (featuredError) console.error('Error deleting collection_featured_items:', featuredError);
+    else deletedCounts.collection_featured_items = featuredCount || 0;
 
     // Delete collection_custom_section_items
-    const { error: e3 } = await supabase
+    const { count: customCount, error: customError } = await supabase
       .from('collection_custom_section_items')
-      .delete()
+      .delete({ count: 'exact' })
       .eq('collection_id', collectionId);
-    if (e3) console.error('Error deleting collection_custom_section_items:', e3);
+    if (customError) console.error('Error deleting collection_custom_section_items:', customError);
+    else deletedCounts.collection_custom_section_items = customCount || 0;
+
+    // Delete collection_quotes
+    const { count: quotesCount, error: quotesError } = await supabase
+      .from('collection_quotes')
+      .delete({ count: 'exact' })
+      .eq('collection_id', collectionId);
+    if (quotesError) console.error('Error deleting collection_quotes:', quotesError);
+    else deletedCounts.collection_quotes = quotesCount || 0;
+
+    // Delete collection_members
+    const { count: membersCount, error: membersError } = await supabase
+      .from('collection_members')
+      .delete({ count: 'exact' })
+      .eq('collection_id', collectionId);
+    if (membersError) console.error('Error deleting collection_members:', membersError);
+    else deletedCounts.collection_members = membersCount || 0;
+
+    // Delete profile_collections
+    const { count: pcCount, error: pcError } = await supabase
+      .from('profile_collections')
+      .delete({ count: 'exact' })
+      .eq('collection_id', collectionId);
+    if (pcError) console.error('Error deleting profile_collections:', pcError);
+    else deletedCounts.profile_collections = pcCount || 0;
 
     // Delete home_page_featured_items
-    const { error: e4 } = await supabase
+    const { count: hpfCount, error: hpfError } = await supabase
       .from('home_page_featured_items')
-      .delete()
+      .delete({ count: 'exact' })
       .eq('item_type', 'collection')
       .eq('item_id', collectionId);
-    if (e4) console.error('Error deleting home_page_featured_items:', e4);
+    if (hpfError) console.error('Error deleting home_page_featured_items:', hpfError);
+    else deletedCounts.home_page_featured = hpfCount || 0;
 
     // Delete home_page_new_content_items
-    const { error: e5 } = await supabase
+    const { count: hpncCount, error: hpncError } = await supabase
       .from('home_page_new_content_items')
-      .delete()
+      .delete({ count: 'exact' })
       .eq('item_type', 'collection')
       .eq('item_id', collectionId);
-    if (e5) console.error('Error deleting home_page_new_content_items:', e5);
+    if (hpncError) console.error('Error deleting home_page_new_content_items:', hpncError);
+    else deletedCounts.home_page_new_content = hpncCount || 0;
 
     // Delete user_favorites for collection
-    const { error: e6 } = await supabase
+    const { count: ufcCount, error: ufcError } = await supabase
       .from('user_favorites')
-      .delete()
+      .delete({ count: 'exact' })
       .eq('item_type', 'collection')
       .eq('item_id', collectionId);
-    if (e6) console.error('Error deleting user_favorites (collection):', e6);
+    if (ufcError) console.error('Error deleting user_favorites (collection):', ufcError);
+    else deletedCounts.user_favorites_collection = ufcCount || 0;
 
     // Delete user_favorites for lifelines
     if (lifelineIds.length > 0) {
-      const { error: e7 } = await supabase
+      const { count: uflCount, error: uflError } = await supabase
         .from('user_favorites')
-        .delete()
+        .delete({ count: 'exact' })
         .eq('item_type', 'lifeline')
         .in('item_id', lifelineIds);
-      if (e7) console.error('Error deleting user_favorites (lifelines):', e7);
+      if (uflError) console.error('Error deleting user_favorites (lifelines):', uflError);
+      else deletedCounts.user_favorites_lifeline = uflCount || 0;
     }
 
     // Delete lifeline_tags
     if (lifelineIds.length > 0) {
-      const { error: e8 } = await supabase
+      const { count: ltCount, error: ltError } = await supabase
         .from('lifeline_tags')
-        .delete()
+        .delete({ count: 'exact' })
         .in('lifeline_id', lifelineIds);
-      if (e8) console.error('Error deleting lifeline_tags:', e8);
+      if (ltError) console.error('Error deleting lifeline_tags:', ltError);
+      else deletedCounts.lifeline_tags = ltCount || 0;
     }
 
     // Delete profile_lifelines
     if (lifelineIds.length > 0) {
-      const { error: e9 } = await supabase
+      const { count: plCount, error: plError } = await supabase
         .from('profile_lifelines')
-        .delete()
+        .delete({ count: 'exact' })
         .in('lifeline_id', lifelineIds);
-      if (e9) console.error('Error deleting profile_lifelines:', e9);
+      if (plError) console.error('Error deleting profile_lifelines:', plError);
+      else deletedCounts.profile_lifelines = plCount || 0;
     }
 
-    // Get entry IDs first
-    let entryIds: string[] = [];
+    // Delete user_feed_subscriptions for lifelines
     if (lifelineIds.length > 0) {
-      const { data: entries } = await supabase
-        .from('entries')
-        .select('id')
+      const { count: ufsCount, error: ufsError } = await supabase
+        .from('user_feed_subscriptions')
+        .delete({ count: 'exact' })
         .in('lifeline_id', lifelineIds);
-      entryIds = entries?.map(e => e.id) || [];
-      deletedCounts.entries = entryIds.length;
+      if (ufsError) console.error('Error deleting user_feed_subscriptions:', ufsError);
+      else deletedCounts.user_feed_subscriptions = ufsCount || 0;
+    }
+
+    // Delete fan_contributions for lifelines
+    if (lifelineIds.length > 0) {
+      const { count: fcCount, error: fcError } = await supabase
+        .from('fan_contributions')
+        .delete({ count: 'exact' })
+        .in('lifeline_id', lifelineIds);
+      if (fcError) console.error('Error deleting fan_contributions:', fcError);
+      else deletedCounts.fan_contributions = fcCount || 0;
+    }
+
+    // Delete entry_votes for entries
+    if (entryIds.length > 0) {
+      const { count: evCount, error: evError } = await supabase
+        .from('entry_votes')
+        .delete({ count: 'exact' })
+        .in('entry_id', entryIds);
+      if (evError) console.error('Error deleting entry_votes:', evError);
+      else deletedCounts.entry_votes = evCount || 0;
+    }
+
+    // Delete entity_appearances for collection
+    const { count: eaCollCount, error: eaCollError } = await supabase
+      .from('entity_appearances')
+      .delete({ count: 'exact' })
+      .eq('collection_id', collectionId);
+    if (eaCollError) console.error('Error deleting entity_appearances (collection):', eaCollError);
+    else deletedCounts.entity_appearances = eaCollCount || 0;
+
+    // Delete entity_appearances for lifelines
+    if (lifelineIds.length > 0) {
+      const { count: eaLlCount, error: eaLlError } = await supabase
+        .from('entity_appearances')
+        .delete({ count: 'exact' })
+        .in('lifeline_id', lifelineIds);
+      if (eaLlError) console.error('Error deleting entity_appearances (lifelines):', eaLlError);
+      else deletedCounts.entity_appearances += eaLlCount || 0;
+    }
+
+    // Delete entity_appearances for entries
+    if (entryIds.length > 0) {
+      const { count: eaEntCount, error: eaEntError } = await supabase
+        .from('entity_appearances')
+        .delete({ count: 'exact' })
+        .in('entry_id', entryIds);
+      if (eaEntError) console.error('Error deleting entity_appearances (entries):', eaEntError);
+      else deletedCounts.entity_appearances += eaEntCount || 0;
     }
 
     // Delete entry_images
     if (entryIds.length > 0) {
-      const { count, error: e10 } = await supabase
+      const { count: eiCount, error: eiError } = await supabase
         .from('entry_images')
         .delete({ count: 'exact' })
         .in('entry_id', entryIds);
-      if (e10) console.error('Error deleting entry_images:', e10);
-      else deletedCounts.entry_images = count || 0;
+      if (eiError) console.error('Error deleting entry_images:', eiError);
+      else deletedCounts.entry_images = eiCount || 0;
     }
 
     // Delete entry_media
     if (entryIds.length > 0) {
-      const { error: e11 } = await supabase
+      const { count: emCount, error: emError } = await supabase
         .from('entry_media')
-        .delete()
+        .delete({ count: 'exact' })
         .in('entry_id', entryIds);
-      if (e11) console.error('Error deleting entry_media:', e11);
+      if (emError) console.error('Error deleting entry_media:', emError);
+      else deletedCounts.entry_media = emCount || 0;
     }
 
     // Delete entries
     if (lifelineIds.length > 0) {
-      const { error: e12 } = await supabase
+      const { count: entriesCount, error: entriesError } = await supabase
         .from('entries')
-        .delete()
+        .delete({ count: 'exact' })
         .in('lifeline_id', lifelineIds);
-      if (e12) console.error('Error deleting entries:', e12);
+      if (entriesError) console.error('Error deleting entries:', entriesError);
+      else deletedCounts.entries = entriesCount || 0;
     }
 
     // Delete lifelines
-    const { count: lifelinesCount, error: e13 } = await supabase
+    const { count: lifelinesCount, error: lifelinesError } = await supabase
       .from('lifelines')
       .delete({ count: 'exact' })
       .eq('collection_id', collectionId);
-    if (e13) console.error('Error deleting lifelines:', e13);
+    if (lifelinesError) console.error('Error deleting lifelines:', lifelinesError);
     else deletedCounts.lifelines = lifelinesCount || 0;
 
     // Delete collection
-    const { error: e14 } = await supabase
+    const { error: collectionError } = await supabase
       .from('collections')
       .delete()
       .eq('id', collectionId);
-    if (e14) {
-      console.error('Error deleting collection:', e14);
+    if (collectionError) {
+      console.error('Error deleting collection:', collectionError);
       throw new Error('Failed to delete collection');
     }
     deletedCounts.collections = 1;
 
     console.log('Database deletion complete');
+    console.log('Deleted counts:', JSON.stringify(deletedCounts));
 
     // Step 4: Delete storage files
     const storageFailures: string[] = [];
