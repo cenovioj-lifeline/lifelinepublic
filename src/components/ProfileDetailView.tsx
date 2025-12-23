@@ -128,9 +128,14 @@ export function ProfileDetailView({
           lifeline.relationship_type === 'subject' && lifeline.lifeline_type === 'org'
         )?.sort((a: any, b: any) => (a.title || '').localeCompare(b.title || ''));
         
-        // All non-subject lifelines (appears in)
+        // Rating lifelines (separate section)
+        const ratingLifelines = associatedLifelines?.filter((lifeline: any) => 
+          lifeline.relationship_type !== 'subject' && lifeline.lifeline_type === 'rating'
+        );
+        
+        // All non-subject lifelines except ratings (appears in)
         const appearsInLifelines = associatedLifelines?.filter((lifeline: any) => 
-          lifeline.relationship_type !== 'subject'
+          lifeline.relationship_type !== 'subject' && lifeline.lifeline_type !== 'rating'
         );
 
         const isOrganization = profile.subject_type === 'Organization';
@@ -194,6 +199,33 @@ export function ProfileDetailView({
                 <h2 className="text-2xl font-bold">Appears in Lifelines</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {appearsInLifelines.map((lifeline: any) => {
+                    const lifelinePath = collectionContext
+                      ? `/public/collections/${collectionContext.slug}/lifelines/${lifeline.slug}`
+                      : `/public/lifelines/${lifeline.slug}`;
+                    
+                    return (
+                      <Link key={lifeline.id} to={lifelinePath} className="group block">
+                        <div className="p-4 border rounded-lg bg-card hover:shadow-lg hover:border-primary/50 transition-all duration-200 cursor-pointer">
+                          <div className="flex items-center gap-2">
+                            <LifelineBookIcon size={20} />
+                            <h3 className="font-semibold group-hover:text-primary transition-colors">
+                              {lifeline.title}
+                            </h3>
+                          </div>
+                          <p className="text-sm text-muted-foreground">{lifeline.type}</p>
+                        </div>
+                      </Link>
+                    );
+                  })}
+                </div>
+              </section>
+            )}
+
+            {ratingLifelines && ratingLifelines.length > 0 && (
+              <section className="space-y-4">
+                <h2 className="text-2xl font-bold">Rating Lifelines</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {ratingLifelines.map((lifeline: any) => {
                     const lifelinePath = collectionContext
                       ? `/public/collections/${collectionContext.slug}/lifelines/${lifeline.slug}`
                       : `/public/lifelines/${lifeline.slug}`;
