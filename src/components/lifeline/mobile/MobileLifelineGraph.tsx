@@ -68,13 +68,14 @@ export const MobileLifelineGraph = forwardRef<MobileLifelineGraphRef, MobileLife
             return (
               <div key={entry.id}>
                 {/* Entry row */}
-                <div
-                  className={cn(
-                    "grid grid-cols-2 gap-0 cursor-pointer transition-colors duration-150 py-1.5 px-0 rounded-lg mb-0.5 relative",
-                    isSelected && "bg-gray-100"
-                  )}
-                  onClick={() => onEntryClick(entry, index)}
-                >
+              <div
+                className={cn(
+                  "grid grid-cols-2 gap-0 cursor-pointer transition-colors duration-150 py-1.5 px-0 rounded-lg mb-0.5 relative",
+                  "hover:bg-gray-100/50",
+                  isSelected && "bg-gray-100"
+                )}
+                onClick={() => onEntryClick(entry, index)}
+              >
                   {positive ? (
                     <>
                       {/* Score box + bar on left */}

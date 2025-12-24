@@ -10,6 +10,7 @@ import { MinimalQuote } from './mobile/MinimalQuote';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useParams } from 'react-router-dom';
 import { CommunityContributionMenu } from '@/components/CommunityContributionMenu';
+import { FavoriteButton } from '@/components/FavoriteButton';
 import { useAuth } from '@/lib/auth';
 import { ArrowUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -193,10 +194,23 @@ export const MobileLifelineViewer = ({ lifelineId }: MobileLifelineViewerProps) 
       <header className="sticky top-0 z-50 bg-[hsl(var(--scheme-nav-bg))] border-b border-border">
         <div className="px-4 py-3 flex items-center justify-between">
           <span className="font-bold text-[hsl(var(--scheme-nav-text))] truncate">
-            {parsedTitle?.fullTitle || lifeline?.title || 'Lifeline'}
+            {collection?.title || 'Collection'}
           </span>
         </div>
       </header>
+      
+      {/* Lifeline title + Favorite row */}
+      <div className="px-4 py-3 flex items-center justify-between bg-[hsl(var(--scheme-ll-graph-bg))]">
+        <h1 className="font-serif font-bold text-lg text-[hsl(var(--scheme-collection-text))] truncate flex-1 mr-2">
+          {parsedTitle?.fullTitle || lifeline?.title || 'Lifeline'}
+        </h1>
+        <FavoriteButton itemId={lifelineId} itemType="lifeline" />
+      </div>
+      
+      {/* Separator line that connects to graph centerline */}
+      <div className="relative h-[2px] bg-[hsl(var(--scheme-ll-graph-bg))]">
+        <div className="absolute left-1/2 -translate-x-1/2 w-[2px] h-[2px] bg-[#565D6D]" />
+      </div>
       
       {/* Graph - vertical timeline */}
       <MobileLifelineGraph
