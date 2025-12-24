@@ -11,6 +11,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useParams } from 'react-router-dom';
 import { CommunityContributionMenu } from '@/components/CommunityContributionMenu';
 import { FavoriteButton } from '@/components/FavoriteButton';
+import { FloatingBackButton } from '@/components/FloatingBackButton';
 import { useAuth } from '@/lib/auth';
 import { ArrowUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -254,6 +255,9 @@ export const MobileLifelineViewer = ({ lifelineId }: MobileLifelineViewerProps) 
         currentEntryId={currentEntry?.id}
         className="fixed bottom-4 right-4 z-50"
       />
+
+      {/* Floating back button */}
+      <FloatingBackButton />
     </div>
   );
 };

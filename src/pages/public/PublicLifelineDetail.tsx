@@ -6,6 +6,7 @@ import { ArrowLeft } from "lucide-react";
 import { LifelineViewer } from "@/components/lifeline/LifelineViewer";
 import { PublicLayout } from "@/components/PublicLayout";
 import { FavoriteButton } from "@/components/FavoriteButton";
+import { FloatingBackButton } from "@/components/FloatingBackButton";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { LifelineDisclaimerDialog } from "@/components/lifeline/LifelineDisclaimerDialog";
 import { useState, useEffect } from "react";
@@ -92,7 +93,7 @@ export default function PublicLifelineDetail() {
   return (
     <PublicLayout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between mb-4">
+        <div className="hidden md:flex items-center justify-between mb-4">
           <Button
             variant="ghost"
             onClick={() => navigate("/public/lifelines")}
@@ -106,6 +107,10 @@ export default function PublicLifelineDetail() {
           lifelineId={lifeline.id}
         />
       </div>
+      
+      {/* Floating back button for mobile */}
+      <FloatingBackButton />
+      
       <LifelineDisclaimerDialog
         open={showDisclaimer}
         onOpenChange={setShowDisclaimer}
