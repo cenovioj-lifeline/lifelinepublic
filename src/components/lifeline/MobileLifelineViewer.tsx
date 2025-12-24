@@ -1,20 +1,18 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useSwipeable } from 'react-swipeable';
-import { transformEntriesToMobile } from '@/utils/entryDataAdapter';
-import { useMobileEntryNavigation } from '@/hooks/useMobileEntryNavigation';
+import { transformEntriesToMobile, MobileEntry } from '@/utils/entryDataAdapter';
 import { useCollectionQuote } from '@/hooks/useCollectionQuote';
-import { useImagePreloader } from '@/hooks/useImagePreloader';
 import { parseLifelineTitle } from '@/lib/lifelineTitle';
-import { GraphHeader } from './mobile/GraphHeader';
-import { StorySlide } from './mobile/StorySlide';
+import { MobileLifelineGraph, MobileLifelineGraphRef } from './mobile/MobileLifelineGraph';
+import { MobileLifelineDetailSheet } from './mobile/MobileLifelineDetailSheet';
 import { MinimalQuote } from './mobile/MinimalQuote';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useParams } from 'react-router-dom';
-import { ContributionButton } from '@/components/ContributionButton';
 import { CommunityContributionMenu } from '@/components/CommunityContributionMenu';
 import { useAuth } from '@/lib/auth';
+import { ArrowUp } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface MobileLifelineViewerProps {
   lifelineId: string;
@@ -23,7 +21,12 @@ interface MobileLifelineViewerProps {
 export const MobileLifelineViewer = ({ lifelineId }: MobileLifelineViewerProps) => {
   const { collectionSlug } = useParams();
   const { user } = useAuth();
+  const graphRef = useRef<MobileLifelineGraphRef>(null);
   
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [showScrollTop, setShowScrollTop] = useState(false);
+
   // Fetch collection settings for quotes
   const { data: collection } = useQuery({
     queryKey: ['collection-settings', collectionSlug],
@@ -31,7 +34,7 @@ export const MobileLifelineViewer = ({ lifelineId }: MobileLifelineViewerProps) 
       if (!collectionSlug) return null;
       const { data, error } = await supabase
         .from('collections')
-        .select('id, quotes_enabled, quote_frequency')
+        .select('id, quotes_enabled, quote_frequency, title')
         .eq('slug', collectionSlug)
         .single();
       
@@ -126,44 +129,42 @@ export const MobileLifelineViewer = ({ lifelineId }: MobileLifelineViewerProps) 
     return transformed;
   }, [rawEntries, lifeline?.lifeline_type]);
 
-  const {
-    currentIndex,
-    navigateToEntry,
-    goToNext,
-    goToPrevious,
-    canGoNext,
-    canGoPrevious,
-  } = useMobileEntryNavigation(entries?.length || 0);
+  // Get contribution status for selected entry
+  const selectedEntryContributionStatus = useMemo(() => {
+    if (selectedIndex === null || !rawEntries) return null;
+    const entry = entries[selectedIndex];
+    if (!entry) return null;
+    const rawEntry = rawEntries.find(e => e.id === entry.id);
+    return rawEntry?.contribution_status || null;
+  }, [selectedIndex, rawEntries, entries]);
 
-  const [transitionDirection, setTransitionDirection] = useState<'left' | 'right' | null>(null);
-  
-  // Preload adjacent images
-  const imageUrls = entries?.map(entry => entry.image_url) || [];
-  useImagePreloader(imageUrls, currentIndex);
+  const handleEntryClick = (entry: MobileEntry, index: number) => {
+    setSelectedIndex(index);
+    setIsDetailOpen(true);
+  };
 
-  const swipeHandlers = useSwipeable({
-    onSwipedLeft: () => {
-      if (canGoNext) {
-        setTransitionDirection('left');
-        setTimeout(() => {
-          goToNext();
-          setTransitionDirection(null);
-        }, 50);
-      }
-    },
-    onSwipedRight: () => {
-      if (canGoPrevious) {
-        setTransitionDirection('right');
-        setTimeout(() => {
-          goToPrevious();
-          setTransitionDirection(null);
-        }, 50);
-      }
-    },
-    trackMouse: false,
-    preventScrollOnSwipe: false,
-    delta: 50,
-  });
+  const handleClose = () => {
+    setIsDetailOpen(false);
+  };
+
+  const handlePrevious = () => {
+    if (selectedIndex !== null && selectedIndex > 0) {
+      setSelectedIndex(selectedIndex - 1);
+    }
+  };
+
+  const handleNext = () => {
+    if (selectedIndex !== null && selectedIndex < entries.length - 1) {
+      setSelectedIndex(selectedIndex + 1);
+    }
+  };
+
+  const handleScrollTop = () => {
+    graphRef.current?.scrollToTop();
+    setShowScrollTop(false);
+  };
+
+  const currentEntry = selectedIndex !== null ? entries[selectedIndex] : null;
 
   if (isLoading) {
     return (
@@ -186,19 +187,38 @@ export const MobileLifelineViewer = ({ lifelineId }: MobileLifelineViewerProps) 
     );
   }
 
-  const currentEntry = entries[currentIndex];
-
   return (
     <div className="h-screen bg-background flex flex-col overflow-hidden">
-      <GraphHeader
-        entries={entries}
-        currentIndex={currentIndex}
-        onEntryClick={navigateToEntry}
-      />
+      {/* Header with collection title */}
+      <header className="sticky top-0 z-50 bg-[hsl(var(--scheme-nav-bg))] border-b border-border">
+        <div className="px-4 py-3 flex items-center justify-between">
+          <span className="font-bold text-[hsl(var(--scheme-nav-text))] truncate">
+            {parsedTitle?.fullTitle || lifeline?.title || 'Lifeline'}
+          </span>
+        </div>
+      </header>
       
-      <div {...swipeHandlers} className="flex-1 overflow-hidden">
-        <StorySlide entry={currentEntry} transitionDirection={transitionDirection} />
-      </div>
+      {/* Graph - vertical timeline */}
+      <MobileLifelineGraph
+        ref={graphRef}
+        entries={entries}
+        selectedId={currentEntry?.id || null}
+        onEntryClick={handleEntryClick}
+      />
+
+      {/* Detail sheet */}
+      <MobileLifelineDetailSheet
+        entry={currentEntry}
+        isOpen={isDetailOpen}
+        onClose={handleClose}
+        onPrevious={handlePrevious}
+        onNext={handleNext}
+        canGoPrevious={selectedIndex !== null && selectedIndex > 0}
+        canGoNext={selectedIndex !== null && selectedIndex < entries.length - 1}
+        currentIndex={selectedIndex || 0}
+        totalEntries={entries.length}
+        contributionStatus={selectedEntryContributionStatus}
+      />
 
       {/* Minimal quote display */}
       {currentQuote && (
@@ -208,6 +228,18 @@ export const MobileLifelineViewer = ({ lifelineId }: MobileLifelineViewerProps) 
           context={currentQuote.context}
           onDismiss={dismissQuote}
         />
+      )}
+
+      {/* Scroll to top button */}
+      {showScrollTop && (
+        <Button
+          variant="secondary"
+          size="icon"
+          className="fixed bottom-20 right-4 z-40 rounded-full shadow-lg"
+          onClick={handleScrollTop}
+        >
+          <ArrowUp className="h-5 w-5" />
+        </Button>
       )}
 
       {/* Floating contribution button */}

@@ -12,16 +12,9 @@ export const ImageHero = ({ imageUrl, title, rating }: ImageHeroProps) => {
   const [imageLoaded, setImageLoaded] = useState(false);
   const isPositive = rating >= 0;
 
+  // Don't render anything if no image
   if (!imageUrl) {
-    // Gradient fallback
-    return (
-      <div 
-        className={cn(
-          "h-[320px] relative",
-          isPositive ? "bg-gradient-to-br from-green-500/20 to-green-600/30" : "bg-gradient-to-br from-red-500/20 to-red-600/30"
-        )}
-      />
-    );
+    return null;
   }
 
   return (
