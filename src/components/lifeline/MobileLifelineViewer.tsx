@@ -190,17 +190,8 @@ export const MobileLifelineViewer = ({ lifelineId }: MobileLifelineViewerProps) 
 
   return (
     <div className="h-screen bg-background flex flex-col overflow-hidden">
-      {/* Header with collection title */}
-      <header className="sticky top-0 z-50 bg-[hsl(var(--scheme-nav-bg))] border-b border-border">
-        <div className="px-4 py-3 flex items-center justify-between">
-          <span className="font-bold text-[hsl(var(--scheme-nav-text))] truncate">
-            {collection?.title || 'Collection'}
-          </span>
-        </div>
-      </header>
-      
       {/* Lifeline title + Favorite row */}
-      <div className="px-4 py-3 flex items-center justify-between bg-[hsl(var(--scheme-ll-graph-bg))]">
+      <div className="px-2 py-3 flex items-center justify-between bg-[hsl(var(--scheme-ll-graph-bg))]">
         <h1 className="font-serif font-bold text-lg text-[hsl(var(--scheme-collection-text))] truncate flex-1 mr-2">
           {parsedTitle?.fullTitle || lifeline?.title || 'Lifeline'}
         </h1>

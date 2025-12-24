@@ -124,9 +124,6 @@ export default function CollectionLifelineDetail() {
       collectionSlug={collection.slug}
       collectionId={collection.id}
     >
-      <div className="flex justify-end mb-1 lg:mb-4">
-        <FavoriteButton itemId={lifeline.id} itemType="lifeline" />
-      </div>
         <LifelineViewer
           lifelineId={lifeline.id}
           lifelineType={lifeline.lifeline_type}
