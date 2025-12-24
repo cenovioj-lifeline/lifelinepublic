@@ -194,7 +194,7 @@ export function ProfileAvatarUpload({ profile, onImageUpdate }: ProfileAvatarUpl
               transformOrigin: `${positionX}% ${positionY}%`
             }}
           />
-          <AvatarFallback className="text-2xl">
+          <AvatarFallback className="text-2xl text-gray-700">
             {getInitials(profile.name)}
           </AvatarFallback>
         </Avatar>

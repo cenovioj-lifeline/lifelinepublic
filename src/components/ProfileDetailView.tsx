@@ -76,6 +76,8 @@ export function ProfileDetailView({
 
   const textStyle = collectionContext ? { color: 'hsl(var(--scheme-profile-text))' } : undefined;
   const mutedStyle = collectionContext ? { color: 'hsl(var(--scheme-profile-text))', opacity: 0.7 } : undefined;
+  const labelStyle = collectionContext ? { color: 'hsl(var(--scheme-profile-label-text))' } : undefined;
+  const labelMutedStyle = collectionContext ? { color: 'hsl(var(--scheme-profile-label-text))', opacity: 0.7 } : undefined;
 
   return (
     <div className="space-y-8">
@@ -161,13 +163,13 @@ export function ProfileDetailView({
                       ? 'bg-[hsl(var(--scheme-cards-bg))] border-[hsl(var(--scheme-cards-border))]' 
                       : 'bg-card'
                   }`}>
-                    <div className="flex items-center gap-2">
-                      <LifelineBookIcon size={20} />
-                      <h3 className="font-semibold group-hover:text-primary transition-colors" style={textStyle}>
-                        {myPersonLifeline.title}
-                      </h3>
-                    </div>
-                    <p className={`text-sm ${collectionContext ? '' : 'text-muted-foreground'}`} style={mutedStyle}>{myPersonLifeline.type}</p>
+                        <div className="flex items-center gap-2">
+                          <LifelineBookIcon size={20} />
+                          <h3 className="font-semibold group-hover:text-primary transition-colors" style={labelStyle}>
+                            {myPersonLifeline.title}
+                          </h3>
+                        </div>
+                        <p className={`text-sm ${collectionContext ? '' : 'text-muted-foreground'}`} style={labelMutedStyle}>{myPersonLifeline.type}</p>
                   </div>
                 </Link>
               </section>
@@ -192,11 +194,11 @@ export function ProfileDetailView({
                         }`}>
                           <div className="flex items-center gap-2">
                             <LifelineBookIcon size={20} />
-                            <h3 className="font-semibold group-hover:text-primary transition-colors" style={textStyle}>
+                            <h3 className="font-semibold group-hover:text-primary transition-colors" style={labelStyle}>
                               {lifeline.title}
                             </h3>
                           </div>
-                          <p className={`text-sm ${collectionContext ? '' : 'text-muted-foreground'}`} style={mutedStyle}>{lifeline.type}</p>
+                          <p className={`text-sm ${collectionContext ? '' : 'text-muted-foreground'}`} style={labelMutedStyle}>{lifeline.type}</p>
                         </div>
                       </Link>
                     );
@@ -223,11 +225,11 @@ export function ProfileDetailView({
                         }`}>
                           <div className="flex items-center gap-2">
                             <LifelineBookIcon size={20} />
-                            <h3 className="font-semibold group-hover:text-primary transition-colors" style={textStyle}>
+                            <h3 className="font-semibold group-hover:text-primary transition-colors" style={labelStyle}>
                               {lifeline.title}
                             </h3>
                           </div>
-                          <p className={`text-sm ${collectionContext ? '' : 'text-muted-foreground'}`} style={mutedStyle}>{lifeline.type}</p>
+                          <p className={`text-sm ${collectionContext ? '' : 'text-muted-foreground'}`} style={labelMutedStyle}>{lifeline.type}</p>
                         </div>
                       </Link>
                     );
@@ -254,11 +256,11 @@ export function ProfileDetailView({
                         }`}>
                           <div className="flex items-center gap-2">
                             <LifelineBookIcon size={20} />
-                            <h3 className="font-semibold group-hover:text-primary transition-colors" style={textStyle}>
+                            <h3 className="font-semibold group-hover:text-primary transition-colors" style={labelStyle}>
                               {lifeline.title}
                             </h3>
                           </div>
-                          <p className={`text-sm ${collectionContext ? '' : 'text-muted-foreground'}`} style={mutedStyle}>{lifeline.type}</p>
+                          <p className={`text-sm ${collectionContext ? '' : 'text-muted-foreground'}`} style={labelMutedStyle}>{lifeline.type}</p>
                         </div>
                       </Link>
                     );
@@ -295,24 +297,24 @@ export function ProfileDetailView({
                     <div className="flex items-start gap-4">
                       <Trophy className="h-8 w-8 text-yellow-500 flex-shrink-0 mt-1" />
                       <div className="flex-1">
-                        <h3 className="text-xl font-bold group-hover:text-primary transition-colors" style={textStyle}>
+                        <h3 className="text-xl font-bold group-hover:text-primary transition-colors" style={labelStyle}>
                           {award.category}
                         </h3>
-                        <p className={`text-sm mt-1 ${collectionContext ? '' : 'text-muted-foreground'}`} style={mutedStyle}>
+                        <p className={`text-sm mt-1 ${collectionContext ? '' : 'text-muted-foreground'}`} style={labelMutedStyle}>
                           {award.election.title}
                         </p>
                         {award.winner_name && (
-                          <p className="text-sm mt-2" style={textStyle}>
+                          <p className="text-sm mt-2" style={labelStyle}>
                             Winner: {award.winner_name}
                           </p>
                         )}
                         {award.notes && (
-                          <p className={`mt-3 text-base italic ${collectionContext ? '' : 'text-muted-foreground'}`} style={mutedStyle}>
+                          <p className={`mt-3 text-base italic ${collectionContext ? '' : 'text-muted-foreground'}`} style={labelMutedStyle}>
                             {award.notes}
                           </p>
                         )}
                         {award.percentage && (
-                          <p className={`text-xs mt-2 ${collectionContext ? '' : 'text-muted-foreground'}`} style={mutedStyle}>
+                          <p className={`text-xs mt-2 ${collectionContext ? '' : 'text-muted-foreground'}`} style={labelMutedStyle}>
                             {award.percentage}% of votes
                           </p>
                         )}
@@ -351,11 +353,11 @@ export function ProfileDetailView({
             <div className="space-y-3 pl-4 border-l-2 border-muted ml-4 pt-2">
               {quotes.map((quoteItem: any) => (
                 <div key={quoteItem.id} className="space-y-1">
-                  <blockquote className="text-base italic" style={textStyle}>
+                  <blockquote className="text-base italic" style={labelStyle}>
                     "{quoteItem.quote}"
                   </blockquote>
                   {quoteItem.context && (
-                    <p className={`text-sm ${collectionContext ? '' : 'text-muted-foreground'}`} style={mutedStyle}>— {quoteItem.context}</p>
+                    <p className={`text-sm ${collectionContext ? '' : 'text-muted-foreground'}`} style={labelMutedStyle}>— {quoteItem.context}</p>
                   )}
                 </div>
               ))}
@@ -379,11 +381,11 @@ export function ProfileDetailView({
                     ? 'bg-[hsl(var(--scheme-cards-bg))] border-[hsl(var(--scheme-cards-border))]' 
                     : 'bg-card'
                 }`}>
-                  <h3 className="font-semibold group-hover:text-primary transition-colors" style={textStyle}>
+                  <h3 className="font-semibold group-hover:text-primary transition-colors" style={labelStyle}>
                     {collection.title}
                   </h3>
                   {collection.description && (
-                    <p className={`text-sm mt-1 line-clamp-2 ${collectionContext ? '' : 'text-muted-foreground'}`} style={mutedStyle}>
+                    <p className={`text-sm mt-1 line-clamp-2 ${collectionContext ? '' : 'text-muted-foreground'}`} style={labelMutedStyle}>
                       {collection.description}
                     </p>
                   )}

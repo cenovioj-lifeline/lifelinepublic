@@ -151,12 +151,18 @@ export const COLOR_MAPPINGS = {
   // Color 25: Profile Text
   profile_text: {
     label: "Color 25: Profile Text",
-    uses: ["Profile biography text", "Quick facts", "Relationships", "Works"],
+    uses: ["Profile section headings", "Page-level headings on profile pages"],
     cssVar: "--scheme-profile-text",
   },
-  // Color 26: Filter Controls Text
+  // Color 26: Profile Label Text
+  profile_label_text: {
+    label: "Color 26: Profile Label Text",
+    uses: ["Lifeline card titles", "Award card text", "Quote text", "Text inside nested cards"],
+    cssVar: "--scheme-profile-label-text",
+  },
+  // Color 27: Filter Controls Text
   filter_controls_text: {
-    label: "Color 26: Filter Controls Text",
+    label: "Color 27: Filter Controls Text",
     uses: ["Search input text", "Dropdown text", "Pagination buttons"],
     cssVar: "--scheme-filter-controls-text",
   },
@@ -223,6 +229,7 @@ interface ColorScheme {
   award_item_bg?: string;
   award_text?: string;
   profile_text?: string;
+  profile_label_text?: string;
   filter_controls_text?: string;
 }
 
@@ -233,6 +240,7 @@ const NEW_FIELD_DEFAULTS = {
   award_item_bg: '#ffffff',
   award_text: '#352d28',
   profile_text: '#352d28',
+  profile_label_text: '#352d28',
   filter_controls_text: '#1f2937',
 };
 

@@ -45,8 +45,9 @@ export type ColorScheme = {
   // Page & Background (1)
   page_bg: string;
 
-  // Profile Pages (1)
+  // Profile Pages (2)
   profile_text: string;
+  profile_label_text: string;
 
   // Filter Controls (1)
   filter_controls_text: string;
@@ -91,6 +92,7 @@ const DEFAULT_COLORS: ColorScheme = {
 
   page_bg: "#f4e7d7",
   profile_text: "#352d28",
+  profile_label_text: "#352d28",
   filter_controls_text: "#1f2937",
 };
 
@@ -188,33 +190,36 @@ export function ColorSchemeEditorFull({ initialColors, onChange }: ColorSchemeEd
           </CardContent>
         </Card>
 
-{/* Profile Text - NEW */}
+{/* Profile Text */}
         <Card className="border-2 border-blue-200 bg-blue-50/30">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <span className="text-xl">👤</span>
               Profile Text
-              <span className="text-xs bg-blue-500 text-white px-2 py-0.5 rounded">NEW</span>
             </CardTitle>
-            <CardDescription>Text color for profile pages (biography, facts, relationships, works)</CardDescription>
+            <CardDescription>Text colors for profile pages</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <ColorInput
-              label="Profile Text Color"
+              label="Profile Text (Page Headings)"
               field="profile_text"
-              description="Text color for all profile section content"
+              description="Section headings on the page background (My Lifeline, Awards, Quotes, etc.)"
+            />
+            <ColorInput
+              label="Profile Label Text (Card Content)"
+              field="profile_label_text"
+              description="Text inside nested cards (lifeline titles, award text, quote text)"
             />
             {/* Mini preview */}
             <div className="mt-4">
               <p className="text-xs font-medium mb-2 text-muted-foreground">Preview:</p>
-              <div style={{ borderRadius: '8px', overflow: 'hidden', border: '1px solid #ccc' }}>
+              <div style={{ backgroundColor: colors.page_bg, borderRadius: '8px', padding: '16px', border: '1px solid #ccc' }}>
+                <p style={{ color: colors.profile_text, fontWeight: 'bold', fontSize: '14px', marginBottom: '8px' }}>Section Heading (profile_text)</p>
                 <div
-                  style={{ backgroundColor: colors.cards_bg, padding: '16px' }}
+                  style={{ backgroundColor: colors.cards_bg, padding: '12px', borderRadius: '6px', border: `1px solid ${colors.cards_border}` }}
                 >
-                  <p style={{ color: colors.title_text, fontWeight: 'bold', fontSize: '14px', marginBottom: '8px' }}>Biography</p>
-                  <p style={{ color: colors.profile_text, fontSize: '12px' }}>
-                    This is profile text content. It appears in biography sections, quick facts, relationships, and works.
-                  </p>
+                  <p style={{ color: colors.profile_label_text, fontSize: '12px', fontWeight: 600 }}>Card Title (profile_label_text)</p>
+                  <p style={{ color: colors.profile_label_text, fontSize: '11px', opacity: 0.7 }}>Card description text with muted opacity</p>
                 </div>
               </div>
             </div>
