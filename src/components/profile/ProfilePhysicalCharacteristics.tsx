@@ -5,9 +5,13 @@ import { Ruler, Zap, Star } from "lucide-react";
 
 interface ProfilePhysicalCharacteristicsProps {
   profile: Profile;
+  collectionContext?: {
+    slug: string;
+    name: string;
+  };
 }
 
-export function ProfilePhysicalCharacteristics({ profile }: ProfilePhysicalCharacteristicsProps) {
+export function ProfilePhysicalCharacteristics({ profile, collectionContext }: ProfilePhysicalCharacteristicsProps) {
   const physical = profile.extended_data?.physical;
 
   if (!physical) return null;
@@ -36,19 +40,36 @@ export function ProfilePhysicalCharacteristics({ profile }: ProfilePhysicalChara
     return null;
   }
 
+  const textStyle = collectionContext ? { color: 'hsl(var(--scheme-profile-text))' } : undefined;
+  const mutedStyle = collectionContext ? { color: 'hsl(var(--scheme-profile-text))', opacity: 0.7 } : undefined;
+
   return (
-    <Card className="p-6">
-      <h2 className="text-xl font-bold mb-4">Physical Characteristics</h2>
+    <Card className={`p-6 ${
+      collectionContext
+        ? 'bg-[hsl(var(--scheme-cards-bg))] border-[hsl(var(--scheme-cards-border))]'
+        : ''
+    }`}>
+      <h2 className="text-xl font-bold mb-4" style={textStyle}>Physical Characteristics</h2>
 
       <div className="space-y-6">
         {hasAttributes && (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {attributes.map((attr, index) => (
-              <div key={index} className="p-3 border rounded-lg bg-white">
-                <div className="text-xs text-muted-foreground mb-1">
+              <div 
+                key={index} 
+                className={`p-3 border rounded-lg ${
+                  collectionContext 
+                    ? 'bg-[hsl(var(--scheme-cards-bg))] border-[hsl(var(--scheme-cards-border))]' 
+                    : 'bg-white'
+                }`}
+              >
+                <div 
+                  className={`text-xs mb-1 ${collectionContext ? '' : 'text-muted-foreground'}`}
+                  style={mutedStyle}
+                >
                   {attr.label}
                 </div>
-                <div className="font-medium">{attr.value}</div>
+                <div className="font-medium" style={textStyle}>{attr.value}</div>
               </div>
             ))}
           </div>
@@ -57,12 +78,16 @@ export function ProfilePhysicalCharacteristics({ profile }: ProfilePhysicalChara
         {hasFeatures && (
           <div className="space-y-2">
             <div className="flex items-center gap-2">
-              <Ruler className="h-4 w-4" />
-              <h3 className="font-semibold">Distinguishing Features</h3>
+              <Ruler className="h-4 w-4" style={mutedStyle} />
+              <h3 className="font-semibold" style={textStyle}>Distinguishing Features</h3>
             </div>
             <ul className="space-y-1 ml-6">
               {physical.distinguishing_features!.map((feature, index) => (
-                <li key={index} className="text-sm text-muted-foreground">
+                <li 
+                  key={index} 
+                  className={`text-sm ${collectionContext ? '' : 'text-muted-foreground'}`}
+                  style={mutedStyle}
+                >
                   • {feature}
                 </li>
               ))}
@@ -73,8 +98,8 @@ export function ProfilePhysicalCharacteristics({ profile }: ProfilePhysicalChara
         {hasSignatureItems && (
           <div className="space-y-2">
             <div className="flex items-center gap-2">
-              <Star className="h-4 w-4" />
-              <h3 className="font-semibold">Signature Items</h3>
+              <Star className="h-4 w-4" style={mutedStyle} />
+              <h3 className="font-semibold" style={textStyle}>Signature Items</h3>
             </div>
             <div className="flex flex-wrap gap-2 ml-6">
               {physical.signature_items!.map((item, index) => (
@@ -89,12 +114,16 @@ export function ProfilePhysicalCharacteristics({ profile }: ProfilePhysicalChara
         {hasPowers && (
           <div className="space-y-2">
             <div className="flex items-center gap-2">
-              <Zap className="h-4 w-4" />
-              <h3 className="font-semibold">Powers & Abilities</h3>
+              <Zap className="h-4 w-4" style={mutedStyle} />
+              <h3 className="font-semibold" style={textStyle}>Powers & Abilities</h3>
             </div>
             <ul className="space-y-1 ml-6">
               {physical.powers_abilities!.map((power, index) => (
-                <li key={index} className="text-sm text-muted-foreground">
+                <li 
+                  key={index} 
+                  className={`text-sm ${collectionContext ? '' : 'text-muted-foreground'}`}
+                  style={mutedStyle}
+                >
                   • {power}
                 </li>
               ))}
@@ -103,8 +132,14 @@ export function ProfilePhysicalCharacteristics({ profile }: ProfilePhysicalChara
         )}
 
         {physical.why_notable && (
-          <div className="p-3 border rounded-lg bg-white">
-            <p className="text-sm italic">{physical.why_notable}</p>
+          <div 
+            className={`p-3 border rounded-lg ${
+              collectionContext 
+                ? 'bg-[hsl(var(--scheme-cards-bg))] border-[hsl(var(--scheme-cards-border))]' 
+                : 'bg-white'
+            }`}
+          >
+            <p className="text-sm italic" style={textStyle}>{physical.why_notable}</p>
           </div>
         )}
       </div>

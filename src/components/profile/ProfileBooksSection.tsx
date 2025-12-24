@@ -21,6 +21,10 @@ export function ProfileBooksSection({ profileSlug, collectionSlug }: ProfileBook
   const { data: books, isLoading, error } = useProfileBooks(profileSlug);
   const { hasAccess } = useAdminAccess();
   const navigate = useNavigate();
+  
+  const hasContext = !!collectionSlug;
+  const textStyle = hasContext ? { color: 'hsl(var(--scheme-profile-text))' } : undefined;
+  const mutedStyle = hasContext ? { color: 'hsl(var(--scheme-profile-text))', opacity: 0.7 } : undefined;
 
   // Handle loading state
   if (isLoading) {
@@ -63,9 +67,9 @@ export function ProfileBooksSection({ profileSlug, collectionSlug }: ProfileBook
   return (
     <section className="space-y-4">
       <div className="flex items-center gap-2">
-        <BookOpen className="h-5 w-5 text-muted-foreground" />
-        <h2 className="text-xl font-bold">Books</h2>
-        <span className="text-sm text-muted-foreground">({books.length})</span>
+        <BookOpen className="h-5 w-5" style={mutedStyle} />
+        <h2 className="text-xl font-bold" style={textStyle}>Books</h2>
+        <span className={`text-sm ${hasContext ? '' : 'text-muted-foreground'}`} style={mutedStyle}>({books.length})</span>
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">

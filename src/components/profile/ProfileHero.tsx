@@ -20,13 +20,20 @@ interface ProfileHeroProps {
     image_query?: string;
   };
   onImageUpdate?: () => void;
+  collectionContext?: {
+    slug: string;
+    name: string;
+  };
 }
 
-export function ProfileHero({ profile, onImageUpdate }: ProfileHeroProps) {
+export function ProfileHero({ profile, onImageUpdate, collectionContext }: ProfileHeroProps) {
   const { hasAccess } = useAdminAccess();
   const [showSerpModal, setShowSerpModal] = useState(false);
 
   const hasImage = profile.avatar_image?.url || profile.primary_image_url;
+  
+  const textStyle = collectionContext ? { color: 'hsl(var(--scheme-profile-text))' } : undefined;
+  const mutedStyle = collectionContext ? { color: 'hsl(var(--scheme-profile-text))', opacity: 0.7 } : undefined;
 
   return (
     <div className="space-y-6">
@@ -60,7 +67,7 @@ export function ProfileHero({ profile, onImageUpdate }: ProfileHeroProps) {
 
         <div className="flex-1 space-y-4">
           <div>
-            <h1 className="text-4xl font-bold mb-2">{profile.name}</h1>
+            <h1 className="text-4xl font-bold mb-2" style={textStyle}>{profile.name}</h1>
             <div className="flex flex-wrap gap-2 mb-3">
               <Badge className="bg-[hsl(var(--scheme-nav-button))] text-[hsl(var(--scheme-nav-text))] hover:bg-[hsl(var(--scheme-nav-button)/.9)] border-none">
                 {profile.subject_type}
@@ -79,7 +86,7 @@ export function ProfileHero({ profile, onImageUpdate }: ProfileHeroProps) {
           {profile.short_description && (
             <p 
               className="text-lg"
-              style={{ color: 'hsl(var(--scheme-profile-text))', opacity: 0.8 }}
+              style={mutedStyle}
             >
               {profile.short_description}
             </p>
@@ -87,7 +94,10 @@ export function ProfileHero({ profile, onImageUpdate }: ProfileHeroProps) {
 
           {profile.known_for && profile.known_for.length > 0 && (
             <div className="space-y-2">
-              <h3 className="font-semibold text-sm uppercase tracking-wide">
+              <h3 
+                className="font-semibold text-sm uppercase tracking-wide"
+                style={mutedStyle}
+              >
                 Known For
               </h3>
               <div className="flex flex-wrap gap-2">
@@ -102,7 +112,10 @@ export function ProfileHero({ profile, onImageUpdate }: ProfileHeroProps) {
 
           {profile.tags && profile.tags.length > 0 && (
             <div className="space-y-2">
-              <h3 className="font-semibold text-sm uppercase tracking-wide">
+              <h3 
+                className="font-semibold text-sm uppercase tracking-wide"
+                style={mutedStyle}
+              >
                 Tags
               </h3>
               <div className="flex flex-wrap gap-2">

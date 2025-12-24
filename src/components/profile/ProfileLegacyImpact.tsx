@@ -56,19 +56,22 @@ export function ProfileLegacyImpact({ profile, collectionContext }: ProfileLegac
 
   if (sections.length === 0) return null;
 
+  const textStyle = collectionContext ? { color: 'hsl(var(--scheme-profile-text))' } : undefined;
+  const mutedStyle = collectionContext ? { color: 'hsl(var(--scheme-profile-text))', opacity: 0.7 } : undefined;
+
   return (
     <Card className={`p-6 ${
       collectionContext
-        ? 'bg-[hsl(var(--scheme-cards-bg))] border-[hsl(var(--scheme-cards-border))] text-[hsl(var(--scheme-cards-text))]'
+        ? 'bg-[hsl(var(--scheme-cards-bg))] border-[hsl(var(--scheme-cards-border))]'
         : ''
     }`}>
-      <h2 className="text-xl font-bold mb-4">Legacy & Impact</h2>
+      <h2 className="text-xl font-bold mb-4" style={textStyle}>Legacy & Impact</h2>
       <Tabs defaultValue={sections[0].id} className="w-full">
         <TabsList className="grid w-full" style={{ gridTemplateColumns: `repeat(${sections.length}, 1fr)` }}>
           {sections.map((section) => (
             <TabsTrigger key={section.id} value={section.id} className="flex items-center gap-2">
-              <span className={collectionContext ? 'opacity-70' : ''}>{section.icon}</span>
-              <span className="hidden sm:inline">{section.label}</span>
+              <span style={mutedStyle}>{section.icon}</span>
+              <span className="hidden sm:inline" style={textStyle}>{section.label}</span>
             </TabsTrigger>
           ))}
         </TabsList>
@@ -82,8 +85,11 @@ export function ProfileLegacyImpact({ profile, collectionContext }: ProfileLegac
                   : []
               ).map((item: any, index: number) => (
                 <li key={index} className="flex gap-3">
-                  <span className={collectionContext ? 'opacity-70 mt-1.5' : 'text-primary mt-1.5'}>•</span>
-                  <span className="flex-1">{String(item)}</span>
+                  <span 
+                    className={collectionContext ? 'mt-1.5' : 'text-primary mt-1.5'}
+                    style={mutedStyle}
+                  >•</span>
+                  <span className="flex-1" style={textStyle}>{String(item)}</span>
                 </li>
               ))}
             </ul>
