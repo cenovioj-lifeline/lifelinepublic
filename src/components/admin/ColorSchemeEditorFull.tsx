@@ -4,7 +4,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 
-// Type for the full color scheme (31 fields total)
+// Type for the full color scheme
 export type ColorScheme = {
   // Navigation (3)
   nav_bg_color: string;
@@ -32,34 +32,23 @@ export type ColorScheme = {
   ch_actions_text: string;
   ch_banner_text: string;
 
-  // Awards (4)
+  // Awards (5)
   award_bg: string;
   award_border: string;
   award_category_bg: string;
   award_item_bg: string;
+  award_text: string;
 
   // Global Text (1)
   title_text: string;
 
-  // NEW: Page & Background (1)
+  // Page & Background (1)
   page_bg: string;
 
-  // NEW: Profile Pages (2)
-  profile_header_bg: string;
-  profile_section_bg: string;
+  // Profile Pages (1)
+  profile_text: string;
 
-  // NEW: Badges & Tags (2)
-  badge_bg: string;
-  badge_text: string;
-
-  // NEW: Quotes & Special Content (2)
-  quote_bg: string;
-  quote_border: string;
-
-  // NEW: Links (1)
-  link_color: string;
-
-  // NEW: Filter Controls (1)
+  // Filter Controls (1)
   filter_controls_text: string;
 };
 
@@ -96,18 +85,12 @@ const DEFAULT_COLORS: ColorScheme = {
   award_border: "#342d28",
   award_category_bg: "#f4e7d7",
   award_item_bg: "#ffffff",
+  award_text: "#352d28",
 
   title_text: "#352d28",
 
-  // NEW fields
   page_bg: "#f4e7d7",
-  profile_header_bg: "#352e28",
-  profile_section_bg: "#f4e7d7",
-  badge_bg: "#566950",
-  badge_text: "#ffffff",
-  quote_bg: "#f4e7d7",
-  quote_border: "#352e28",
-  link_color: "#c05831",
+  profile_text: "#352d28",
   filter_controls_text: "#1f2937",
 };
 
@@ -205,128 +188,35 @@ export function ColorSchemeEditorFull({ initialColors, onChange }: ColorSchemeEd
           </CardContent>
         </Card>
 
-        {/* Profile Pages - NEW */}
+{/* Profile Text - NEW */}
         <Card className="border-2 border-blue-200 bg-blue-50/30">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <span className="text-xl">👤</span>
-              Profile Pages
+              Profile Text
               <span className="text-xs bg-blue-500 text-white px-2 py-0.5 rounded">NEW</span>
             </CardTitle>
-            <CardDescription>Colors for profile hero and sections</CardDescription>
+            <CardDescription>Text color for profile pages (biography, facts, relationships, works)</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <ColorInput
-              label="Profile Header Background"
-              field="profile_header_bg"
-              description="Background behind profile hero/header area"
-            />
-            <ColorInput
-              label="Profile Section Background"
-              field="profile_section_bg"
-              description="Background for biography, facts, and other sections"
+              label="Profile Text Color"
+              field="profile_text"
+              description="Text color for all profile section content"
             />
             {/* Mini preview */}
             <div className="mt-4">
               <p className="text-xs font-medium mb-2 text-muted-foreground">Preview:</p>
               <div style={{ borderRadius: '8px', overflow: 'hidden', border: '1px solid #ccc' }}>
                 <div
-                  style={{ backgroundColor: colors.profile_header_bg, padding: '16px', textAlign: 'center' }}
+                  style={{ backgroundColor: colors.cards_bg, padding: '16px' }}
                 >
-                  <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: colors.nav_button_color, margin: '0 auto 8px' }} />
-                  <p style={{ color: colors.ch_banner_text, fontWeight: 'bold', fontSize: '14px' }}>Profile Name</p>
-                  <div style={{ display: 'flex', gap: '4px', justifyContent: 'center', marginTop: '8px' }}>
-                    <span style={{ backgroundColor: colors.badge_bg, color: colors.badge_text, padding: '2px 8px', borderRadius: '4px', fontSize: '10px' }}>Tag</span>
-                    <span style={{ backgroundColor: colors.badge_bg, color: colors.badge_text, padding: '2px 8px', borderRadius: '4px', fontSize: '10px' }}>Tag</span>
-                  </div>
-                </div>
-                <div style={{ backgroundColor: colors.profile_section_bg, padding: '12px' }}>
-                  <p style={{ color: colors.cards_text, fontSize: '11px', fontWeight: 'bold' }}>Biography</p>
-                  <p style={{ color: colors.cards_text, fontSize: '10px' }}>Content appears here...</p>
+                  <p style={{ color: colors.title_text, fontWeight: 'bold', fontSize: '14px', marginBottom: '8px' }}>Biography</p>
+                  <p style={{ color: colors.profile_text, fontSize: '12px' }}>
+                    This is profile text content. It appears in biography sections, quick facts, relationships, and works.
+                  </p>
                 </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Badges & Tags - NEW */}
-        <Card className="border-2 border-blue-200 bg-blue-50/30">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <span className="text-xl">🏷️</span>
-              Badges & Tags
-              <span className="text-xs bg-blue-500 text-white px-2 py-0.5 rounded">NEW</span>
-            </CardTitle>
-            <CardDescription>Colors for badges, tags, and pills</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <ColorInput
-              label="Badge Background"
-              field="badge_bg"
-              description="Background color for badges and tags"
-            />
-            <ColorInput
-              label="Badge Text"
-              field="badge_text"
-              description="Text color inside badges"
-            />
-            {/* Mini preview */}
-            <div className="mt-4">
-              <p className="text-xs font-medium mb-2 text-muted-foreground">Preview:</p>
-              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                <span style={{ backgroundColor: colors.badge_bg, color: colors.badge_text, padding: '4px 12px', borderRadius: '9999px', fontSize: '12px', fontWeight: '500' }}>Category</span>
-                <span style={{ backgroundColor: colors.badge_bg, color: colors.badge_text, padding: '4px 12px', borderRadius: '9999px', fontSize: '12px', fontWeight: '500' }}>Fiction</span>
-                <span style={{ backgroundColor: colors.badge_bg, color: colors.badge_text, padding: '4px 12px', borderRadius: '9999px', fontSize: '12px', fontWeight: '500' }}>Active</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Quotes & Special Content - NEW */}
-        <Card className="border-2 border-blue-200 bg-blue-50/30">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <span className="text-xl">💬</span>
-              Quotes & Links
-              <span className="text-xs bg-blue-500 text-white px-2 py-0.5 rounded">NEW</span>
-            </CardTitle>
-            <CardDescription>Colors for quote displays and hyperlinks</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <ColorInput
-              label="Quote Card Background"
-              field="quote_bg"
-              description="Background for quote displays"
-            />
-            <ColorInput
-              label="Quote Card Border"
-              field="quote_border"
-              description="Border for quote cards"
-            />
-            <Separator className="my-4" />
-            <ColorInput
-              label="Link Color"
-              field="link_color"
-              description="Color for clickable hyperlinks"
-            />
-            {/* Mini preview */}
-            <div className="mt-4">
-              <p className="text-xs font-medium mb-2 text-muted-foreground">Preview:</p>
-              <div
-                style={{
-                  backgroundColor: colors.quote_bg,
-                  border: `2px solid ${colors.quote_border}`,
-                  borderLeft: `4px solid ${colors.quote_border}`,
-                  padding: '12px',
-                  borderRadius: '4px'
-                }}
-              >
-                <p style={{ fontStyle: 'italic', color: colors.cards_text, fontSize: '12px' }}>"This is how a quote will appear in the design."</p>
-                <p style={{ color: colors.cards_text, fontSize: '10px', marginTop: '8px' }}>— Author Name</p>
-              </div>
-              <p style={{ marginTop: '12px', fontSize: '12px' }}>
-                Regular text with a <span style={{ color: colors.link_color, textDecoration: 'underline', cursor: 'pointer' }}>clickable link</span> inline.
-              </p>
             </div>
           </CardContent>
         </Card>
@@ -487,6 +377,11 @@ export function ColorSchemeEditorFull({ initialColors, onChange }: ColorSchemeEd
               field="award_item_bg"
               description="Background for individual award entries"
             />
+            <ColorInput
+              label="Award Text"
+              field="award_text"
+              description="Text color for award titles, winners, and descriptions"
+            />
             <Separator className="my-4" />
             <ColorInput
               label="Page Title Text"
@@ -632,10 +527,10 @@ export function ColorSchemeEditorFull({ initialColors, onChange }: ColorSchemeEd
                 </div>
               </div>
 
-              {/* Profile Header */}
+{/* Profile Section */}
               <div
                 style={{
-                  backgroundColor: colors.profile_header_bg,
+                  backgroundColor: colors.nav_bg_color,
                   padding: '20px',
                   textAlign: 'center'
                 }}
@@ -643,42 +538,24 @@ export function ColorSchemeEditorFull({ initialColors, onChange }: ColorSchemeEd
                 <div style={{ width: '50px', height: '50px', borderRadius: '50%', backgroundColor: colors.nav_button_color, margin: '0 auto 10px' }} />
                 <p style={{ color: colors.ch_banner_text, fontWeight: 'bold', fontSize: '16px' }}>Character Name</p>
                 <p style={{ color: colors.ch_banner_text, opacity: 0.8, fontSize: '12px' }}>Protagonist • Lead Role</p>
-                <div style={{ display: 'flex', gap: '6px', justifyContent: 'center', marginTop: '12px' }}>
-                  <span style={{ backgroundColor: colors.badge_bg, color: colors.badge_text, padding: '3px 10px', borderRadius: '9999px', fontSize: '10px' }}>Hero</span>
-                  <span style={{ backgroundColor: colors.badge_bg, color: colors.badge_text, padding: '3px 10px', borderRadius: '9999px', fontSize: '10px' }}>Season 1</span>
-                </div>
               </div>
 
               {/* Content Area */}
               <div style={{ padding: '16px' }}>
-                {/* Section */}
+                {/* Profile Section showing profile_text */}
                 <div
                   style={{
-                    backgroundColor: colors.profile_section_bg,
+                    backgroundColor: colors.cards_bg,
                     borderRadius: '6px',
                     padding: '12px',
-                    marginBottom: '12px'
+                    marginBottom: '12px',
+                    border: `1px solid ${colors.cards_border}`
                   }}
                 >
                   <p style={{ color: colors.title_text, fontWeight: 'bold', fontSize: '13px', marginBottom: '6px' }}>Biography</p>
-                  <p style={{ color: colors.cards_text, fontSize: '11px' }}>
-                    This is a biography section. It shows <span style={{ color: colors.link_color, textDecoration: 'underline' }}>linked text</span> and regular content.
+                  <p style={{ color: colors.profile_text, fontSize: '11px' }}>
+                    This is profile text content - controlled by the Profile Text color.
                   </p>
-                </div>
-
-                {/* Quote */}
-                <div
-                  style={{
-                    backgroundColor: colors.quote_bg,
-                    border: `1px solid ${colors.quote_border}`,
-                    borderLeft: `4px solid ${colors.quote_border}`,
-                    padding: '10px',
-                    borderRadius: '4px',
-                    marginBottom: '12px'
-                  }}
-                >
-                  <p style={{ fontStyle: 'italic', color: colors.cards_text, fontSize: '11px' }}>"A memorable quote from this character."</p>
-                  <p style={{ color: colors.cards_text, fontSize: '9px', marginTop: '4px' }}>— Character Name</p>
                 </div>
 
                 {/* Content Card */}
@@ -828,9 +705,9 @@ export function ColorSchemeEditorFull({ initialColors, onChange }: ColorSchemeEd
                 alignItems: 'center'
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <span>🏆</span>
-                <span className="font-semibold text-sm" style={{ color: colors.cards_text }}>FAMILY AWARDS</span>
+                <span className="font-semibold text-sm" style={{ color: colors.award_text }}>FAMILY AWARDS</span>
                 <span
                   style={{
                     backgroundColor: colors.nav_button_color,
@@ -843,7 +720,7 @@ export function ColorSchemeEditorFull({ initialColors, onChange }: ColorSchemeEd
                   5 awards
                 </span>
               </div>
-              <span style={{ color: colors.cards_text, opacity: 0.5 }}>▼</span>
+              <span style={{ color: colors.award_text, opacity: 0.5 }}>▼</span>
             </div>
             {/* Award items */}
             <div
@@ -854,8 +731,8 @@ export function ColorSchemeEditorFull({ initialColors, onChange }: ColorSchemeEd
                 padding: '12px 16px'
               }}
             >
-              <p className="font-semibold text-sm mb-1" style={{ color: colors.cards_text }}>Most Complicated Family Tree</p>
-              <p className="text-xs" style={{ color: colors.cards_text, opacity: 0.8 }}>Winner: Don Draper</p>
+              <p className="font-semibold text-sm mb-1" style={{ color: colors.award_text }}>Most Complicated Family Tree</p>
+              <p className="text-xs" style={{ color: colors.award_text, opacity: 0.8 }}>Winner: Don Draper</p>
             </div>
             <div
               style={{
@@ -867,8 +744,8 @@ export function ColorSchemeEditorFull({ initialColors, onChange }: ColorSchemeEd
                 borderBottomRightRadius: '8px'
               }}
             >
-              <p className="font-semibold text-sm mb-1" style={{ color: colors.cards_text }}>Best Parent</p>
-              <p className="text-xs" style={{ color: colors.cards_text, opacity: 0.8 }}>Winner: Trudy Campbell</p>
+              <p className="font-semibold text-sm mb-1" style={{ color: colors.award_text }}>Best Parent</p>
+              <p className="text-xs" style={{ color: colors.award_text, opacity: 0.8 }}>Winner: Trudy Campbell</p>
             </div>
           </CardContent>
         </Card>

@@ -77,7 +77,10 @@ export function ProfileHero({ profile, onImageUpdate }: ProfileHeroProps) {
           </div>
 
           {profile.short_description && (
-            <p className="text-lg text-muted-foreground">
+            <p 
+              className="text-lg"
+              style={{ color: 'hsl(var(--scheme-profile-text))', opacity: 0.8 }}
+            >
               {profile.short_description}
             </p>
           )}

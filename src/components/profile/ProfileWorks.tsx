@@ -43,34 +43,60 @@ function groupWorks(works: ProfileWork[]) {
   return groups;
 }
 
-export function ProfileWorks({ works }: ProfileWorksProps) {
+interface ProfileWorksProps {
+  works: ProfileWork[];
+  collectionSlug?: string;
+}
+
+export function ProfileWorks({ works, collectionSlug }: ProfileWorksProps) {
   const grouped = groupWorks(works);
+  const hasContext = !!collectionSlug;
 
   return (
-    <Card className="p-6">
+    <Card className={`p-6 ${hasContext ? 'bg-[hsl(var(--scheme-cards-bg))] border-[hsl(var(--scheme-cards-border))]' : ''}`}>
       <h2 className="text-xl font-bold mb-4">Works & Media</h2>
       <div className="space-y-6">
         {Object.entries(grouped).map(([category, categoryWorks]) => (
           <div key={category} className="space-y-3">
             <div className="flex items-center gap-2">
-              {getWorkIcon(category)}
-              <h3 className="font-semibold capitalize">
+              <span style={hasContext ? { color: 'hsl(var(--scheme-profile-text))' } : undefined}>
+                {getWorkIcon(category)}
+              </span>
+              <h3 
+                className="font-semibold capitalize"
+                style={hasContext ? { color: 'hsl(var(--scheme-profile-text))' } : undefined}
+              >
                 {category.replace(/_/g, ' ')}
               </h3>
             </div>
             <div className="space-y-3 ml-6">
               {categoryWorks.map((work) => (
-                <div key={work.id} className="p-3 border rounded-lg">
+                <div 
+                  key={work.id} 
+                  className="p-3 border rounded-lg"
+                  style={hasContext ? { borderColor: 'hsl(var(--scheme-cards-border))' } : undefined}
+                >
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1">
-                      <div className="font-medium">{work.title}</div>
+                      <div 
+                        className="font-medium"
+                        style={hasContext ? { color: 'hsl(var(--scheme-profile-text))' } : undefined}
+                      >
+                        {work.title}
+                      </div>
                       {work.year && (
-                        <div className="text-sm text-muted-foreground">
+                        <div 
+                          className={`text-sm ${hasContext ? '' : 'text-muted-foreground'}`}
+                          style={hasContext ? { color: 'hsl(var(--scheme-profile-text))', opacity: 0.7 } : undefined}
+                        >
                           {work.year}
                         </div>
                       )}
                       {work.significance && (
-                        <p className="text-sm text-muted-foreground mt-2">
+                        <p 
+                          className={`text-sm mt-2 ${hasContext ? '' : 'text-muted-foreground'}`}
+                          style={hasContext ? { color: 'hsl(var(--scheme-profile-text))', opacity: 0.7 } : undefined}
+                        >
                           {work.significance}
                         </p>
                       )}
