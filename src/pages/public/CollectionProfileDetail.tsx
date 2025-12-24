@@ -4,6 +4,7 @@ import { ArrowLeft } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CollectionLayout } from "@/components/CollectionLayout";
 import { ProfileDetailView } from "@/components/ProfileDetailView";
+import { FloatingBackButton } from "@/components/FloatingBackButton";
 import { useProfileData } from "@/hooks/useProfileData";
 
 export default function CollectionProfileDetail() {
@@ -72,16 +73,10 @@ export default function CollectionProfileDetail() {
             name: collection.title
           }}
         />
-        
-        <Button 
-          onClick={() => navigate(`/public/collections/${collectionSlug}/profiles`)}
-          variant="outline"
-          className="mt-8"
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Profiles
-        </Button>
       </div>
+      
+      {/* Floating back button for mobile */}
+      <FloatingBackButton />
     </CollectionLayout>
   );
 }

@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { PublicLayout } from "@/components/PublicLayout";
 import { ProfileDetailView } from "@/components/ProfileDetailView";
+import { FloatingBackButton } from "@/components/FloatingBackButton";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useProfileData } from "@/hooks/useProfileData";
 
@@ -58,10 +59,11 @@ export default function PublicProfileDetail() {
   return (
     <PublicLayout>
       <div className="container mx-auto px-4 py-8 max-w-6xl">
+        {/* Desktop back button */}
         <Button
           variant="ghost"
           onClick={() => navigate("/public/profiles")}
-          className="mb-8"
+          className="mb-8 hidden md:inline-flex"
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Profiles
@@ -75,6 +77,9 @@ export default function PublicProfileDetail() {
           quotes={quotes}
         />
       </div>
+      
+      {/* Floating back button for mobile */}
+      <FloatingBackButton />
     </PublicLayout>
   );
 }

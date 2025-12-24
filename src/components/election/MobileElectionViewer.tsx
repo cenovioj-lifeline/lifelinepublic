@@ -4,6 +4,7 @@ import { useMobileElectionNavigation } from "@/hooks/useMobileElectionNavigation
 import { CategoryPills } from "./mobile/CategoryPills";
 import { CategorySection } from "./mobile/CategorySection";
 import { DetailSheet } from "./mobile/DetailSheet";
+import { FloatingBackButton } from "@/components/FloatingBackButton";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -122,6 +123,9 @@ export const MobileElectionViewer = ({
         canNavigateNext={canNavigate('next')}
         collectionSlug={collectionSlug}
       />
+
+      {/* Floating back button */}
+      <FloatingBackButton />
     </div>
   );
 };

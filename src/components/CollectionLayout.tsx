@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { Link, useNavigate, useLocation, useParams } from "react-router-dom";
 import { Home, Users, ArrowLeft, Award, BookOpen, Menu, MoreHorizontal } from "lucide-react";
 import { LifelineBookIcon } from "@/components/icons/LifelineBookIcon";
 import { useAuth } from "@/lib/auth";
@@ -15,6 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { cn } from "@/lib/utils";
 import { NotificationBell } from "@/components/NotificationBell";
+import { getBackNavigation, isDetailPage } from "@/lib/backNavigation";
 
 interface CollectionLayoutProps {
   children: React.ReactNode;
@@ -32,10 +33,15 @@ export function CollectionLayout({
   useColorScheme(collectionId);
   const navigate = useNavigate();
   const location = useLocation();
+  const params = useParams();
   const { user } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const isMobile = useIsMobile();
+
+  // Determine if we're on a detail page and get back navigation info
+  const isOnDetailPage = isDetailPage(location.pathname);
+  const backNav = getBackNavigation(location.pathname, params);
 
   const isActiveRoute = (path: string) => {
     return location.pathname === path;
@@ -118,6 +124,19 @@ export function CollectionLayout({
         <div className="container mx-auto px-4 py-3">
           <nav className="flex items-center justify-between">
             <div className="flex items-center gap-6">
+              {/* Desktop back button for detail pages */}
+              {!isMobile && isOnDetailPage && backNav && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => navigate(backNav.parentPath)}
+                  className="gap-2 text-[hsl(var(--scheme-nav-text))] hover:bg-[hsl(var(--scheme-nav-button)/.2)]"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  Back to {backNav.parentLabel}
+                </Button>
+              )}
+              
               <Link
                 to={`/public/collections/${collectionSlug}`}
                 className="text-lg md:text-xl font-bold text-[hsl(var(--scheme-nav-text))] hover:opacity-80 transition-opacity"
