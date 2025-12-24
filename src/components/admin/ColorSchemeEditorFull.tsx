@@ -4,7 +4,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 
-// Type for the full color scheme (28 fields total)
+// Type for the full color scheme (31 fields total)
 export type ColorScheme = {
   // Navigation (3)
   nav_bg_color: string;
@@ -32,9 +32,11 @@ export type ColorScheme = {
   ch_actions_text: string;
   ch_banner_text: string;
 
-  // Awards (2)
+  // Awards (4)
   award_bg: string;
   award_border: string;
+  award_category_bg: string;
+  award_item_bg: string;
 
   // Global Text (1)
   title_text: string;
@@ -56,6 +58,9 @@ export type ColorScheme = {
 
   // NEW: Links (1)
   link_color: string;
+
+  // NEW: Filter Controls (1)
+  filter_controls_text: string;
 };
 
 type ColorSchemeEditorFullProps = {
@@ -89,6 +94,8 @@ const DEFAULT_COLORS: ColorScheme = {
 
   award_bg: "#dc8418",
   award_border: "#342d28",
+  award_category_bg: "#f4e7d7",
+  award_item_bg: "#ffffff",
 
   title_text: "#352d28",
 
@@ -101,6 +108,7 @@ const DEFAULT_COLORS: ColorScheme = {
   quote_bg: "#f4e7d7",
   quote_border: "#352e28",
   link_color: "#c05831",
+  filter_controls_text: "#1f2937",
 };
 
 // Helper to extract only color fields from an object
@@ -462,12 +470,22 @@ export function ColorSchemeEditorFull({ initialColors, onChange }: ColorSchemeEd
             <ColorInput
               label="Award Background"
               field="award_bg"
-              description="Background for award cards"
+              description="Background for award header bar"
             />
             <ColorInput
               label="Award Border"
               field="award_border"
               description="Border around award cards"
+            />
+            <ColorInput
+              label="Award Category Header"
+              field="award_category_bg"
+              description="Background for category headers (e.g., 'FAMILY AWARDS' row)"
+            />
+            <ColorInput
+              label="Award Item Background"
+              field="award_item_bg"
+              description="Background for individual award entries"
             />
             <Separator className="my-4" />
             <ColorInput
@@ -480,6 +498,90 @@ export function ColorSchemeEditorFull({ initialColors, onChange }: ColorSchemeEd
               field="ch_banner_text"
               description="Banner/header text color"
             />
+          </CardContent>
+        </Card>
+
+        {/* Filters & Controls - NEW */}
+        <Card className="border-2 border-blue-200 bg-blue-50/30">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <span className="text-xl">🔍</span>
+              Filters & Controls
+              <span className="text-xs bg-blue-500 text-white px-2 py-0.5 rounded">NEW</span>
+            </CardTitle>
+            <CardDescription>Text color for search inputs, dropdowns, and pagination</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <ColorInput
+              label="Filter Controls Text"
+              field="filter_controls_text"
+              description="Text color for search inputs, dropdowns, and pagination buttons"
+            />
+            {/* Mini preview */}
+            <div className="mt-4">
+              <p className="text-xs font-medium mb-2 text-muted-foreground">Preview:</p>
+              <div
+                style={{ backgroundColor: colors.page_bg, padding: '12px', borderRadius: '8px', border: '1px solid #ccc' }}
+              >
+                {/* Search input mock */}
+                <div
+                  style={{
+                    backgroundColor: '#ffffff',
+                    border: `1px solid ${colors.cards_border}`,
+                    borderRadius: '6px',
+                    padding: '8px 12px',
+                    marginBottom: '8px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px'
+                  }}
+                >
+                  <span style={{ color: colors.filter_controls_text, opacity: 0.5, fontSize: '12px' }}>🔍</span>
+                  <span style={{ color: colors.filter_controls_text, fontSize: '12px' }}>Search profiles...</span>
+                </div>
+                {/* Dropdown mock */}
+                <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
+                  <div
+                    style={{
+                      backgroundColor: '#ffffff',
+                      border: `1px solid ${colors.cards_border}`,
+                      borderRadius: '6px',
+                      padding: '6px 10px',
+                      fontSize: '11px',
+                      color: colors.filter_controls_text,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px'
+                    }}
+                  >
+                    All Categories ▼
+                  </div>
+                  <div
+                    style={{
+                      backgroundColor: '#ffffff',
+                      border: `1px solid ${colors.cards_border}`,
+                      borderRadius: '6px',
+                      padding: '6px 10px',
+                      fontSize: '11px',
+                      color: colors.filter_controls_text,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px'
+                    }}
+                  >
+                    Sort: A-Z ▼
+                  </div>
+                </div>
+                {/* Pagination mock */}
+                <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+                  <span style={{ color: colors.filter_controls_text, fontSize: '11px', padding: '4px 8px', border: `1px solid ${colors.cards_border}`, borderRadius: '4px', backgroundColor: '#ffffff' }}>←</span>
+                  <span style={{ color: colors.filter_controls_text, fontSize: '11px', padding: '4px 8px', border: `1px solid ${colors.cards_border}`, borderRadius: '4px', backgroundColor: '#ffffff' }}>1</span>
+                  <span style={{ color: '#ffffff', fontSize: '11px', padding: '4px 8px', border: `1px solid ${colors.nav_button_color}`, borderRadius: '4px', backgroundColor: colors.nav_button_color }}>2</span>
+                  <span style={{ color: colors.filter_controls_text, fontSize: '11px', padding: '4px 8px', border: `1px solid ${colors.cards_border}`, borderRadius: '4px', backgroundColor: '#ffffff' }}>3</span>
+                  <span style={{ color: colors.filter_controls_text, fontSize: '11px', padding: '4px 8px', border: `1px solid ${colors.cards_border}`, borderRadius: '4px', backgroundColor: '#ffffff' }}>→</span>
+                </div>
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -698,20 +800,75 @@ export function ColorSchemeEditorFull({ initialColors, onChange }: ColorSchemeEd
               <span className="text-xl">🏆</span>
               Award Preview
             </CardTitle>
+            <CardDescription>Shows category header vs item backgrounds</CardDescription>
           </CardHeader>
           <CardContent>
+            {/* Award header bar */}
             <div
               style={{
                 backgroundColor: colors.award_bg,
                 border: `2px solid ${colors.award_border}`,
-                padding: '16px',
-                borderRadius: '8px',
+                padding: '12px 16px',
+                borderTopLeftRadius: '8px',
+                borderTopRightRadius: '8px',
                 textAlign: 'center'
               }}
             >
-              <div className="text-2xl mb-2">🏆</div>
-              <p className="font-bold text-sm" style={{ color: colors.title_text }}>Best Character Development</p>
-              <p className="text-xs opacity-80" style={{ color: colors.title_text }}>Winner: Character Name</p>
+              <p className="font-bold text-sm" style={{ color: colors.title_text }}>🏆 Election Results</p>
+            </div>
+            {/* Category header */}
+            <div
+              style={{
+                backgroundColor: colors.award_category_bg,
+                border: `1px solid ${colors.award_border}`,
+                borderTop: 'none',
+                padding: '12px 16px',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center'
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span>🏆</span>
+                <span className="font-semibold text-sm" style={{ color: colors.cards_text }}>FAMILY AWARDS</span>
+                <span
+                  style={{
+                    backgroundColor: colors.nav_button_color,
+                    color: colors.nav_text_color,
+                    padding: '2px 8px',
+                    borderRadius: '9999px',
+                    fontSize: '10px'
+                  }}
+                >
+                  5 awards
+                </span>
+              </div>
+              <span style={{ color: colors.cards_text, opacity: 0.5 }}>▼</span>
+            </div>
+            {/* Award items */}
+            <div
+              style={{
+                backgroundColor: colors.award_item_bg,
+                border: `1px solid ${colors.award_border}`,
+                borderTop: 'none',
+                padding: '12px 16px'
+              }}
+            >
+              <p className="font-semibold text-sm mb-1" style={{ color: colors.cards_text }}>Most Complicated Family Tree</p>
+              <p className="text-xs" style={{ color: colors.cards_text, opacity: 0.8 }}>Winner: Don Draper</p>
+            </div>
+            <div
+              style={{
+                backgroundColor: colors.award_item_bg,
+                border: `1px solid ${colors.award_border}`,
+                borderTop: 'none',
+                padding: '12px 16px',
+                borderBottomLeftRadius: '8px',
+                borderBottomRightRadius: '8px'
+              }}
+            >
+              <p className="font-semibold text-sm mb-1" style={{ color: colors.cards_text }}>Best Parent</p>
+              <p className="text-xs" style={{ color: colors.cards_text, opacity: 0.8 }}>Winner: Trudy Campbell</p>
             </div>
           </CardContent>
         </Card>
