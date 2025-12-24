@@ -130,8 +130,8 @@ export default function CollectionQuotes() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-4xl font-bold mb-2" style={{ color: "hsl(var(--scheme-title-text))" }}>Quotes</h1>
-            <p className="text-lg" style={{ color: "hsl(var(--scheme-cards-text))" }}>
+            <h1 className="text-4xl font-bold mb-2" style={{ color: "hsl(var(--scheme-profile-text))" }}>Quotes</h1>
+            <p className="text-lg" style={{ color: "hsl(var(--scheme-profile-text))", opacity: 0.7 }}>
               Memorable quotes from {collection.title}
             </p>
           </div>
@@ -144,7 +144,7 @@ export default function CollectionQuotes() {
 
         {/* Filter */}
         <div className="flex gap-4 items-center">
-          <label className="text-sm font-medium" style={{ color: "hsl(var(--scheme-cards-text))" }}>Filter by:</label>
+          <label className="text-sm font-medium" style={{ color: "hsl(var(--scheme-profile-text))", opacity: 0.7 }}>Filter by:</label>
           <Select value={selectedAuthor} onValueChange={setSelectedAuthor}>
             <SelectTrigger className="w-[200px]">
               <SelectValue placeholder="All authors" />

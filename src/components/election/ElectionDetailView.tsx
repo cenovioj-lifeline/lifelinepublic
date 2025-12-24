@@ -108,7 +108,7 @@ export function ElectionDetailView({ election, groupedResults, collectionContext
                                             {getCategoryIcon(category)}
                                         </div>
                                         <h2 className="text-xl font-semibold text-[hsl(var(--scheme-award-text))]">{category}</h2>
-                                        <Badge variant="secondary" className="ml-2 bg-[hsl(var(--scheme-nav-button))] text-[hsl(var(--scheme-nav-text))]">
+                                        <Badge variant="secondary" className="ml-2 bg-[hsl(var(--scheme-nav-button))] text-[hsl(var(--scheme-profile-label-text))]">
                                             {results.length} {results.length === 1 ? 'award' : 'awards'}
                                         </Badge>
                                     </div>
