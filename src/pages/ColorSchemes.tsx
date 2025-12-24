@@ -24,7 +24,7 @@ interface ColorScheme {
   description?: string;
   is_default: boolean;
   created_at: string;
-  // All 20 color fields
+  // All 28 color fields (20 original + 8 new)
   nav_bg_color: string;
   nav_text_color: string;
   nav_button_color: string;
@@ -45,6 +45,15 @@ interface ColorScheme {
   title_text: string;
   award_bg: string;
   award_border: string;
+  // NEW fields
+  page_bg?: string;
+  profile_header_bg?: string;
+  profile_section_bg?: string;
+  badge_bg?: string;
+  badge_text?: string;
+  quote_bg?: string;
+  quote_border?: string;
+  link_color?: string;
 }
 
 export default function ColorSchemes() {
@@ -133,22 +142,23 @@ export default function ColorSchemes() {
   });
 
   const ColorPreview = ({ scheme }: { scheme: ColorScheme }) => (
-    <div className="flex gap-1 mt-2">
+    <div className="flex flex-wrap gap-1 mt-2">
       {[
-        scheme.nav_bg_color,
-        scheme.nav_button_color,
-        scheme.ch_actions_bg,
-        scheme.cards_bg,
-        scheme.ll_graph_positive,
-        scheme.ll_graph_negative,
-        scheme.award_bg,
-        scheme.ll_entry_contributor_button,
-      ].map((color, i) => (
+        { color: scheme.nav_bg_color, label: 'Nav BG' },
+        { color: scheme.nav_button_color, label: 'Nav Button' },
+        { color: scheme.page_bg || '#f4e7d7', label: 'Page BG' },
+        { color: scheme.cards_bg, label: 'Cards BG' },
+        { color: scheme.profile_header_bg || '#352e28', label: 'Profile Header' },
+        { color: scheme.badge_bg || '#566950', label: 'Badge' },
+        { color: scheme.ll_graph_positive, label: 'Positive' },
+        { color: scheme.ll_graph_negative, label: 'Negative' },
+        { color: scheme.link_color || '#c05831', label: 'Link' },
+      ].map((item, i) => (
         <div
           key={i}
-          className="w-8 h-8 rounded border border-border"
-          style={{ backgroundColor: color }}
-          title={color}
+          className="w-6 h-6 rounded border border-border"
+          style={{ backgroundColor: item.color }}
+          title={`${item.label}: ${item.color}`}
         />
       ))}
     </div>
@@ -169,7 +179,7 @@ export default function ColorSchemes() {
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Color Schemes</h1>
             <p className="text-muted-foreground">
-              Manage unified 20-color schemes for your site and collections
+              Manage unified 28-color schemes for your site and collections
             </p>
           </div>
           <Button onClick={() => navigate("/admin/color-schemes/new")}>

@@ -688,6 +688,8 @@ export type Database = {
         Row: {
           award_bg: string | null
           award_border: string | null
+          badge_bg: string | null
+          badge_text: string | null
           cards_bg: string | null
           cards_border: string | null
           cards_text: string | null
@@ -700,6 +702,7 @@ export type Database = {
           description: string | null
           id: string
           is_default: boolean | null
+          link_color: string | null
           ll_display_bg: string
           ll_display_title_text: string
           ll_entry_contributor_button: string
@@ -711,12 +714,19 @@ export type Database = {
           nav_bg_color: string
           nav_button_color: string
           nav_text_color: string
+          page_bg: string | null
+          profile_header_bg: string | null
+          profile_section_bg: string | null
+          quote_bg: string | null
+          quote_border: string | null
           title_text: string | null
           updated_at: string | null
         }
         Insert: {
           award_bg?: string | null
           award_border?: string | null
+          badge_bg?: string | null
+          badge_text?: string | null
           cards_bg?: string | null
           cards_border?: string | null
           cards_text?: string | null
@@ -729,6 +739,7 @@ export type Database = {
           description?: string | null
           id?: string
           is_default?: boolean | null
+          link_color?: string | null
           ll_display_bg?: string
           ll_display_title_text?: string
           ll_entry_contributor_button?: string
@@ -740,12 +751,19 @@ export type Database = {
           nav_bg_color?: string
           nav_button_color?: string
           nav_text_color?: string
+          page_bg?: string | null
+          profile_header_bg?: string | null
+          profile_section_bg?: string | null
+          quote_bg?: string | null
+          quote_border?: string | null
           title_text?: string | null
           updated_at?: string | null
         }
         Update: {
           award_bg?: string | null
           award_border?: string | null
+          badge_bg?: string | null
+          badge_text?: string | null
           cards_bg?: string | null
           cards_border?: string | null
           cards_text?: string | null
@@ -758,6 +776,7 @@ export type Database = {
           description?: string | null
           id?: string
           is_default?: boolean | null
+          link_color?: string | null
           ll_display_bg?: string
           ll_display_title_text?: string
           ll_entry_contributor_button?: string
@@ -769,6 +788,11 @@ export type Database = {
           nav_bg_color?: string
           nav_button_color?: string
           nav_text_color?: string
+          page_bg?: string | null
+          profile_header_bg?: string | null
+          profile_section_bg?: string | null
+          quote_bg?: string | null
+          quote_border?: string | null
           title_text?: string | null
           updated_at?: string | null
         }

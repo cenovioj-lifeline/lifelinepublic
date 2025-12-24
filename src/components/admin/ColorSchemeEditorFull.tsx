@@ -4,7 +4,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 
-// Type for the full color scheme (all 20 fields)
+// Type for the full color scheme (28 fields total)
 export type ColorScheme = {
   // Navigation (3)
   nav_bg_color: string;
@@ -38,6 +38,24 @@ export type ColorScheme = {
 
   // Global Text (1)
   title_text: string;
+
+  // NEW: Page & Background (1)
+  page_bg: string;
+
+  // NEW: Profile Pages (2)
+  profile_header_bg: string;
+  profile_section_bg: string;
+
+  // NEW: Badges & Tags (2)
+  badge_bg: string;
+  badge_text: string;
+
+  // NEW: Quotes & Special Content (2)
+  quote_bg: string;
+  quote_border: string;
+
+  // NEW: Links (1)
+  link_color: string;
 };
 
 type ColorSchemeEditorFullProps = {
@@ -73,6 +91,16 @@ const DEFAULT_COLORS: ColorScheme = {
   award_border: "#342d28",
 
   title_text: "#352d28",
+
+  // NEW fields
+  page_bg: "#f4e7d7",
+  profile_header_bg: "#352e28",
+  profile_section_bg: "#f4e7d7",
+  badge_bg: "#566950",
+  badge_text: "#ffffff",
+  quote_bg: "#f4e7d7",
+  quote_border: "#352e28",
+  link_color: "#c05831",
 };
 
 // Helper to extract only color fields from an object
@@ -95,7 +123,6 @@ export function ColorSchemeEditorFull({ initialColors, onChange }: ColorSchemeEd
 
   useEffect(() => {
     if (initialColors) {
-      // Only extract actual color fields, ignore name/description/id/etc
       const colorFieldsOnly = extractColorFields(initialColors as Record<string, unknown>);
       const newColors = { ...DEFAULT_COLORS, ...colorFieldsOnly };
       setColors(newColors);
@@ -138,6 +165,164 @@ export function ColorSchemeEditorFull({ initialColors, onChange }: ColorSchemeEd
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       {/* Left Column: Color Fields */}
       <div className="space-y-6">
+        {/* Page & Background - NEW */}
+        <Card className="border-2 border-blue-200 bg-blue-50/30">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <span className="text-xl">📄</span>
+              Page Background
+              <span className="text-xs bg-blue-500 text-white px-2 py-0.5 rounded">NEW</span>
+            </CardTitle>
+            <CardDescription>Main page background behind all content</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <ColorInput
+              label="Page Background"
+              field="page_bg"
+              description="The main background color for all pages"
+            />
+            {/* Mini preview */}
+            <div className="mt-4">
+              <p className="text-xs font-medium mb-2 text-muted-foreground">Preview:</p>
+              <div
+                style={{ backgroundColor: colors.page_bg, padding: '16px', borderRadius: '8px', border: '1px solid #ccc' }}
+              >
+                <div
+                  style={{ backgroundColor: colors.cards_bg, padding: '12px', borderRadius: '6px', border: `1px solid ${colors.cards_border}` }}
+                >
+                  <p style={{ color: colors.cards_text, fontSize: '12px' }}>Content sits on cards above the page background</p>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Profile Pages - NEW */}
+        <Card className="border-2 border-blue-200 bg-blue-50/30">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <span className="text-xl">👤</span>
+              Profile Pages
+              <span className="text-xs bg-blue-500 text-white px-2 py-0.5 rounded">NEW</span>
+            </CardTitle>
+            <CardDescription>Colors for profile hero and sections</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <ColorInput
+              label="Profile Header Background"
+              field="profile_header_bg"
+              description="Background behind profile hero/header area"
+            />
+            <ColorInput
+              label="Profile Section Background"
+              field="profile_section_bg"
+              description="Background for biography, facts, and other sections"
+            />
+            {/* Mini preview */}
+            <div className="mt-4">
+              <p className="text-xs font-medium mb-2 text-muted-foreground">Preview:</p>
+              <div style={{ borderRadius: '8px', overflow: 'hidden', border: '1px solid #ccc' }}>
+                <div
+                  style={{ backgroundColor: colors.profile_header_bg, padding: '16px', textAlign: 'center' }}
+                >
+                  <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: colors.nav_button_color, margin: '0 auto 8px' }} />
+                  <p style={{ color: colors.ch_banner_text, fontWeight: 'bold', fontSize: '14px' }}>Profile Name</p>
+                  <div style={{ display: 'flex', gap: '4px', justifyContent: 'center', marginTop: '8px' }}>
+                    <span style={{ backgroundColor: colors.badge_bg, color: colors.badge_text, padding: '2px 8px', borderRadius: '4px', fontSize: '10px' }}>Tag</span>
+                    <span style={{ backgroundColor: colors.badge_bg, color: colors.badge_text, padding: '2px 8px', borderRadius: '4px', fontSize: '10px' }}>Tag</span>
+                  </div>
+                </div>
+                <div style={{ backgroundColor: colors.profile_section_bg, padding: '12px' }}>
+                  <p style={{ color: colors.cards_text, fontSize: '11px', fontWeight: 'bold' }}>Biography</p>
+                  <p style={{ color: colors.cards_text, fontSize: '10px' }}>Content appears here...</p>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Badges & Tags - NEW */}
+        <Card className="border-2 border-blue-200 bg-blue-50/30">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <span className="text-xl">🏷️</span>
+              Badges & Tags
+              <span className="text-xs bg-blue-500 text-white px-2 py-0.5 rounded">NEW</span>
+            </CardTitle>
+            <CardDescription>Colors for badges, tags, and pills</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <ColorInput
+              label="Badge Background"
+              field="badge_bg"
+              description="Background color for badges and tags"
+            />
+            <ColorInput
+              label="Badge Text"
+              field="badge_text"
+              description="Text color inside badges"
+            />
+            {/* Mini preview */}
+            <div className="mt-4">
+              <p className="text-xs font-medium mb-2 text-muted-foreground">Preview:</p>
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                <span style={{ backgroundColor: colors.badge_bg, color: colors.badge_text, padding: '4px 12px', borderRadius: '9999px', fontSize: '12px', fontWeight: '500' }}>Category</span>
+                <span style={{ backgroundColor: colors.badge_bg, color: colors.badge_text, padding: '4px 12px', borderRadius: '9999px', fontSize: '12px', fontWeight: '500' }}>Fiction</span>
+                <span style={{ backgroundColor: colors.badge_bg, color: colors.badge_text, padding: '4px 12px', borderRadius: '9999px', fontSize: '12px', fontWeight: '500' }}>Active</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Quotes & Special Content - NEW */}
+        <Card className="border-2 border-blue-200 bg-blue-50/30">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <span className="text-xl">💬</span>
+              Quotes & Links
+              <span className="text-xs bg-blue-500 text-white px-2 py-0.5 rounded">NEW</span>
+            </CardTitle>
+            <CardDescription>Colors for quote displays and hyperlinks</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <ColorInput
+              label="Quote Card Background"
+              field="quote_bg"
+              description="Background for quote displays"
+            />
+            <ColorInput
+              label="Quote Card Border"
+              field="quote_border"
+              description="Border for quote cards"
+            />
+            <Separator className="my-4" />
+            <ColorInput
+              label="Link Color"
+              field="link_color"
+              description="Color for clickable hyperlinks"
+            />
+            {/* Mini preview */}
+            <div className="mt-4">
+              <p className="text-xs font-medium mb-2 text-muted-foreground">Preview:</p>
+              <div
+                style={{
+                  backgroundColor: colors.quote_bg,
+                  border: `2px solid ${colors.quote_border}`,
+                  borderLeft: `4px solid ${colors.quote_border}`,
+                  padding: '12px',
+                  borderRadius: '4px'
+                }}
+              >
+                <p style={{ fontStyle: 'italic', color: colors.cards_text, fontSize: '12px' }}>"This is how a quote will appear in the design."</p>
+                <p style={{ color: colors.cards_text, fontSize: '10px', marginTop: '8px' }}>— Author Name</p>
+              </div>
+              <p style={{ marginTop: '12px', fontSize: '12px' }}>
+                Regular text with a <span style={{ color: colors.link_color, textDecoration: 'underline', cursor: 'pointer' }}>clickable link</span> inline.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Navigation Colors */}
         <Card>
           <CardHeader>
@@ -301,205 +486,232 @@ export function ColorSchemeEditorFull({ initialColors, onChange }: ColorSchemeEd
 
       {/* Right Column: Live Preview */}
       <div className="space-y-6 lg:sticky lg:top-6 lg:self-start">
+        {/* Full Page Preview */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <span className="text-xl">👁️</span>
-              Live Preview
+              <span className="text-xl">📱</span>
+              Full Page Preview
             </CardTitle>
-            <CardDescription>See your colors in action</CardDescription>
+            <CardDescription>See how all colors work together</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            {/* Navigation Preview */}
-            <div>
-              <p className="text-sm font-medium mb-2">Navigation Bar</p>
+          <CardContent>
+            <div
+              style={{
+                backgroundColor: colors.page_bg,
+                borderRadius: '8px',
+                overflow: 'hidden',
+                border: '1px solid #ccc'
+              }}
+            >
+              {/* Nav Bar */}
               <div
                 style={{
                   backgroundColor: colors.nav_bg_color,
                   color: colors.nav_text_color,
-                  padding: '12px 16px',
-                  borderRadius: '8px'
+                  padding: '10px 16px',
                 }}
               >
                 <div className="flex gap-4 items-center">
-                  <span className="font-bold">Logo</span>
-                  <span>Home</span>
+                  <span className="font-bold text-sm">Logo</span>
+                  <span className="text-xs">Home</span>
                   <button
                     style={{
                       backgroundColor: colors.nav_button_color,
                       color: colors.nav_text_color,
-                      padding: '6px 12px',
+                      padding: '4px 10px',
                       borderRadius: '4px',
                       border: 'none',
-                      fontSize: '14px'
+                      fontSize: '11px'
                     }}
                   >
                     Collections
                   </button>
-                  <span>Profiles</span>
                 </div>
               </div>
-            </div>
 
-            {/* Card Preview */}
-            <div>
-              <p className="text-sm font-medium mb-2">Content Card</p>
+              {/* Profile Header */}
               <div
                 style={{
-                  backgroundColor: colors.cards_bg,
-                  border: `2px solid ${colors.cards_border}`,
-                  color: colors.cards_text,
-                  padding: '16px',
-                  borderRadius: '8px'
-                }}
-              >
-                <h3 className="font-bold mb-2" style={{ color: colors.title_text }}>
-                  Card Title
-                </h3>
-                <p className="text-sm mb-3">
-                  This is sample card content showing how text appears.
-                </p>
-                <div className="flex gap-2">
-                  <button
-                    style={{
-                      backgroundColor: colors.ch_actions_bg,
-                      border: `1px solid ${colors.ch_actions_border}`,
-                      color: colors.ch_actions_text,
-                      padding: '6px 12px',
-                      borderRadius: '4px',
-                      fontSize: '12px'
-                    }}
-                  >
-                    🔗 Action
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Timeline Preview */}
-            <div>
-              <p className="text-sm font-medium mb-2">Lifeline Timeline</p>
-              <div
-                style={{
-                  backgroundColor: colors.ll_display_bg,
-                  padding: '16px',
-                  borderRadius: '8px'
-                }}
-              >
-                <h4
-                  className="font-bold text-sm mb-3"
-                  style={{ color: colors.ll_display_title_text }}
-                >
-                  Timeline Entry
-                </h4>
-                <div
-                  className="mb-2"
-                  style={{
-                    backgroundColor: colors.ll_graph_bg,
-                    padding: '8px',
-                    borderRadius: '4px'
-                  }}
-                >
-                  <div className="flex gap-1 items-center mb-1">
-                    <div
-                      style={{
-                        backgroundColor: colors.ll_graph_positive,
-                        height: '8px',
-                        width: '60%',
-                        borderRadius: '2px'
-                      }}
-                    />
-                    <span className="text-xs">+60</span>
-                  </div>
-                  <div className="flex gap-1 items-center">
-                    <div
-                      style={{
-                        backgroundColor: colors.ll_graph_negative,
-                        height: '8px',
-                        width: '40%',
-                        borderRadius: '2px'
-                      }}
-                    />
-                    <span className="text-xs">-40</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Award Preview */}
-            <div>
-              <p className="text-sm font-medium mb-2">Award Card</p>
-              <div
-                style={{
-                  backgroundColor: colors.award_bg,
-                  border: `2px solid ${colors.award_border}`,
-                  padding: '16px',
-                  borderRadius: '8px',
+                  backgroundColor: colors.profile_header_bg,
+                  padding: '20px',
                   textAlign: 'center'
                 }}
               >
-                <div className="text-2xl mb-2">🏆</div>
-                <p className="font-bold text-sm">Best Character Development</p>
-                <p className="text-xs opacity-80">Winner: Character Name</p>
-              </div>
-            </div>
-
-            {/* Elections/Awards Page Preview (Tailwind Bridge) */}
-            <div>
-              <p className="text-sm font-medium mb-2">Elections/Awards Page</p>
-              <p className="text-xs text-muted-foreground mb-2">
-                Uses Tailwind utilities (bg-background, border-border, etc.)
-              </p>
-              <div
-                style={{
-                  backgroundColor: colors.cards_bg, // --background
-                  border: `1px solid ${colors.cards_border}`, // --border
-                  color: colors.cards_text, // --foreground
-                  padding: '12px',
-                  borderRadius: '8px'
-                }}
-              >
-                <h4 className="font-bold text-sm mb-2" style={{ color: colors.cards_text }}>
-                  Sterling Cooper Yearbook 1965
-                </h4>
-                <div className="flex gap-2 mb-2">
-                  <button
-                    style={{
-                      backgroundColor: colors.nav_button_color, // --primary
-                      color: colors.nav_text_color, // --primary-foreground
-                      padding: '4px 8px',
-                      borderRadius: '4px',
-                      fontSize: '11px',
-                      border: 'none',
-                      fontWeight: '500'
-                    }}
-                  >
-                    Vote Now
-                  </button>
-                  <button
-                    style={{
-                      backgroundColor: colors.ll_graph_positive, // --secondary
-                      color: colors.cards_text, // --secondary-foreground
-                      padding: '4px 8px',
-                      borderRadius: '4px',
-                      fontSize: '11px',
-                      border: 'none'
-                    }}
-                  >
-                    Results
-                  </button>
+                <div style={{ width: '50px', height: '50px', borderRadius: '50%', backgroundColor: colors.nav_button_color, margin: '0 auto 10px' }} />
+                <p style={{ color: colors.ch_banner_text, fontWeight: 'bold', fontSize: '16px' }}>Character Name</p>
+                <p style={{ color: colors.ch_banner_text, opacity: 0.8, fontSize: '12px' }}>Protagonist • Lead Role</p>
+                <div style={{ display: 'flex', gap: '6px', justifyContent: 'center', marginTop: '12px' }}>
+                  <span style={{ backgroundColor: colors.badge_bg, color: colors.badge_text, padding: '3px 10px', borderRadius: '9999px', fontSize: '10px' }}>Hero</span>
+                  <span style={{ backgroundColor: colors.badge_bg, color: colors.badge_text, padding: '3px 10px', borderRadius: '9999px', fontSize: '10px' }}>Season 1</span>
                 </div>
+              </div>
+
+              {/* Content Area */}
+              <div style={{ padding: '16px' }}>
+                {/* Section */}
                 <div
                   style={{
-                    backgroundColor: colors.ll_graph_bg, // --muted
-                    padding: '8px',
-                    borderRadius: '4px',
-                    fontSize: '11px'
+                    backgroundColor: colors.profile_section_bg,
+                    borderRadius: '6px',
+                    padding: '12px',
+                    marginBottom: '12px'
                   }}
                 >
-                  <p className="text-xs">Voting ends in 5 days</p>
+                  <p style={{ color: colors.title_text, fontWeight: 'bold', fontSize: '13px', marginBottom: '6px' }}>Biography</p>
+                  <p style={{ color: colors.cards_text, fontSize: '11px' }}>
+                    This is a biography section. It shows <span style={{ color: colors.link_color, textDecoration: 'underline' }}>linked text</span> and regular content.
+                  </p>
+                </div>
+
+                {/* Quote */}
+                <div
+                  style={{
+                    backgroundColor: colors.quote_bg,
+                    border: `1px solid ${colors.quote_border}`,
+                    borderLeft: `4px solid ${colors.quote_border}`,
+                    padding: '10px',
+                    borderRadius: '4px',
+                    marginBottom: '12px'
+                  }}
+                >
+                  <p style={{ fontStyle: 'italic', color: colors.cards_text, fontSize: '11px' }}>"A memorable quote from this character."</p>
+                  <p style={{ color: colors.cards_text, fontSize: '9px', marginTop: '4px' }}>— Character Name</p>
+                </div>
+
+                {/* Content Card */}
+                <div
+                  style={{
+                    backgroundColor: colors.cards_bg,
+                    border: `1px solid ${colors.cards_border}`,
+                    padding: '12px',
+                    borderRadius: '6px'
+                  }}
+                >
+                  <p style={{ color: colors.title_text, fontWeight: 'bold', fontSize: '12px', marginBottom: '6px' }}>Related Content</p>
+                  <p style={{ color: colors.cards_text, fontSize: '10px' }}>Card content text here.</p>
+                  <div className="flex gap-2 mt-2">
+                    <button
+                      style={{
+                        backgroundColor: colors.ch_actions_bg,
+                        border: `1px solid ${colors.ch_actions_border}`,
+                        color: colors.ch_actions_text,
+                        padding: '4px 8px',
+                        borderRadius: '4px',
+                        fontSize: '10px'
+                      }}
+                    >
+                      Action
+                    </button>
+                  </div>
                 </div>
               </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Timeline Preview */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <span className="text-xl">📊</span>
+              Timeline Preview
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div
+              style={{
+                backgroundColor: colors.ll_display_bg,
+                padding: '16px',
+                borderRadius: '8px',
+                border: `2px solid ${colors.nav_bg_color}`
+              }}
+            >
+              <h4
+                className="font-bold text-sm mb-3"
+                style={{ color: colors.ll_display_title_text }}
+              >
+                Character: The Journey
+              </h4>
+              <div
+                className="mb-2"
+                style={{
+                  backgroundColor: colors.ll_graph_bg,
+                  padding: '8px',
+                  borderRadius: '4px'
+                }}
+              >
+                <p style={{ color: colors.ll_entry_title_text, fontSize: '11px', fontWeight: '500', marginBottom: '4px' }}>Major Achievement</p>
+                <div className="flex gap-1 items-center mb-1">
+                  <div
+                    style={{
+                      backgroundColor: colors.ll_graph_positive,
+                      height: '8px',
+                      width: '70%',
+                      borderRadius: '2px'
+                    }}
+                  />
+                  <span className="text-xs">+7</span>
+                </div>
+              </div>
+              <div
+                style={{
+                  backgroundColor: colors.ll_graph_bg,
+                  padding: '8px',
+                  borderRadius: '4px'
+                }}
+              >
+                <p style={{ color: colors.ll_entry_title_text, fontSize: '11px', fontWeight: '500', marginBottom: '4px' }}>Setback Event</p>
+                <div className="flex gap-1 items-center">
+                  <div
+                    style={{
+                      backgroundColor: colors.ll_graph_negative,
+                      height: '8px',
+                      width: '40%',
+                      borderRadius: '2px'
+                    }}
+                  />
+                  <span className="text-xs">-4</span>
+                </div>
+              </div>
+              <button
+                className="mt-3"
+                style={{
+                  backgroundColor: colors.ll_entry_contributor_button,
+                  color: colors.nav_text_color,
+                  padding: '6px 12px',
+                  borderRadius: '4px',
+                  fontSize: '11px',
+                  border: 'none'
+                }}
+              >
+                + Contribute
+              </button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Award Preview */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <span className="text-xl">🏆</span>
+              Award Preview
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div
+              style={{
+                backgroundColor: colors.award_bg,
+                border: `2px solid ${colors.award_border}`,
+                padding: '16px',
+                borderRadius: '8px',
+                textAlign: 'center'
+              }}
+            >
+              <div className="text-2xl mb-2">🏆</div>
+              <p className="font-bold text-sm" style={{ color: colors.title_text }}>Best Character Development</p>
+              <p className="text-xs opacity-80" style={{ color: colors.title_text }}>Winner: Character Name</p>
             </div>
           </CardContent>
         </Card>
