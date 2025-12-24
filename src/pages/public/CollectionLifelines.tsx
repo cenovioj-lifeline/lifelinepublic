@@ -239,10 +239,13 @@ export default function CollectionLifelines() {
         </div>
 
         {/* Search, Sort, and Filter Controls - Single Row */}
-        <div className="flex items-center gap-2">
+        <div 
+          className="flex items-center gap-2"
+          style={{ color: 'hsl(var(--scheme-filter-controls-text))' }}
+        >
           {/* Search bar */}
           <div className="relative w-2/3 sm:w-1/3">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: 'hsl(var(--scheme-filter-controls-text))' }} />
             <Input
               type="text"
               placeholder="Search lifelines..."
@@ -252,6 +255,7 @@ export default function CollectionLifelines() {
                 setCurrentPage(1);
               }}
               className="pl-10"
+              style={{ color: 'hsl(var(--scheme-filter-controls-text))' }}
             />
           </div>
 
@@ -519,12 +523,13 @@ export default function CollectionLifelines() {
           </div>
 
           {totalPages > 1 && (
-            <Pagination>
+            <Pagination style={{ color: 'hsl(var(--scheme-filter-controls-text))' }}>
               <PaginationContent>
                 <PaginationItem>
                   <PaginationPrevious
                     onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                     className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                    style={{ color: 'hsl(var(--scheme-filter-controls-text))' }}
                   />
                 </PaginationItem>
                 {[...Array(totalPages)].map((_, i) => (
@@ -533,6 +538,7 @@ export default function CollectionLifelines() {
                       onClick={() => setCurrentPage(i + 1)}
                       isActive={currentPage === i + 1}
                       className="cursor-pointer"
+                      style={{ color: 'hsl(var(--scheme-filter-controls-text))' }}
                     >
                       {i + 1}
                     </PaginationLink>
@@ -542,6 +548,7 @@ export default function CollectionLifelines() {
                   <PaginationNext
                     onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                     className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                    style={{ color: 'hsl(var(--scheme-filter-controls-text))' }}
                   />
                 </PaginationItem>
               </PaginationContent>
