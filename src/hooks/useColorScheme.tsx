@@ -124,6 +124,54 @@ export const COLOR_MAPPINGS = {
     uses: ["Award card border", "Result borders"],
     cssVar: "--scheme-award-border",
   },
+  // NEW: Color 21: Page Background
+  page_bg: {
+    label: "Color 21: Page Background",
+    uses: ["Main page background", "Body background"],
+    cssVar: "--scheme-page-bg",
+  },
+  // NEW: Color 22: Profile Header Background
+  profile_header_bg: {
+    label: "Color 22: Profile Header Background",
+    uses: ["Profile hero background", "Profile header area"],
+    cssVar: "--scheme-profile-header-bg",
+  },
+  // NEW: Color 23: Profile Section Background
+  profile_section_bg: {
+    label: "Color 23: Profile Section Background",
+    uses: ["Biography background", "Facts section background"],
+    cssVar: "--scheme-profile-section-bg",
+  },
+  // NEW: Color 24: Badge Background
+  badge_bg: {
+    label: "Color 24: Badge Background",
+    uses: ["Badge/tag backgrounds", "Pills"],
+    cssVar: "--scheme-badge-bg",
+  },
+  // NEW: Color 25: Badge Text
+  badge_text: {
+    label: "Color 25: Badge Text",
+    uses: ["Badge/tag text color"],
+    cssVar: "--scheme-badge-text",
+  },
+  // NEW: Color 26: Quote Background
+  quote_bg: {
+    label: "Color 26: Quote Background",
+    uses: ["Quote card background"],
+    cssVar: "--scheme-quote-bg",
+  },
+  // NEW: Color 27: Quote Border
+  quote_border: {
+    label: "Color 27: Quote Border",
+    uses: ["Quote card border", "Quote accent"],
+    cssVar: "--scheme-quote-border",
+  },
+  // NEW: Color 28: Link Color
+  link_color: {
+    label: "Color 28: Link Color",
+    uses: ["Hyperlinks", "Clickable text"],
+    cssVar: "--scheme-link-color",
+  },
 } as const;
 
 // Convert hex color to HSL format for CSS variables
@@ -181,7 +229,28 @@ interface ColorScheme {
   title_text: string;
   award_bg: string;
   award_border: string;
+  // NEW fields
+  page_bg?: string;
+  profile_header_bg?: string;
+  profile_section_bg?: string;
+  badge_bg?: string;
+  badge_text?: string;
+  quote_bg?: string;
+  quote_border?: string;
+  link_color?: string;
 }
+
+// Default values for new fields (fallback if not set in DB)
+const NEW_FIELD_DEFAULTS = {
+  page_bg: '#f4e7d7',
+  profile_header_bg: '#352e28',
+  profile_section_bg: '#f4e7d7',
+  badge_bg: '#566950',
+  badge_text: '#ffffff',
+  quote_bg: '#f4e7d7',
+  quote_border: '#352e28',
+  link_color: '#c05831',
+};
 
 export function useColorScheme(collectionId?: string) {
   const { data: colorScheme } = useQuery({
@@ -221,9 +290,15 @@ export function useColorScheme(collectionId?: string) {
     if (colorScheme) {
       const root = document.documentElement;
 
-      // Apply all 20 colors as CSS variables
+      // Apply all colors as CSS variables (including new fields)
       Object.entries(COLOR_MAPPINGS).forEach(([key, config]) => {
-        const colorValue = colorScheme[key as keyof ColorScheme];
+        let colorValue = colorScheme[key as keyof ColorScheme];
+        
+        // Use defaults for new fields if not set
+        if (!colorValue && key in NEW_FIELD_DEFAULTS) {
+          colorValue = NEW_FIELD_DEFAULTS[key as keyof typeof NEW_FIELD_DEFAULTS];
+        }
+        
         if (typeof colorValue === 'string' && colorValue.startsWith('#')) {
           const hsl = hexToHSL(colorValue);
           root.style.setProperty(config.cssVar, hsl);
@@ -259,8 +334,9 @@ export function useColorScheme(collectionId?: string) {
       // This ensures pages using Tailwind utilities (bg-background, text-foreground, etc.)
       // automatically use the collection's color scheme instead of hardcoded defaults
 
-      // Main page colors
-
+      // Main page colors - NOW USES page_bg explicitly!
+      const pageBg = colorScheme.page_bg || NEW_FIELD_DEFAULTS.page_bg;
+      root.style.setProperty('--background', hexToHSL(pageBg)); // Page background
       root.style.setProperty('--foreground', hexToHSL(colorScheme.cards_text)); // Main content text
 
       // Card colors
