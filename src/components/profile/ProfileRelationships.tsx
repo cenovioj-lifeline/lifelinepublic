@@ -52,9 +52,11 @@ export function ProfileRelationships({ relationships, collectionSlug }: ProfileR
   const grouped = groupRelationships(relationships);
   const hasContext = !!collectionSlug;
 
+  const textStyle = hasContext ? { color: 'hsl(var(--scheme-profile-text))' } : undefined;
+
   return (
     <Card className={`p-6 ${hasContext ? 'bg-[hsl(var(--scheme-cards-bg))] border-[hsl(var(--scheme-cards-border))]' : ''}`}>
-      <h2 className="text-xl font-bold mb-4">Relationships</h2>
+      <h2 className="text-xl font-bold mb-4" style={textStyle}>Relationships</h2>
       <div className="space-y-6">
         {Object.entries(grouped).map(([type, rels]) => (
           <div key={type} className="space-y-3">

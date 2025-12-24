@@ -52,9 +52,11 @@ export function ProfileWorks({ works, collectionSlug }: ProfileWorksProps) {
   const grouped = groupWorks(works);
   const hasContext = !!collectionSlug;
 
+  const textStyle = hasContext ? { color: 'hsl(var(--scheme-profile-text))' } : undefined;
+
   return (
     <Card className={`p-6 ${hasContext ? 'bg-[hsl(var(--scheme-cards-bg))] border-[hsl(var(--scheme-cards-border))]' : ''}`}>
-      <h2 className="text-xl font-bold mb-4">Works & Media</h2>
+      <h2 className="text-xl font-bold mb-4" style={textStyle}>Works & Media</h2>
       <div className="space-y-6">
         {Object.entries(grouped).map(([category, categoryWorks]) => (
           <div key={category} className="space-y-3">

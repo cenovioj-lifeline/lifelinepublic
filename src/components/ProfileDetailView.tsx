@@ -74,20 +74,23 @@ export function ProfileDetailView({
 }: ProfileDetailViewProps) {
   const [quotesExpanded, setQuotesExpanded] = useState(false);
 
+  const textStyle = collectionContext ? { color: 'hsl(var(--scheme-profile-text))' } : undefined;
+  const mutedStyle = collectionContext ? { color: 'hsl(var(--scheme-profile-text))', opacity: 0.7 } : undefined;
+
   return (
     <div className="space-y-8">
-      <ProfileHero profile={profile} onImageUpdate={() => window.location.reload()} />
+      <ProfileHero profile={profile} onImageUpdate={() => window.location.reload()} collectionContext={collectionContext} />
 
       {(hasModule(profile, 'biographical') || 
         hasModule(profile, 'fictional') || 
         hasModule(profile, 'organization')) && (
-        <ProfileQuickFacts profile={profile} />
+        <ProfileQuickFacts profile={profile} collectionContext={collectionContext} />
       )}
 
       {(hasModule(profile, 'biographical') || 
         hasModule(profile, 'fictional') || 
         hasModule(profile, 'organization')) && (
-        <ProfileBiography profile={profile} />
+        <ProfileBiography profile={profile} collectionContext={collectionContext} />
       )}
 
       {profile.profile_relationships && profile.profile_relationships.length > 0 && (
@@ -98,7 +101,7 @@ export function ProfileDetailView({
       )}
 
       {profile.profile_works && profile.profile_works.length > 0 && (
-        <ProfileWorks works={profile.profile_works} />
+        <ProfileWorks works={profile.profile_works} collectionSlug={collectionContext?.slug} />
       )}
 
       {/* Books section for real-person profiles (authors) */}
@@ -110,11 +113,11 @@ export function ProfileDetailView({
       )}
 
       {hasModule(profile, 'legacy') && (
-        <ProfileLegacyImpact profile={profile} />
+        <ProfileLegacyImpact profile={profile} collectionContext={collectionContext} />
       )}
 
       {hasModule(profile, 'physical') && (
-        <ProfilePhysicalCharacteristics profile={profile} />
+        <ProfilePhysicalCharacteristics profile={profile} collectionContext={collectionContext} />
       )}
 
       {(() => {
@@ -145,7 +148,7 @@ export function ProfileDetailView({
             {/* Person profiles: My Lifeline (single) */}
             {myPersonLifeline && !isOrganization && (
               <section className="space-y-4">
-                <h2 className="text-2xl font-bold">My Lifeline</h2>
+                <h2 className="text-2xl font-bold" style={textStyle}>My Lifeline</h2>
                 <Link 
                   to={collectionContext
                     ? `/public/collections/${collectionContext.slug}/lifelines/${myPersonLifeline.slug}`
@@ -153,14 +156,18 @@ export function ProfileDetailView({
                   } 
                   className="group block"
                 >
-                  <div className="p-4 border rounded-lg bg-card hover:shadow-lg hover:border-primary/50 transition-all duration-200 cursor-pointer">
+                  <div className={`p-4 border rounded-lg hover:shadow-lg hover:border-primary/50 transition-all duration-200 cursor-pointer ${
+                    collectionContext 
+                      ? 'bg-[hsl(var(--scheme-cards-bg))] border-[hsl(var(--scheme-cards-border))]' 
+                      : 'bg-card'
+                  }`}>
                     <div className="flex items-center gap-2">
                       <LifelineBookIcon size={20} />
-                      <h3 className="font-semibold group-hover:text-primary transition-colors">
+                      <h3 className="font-semibold group-hover:text-primary transition-colors" style={textStyle}>
                         {myPersonLifeline.title}
                       </h3>
                     </div>
-                    <p className="text-sm text-muted-foreground">{myPersonLifeline.type}</p>
+                    <p className={`text-sm ${collectionContext ? '' : 'text-muted-foreground'}`} style={mutedStyle}>{myPersonLifeline.type}</p>
                   </div>
                 </Link>
               </section>
@@ -169,7 +176,7 @@ export function ProfileDetailView({
             {/* Organization profiles: Organization Lifelines (multiple, sorted by title) */}
             {myOrgLifelines && myOrgLifelines.length > 0 && isOrganization && (
               <section className="space-y-4">
-                <h2 className="text-2xl font-bold">Organization Lifelines</h2>
+                <h2 className="text-2xl font-bold" style={textStyle}>Organization Lifelines</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {myOrgLifelines.map((lifeline: any) => {
                     const lifelinePath = collectionContext
@@ -178,14 +185,18 @@ export function ProfileDetailView({
                     
                     return (
                       <Link key={lifeline.id} to={lifelinePath} className="group block">
-                        <div className="p-4 border rounded-lg bg-card hover:shadow-lg hover:border-primary/50 transition-all duration-200 cursor-pointer">
+                        <div className={`p-4 border rounded-lg hover:shadow-lg hover:border-primary/50 transition-all duration-200 cursor-pointer ${
+                          collectionContext 
+                            ? 'bg-[hsl(var(--scheme-cards-bg))] border-[hsl(var(--scheme-cards-border))]' 
+                            : 'bg-card'
+                        }`}>
                           <div className="flex items-center gap-2">
                             <LifelineBookIcon size={20} />
-                            <h3 className="font-semibold group-hover:text-primary transition-colors">
+                            <h3 className="font-semibold group-hover:text-primary transition-colors" style={textStyle}>
                               {lifeline.title}
                             </h3>
                           </div>
-                          <p className="text-sm text-muted-foreground">{lifeline.type}</p>
+                          <p className={`text-sm ${collectionContext ? '' : 'text-muted-foreground'}`} style={mutedStyle}>{lifeline.type}</p>
                         </div>
                       </Link>
                     );
@@ -196,7 +207,7 @@ export function ProfileDetailView({
 
             {appearsInLifelines && appearsInLifelines.length > 0 && (
               <section className="space-y-4">
-                <h2 className="text-2xl font-bold">Appears in Lifelines</h2>
+                <h2 className="text-2xl font-bold" style={textStyle}>Appears in Lifelines</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {appearsInLifelines.map((lifeline: any) => {
                     const lifelinePath = collectionContext
@@ -205,14 +216,18 @@ export function ProfileDetailView({
                     
                     return (
                       <Link key={lifeline.id} to={lifelinePath} className="group block">
-                        <div className="p-4 border rounded-lg bg-card hover:shadow-lg hover:border-primary/50 transition-all duration-200 cursor-pointer">
+                        <div className={`p-4 border rounded-lg hover:shadow-lg hover:border-primary/50 transition-all duration-200 cursor-pointer ${
+                          collectionContext 
+                            ? 'bg-[hsl(var(--scheme-cards-bg))] border-[hsl(var(--scheme-cards-border))]' 
+                            : 'bg-card'
+                        }`}>
                           <div className="flex items-center gap-2">
                             <LifelineBookIcon size={20} />
-                            <h3 className="font-semibold group-hover:text-primary transition-colors">
+                            <h3 className="font-semibold group-hover:text-primary transition-colors" style={textStyle}>
                               {lifeline.title}
                             </h3>
                           </div>
-                          <p className="text-sm text-muted-foreground">{lifeline.type}</p>
+                          <p className={`text-sm ${collectionContext ? '' : 'text-muted-foreground'}`} style={mutedStyle}>{lifeline.type}</p>
                         </div>
                       </Link>
                     );
@@ -223,7 +238,7 @@ export function ProfileDetailView({
 
             {ratingLifelines && ratingLifelines.length > 0 && (
               <section className="space-y-4">
-                <h2 className="text-2xl font-bold">Rating Lifelines</h2>
+                <h2 className="text-2xl font-bold" style={textStyle}>Rating Lifelines</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {ratingLifelines.map((lifeline: any) => {
                     const lifelinePath = collectionContext
@@ -232,14 +247,18 @@ export function ProfileDetailView({
                     
                     return (
                       <Link key={lifeline.id} to={lifelinePath} className="group block">
-                        <div className="p-4 border rounded-lg bg-card hover:shadow-lg hover:border-primary/50 transition-all duration-200 cursor-pointer">
+                        <div className={`p-4 border rounded-lg hover:shadow-lg hover:border-primary/50 transition-all duration-200 cursor-pointer ${
+                          collectionContext 
+                            ? 'bg-[hsl(var(--scheme-cards-bg))] border-[hsl(var(--scheme-cards-border))]' 
+                            : 'bg-card'
+                        }`}>
                           <div className="flex items-center gap-2">
                             <LifelineBookIcon size={20} />
-                            <h3 className="font-semibold group-hover:text-primary transition-colors">
+                            <h3 className="font-semibold group-hover:text-primary transition-colors" style={textStyle}>
                               {lifeline.title}
                             </h3>
                           </div>
-                          <p className="text-sm text-muted-foreground">{lifeline.type}</p>
+                          <p className={`text-sm ${collectionContext ? '' : 'text-muted-foreground'}`} style={mutedStyle}>{lifeline.type}</p>
                         </div>
                       </Link>
                     );
@@ -253,7 +272,7 @@ export function ProfileDetailView({
 
       {awards && awards.length > 0 && (
         <section className="space-y-4">
-          <h2 className="text-2xl font-bold flex items-center gap-2">
+          <h2 className="text-2xl font-bold flex items-center gap-2" style={textStyle}>
             <Trophy className="h-6 w-6 text-yellow-500" />
             Mock Election Awards
           </h2>
@@ -267,29 +286,33 @@ export function ProfileDetailView({
                 }
                 className="group block"
               >
-                <Card className="bg-card border hover:shadow-lg hover:border-primary/50 transition-all">
+                <Card className={`border hover:shadow-lg hover:border-primary/50 transition-all ${
+                  collectionContext 
+                    ? 'bg-[hsl(var(--scheme-cards-bg))] border-[hsl(var(--scheme-cards-border))]' 
+                    : 'bg-card'
+                }`}>
                   <CardContent className="p-6">
                     <div className="flex items-start gap-4">
                       <Trophy className="h-8 w-8 text-yellow-500 flex-shrink-0 mt-1" />
                       <div className="flex-1">
-                        <h3 className="text-xl font-bold group-hover:text-primary transition-colors">
+                        <h3 className="text-xl font-bold group-hover:text-primary transition-colors" style={textStyle}>
                           {award.category}
                         </h3>
-                        <p className="text-sm text-muted-foreground mt-1">
+                        <p className={`text-sm mt-1 ${collectionContext ? '' : 'text-muted-foreground'}`} style={mutedStyle}>
                           {award.election.title}
                         </p>
                         {award.winner_name && (
-                          <p className="text-sm mt-2">
+                          <p className="text-sm mt-2" style={textStyle}>
                             Winner: {award.winner_name}
                           </p>
                         )}
                         {award.notes && (
-                          <p className="mt-3 text-base text-muted-foreground italic">
+                          <p className={`mt-3 text-base italic ${collectionContext ? '' : 'text-muted-foreground'}`} style={mutedStyle}>
                             {award.notes}
                           </p>
                         )}
                         {award.percentage && (
-                          <p className="text-xs text-muted-foreground mt-2">
+                          <p className={`text-xs mt-2 ${collectionContext ? '' : 'text-muted-foreground'}`} style={mutedStyle}>
                             {award.percentage}% of votes
                           </p>
                         )}
@@ -307,28 +330,32 @@ export function ProfileDetailView({
         <section className="space-y-2">
           <button 
             onClick={() => setQuotesExpanded(!quotesExpanded)}
-            className="w-full flex items-center justify-between p-4 border rounded-lg bg-card hover:bg-accent/50 transition-colors"
+            className={`w-full flex items-center justify-between p-4 border rounded-lg hover:bg-accent/50 transition-colors ${
+              collectionContext 
+                ? 'bg-[hsl(var(--scheme-cards-bg))] border-[hsl(var(--scheme-cards-border))]' 
+                : 'bg-card'
+            }`}
           >
             <div className="flex items-center gap-2">
-              <Quote className="h-5 w-5 text-muted-foreground" />
-              <span className="font-semibold">Notable Quotes</span>
+              <Quote className="h-5 w-5" style={mutedStyle} />
+              <span className="font-semibold" style={textStyle}>Notable Quotes</span>
               <Badge variant="secondary">{quotes.length}</Badge>
             </div>
             <ChevronDown className={cn(
               "h-5 w-5 transition-transform",
               quotesExpanded && "rotate-180"
-            )} />
+            )} style={mutedStyle} />
           </button>
           
           {quotesExpanded && (
             <div className="space-y-3 pl-4 border-l-2 border-muted ml-4 pt-2">
               {quotes.map((quoteItem: any) => (
                 <div key={quoteItem.id} className="space-y-1">
-                  <blockquote className="text-base italic">
+                  <blockquote className="text-base italic" style={textStyle}>
                     "{quoteItem.quote}"
                   </blockquote>
                   {quoteItem.context && (
-                    <p className="text-sm text-muted-foreground">— {quoteItem.context}</p>
+                    <p className={`text-sm ${collectionContext ? '' : 'text-muted-foreground'}`} style={mutedStyle}>— {quoteItem.context}</p>
                   )}
                 </div>
               ))}
@@ -339,7 +366,7 @@ export function ProfileDetailView({
 
       {collections && collections.length > 0 && (
         <section className="space-y-4">
-          <h2 className="text-2xl font-bold">Related Collections</h2>
+          <h2 className="text-2xl font-bold" style={textStyle}>Related Collections</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {collections.map((collection: any) => (
               <Link 
@@ -347,12 +374,16 @@ export function ProfileDetailView({
                 to={`/public/collections/${collection.slug}`} 
                 className="group block"
               >
-                <div className="p-4 border rounded-lg bg-card hover:shadow-lg hover:border-primary/50 transition-all duration-200 cursor-pointer">
-                  <h3 className="font-semibold group-hover:text-primary transition-colors">
+                <div className={`p-4 border rounded-lg hover:shadow-lg hover:border-primary/50 transition-all duration-200 cursor-pointer ${
+                  collectionContext 
+                    ? 'bg-[hsl(var(--scheme-cards-bg))] border-[hsl(var(--scheme-cards-border))]' 
+                    : 'bg-card'
+                }`}>
+                  <h3 className="font-semibold group-hover:text-primary transition-colors" style={textStyle}>
                     {collection.title}
                   </h3>
                   {collection.description && (
-                    <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+                    <p className={`text-sm mt-1 line-clamp-2 ${collectionContext ? '' : 'text-muted-foreground'}`} style={mutedStyle}>
                       {collection.description}
                     </p>
                   )}
