@@ -23,14 +23,17 @@ export function ProfileBiography({ profile, collectionContext }: ProfileBiograph
   return (
     <Card className={`p-6 ${
       collectionContext
-        ? 'bg-[hsl(var(--scheme-cards-bg))] border-[hsl(var(--scheme-cards-border))] text-[hsl(var(--scheme-cards-text))]'
+        ? 'bg-[hsl(var(--scheme-cards-bg))] border-[hsl(var(--scheme-cards-border))]'
         : ''
     }`}>
       <h2 className="text-xl font-bold mb-4">
         {fictional?.character_arc_summary ? "Character Arc" :
          org?.mission_purpose ? "Mission" : "Overview"}
       </h2>
-      <p className={`leading-relaxed whitespace-pre-wrap ${collectionContext ? 'opacity-90' : 'text-muted-foreground'}`}>
+      <p 
+        className={`leading-relaxed whitespace-pre-wrap ${collectionContext ? '' : 'text-muted-foreground'}`}
+        style={collectionContext ? { color: 'hsl(var(--scheme-profile-text))' } : undefined}
+      >
         {content}
       </p>
     </Card>

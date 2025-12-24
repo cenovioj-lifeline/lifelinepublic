@@ -123,19 +123,32 @@ export function ProfileQuickFacts({ profile, collectionContext }: ProfileQuickFa
   return (
     <Card className={`p-6 ${
       collectionContext
-        ? 'bg-[hsl(var(--scheme-cards-bg))] border-[hsl(var(--scheme-cards-border))] text-[hsl(var(--scheme-cards-text))]'
+        ? 'bg-[hsl(var(--scheme-cards-bg))] border-[hsl(var(--scheme-cards-border))]'
         : ''
     }`}>
       <h2 className="text-xl font-bold mb-4">Quick Facts</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {facts.map((fact, index) => (
           <div key={index} className="flex gap-3 items-start">
-            <div className={collectionContext ? 'opacity-70 mt-0.5' : 'text-primary mt-0.5'}>{fact.icon}</div>
+            <div 
+              className={collectionContext ? 'mt-0.5' : 'text-primary mt-0.5'}
+              style={collectionContext ? { color: 'hsl(var(--scheme-profile-text))', opacity: 0.7 } : undefined}
+            >
+              {fact.icon}
+            </div>
             <div className="flex-1">
-              <div className={`text-sm font-medium ${collectionContext ? 'opacity-70' : 'text-muted-foreground'}`}>
+              <div 
+                className={`text-sm font-medium ${collectionContext ? '' : 'text-muted-foreground'}`}
+                style={collectionContext ? { color: 'hsl(var(--scheme-profile-text))', opacity: 0.7 } : undefined}
+              >
                 {fact.label}
               </div>
-              <div className="text-sm">{fact.value}</div>
+              <div 
+                className="text-sm"
+                style={collectionContext ? { color: 'hsl(var(--scheme-profile-text))' } : undefined}
+              >
+                {fact.value}
+              </div>
             </div>
           </div>
         ))}

@@ -107,13 +107,13 @@ export function ElectionDetailView({ election, groupedResults, collectionContext
                                         <div className="text-[hsl(var(--scheme-nav-button))]">
                                             {getCategoryIcon(category)}
                                         </div>
-                                        <h2 className="text-xl font-semibold text-[hsl(var(--scheme-cards-text))]">{category}</h2>
+                                        <h2 className="text-xl font-semibold text-[hsl(var(--scheme-award-text))]">{category}</h2>
                                         <Badge variant="secondary" className="ml-2 bg-[hsl(var(--scheme-nav-button))] text-[hsl(var(--scheme-nav-text))]">
                                             {results.length} {results.length === 1 ? 'award' : 'awards'}
                                         </Badge>
                                     </div>
                                     <ChevronDown
-                                        className={`h-5 w-5 text-[hsl(var(--scheme-cards-text))] opacity-50 transition-transform ${openCategories[category] ? 'transform rotate-180' : ''
+                                        className={`h-5 w-5 text-[hsl(var(--scheme-award-text))] opacity-50 transition-transform ${openCategories[category] ? 'transform rotate-180' : ''
                                             }`}
                                     />
                                 </div>
@@ -124,7 +124,7 @@ export function ElectionDetailView({ election, groupedResults, collectionContext
                                         <CardContent key={result.id} className="p-6 bg-[hsl(var(--scheme-award-item-bg))]">
                                             <div className="flex items-start justify-between gap-4">
                                                 <div className="flex-1">
-                                                    <h3 className="text-lg font-semibold text-[hsl(var(--scheme-cards-text))] mb-3">
+                                                    <h3 className="text-lg font-semibold text-[hsl(var(--scheme-award-text))] mb-3">
                                                         {result.category}
                                                     </h3>
                                                     {result.profiles && result.profiles.length > 0 && (
@@ -144,7 +144,7 @@ export function ElectionDetailView({ election, groupedResults, collectionContext
                                                                             {profile.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()}
                                                                         </AvatarFallback>
                                                                     </Avatar>
-                                                                    <span className="font-medium text-[hsl(var(--scheme-cards-text))] hover:text-[hsl(var(--scheme-nav-button))] transition-colors">
+                                                                    <span className="font-medium text-[hsl(var(--scheme-award-text))] hover:text-[hsl(var(--scheme-nav-button))] transition-colors">
                                                                         {profile.name}
                                                                     </span>
                                                                 </button>
@@ -152,12 +152,12 @@ export function ElectionDetailView({ election, groupedResults, collectionContext
                                                         </div>
                                                     )}
                                                     {result.winner_name && (
-                                                        <p className="text-sm text-[hsl(var(--scheme-cards-text))] opacity-80 mb-2">
-                                                            Winner: <span className="font-medium text-[hsl(var(--scheme-cards-text))]">{result.winner_name}</span>
+                                                        <p className="text-sm text-[hsl(var(--scheme-award-text))] opacity-80 mb-2">
+                                                            Winner: <span className="font-medium text-[hsl(var(--scheme-award-text))]">{result.winner_name}</span>
                                                         </p>
                                                     )}
                                                     {result.notes && (
-                                                        <p className="text-sm text-[hsl(var(--scheme-cards-text))] opacity-70 italic mb-2">
+                                                        <p className="text-sm text-[hsl(var(--scheme-award-text))] opacity-70 italic mb-2">
                                                             {result.notes}
                                                         </p>
                                                     )}

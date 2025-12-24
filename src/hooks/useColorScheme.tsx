@@ -136,57 +136,27 @@ export const COLOR_MAPPINGS = {
     uses: ["Individual award entries", "Award content area"],
     cssVar: "--scheme-award-item-bg",
   },
-  // Color 23: Page Background
+  // Color 23: Award Text
+  award_text: {
+    label: "Color 23: Award Text",
+    uses: ["Award titles", "Winner names", "Award descriptions"],
+    cssVar: "--scheme-award-text",
+  },
+  // Color 24: Page Background
   page_bg: {
-    label: "Color 23: Page Background",
+    label: "Color 24: Page Background",
     uses: ["Main page background", "Body background"],
     cssVar: "--scheme-page-bg",
   },
-  // Color 24: Profile Header Background
-  profile_header_bg: {
-    label: "Color 24: Profile Header Background",
-    uses: ["Profile hero background", "Profile header area"],
-    cssVar: "--scheme-profile-header-bg",
+  // Color 25: Profile Text
+  profile_text: {
+    label: "Color 25: Profile Text",
+    uses: ["Profile biography text", "Quick facts", "Relationships", "Works"],
+    cssVar: "--scheme-profile-text",
   },
-  // Color 25: Profile Section Background
-  profile_section_bg: {
-    label: "Color 25: Profile Section Background",
-    uses: ["Biography background", "Facts section background"],
-    cssVar: "--scheme-profile-section-bg",
-  },
-  // Color 26: Badge Background
-  badge_bg: {
-    label: "Color 26: Badge Background",
-    uses: ["Badge/tag backgrounds", "Pills"],
-    cssVar: "--scheme-badge-bg",
-  },
-  // Color 27: Badge Text
-  badge_text: {
-    label: "Color 27: Badge Text",
-    uses: ["Badge/tag text color"],
-    cssVar: "--scheme-badge-text",
-  },
-  // Color 28: Quote Background
-  quote_bg: {
-    label: "Color 28: Quote Background",
-    uses: ["Quote card background"],
-    cssVar: "--scheme-quote-bg",
-  },
-  // Color 29: Quote Border
-  quote_border: {
-    label: "Color 29: Quote Border",
-    uses: ["Quote card border", "Quote accent"],
-    cssVar: "--scheme-quote-border",
-  },
-  // Color 30: Link Color
-  link_color: {
-    label: "Color 30: Link Color",
-    uses: ["Hyperlinks", "Clickable text"],
-    cssVar: "--scheme-link-color",
-  },
-  // Color 31: Filter Controls Text
+  // Color 26: Filter Controls Text
   filter_controls_text: {
-    label: "Color 31: Filter Controls Text",
+    label: "Color 26: Filter Controls Text",
     uses: ["Search input text", "Dropdown text", "Pagination buttons"],
     cssVar: "--scheme-filter-controls-text",
   },
@@ -249,30 +219,20 @@ interface ColorScheme {
   award_border: string;
   // NEW fields
   page_bg?: string;
-  profile_header_bg?: string;
-  profile_section_bg?: string;
-  badge_bg?: string;
-  badge_text?: string;
-  quote_bg?: string;
-  quote_border?: string;
-  link_color?: string;
   award_category_bg?: string;
   award_item_bg?: string;
+  award_text?: string;
+  profile_text?: string;
   filter_controls_text?: string;
 }
 
 // Default values for new fields (fallback if not set in DB)
 const NEW_FIELD_DEFAULTS = {
   page_bg: '#f4e7d7',
-  profile_header_bg: '#352e28',
-  profile_section_bg: '#f4e7d7',
-  badge_bg: '#566950',
-  badge_text: '#ffffff',
-  quote_bg: '#f4e7d7',
-  quote_border: '#352e28',
-  link_color: '#c05831',
   award_category_bg: '#f4e7d7',
   award_item_bg: '#ffffff',
+  award_text: '#352d28',
+  profile_text: '#352d28',
   filter_controls_text: '#1f2937',
 };
 
