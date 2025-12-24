@@ -688,6 +688,8 @@ export type Database = {
         Row: {
           award_bg: string | null
           award_border: string | null
+          award_category_bg: string | null
+          award_item_bg: string | null
           badge_bg: string | null
           badge_text: string | null
           cards_bg: string | null
@@ -700,6 +702,7 @@ export type Database = {
           ch_banner_text: string | null
           created_at: string | null
           description: string | null
+          filter_controls_text: string | null
           id: string
           is_default: boolean | null
           link_color: string | null
@@ -725,6 +728,8 @@ export type Database = {
         Insert: {
           award_bg?: string | null
           award_border?: string | null
+          award_category_bg?: string | null
+          award_item_bg?: string | null
           badge_bg?: string | null
           badge_text?: string | null
           cards_bg?: string | null
@@ -737,6 +742,7 @@ export type Database = {
           ch_banner_text?: string | null
           created_at?: string | null
           description?: string | null
+          filter_controls_text?: string | null
           id?: string
           is_default?: boolean | null
           link_color?: string | null
@@ -762,6 +768,8 @@ export type Database = {
         Update: {
           award_bg?: string | null
           award_border?: string | null
+          award_category_bg?: string | null
+          award_item_bg?: string | null
           badge_bg?: string | null
           badge_text?: string | null
           cards_bg?: string | null
@@ -774,6 +782,7 @@ export type Database = {
           ch_banner_text?: string | null
           created_at?: string | null
           description?: string | null
+          filter_controls_text?: string | null
           id?: string
           is_default?: boolean | null
           link_color?: string | null

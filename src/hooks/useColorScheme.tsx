@@ -124,53 +124,71 @@ export const COLOR_MAPPINGS = {
     uses: ["Award card border", "Result borders"],
     cssVar: "--scheme-award-border",
   },
-  // NEW: Color 21: Page Background
+  // Color 21: Award Category Header Background
+  award_category_bg: {
+    label: "Color 21: Award Category Header Background",
+    uses: ["Award category header row", "Collapsible trigger background"],
+    cssVar: "--scheme-award-category-bg",
+  },
+  // Color 22: Award Item Background
+  award_item_bg: {
+    label: "Color 22: Award Item Background",
+    uses: ["Individual award entries", "Award content area"],
+    cssVar: "--scheme-award-item-bg",
+  },
+  // Color 23: Page Background
   page_bg: {
-    label: "Color 21: Page Background",
+    label: "Color 23: Page Background",
     uses: ["Main page background", "Body background"],
     cssVar: "--scheme-page-bg",
   },
-  // NEW: Color 22: Profile Header Background
+  // Color 24: Profile Header Background
   profile_header_bg: {
-    label: "Color 22: Profile Header Background",
+    label: "Color 24: Profile Header Background",
     uses: ["Profile hero background", "Profile header area"],
     cssVar: "--scheme-profile-header-bg",
   },
-  // NEW: Color 23: Profile Section Background
+  // Color 25: Profile Section Background
   profile_section_bg: {
-    label: "Color 23: Profile Section Background",
+    label: "Color 25: Profile Section Background",
     uses: ["Biography background", "Facts section background"],
     cssVar: "--scheme-profile-section-bg",
   },
-  // NEW: Color 24: Badge Background
+  // Color 26: Badge Background
   badge_bg: {
-    label: "Color 24: Badge Background",
+    label: "Color 26: Badge Background",
     uses: ["Badge/tag backgrounds", "Pills"],
     cssVar: "--scheme-badge-bg",
   },
-  // NEW: Color 25: Badge Text
+  // Color 27: Badge Text
   badge_text: {
-    label: "Color 25: Badge Text",
+    label: "Color 27: Badge Text",
     uses: ["Badge/tag text color"],
     cssVar: "--scheme-badge-text",
   },
-  // NEW: Color 26: Quote Background
+  // Color 28: Quote Background
   quote_bg: {
-    label: "Color 26: Quote Background",
+    label: "Color 28: Quote Background",
     uses: ["Quote card background"],
     cssVar: "--scheme-quote-bg",
   },
-  // NEW: Color 27: Quote Border
+  // Color 29: Quote Border
   quote_border: {
-    label: "Color 27: Quote Border",
+    label: "Color 29: Quote Border",
     uses: ["Quote card border", "Quote accent"],
     cssVar: "--scheme-quote-border",
   },
-  // NEW: Color 28: Link Color
+  // Color 30: Link Color
   link_color: {
-    label: "Color 28: Link Color",
+    label: "Color 30: Link Color",
     uses: ["Hyperlinks", "Clickable text"],
     cssVar: "--scheme-link-color",
+  },
+  // Color 31: Filter Controls Text
+  filter_controls_text: {
+    label: "Color 31: Filter Controls Text",
+    uses: ["Search input text", "Dropdown text", "Pagination buttons"],
+    cssVar: "--scheme-filter-controls-text",
   },
 } as const;
 
@@ -238,6 +256,9 @@ interface ColorScheme {
   quote_bg?: string;
   quote_border?: string;
   link_color?: string;
+  award_category_bg?: string;
+  award_item_bg?: string;
+  filter_controls_text?: string;
 }
 
 // Default values for new fields (fallback if not set in DB)
@@ -250,6 +271,9 @@ const NEW_FIELD_DEFAULTS = {
   quote_bg: '#f4e7d7',
   quote_border: '#352e28',
   link_color: '#c05831',
+  award_category_bg: '#f4e7d7',
+  award_item_bg: '#ffffff',
+  filter_controls_text: '#1f2937',
 };
 
 export function useColorScheme(collectionId?: string) {

@@ -100,8 +100,8 @@ export function ElectionDetailView({ election, groupedResults, collectionContext
                         open={openCategories[category] ?? false}
                         onOpenChange={() => toggleCategory(category)}
                     >
-                        <Card className="overflow-hidden bg-[hsl(var(--scheme-cards-bg))] border-[hsl(var(--scheme-cards-border))]">
-                            <CollapsibleTrigger className="w-full">
+                        <Card className="overflow-hidden border-[hsl(var(--scheme-cards-border))]">
+                            <CollapsibleTrigger className="w-full bg-[hsl(var(--scheme-award-category-bg))]">
                                 <div className="flex items-center justify-between p-6 hover:bg-[hsl(var(--scheme-cards-border)/.1)] transition-colors">
                                     <div className="flex items-center gap-3">
                                         <div className="text-[hsl(var(--scheme-nav-button))]">
@@ -121,7 +121,7 @@ export function ElectionDetailView({ election, groupedResults, collectionContext
                             <CollapsibleContent>
                                 <div className="divide-y divide-[hsl(var(--scheme-cards-border))]">
                                     {results.map((result) => (
-                                        <CardContent key={result.id} className="p-6">
+                                        <CardContent key={result.id} className="p-6 bg-[hsl(var(--scheme-award-item-bg))]">
                                             <div className="flex items-start justify-between gap-4">
                                                 <div className="flex-1">
                                                     <h3 className="text-lg font-semibold text-[hsl(var(--scheme-cards-text))] mb-3">
