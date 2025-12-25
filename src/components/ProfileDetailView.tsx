@@ -288,7 +288,7 @@ export function ProfileDetailView({
                 }
                 className="group block"
               >
-                <Card className={`border hover:shadow-lg hover:border-primary/50 transition-all ${
+                <Card className={`border hover:shadow-lg hover:border-primary/50 hover:brightness-110 transition-all ${
                   collectionContext 
                     ? 'bg-[hsl(var(--scheme-cards-bg))] border-[hsl(var(--scheme-cards-border))]' 
                     : 'bg-card'
@@ -339,14 +339,14 @@ export function ProfileDetailView({
             }`}
           >
             <div className="flex items-center gap-2">
-              <Quote className="h-5 w-5" style={mutedStyle} />
-              <span className="font-semibold" style={textStyle}>Notable Quotes</span>
+              <Quote className="h-5 w-5" style={labelMutedStyle} />
+              <span className="font-semibold" style={labelStyle}>Notable Quotes</span>
               <Badge variant="secondary">{quotes.length}</Badge>
             </div>
             <ChevronDown className={cn(
               "h-5 w-5 transition-transform",
               quotesExpanded && "rotate-180"
-            )} style={mutedStyle} />
+            )} style={labelMutedStyle} />
           </button>
           
           {quotesExpanded && (
