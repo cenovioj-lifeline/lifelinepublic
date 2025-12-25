@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { AdminLayout } from "@/components/AdminLayout";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Check, Loader2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ColorSchemeEditorFull, ColorScheme } from "@/components/admin/ColorSchemeEditorFull";
 
@@ -21,6 +21,9 @@ export default function ColorSchemeEdit() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [colors, setColors] = useState<ColorScheme | null>(null);
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
+  const saveTimeoutRef = useRef<NodeJS.Timeout>();
+  const statusTimeoutRef = useRef<NodeJS.Timeout>();
 
   const { data: colorScheme, isLoading } = useQuery({
     queryKey: ["color-scheme", id],
@@ -44,8 +47,64 @@ export default function ColorSchemeEdit() {
     }
   }, [colorScheme]);
 
+  // Auto-save mutation (doesn't navigate away)
+  const autoSaveMutation = useMutation({
+    mutationFn: async (colorData: ColorScheme) => {
+      const { error } = await supabase
+        .from("color_schemes")
+        .update(colorData)
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onMutate: () => {
+      setSaveStatus('saving');
+    },
+    onSuccess: () => {
+      setSaveStatus('saved');
+      queryClient.invalidateQueries({ queryKey: ["color-schemes"] });
+      queryClient.invalidateQueries({ queryKey: ["color-scheme", id] });
+      
+      // Clear any existing status timeout
+      if (statusTimeoutRef.current) {
+        clearTimeout(statusTimeoutRef.current);
+      }
+      // Reset to idle after 2 seconds
+      statusTimeoutRef.current = setTimeout(() => {
+        setSaveStatus('idle');
+      }, 2000);
+    },
+    onError: (error: Error) => {
+      setSaveStatus('idle');
+      toast({
+        title: "Auto-save failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleColorSchemeChange = useCallback((newColors: ColorScheme) => {
     setColors(newColors);
+    
+    // Only auto-save for existing schemes
+    if (!isNew && id) {
+      // Clear any pending save
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+      // Debounce the save by 500ms
+      saveTimeoutRef.current = setTimeout(() => {
+        autoSaveMutation.mutate(newColors);
+      }, 500);
+    }
+  }, [isNew, id, autoSaveMutation]);
+
+  // Cleanup timeouts on unmount
+  useEffect(() => {
+    return () => {
+      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+      if (statusTimeoutRef.current) clearTimeout(statusTimeoutRef.current);
+    };
   }, []);
 
   const saveMutation = useMutation({
@@ -111,7 +170,7 @@ export default function ColorSchemeEdit() {
           <Button variant="ghost" size="icon" onClick={() => navigate("/admin/color-schemes")}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
-          <div>
+          <div className="flex-1">
             <h1 className="text-3xl font-bold tracking-tight">
               {isNew ? "New Color Scheme" : "Edit Color Scheme"}
             </h1>
@@ -119,6 +178,22 @@ export default function ColorSchemeEdit() {
               Configure all color values with live preview
             </p>
           </div>
+          {!isNew && (
+            <div className="flex items-center gap-2 text-sm">
+              {saveStatus === 'saving' && (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                  <span className="text-muted-foreground">Saving...</span>
+                </>
+              )}
+              {saveStatus === 'saved' && (
+                <>
+                  <Check className="h-4 w-4 text-green-500" />
+                  <span className="text-green-500">Saved</span>
+                </>
+              )}
+            </div>
+          )}
         </div>
 
         <Card>
