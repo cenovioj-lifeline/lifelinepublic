@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -114,7 +114,16 @@ export function ColorSchemeEditorFull({ initialColors, onChange }: ColorSchemeEd
     return { ...DEFAULT_COLORS, ...colorFieldsOnly };
   });
 
+  // Track if user is actively editing to prevent re-sync from closing color picker
+  const isEditingRef = useRef(false);
+
   useEffect(() => {
+    // Skip re-sync if user is actively editing - prevents color picker from closing
+    if (isEditingRef.current) {
+      isEditingRef.current = false;
+      return;
+    }
+    
     if (initialColors) {
       const colorFieldsOnly = extractColorFields(initialColors as Record<string, unknown>);
       const newColors = { ...DEFAULT_COLORS, ...colorFieldsOnly };
@@ -125,6 +134,7 @@ export function ColorSchemeEditorFull({ initialColors, onChange }: ColorSchemeEd
   }, [initialColors]);
 
   const handleColorChange = (field: keyof ColorScheme, value: string) => {
+    isEditingRef.current = true; // Mark as editing to prevent useEffect re-sync
     const newColors = { ...colors, [field]: value };
     setColors(newColors);
     onChange(newColors);
