@@ -9,7 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { AdminLayout } from "@/components/AdminLayout";
 import { ArrowLeft, Check, Loader2, X } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ColorSchemeEditorFull, ColorScheme } from "@/components/admin/ColorSchemeEditorFull";
+import { ColorSchemeEditorFull, ColorSchemeEditorFullRef, ColorScheme } from "@/components/admin/ColorSchemeEditorFull";
 
 export default function ColorSchemeEdit() {
   const { id } = useParams();
@@ -22,10 +22,8 @@ export default function ColorSchemeEdit() {
   const [description, setDescription] = useState("");
   const [showSaveComplete, setShowSaveComplete] = useState(false);
   
-  // Use a ref for colors to avoid re-renders that close the color picker
-  const colorsRef = useRef<ColorScheme | null>(null);
-  // Track if colors have been set (for validation)
-  const [hasColors, setHasColors] = useState(false);
+  // Ref to access the editor's current colors directly
+  const editorRef = useRef<ColorSchemeEditorFullRef>(null);
 
   const { data: colorScheme, isLoading } = useQuery({
     queryKey: ["color-scheme", id],
@@ -49,10 +47,6 @@ export default function ColorSchemeEdit() {
     }
   }, [colorScheme]);
 
-  const handleColorSchemeChange = (newColors: ColorScheme) => {
-    colorsRef.current = newColors;
-    setHasColors(true);
-  };
 
   const saveMutation = useMutation({
     mutationFn: async (vars: { name: string; description: string; colors: ColorScheme }) => {
@@ -108,7 +102,10 @@ export default function ColorSchemeEdit() {
       });
       return;
     }
-    if (!colorsRef.current) {
+    
+    // Get colors directly from the editor ref
+    const currentColors = editorRef.current?.getColors();
+    if (!currentColors) {
       toast({
         title: "Validation Error",
         description: "Please configure colors before saving",
@@ -116,7 +113,7 @@ export default function ColorSchemeEdit() {
       });
       return;
     }
-    saveMutation.mutate({ name, description, colors: colorsRef.current });
+    saveMutation.mutate({ name, description, colors: currentColors });
   };
 
   return (
@@ -179,8 +176,8 @@ export default function ColorSchemeEdit() {
           </Card>
         ) : (
           <ColorSchemeEditorFull
+            ref={editorRef}
             initialColors={colorScheme || undefined}
-            onChange={handleColorSchemeChange}
           />
         )}
       </div>
@@ -204,7 +201,7 @@ export default function ColorSchemeEdit() {
         {/* Save Button */}
         <Button
           onClick={handleSave}
-          disabled={saveMutation.isPending || !hasColors}
+          disabled={saveMutation.isPending}
           size="lg"
           className="shadow-lg"
         >
