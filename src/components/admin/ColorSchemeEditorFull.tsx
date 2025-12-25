@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -53,9 +53,13 @@ export type ColorScheme = {
   filter_controls_text: string;
 };
 
+export type ColorSchemeEditorFullRef = {
+  getColors: () => ColorScheme;
+};
+
 type ColorSchemeEditorFullProps = {
   initialColors?: Partial<ColorScheme>;
-  onChange: (colors: ColorScheme) => void;
+  onChange?: (colors: ColorScheme) => void;
 };
 
 // Default color scheme values
@@ -108,11 +112,17 @@ const extractColorFields = (obj: Record<string, unknown>): Partial<ColorScheme> 
   return result;
 };
 
-export function ColorSchemeEditorFull({ initialColors, onChange }: ColorSchemeEditorFullProps) {
+export const ColorSchemeEditorFull = forwardRef<ColorSchemeEditorFullRef, ColorSchemeEditorFullProps>(
+  ({ initialColors, onChange }, ref) => {
   const [colors, setColors] = useState<ColorScheme>(() => {
     const colorFieldsOnly = initialColors ? extractColorFields(initialColors as Record<string, unknown>) : {};
     return { ...DEFAULT_COLORS, ...colorFieldsOnly };
   });
+
+  // Expose getColors method via ref
+  useImperativeHandle(ref, () => ({
+    getColors: () => colors
+  }), [colors]);
 
   // Track if user is actively editing to prevent re-sync from closing color picker
   const isEditingRef = useRef(false);
@@ -768,4 +778,4 @@ export function ColorSchemeEditorFull({ initialColors, onChange }: ColorSchemeEd
       </div>
     </div>
   );
-}
+});
