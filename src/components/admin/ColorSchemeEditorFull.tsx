@@ -138,7 +138,7 @@ export const ColorSchemeEditorFull = forwardRef<ColorSchemeEditorFullRef, ColorS
       const colorFieldsOnly = extractColorFields(initialColors as Record<string, unknown>);
       const newColors = { ...DEFAULT_COLORS, ...colorFieldsOnly };
       setColors(newColors);
-      onChange(newColors);
+      onChange?.(newColors);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialColors]);
@@ -147,7 +147,7 @@ export const ColorSchemeEditorFull = forwardRef<ColorSchemeEditorFullRef, ColorS
     isEditingRef.current = true; // Mark as editing to prevent useEffect re-sync
     const newColors = { ...colors, [field]: value };
     setColors(newColors);
-    onChange(newColors);
+    onChange?.(newColors);
   };
 
   const ColorInput = ({ label, field, description }: { label: string; field: keyof ColorScheme; description?: string }) => (
