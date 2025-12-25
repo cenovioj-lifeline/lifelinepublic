@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,8 +8,19 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { AdminLayout } from "@/components/AdminLayout";
 import { ArrowLeft, Check, Loader2, X } from "lucide-react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ColorSchemeEditorFull, ColorSchemeEditorFullRef, ColorScheme } from "@/components/admin/ColorSchemeEditorFull";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  ColorSchemeEditorFull,
+  ColorScheme,
+  DEFAULT_COLORS,
+  extractColorFields,
+} from "@/components/admin/ColorSchemeEditorFull";
 
 export default function ColorSchemeEdit() {
   const { id } = useParams();
@@ -20,10 +31,8 @@ export default function ColorSchemeEdit() {
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const [colors, setColors] = useState<ColorScheme>(DEFAULT_COLORS);
   const [showSaveComplete, setShowSaveComplete] = useState(false);
-  
-  // Ref to access the editor's current colors directly
-  const editorRef = useRef<ColorSchemeEditorFullRef>(null);
 
   const { data: colorScheme, isLoading } = useQuery({
     queryKey: ["color-scheme", id],
@@ -44,12 +53,26 @@ export default function ColorSchemeEdit() {
     if (colorScheme) {
       setName(colorScheme.name || "");
       setDescription(colorScheme.description || "");
+      setColors({
+        ...DEFAULT_COLORS,
+        ...extractColorFields(colorScheme as unknown as Record<string, unknown>),
+      });
+      return;
     }
-  }, [colorScheme]);
 
+    if (isNew) {
+      setName("");
+      setDescription("");
+      setColors(DEFAULT_COLORS);
+    }
+  }, [colorScheme, isNew]);
 
   const saveMutation = useMutation({
-    mutationFn: async (vars: { name: string; description: string; colors: ColorScheme }) => {
+    mutationFn: async (vars: {
+      name: string;
+      description: string;
+      colors: ColorScheme;
+    }) => {
       const data = {
         name: vars.name,
         description: vars.description,
@@ -60,28 +83,32 @@ export default function ColorSchemeEdit() {
         const { data: inserted, error } = await supabase
           .from("color_schemes")
           .insert(data)
-          .select("id")
+          .select("*")
           .single();
         if (error) throw error;
-        return { isNew: true, newId: inserted.id };
-      } else {
-        const { error } = await supabase
-          .from("color_schemes")
-          .update(data)
-          .eq("id", id);
-        if (error) throw error;
-        return { isNew: false };
+        return { isNew: true as const, newId: inserted.id, updated: inserted };
       }
+
+      const { data: updated, error } = await supabase
+        .from("color_schemes")
+        .update(data)
+        .eq("id", id)
+        .select("*")
+        .single();
+      if (error) throw error;
+      return { isNew: false as const, updated };
     },
     onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ["color-schemes"] });
-      
+
       if (result.isNew && result.newId) {
         // Navigate to the new scheme's edit page (replace so back button works correctly)
         navigate(`/admin/color-schemes/${result.newId}`, { replace: true });
+      } else if (!result.isNew && id) {
+        // Ensure the edit page query has the persisted values
+        queryClient.setQueryData(["color-scheme", id], result.updated);
       }
-      
-      // Show the "Save complete" message
+
       setShowSaveComplete(true);
     },
     onError: (error: Error) => {
@@ -102,25 +129,19 @@ export default function ColorSchemeEdit() {
       });
       return;
     }
-    
-    // Get colors directly from the editor ref
-    const currentColors = editorRef.current?.getColors();
-    if (!currentColors) {
-      toast({
-        title: "Validation Error",
-        description: "Please configure colors before saving",
-        variant: "destructive",
-      });
-      return;
-    }
-    saveMutation.mutate({ name, description, colors: currentColors });
+
+    saveMutation.mutate({ name, description, colors });
   };
 
   return (
     <AdminLayout>
       <div className="space-y-6 pb-24">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate("/admin/color-schemes")}>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate("/admin/color-schemes")}
+          >
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div className="flex-1">
@@ -171,14 +192,13 @@ export default function ColorSchemeEdit() {
         {isLoading ? (
           <Card>
             <CardContent className="p-6">
-              <div className="text-center text-muted-foreground">Loading color scheme...</div>
+              <div className="text-center text-muted-foreground">
+                Loading color scheme...
+              </div>
             </CardContent>
           </Card>
         ) : (
-          <ColorSchemeEditorFull
-            ref={editorRef}
-            initialColors={colorScheme || undefined}
-          />
+          <ColorSchemeEditorFull colors={colors} onChange={setColors} />
         )}
       </div>
 
@@ -197,7 +217,7 @@ export default function ColorSchemeEdit() {
             </button>
           </div>
         )}
-        
+
         {/* Save Button */}
         <Button
           onClick={handleSave}
