@@ -121,7 +121,8 @@ export function ColorSchemeEditorFull({ initialColors, onChange }: ColorSchemeEd
       setColors(newColors);
       onChange(newColors);
     }
-  }, [initialColors, onChange]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialColors]);
 
   const handleColorChange = (field: keyof ColorScheme, value: string) => {
     const newColors = { ...colors, [field]: value };
