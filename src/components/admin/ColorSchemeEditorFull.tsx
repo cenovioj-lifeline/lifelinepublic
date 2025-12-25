@@ -119,10 +119,18 @@ export const ColorSchemeEditorFull = forwardRef<ColorSchemeEditorFullRef, ColorS
     return { ...DEFAULT_COLORS, ...colorFieldsOnly };
   });
 
-  // Expose getColors method via ref
+  // Ref to always hold the latest colors - avoids stale closure issues
+  const colorsRef = useRef<ColorScheme>(colors);
+
+  // Keep ref in sync with state
+  useEffect(() => {
+    colorsRef.current = colors;
+  }, [colors]);
+
+  // Expose getColors method via ref - reads from colorsRef to always get latest
   useImperativeHandle(ref, () => ({
-    getColors: () => colors
-  }), [colors]);
+    getColors: () => colorsRef.current
+  }), []);
 
   // Track if user is actively editing to prevent re-sync from closing color picker
   const isEditingRef = useRef(false);
@@ -147,6 +155,7 @@ export const ColorSchemeEditorFull = forwardRef<ColorSchemeEditorFullRef, ColorS
     isEditingRef.current = true; // Mark as editing to prevent useEffect re-sync
     const newColors = { ...colors, [field]: value };
     setColors(newColors);
+    colorsRef.current = newColors; // Update ref immediately for getColors()
     onChange?.(newColors);
   };
 
