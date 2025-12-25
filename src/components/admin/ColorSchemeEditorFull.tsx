@@ -1,4 +1,3 @@
-import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -53,17 +52,13 @@ export type ColorScheme = {
   filter_controls_text: string;
 };
 
-export type ColorSchemeEditorFullRef = {
-  getColors: () => ColorScheme;
-};
-
-type ColorSchemeEditorFullProps = {
-  initialColors?: Partial<ColorScheme>;
-  onChange?: (colors: ColorScheme) => void;
+export type ColorSchemeEditorFullProps = {
+  colors: ColorScheme;
+  onChange: (colors: ColorScheme) => void;
 };
 
 // Default color scheme values
-const DEFAULT_COLORS: ColorScheme = {
+export const DEFAULT_COLORS: ColorScheme = {
   nav_bg_color: "#352e28",
   nav_text_color: "#ffffff",
   nav_button_color: "#c05831",
@@ -101,65 +96,31 @@ const DEFAULT_COLORS: ColorScheme = {
 };
 
 // Helper to extract only color fields from an object
-const extractColorFields = (obj: Record<string, unknown>): Partial<ColorScheme> => {
+export const extractColorFields = (obj: Record<string, unknown>): Partial<ColorScheme> => {
   const colorKeys = Object.keys(DEFAULT_COLORS) as (keyof ColorScheme)[];
   const result: Partial<ColorScheme> = {};
   for (const key of colorKeys) {
-    if (key in obj && typeof obj[key] === 'string') {
+    if (key in obj && typeof obj[key] === "string") {
       result[key] = obj[key] as string;
     }
   }
   return result;
 };
 
-export const ColorSchemeEditorFull = forwardRef<ColorSchemeEditorFullRef, ColorSchemeEditorFullProps>(
-  ({ initialColors, onChange }, ref) => {
-  const [colors, setColors] = useState<ColorScheme>(() => {
-    const colorFieldsOnly = initialColors ? extractColorFields(initialColors as Record<string, unknown>) : {};
-    return { ...DEFAULT_COLORS, ...colorFieldsOnly };
-  });
-
-  // Ref to always hold the latest colors - avoids stale closure issues
-  const colorsRef = useRef<ColorScheme>(colors);
-
-  // Keep ref in sync with state
-  useEffect(() => {
-    colorsRef.current = colors;
-  }, [colors]);
-
-  // Expose getColors method via ref - reads from colorsRef to always get latest
-  useImperativeHandle(ref, () => ({
-    getColors: () => colorsRef.current
-  }), []);
-
-  // Track if user is actively editing to prevent re-sync from closing color picker
-  const isEditingRef = useRef(false);
-
-  useEffect(() => {
-    // Skip re-sync if user is actively editing - prevents color picker from closing
-    if (isEditingRef.current) {
-      isEditingRef.current = false;
-      return;
-    }
-    
-    if (initialColors) {
-      const colorFieldsOnly = extractColorFields(initialColors as Record<string, unknown>);
-      const newColors = { ...DEFAULT_COLORS, ...colorFieldsOnly };
-      setColors(newColors);
-      onChange?.(newColors);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialColors]);
-
+export function ColorSchemeEditorFull({ colors, onChange }: ColorSchemeEditorFullProps) {
   const handleColorChange = (field: keyof ColorScheme, value: string) => {
-    isEditingRef.current = true; // Mark as editing to prevent useEffect re-sync
-    const newColors = { ...colors, [field]: value };
-    setColors(newColors);
-    colorsRef.current = newColors; // Update ref immediately for getColors()
-    onChange?.(newColors);
+    onChange({ ...colors, [field]: value });
   };
 
-  const ColorInput = ({ label, field, description }: { label: string; field: keyof ColorScheme; description?: string }) => (
+  const ColorInput = ({
+    label,
+    field,
+    description,
+  }: {
+    label: string;
+    field: keyof ColorScheme;
+    description?: string;
+  }) => (
     <div className="space-y-2">
       <Label htmlFor={field} className="text-sm font-medium">
         {label}
@@ -787,4 +748,4 @@ export const ColorSchemeEditorFull = forwardRef<ColorSchemeEditorFullRef, ColorS
       </div>
     </div>
   );
-});
+}
