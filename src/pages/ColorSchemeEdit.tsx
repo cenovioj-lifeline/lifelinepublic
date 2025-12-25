@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { AdminLayout } from "@/components/AdminLayout";
-import { ArrowLeft, Check, Loader2 } from "lucide-react";
+import { ArrowLeft, Check, Loader2, X } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ColorSchemeEditorFull, ColorScheme } from "@/components/admin/ColorSchemeEditorFull";
 
@@ -20,10 +20,12 @@ export default function ColorSchemeEdit() {
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [colors, setColors] = useState<ColorScheme | null>(null);
-  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
-  const saveTimeoutRef = useRef<NodeJS.Timeout>();
-  const statusTimeoutRef = useRef<NodeJS.Timeout>();
+  const [showSaveComplete, setShowSaveComplete] = useState(false);
+  
+  // Use a ref for colors to avoid re-renders that close the color picker
+  const colorsRef = useRef<ColorScheme | null>(null);
+  // Track if colors have been set (for validation)
+  const [hasColors, setHasColors] = useState(false);
 
   const { data: colorScheme, isLoading } = useQuery({
     queryKey: ["color-scheme", id],
@@ -47,65 +49,10 @@ export default function ColorSchemeEdit() {
     }
   }, [colorScheme]);
 
-  // Auto-save mutation (doesn't navigate away)
-  const autoSaveMutation = useMutation({
-    mutationFn: async (colorData: ColorScheme) => {
-      const { error } = await supabase
-        .from("color_schemes")
-        .update(colorData)
-        .eq("id", id);
-      if (error) throw error;
-    },
-    onMutate: () => {
-      setSaveStatus('saving');
-    },
-    onSuccess: () => {
-      setSaveStatus('saved');
-      queryClient.invalidateQueries({ queryKey: ["color-schemes"] });
-      queryClient.invalidateQueries({ queryKey: ["color-scheme", id] });
-      
-      // Clear any existing status timeout
-      if (statusTimeoutRef.current) {
-        clearTimeout(statusTimeoutRef.current);
-      }
-      // Reset to idle after 2 seconds
-      statusTimeoutRef.current = setTimeout(() => {
-        setSaveStatus('idle');
-      }, 2000);
-    },
-    onError: (error: Error) => {
-      setSaveStatus('idle');
-      toast({
-        title: "Auto-save failed",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
-
-  const handleColorSchemeChange = useCallback((newColors: ColorScheme) => {
-    setColors(newColors);
-    
-    // Only auto-save for existing schemes
-    if (!isNew && id) {
-      // Clear any pending save
-      if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current);
-      }
-      // Debounce the save by 500ms
-      saveTimeoutRef.current = setTimeout(() => {
-        autoSaveMutation.mutate(newColors);
-      }, 500);
-    }
-  }, [isNew, id, autoSaveMutation]);
-
-  // Cleanup timeouts on unmount
-  useEffect(() => {
-    return () => {
-      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
-      if (statusTimeoutRef.current) clearTimeout(statusTimeoutRef.current);
-    };
-  }, []);
+  const handleColorSchemeChange = (newColors: ColorScheme) => {
+    colorsRef.current = newColors;
+    setHasColors(true);
+  };
 
   const saveMutation = useMutation({
     mutationFn: async (vars: { name: string; description: string; colors: ColorScheme }) => {
@@ -116,23 +63,32 @@ export default function ColorSchemeEdit() {
       };
 
       if (isNew) {
-        const { error } = await supabase.from("color_schemes").insert(data);
+        const { data: inserted, error } = await supabase
+          .from("color_schemes")
+          .insert(data)
+          .select("id")
+          .single();
         if (error) throw error;
+        return { isNew: true, newId: inserted.id };
       } else {
         const { error } = await supabase
           .from("color_schemes")
           .update(data)
           .eq("id", id);
         if (error) throw error;
+        return { isNew: false };
       }
     },
-    onSuccess: () => {
+    onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ["color-schemes"] });
-      toast({
-        title: "Success",
-        description: `Color scheme ${isNew ? "created" : "updated"} successfully`,
-      });
-      navigate("/admin/color-schemes");
+      
+      if (result.isNew && result.newId) {
+        // Navigate to the new scheme's edit page (replace so back button works correctly)
+        navigate(`/admin/color-schemes/${result.newId}`, { replace: true });
+      }
+      
+      // Show the "Save complete" message
+      setShowSaveComplete(true);
     },
     onError: (error: Error) => {
       toast({
@@ -152,7 +108,7 @@ export default function ColorSchemeEdit() {
       });
       return;
     }
-    if (!colors) {
+    if (!colorsRef.current) {
       toast({
         title: "Validation Error",
         description: "Please configure colors before saving",
@@ -160,12 +116,12 @@ export default function ColorSchemeEdit() {
       });
       return;
     }
-    saveMutation.mutate({ name, description, colors });
+    saveMutation.mutate({ name, description, colors: colorsRef.current });
   };
 
   return (
     <AdminLayout>
-      <div className="space-y-6">
+      <div className="space-y-6 pb-24">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={() => navigate("/admin/color-schemes")}>
             <ArrowLeft className="h-4 w-4" />
@@ -178,22 +134,6 @@ export default function ColorSchemeEdit() {
               Configure all color values with live preview
             </p>
           </div>
-          {!isNew && (
-            <div className="flex items-center gap-2 text-sm">
-              {saveStatus === 'saving' && (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-                  <span className="text-muted-foreground">Saving...</span>
-                </>
-              )}
-              {saveStatus === 'saved' && (
-                <>
-                  <Check className="h-4 w-4 text-green-500" />
-                  <span className="text-green-500">Saved</span>
-                </>
-              )}
-            </div>
-          )}
         </div>
 
         <Card>
@@ -243,21 +183,41 @@ export default function ColorSchemeEdit() {
             onChange={handleColorSchemeChange}
           />
         )}
+      </div>
 
-        <div className="flex gap-2">
-          <Button onClick={handleSave} disabled={saveMutation.isPending || !colors}>
-            {saveMutation.isPending ? "Saving..." : isNew ? "Create Scheme" : "Update Scheme"}
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => navigate("/admin/color-schemes")}
-          >
-            Cancel
-          </Button>
-        </div>
+      {/* Floating Save Button */}
+      <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-2">
+        {/* Save Complete Message */}
+        {showSaveComplete && (
+          <div className="flex items-center gap-2 rounded-lg bg-green-600 px-4 py-2 text-white shadow-lg">
+            <Check className="h-4 w-4" />
+            <span className="font-medium">Save complete</span>
+            <button
+              onClick={() => setShowSaveComplete(false)}
+              className="ml-2 rounded p-0.5 hover:bg-green-700"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        )}
+        
+        {/* Save Button */}
+        <Button
+          onClick={handleSave}
+          disabled={saveMutation.isPending || !hasColors}
+          size="lg"
+          className="shadow-lg"
+        >
+          {saveMutation.isPending ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Saving...
+            </>
+          ) : (
+            "Update"
+          )}
+        </Button>
       </div>
     </AdminLayout>
   );
 }
-
