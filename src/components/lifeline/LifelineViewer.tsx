@@ -527,7 +527,7 @@ export function LifelineViewer({
                                 <Star className="inline-block h-3 w-3 ml-1 fill-yellow-400 text-yellow-400" />
                               )}
                             </div>
-                            <div className="text-xs text-[hsl(var(--scheme-cards-text))] line-clamp-2">
+                            <div className="text-xs text-[hsl(var(--scheme-title-text))] line-clamp-2">
                               {entry.summary || entry.details}
                             </div>
                           </div>
@@ -559,7 +559,7 @@ export function LifelineViewer({
                               )}
                               {entry.title}
                             </div>
-                            <div className="text-xs text-[hsl(var(--scheme-cards-text))] line-clamp-2">
+                            <div className="text-xs text-[hsl(var(--scheme-title-text))] line-clamp-2">
                               {entry.summary || entry.details}
                             </div>
                           </div>
