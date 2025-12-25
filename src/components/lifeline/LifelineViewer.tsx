@@ -748,7 +748,7 @@ export function LifelineViewer({
                         )}
                       </div>
                     )}
-                    <div className="flex items-center gap-1 text-sm text-muted-foreground mt-1">
+                    <div className="flex items-center gap-1 text-sm text-[hsl(var(--scheme-title-text))] opacity-70 mt-1">
                       <Calendar className="h-3 w-3" />
                       <span>
                         {selected.occurred_on 
@@ -790,7 +790,7 @@ export function LifelineViewer({
                   </div>
                 ) : (
                   <div className="flex items-start gap-2">
-                    <p className="flex-1 leading-relaxed text-[hsl(var(--scheme-cards-text))]">
+                    <p className="flex-1 leading-relaxed text-[hsl(var(--scheme-title-text))]">
                       {selected.summary || selected.details}
                     </p>
                     {isSuperFan && (
