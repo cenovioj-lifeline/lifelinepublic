@@ -107,13 +107,13 @@ export function ElectionDetailView({ election, groupedResults, collectionContext
                                         <div className="text-[hsl(var(--scheme-nav-button))]">
                                             {getCategoryIcon(category)}
                                         </div>
-                                        <h2 className="text-xl font-semibold text-[hsl(var(--scheme-award-text))]">{category}</h2>
+                                        <h2 className="text-xl font-semibold text-[hsl(var(--scheme-profile-label-text))]">{category}</h2>
                                         <Badge variant="secondary" className="ml-2 bg-[hsl(var(--scheme-nav-button))] text-[hsl(var(--scheme-profile-label-text))]">
                                             {results.length} {results.length === 1 ? 'award' : 'awards'}
                                         </Badge>
                                     </div>
                                     <ChevronDown
-                                        className={`h-5 w-5 text-[hsl(var(--scheme-award-text))] opacity-50 transition-transform ${openCategories[category] ? 'transform rotate-180' : ''
+                                        className={`h-5 w-5 text-[hsl(var(--scheme-profile-label-text))] opacity-50 transition-transform ${openCategories[category] ? 'transform rotate-180' : ''
                                             }`}
                                     />
                                 </div>
