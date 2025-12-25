@@ -33,6 +33,7 @@ export default function ColorSchemeEdit() {
   const [description, setDescription] = useState("");
   const [colors, setColors] = useState<ColorScheme>(DEFAULT_COLORS);
   const [showSaveComplete, setShowSaveComplete] = useState(false);
+  const [hasInitialized, setHasInitialized] = useState(false);
 
   const { data: colorScheme, isLoading } = useQuery({
     queryKey: ["color-scheme", id],
@@ -47,25 +48,31 @@ export default function ColorSchemeEdit() {
       return data;
     },
     enabled: !isNew,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    staleTime: Infinity,
   });
 
   useEffect(() => {
-    if (colorScheme) {
+    // Only initialize once when colorScheme first loads
+    if (colorScheme && !hasInitialized) {
       setName(colorScheme.name || "");
       setDescription(colorScheme.description || "");
       setColors({
         ...DEFAULT_COLORS,
         ...extractColorFields(colorScheme as unknown as Record<string, unknown>),
       });
+      setHasInitialized(true);
       return;
     }
 
-    if (isNew) {
+    if (isNew && !hasInitialized) {
       setName("");
       setDescription("");
       setColors(DEFAULT_COLORS);
+      setHasInitialized(true);
     }
-  }, [colorScheme, isNew]);
+  }, [colorScheme, isNew, hasInitialized]);
 
   const saveMutation = useMutation({
     mutationFn: async (vars: {
@@ -99,14 +106,11 @@ export default function ColorSchemeEdit() {
       return { isNew: false as const, updated };
     },
     onSuccess: (result) => {
+      // Just invalidate the list - the edit page uses local state
       queryClient.invalidateQueries({ queryKey: ["color-schemes"] });
 
       if (result.isNew && result.newId) {
-        // Navigate to the new scheme's edit page (replace so back button works correctly)
         navigate(`/admin/color-schemes/${result.newId}`, { replace: true });
-      } else if (!result.isNew && id) {
-        // Ensure the edit page query has the persisted values
-        queryClient.setQueryData(["color-scheme", id], result.updated);
       }
 
       setShowSaveComplete(true);
