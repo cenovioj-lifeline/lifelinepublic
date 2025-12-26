@@ -180,6 +180,7 @@ export type Database = {
           author_name: string
           author_profile_id: string | null
           core_thesis: string | null
+          cover_image_id: string | null
           cover_image_path: string | null
           cover_image_url: string | null
           created_at: string | null
@@ -202,6 +203,7 @@ export type Database = {
           author_name: string
           author_profile_id?: string | null
           core_thesis?: string | null
+          cover_image_id?: string | null
           cover_image_path?: string | null
           cover_image_url?: string | null
           created_at?: string | null
@@ -224,6 +226,7 @@ export type Database = {
           author_name?: string
           author_profile_id?: string | null
           core_thesis?: string | null
+          cover_image_id?: string | null
           cover_image_path?: string | null
           cover_image_url?: string | null
           created_at?: string | null
@@ -248,6 +251,13 @@ export type Database = {
             columns: ["author_profile_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "books_cover_image_id_fkey"
+            columns: ["cover_image_id"]
+            isOneToOne: false
+            referencedRelation: "media_assets"
             referencedColumns: ["id"]
           },
         ]

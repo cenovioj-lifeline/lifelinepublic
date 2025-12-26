@@ -27,10 +27,20 @@ function transformBook(row: any): Book {
     keyThemes: row.key_themes,
     coverImageUrl: row.cover_image_url,
     coverImagePath: row.cover_image_path,
+    coverImageId: row.cover_image_id,
     themeColor: row.theme_color || 'slate',
     status: row.status,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
+    // Include joined cover_image if present
+    cover_image: row.cover_image ? {
+      id: row.cover_image.id,
+      url: row.cover_image.url,
+      alt_text: row.cover_image.alt_text,
+      position_x: row.cover_image.position_x,
+      position_y: row.cover_image.position_y,
+      scale: row.cover_image.scale,
+    } : undefined,
   };
 }
 
@@ -84,10 +94,15 @@ export function useBookData(bookSlug: string | undefined) {
     queryFn: async () => {
       if (!bookSlug) return null;
 
-      // 1. Fetch book metadata
+      // 1. Fetch book metadata with cover_image relationship
       const { data: bookRow, error: bookError } = await supabase
         .from("books")
-        .select("*")
+        .select(`
+          *,
+          cover_image:media_assets!cover_image_id(
+            id, url, alt_text, position_x, position_y, scale
+          )
+        `)
         .eq("slug", bookSlug)
         .maybeSingle();
 
@@ -148,13 +163,18 @@ export function useProfileBooks(profileSlug: string | undefined) {
       if (profileError) throw profileError;
       if (!profile) return [];
 
-      // 2. Get books via profile_books junction
+      // 2. Get books via profile_books junction with cover_image
       const { data: profileBooks, error: pbError } = await supabase
         .from("profile_books")
         .select(`
           display_order,
           relationship_type,
-          book:books(*)
+          book:books(
+            *,
+            cover_image:media_assets!cover_image_id(
+              id, url, alt_text, position_x, position_y, scale
+            )
+          )
         `)
         .eq("profile_id", profile.id)
         .order("display_order", { ascending: true });
