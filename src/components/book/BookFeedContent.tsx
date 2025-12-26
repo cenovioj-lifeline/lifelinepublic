@@ -60,11 +60,7 @@ export function BookFeedContent({
   return (
     <div 
       className="flex flex-col md:flex-row min-h-screen"
-      style={{ 
-        backgroundColor: hasContext 
-          ? "hsl(var(--scheme-collection-bg))" 
-          : "hsl(var(--muted) / 0.2)" 
-      }}
+      style={{ backgroundColor: "hsl(220 14% 96%)" }}
     >
       {/* Left Sidebar - Filters */}
       <BookSidebar
@@ -83,24 +79,11 @@ export function BookFeedContent({
         <div className="mb-6 md:hidden">
           <div className="flex items-start justify-between gap-2">
             <div>
-              <h1 
-                className="text-2xl font-bold"
-                style={{ color: hasContext ? "hsl(var(--scheme-title-text))" : undefined }}
-              >
-                {book.title}
-              </h1>
+              <h1 className="text-2xl font-bold text-foreground">{book.title}</h1>
               {book.subtitle && (
-                <p 
-                  className="text-lg mt-1"
-                  style={{ color: hasContext ? "hsl(var(--scheme-cards-text))" : "hsl(var(--muted-foreground))" }}
-                >
-                  {book.subtitle}
-                </p>
+                <p className="text-lg mt-1 text-muted-foreground">{book.subtitle}</p>
               )}
-              <p 
-                className="text-sm mt-2"
-                style={{ color: hasContext ? "hsl(var(--scheme-cards-text))" : "hsl(var(--muted-foreground))" }}
-              >
+              <p className="text-sm mt-2 text-muted-foreground">
                 by {book.authorName}
                 {book.publicationYear && ` (${book.publicationYear})`}
               </p>
@@ -152,17 +135,10 @@ export function BookFeedContent({
           <div className="space-y-8">
             {/* Filter Header */}
             <div className="flex items-center justify-between">
-              <h2 
-                className="text-2xl font-bold"
-                style={{ color: hasContext ? "hsl(var(--scheme-title-text))" : undefined }}
-              >
+              <h2 className="text-2xl font-bold text-foreground">
                 {CONTENT_TYPE_CONFIG[activeFilter].pluralLabel}
               </h2>
-              <Badge 
-                variant="outline" 
-                className={hasContext ? "border-[hsl(var(--scheme-cards-border))]" : ""}
-                style={{ color: hasContext ? "hsl(var(--scheme-cards-text))" : undefined }}
-              >
+              <Badge variant="outline">
                 {filteredContent.length} {filteredContent.length === 1 ? 'item' : 'items'}
               </Badge>
             </div>
@@ -178,10 +154,7 @@ export function BookFeedContent({
                 />
               ))
             ) : (
-              <div 
-                className="text-center py-12"
-                style={{ color: hasContext ? "hsl(var(--scheme-cards-text))" : "hsl(var(--muted-foreground))" }}
-              >
+              <div className="text-center py-12 text-muted-foreground">
                 <p>No {CONTENT_TYPE_CONFIG[activeFilter].pluralLabel.toLowerCase()} content yet.</p>
               </div>
             )}
@@ -190,15 +163,7 @@ export function BookFeedContent({
       </main>
 
       {/* Right Sidebar - Book Metadata (desktop only) */}
-      <aside 
-        className="hidden xl:block w-80 p-6 border-l sticky top-0 h-screen overflow-y-auto backdrop-blur"
-        style={{ 
-          backgroundColor: hasContext 
-            ? "hsl(var(--scheme-cards-bg) / 0.5)" 
-            : "hsl(var(--background) / 0.5)",
-          borderColor: hasContext ? "hsl(var(--scheme-cards-border))" : undefined
-        }}
-      >
+      <aside className="hidden xl:block w-80 p-6 border-l border-border sticky top-0 h-screen overflow-y-auto bg-background">
         <BookMetadata book={book} hasContext={hasContext} />
       </aside>
     </div>

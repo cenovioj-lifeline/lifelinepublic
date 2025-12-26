@@ -20,17 +20,11 @@ export function BookMetadata({ book, hasContext = false }: BookMetadataProps) {
     <div className="space-y-6">
       {/* Book Cover */}
       <div>
-        <h3 
-          className="font-bold mb-3 flex items-center gap-2"
-          style={{ color: hasContext ? "hsl(var(--scheme-title-text))" : undefined }}
-        >
+        <h3 className="font-bold mb-3 flex items-center gap-2 text-foreground">
           <BookOpen className="h-4 w-4" /> About The Book
         </h3>
         {(book.cover_image?.url || book.coverImageUrl) ? (
-          <div 
-            className="aspect-[2/3] rounded-lg shadow-lg mb-4 overflow-hidden border"
-            style={{ borderColor: hasContext ? "hsl(var(--scheme-cards-border))" : "hsl(220 13% 91%)" }}
-          >
+          <div className="aspect-[2/3] rounded-lg shadow-lg mb-4 overflow-hidden border border-border">
             <img
               src={book.cover_image?.url || book.coverImageUrl}
               alt={`${book.title} cover`}
@@ -47,14 +41,12 @@ export function BookMetadata({ book, hasContext = false }: BookMetadataProps) {
             className="aspect-[2/3] rounded-lg shadow-inner mb-4 flex items-center justify-center text-white border-2 border-white/20 p-4"
             style={{ 
               background: hasContext 
-                ? "linear-gradient(to bottom right, hsl(var(--scheme-nav-bg)), hsl(var(--scheme-nav-bg) / 0.8))"
+                ? "linear-gradient(to bottom right, hsl(var(--scheme-nav-button)), hsl(var(--scheme-nav-button) / 0.8))"
                 : "linear-gradient(to bottom right, hsl(220 9% 30%), hsl(220 9% 15%))"
             }}
           >
             <div className="text-center">
-              <span className="font-bold text-lg leading-tight block">
-                {book.title}
-              </span>
+              <span className="font-bold text-lg leading-tight block">{book.title}</span>
               <span className="font-normal text-xs opacity-75 mt-2 block">
                 {book.authorName}
               </span>
@@ -70,69 +62,41 @@ export function BookMetadata({ book, hasContext = false }: BookMetadataProps) {
 
       {/* One-sentence summary */}
       {book.oneSentenceSummary && (
-        <p 
-          className="text-sm leading-relaxed"
-          style={{ color: hasContext ? "hsl(var(--scheme-cards-text))" : "hsl(var(--muted-foreground))" }}
-        >
-          {book.oneSentenceSummary}
-        </p>
+        <p className="text-sm leading-relaxed text-muted-foreground">{book.oneSentenceSummary}</p>
       )}
 
       {/* Core Thesis */}
       {book.coreThesis && (
         <div>
-          <h4 
-            className="text-xs font-bold uppercase mb-2"
-            style={{ color: hasContext ? "hsl(var(--scheme-cards-text))" : "hsl(var(--muted-foreground))" }}
-          >
-            Core Thesis
-          </h4>
-          <p 
-            className="text-sm leading-relaxed"
-            style={{ color: hasContext ? "hsl(var(--scheme-title-text))" : undefined }}
-          >
-            {book.coreThesis}
-          </p>
+          <h4 className="text-xs font-bold uppercase mb-2 text-muted-foreground">Core Thesis</h4>
+          <p className="text-sm leading-relaxed text-foreground">{book.coreThesis}</p>
         </div>
       )}
 
       {/* Who Should Read */}
       {book.whoShouldRead && (
         <div>
-          <h4 
-            className="text-xs font-bold uppercase mb-2 flex items-center gap-1"
-            style={{ color: hasContext ? "hsl(var(--scheme-cards-text))" : "hsl(var(--muted-foreground))" }}
-          >
+          <h4 className="text-xs font-bold uppercase mb-2 flex items-center gap-1 text-muted-foreground">
             <Users className="h-3 w-3" /> Who Should Read
           </h4>
-          <p 
-            className="text-sm leading-relaxed"
-            style={{ color: hasContext ? "hsl(var(--scheme-cards-text))" : "hsl(var(--muted-foreground))" }}
-          >
-            {book.whoShouldRead}
-          </p>
+          <p className="text-sm leading-relaxed text-muted-foreground">{book.whoShouldRead}</p>
         </div>
       )}
 
       {/* Key Themes */}
       {book.keyThemes && book.keyThemes.length > 0 && (
         <div>
-          <h4 
-            className="text-xs font-bold uppercase mb-2"
-            style={{ color: hasContext ? "hsl(var(--scheme-cards-text))" : "hsl(var(--muted-foreground))" }}
-          >
-            Key Themes
-          </h4>
+          <h4 className="text-xs font-bold uppercase mb-2 text-muted-foreground">Key Themes</h4>
           <div className="flex flex-wrap gap-1.5">
             {book.keyThemes.map((theme, i) => (
               <Badge 
                 key={i} 
                 variant="outline" 
                 className="text-xs"
-                style={{ 
-                  borderColor: hasContext ? "hsl(var(--scheme-cards-border))" : undefined,
-                  color: hasContext ? "hsl(var(--scheme-cards-text))" : undefined
-                }}
+                style={hasContext ? { 
+                  borderColor: "hsl(var(--scheme-nav-button) / 0.3)",
+                  color: "hsl(var(--scheme-nav-button))"
+                } : undefined}
               >
                 {theme}
               </Badge>
@@ -142,35 +106,29 @@ export function BookMetadata({ book, hasContext = false }: BookMetadataProps) {
       )}
 
       {/* Book Details */}
-      <div className="space-y-2 text-sm">
+      <div className="space-y-2 text-sm text-muted-foreground">
         {book.publicationYear && (
-          <div 
-            className="flex items-center gap-2"
-            style={{ color: hasContext ? "hsl(var(--scheme-cards-text))" : "hsl(var(--muted-foreground))" }}
-          >
+          <div className="flex items-center gap-2">
             <Calendar className="h-4 w-4" />
             <span>Published {book.publicationYear}</span>
           </div>
         )}
         {book.pageCount && (
-          <div 
-            className="flex items-center gap-2"
-            style={{ color: hasContext ? "hsl(var(--scheme-cards-text))" : "hsl(var(--muted-foreground))" }}
-          >
+          <div className="flex items-center gap-2">
             <FileText className="h-4 w-4" />
             <span>{book.pageCount} pages</span>
           </div>
         )}
       </div>
 
-      {/* CTA Button */}
+      {/* CTA Button - uses scheme accent in collection context */}
       <Button 
-        className="w-full" 
+        className={hasContext ? "w-full" : "w-full bg-slate-800 hover:bg-slate-700 text-white"} 
         size="sm"
-        style={{ 
-          backgroundColor: hasContext ? "hsl(var(--scheme-nav-button))" : "hsl(220 9% 20%)",
-          color: hasContext ? "hsl(var(--scheme-nav-text))" : "white"
-        }}
+        style={hasContext ? { 
+          backgroundColor: "hsl(var(--scheme-nav-button))",
+          color: "hsl(var(--scheme-nav-text))"
+        } : undefined}
       >
         Get the Book
       </Button>

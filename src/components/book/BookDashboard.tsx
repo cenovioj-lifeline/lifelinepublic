@@ -44,13 +44,8 @@ export function BookDashboard({ counts, onSelectType, bookTitle, hasContext = fa
   return (
     <div className="space-y-8">
       <div>
-        <h1 
-          className="text-2xl font-bold mb-2"
-          style={{ color: hasContext ? "hsl(var(--scheme-title-text))" : undefined }}
-        >
-          Content Dashboard
-        </h1>
-        <p style={{ color: hasContext ? "hsl(var(--scheme-cards-text))" : "hsl(var(--muted-foreground))" }}>
+        <h1 className="text-2xl font-bold mb-2 text-foreground">Content Dashboard</h1>
+        <p className="text-muted-foreground">
           Explore all available Insights, Frameworks, Stories, and more from {bookTitle}.
         </p>
       </div>
@@ -63,28 +58,20 @@ export function BookDashboard({ counts, onSelectType, bookTitle, hasContext = fa
           return (
             <Card
               key={cat.type}
-              className="cursor-pointer hover:shadow-md transition-all hover:-translate-y-1"
+              className="cursor-pointer hover:shadow-md transition-all hover:-translate-y-1 bg-background"
               style={{ 
-                backgroundColor: hasContext ? "hsl(var(--scheme-cards-bg))" : undefined,
-                borderColor: hasContext ? "hsl(var(--scheme-cards-border))" : "hsl(var(--muted) / 0.6)"
+                borderColor: hasContext ? "hsl(var(--scheme-cards-border))" : "hsl(var(--border))"
               }}
               onClick={() => onSelectType(cat.type)}
             >
               <CardContent className="p-6 flex flex-col items-center text-center gap-4">
+                {/* Keep pastel category icon backgrounds */}
                 <div className={`p-4 rounded-full ${config.bgColor}`}>
                   <Icon className={`h-8 w-8 ${config.color}`} />
                 </div>
                 <div>
-                  <h3 
-                    className="font-bold text-lg"
-                    style={{ color: hasContext ? "hsl(var(--scheme-title-text))" : undefined }}
-                  >
-                    {cat.label}
-                  </h3>
-                  <p 
-                    className="font-medium"
-                    style={{ color: hasContext ? "hsl(var(--scheme-cards-text))" : "hsl(var(--muted-foreground))" }}
-                  >
+                  <h3 className="font-bold text-lg text-foreground">{cat.label}</h3>
+                  <p className="font-medium text-muted-foreground">
                     {cat.count} {cat.count === 1 ? 'item' : 'items'}
                   </p>
                 </div>
@@ -95,10 +82,7 @@ export function BookDashboard({ counts, onSelectType, bookTitle, hasContext = fa
       </div>
 
       {nonEmptyCategories.length === 0 && (
-        <div 
-          className="text-center py-12"
-          style={{ color: hasContext ? "hsl(var(--scheme-cards-text))" : "hsl(var(--muted-foreground))" }}
-        >
+        <div className="text-center py-12 text-muted-foreground">
           <p>No content available for this book yet.</p>
         </div>
       )}
