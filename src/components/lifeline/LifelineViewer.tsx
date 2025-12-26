@@ -35,7 +35,6 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
-import { useGlobalColors } from "@/hooks/useGlobalColors";
 import { LifelineSerpApiSearchModal } from "../admin/LifelineSerpApiSearchModal";
 import { useAdminAccess } from "@/lib/useAdminAccess";
 import { ContributionButton } from "@/components/ContributionButton";
@@ -73,13 +72,50 @@ export function LifelineViewer({
   const timelineRef = useRef<HTMLDivElement>(null);
   const entryRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
 
-  // Get colors from CSS variables
-  const positiveColor = getComputedStyle(document.documentElement).getPropertyValue('--scheme-ll-graph-positive') 
-    ? `hsl(${getComputedStyle(document.documentElement).getPropertyValue('--scheme-ll-graph-positive')})` 
-    : "#16a34a";
-  const negativeColor = getComputedStyle(document.documentElement).getPropertyValue('--scheme-ll-graph-negative')
-    ? `hsl(${getComputedStyle(document.documentElement).getPropertyValue('--scheme-ll-graph-negative')})`
-    : "#dc2626";
+  // FIX: Use state for colors so they update reactively when CSS variables change
+  const [positiveColor, setPositiveColor] = useState("#16a34a");
+  const [negativeColor, setNegativeColor] = useState("#dc2626");
+
+  // FIX: Read CSS variables reactively after they're applied by useColorScheme
+  useEffect(() => {
+    const readColorsFromCSS = () => {
+      const root = document.documentElement;
+      const positiveHSL = getComputedStyle(root).getPropertyValue('--scheme-ll-graph-positive').trim();
+      const negativeHSL = getComputedStyle(root).getPropertyValue('--scheme-ll-graph-negative').trim();
+      
+      if (positiveHSL) {
+        setPositiveColor(`hsl(${positiveHSL})`);
+      }
+      if (negativeHSL) {
+        setNegativeColor(`hsl(${negativeHSL})`);
+      }
+    };
+
+    // Read immediately in case CSS vars are already set
+    readColorsFromCSS();
+
+    // Also read after a short delay to catch async color scheme loading
+    const timer = setTimeout(readColorsFromCSS, 150);
+
+    // Set up a MutationObserver to detect CSS variable changes on :root
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
+          readColorsFromCSS();
+        }
+      });
+    });
+
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['style']
+    });
+    
+    return () => {
+      clearTimeout(timer);
+      observer.disconnect();
+    };
+  }, [lifelineId]); // Re-run when lifeline changes (new collection = new color scheme)
 
   const { data: lifeline } = useQuery({
     queryKey: ["lifeline", lifelineId],
