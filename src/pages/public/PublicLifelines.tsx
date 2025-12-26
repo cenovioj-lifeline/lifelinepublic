@@ -135,9 +135,9 @@ export default function PublicLifelines() {
                 <SelectItem key={lifeline.id} value={lifeline.id}>
                   <div className="flex items-center gap-2">
                     <LifelineBookIcon size={16} />
-                    {parsed.isPersonType ? (
+                  {parsed.isPersonType ? (
                       <span>
-                        <span className="font-bold uppercase text-xs tracking-wider">{parsed.personName}</span>
+                        <span className="font-bold uppercase text-xs tracking-wider text-[hsl(var(--scheme-person-name-accent))]">{parsed.personName}</span>
                         <span className="mx-1 opacity-40">│</span>
                         <span>{parsed.contextTitle}</span>
                       </span>

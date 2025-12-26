@@ -54,6 +54,9 @@ export type ColorScheme = {
   // Contrast-Aware Text Colors (2) - NEW
   light_text_color: string;
   dark_text_color: string;
+
+  // Person Name Accent (1)
+  person_name_accent: string;
 };
 
 export type ColorSchemeEditorFullProps = {
@@ -101,6 +104,9 @@ export const DEFAULT_COLORS: ColorScheme = {
   // Contrast-aware text colors - NEW
   light_text_color: "#ffffff",
   dark_text_color: "#1f2937",
+
+  // Person name accent
+  person_name_accent: "#4a9eff",
 };
 
 // Helper to extract only color fields from an object
@@ -207,6 +213,50 @@ export function ColorSchemeEditorFull({ colors, onChange }: ColorSchemeEditorFul
                   <p style={{ color: colors.dark_text_color, fontSize: '12px', fontWeight: 600 }}>Dark Text</p>
                   <p style={{ color: colors.dark_text_color, fontSize: '10px', opacity: 0.8 }}>on light bg</p>
                 </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Person Name Accent */}
+        <Card className="border-2 border-cyan-200 bg-cyan-50/30">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <span className="text-xl">👤</span>
+              Person Name Accent
+            </CardTitle>
+            <CardDescription>Accent color for person names on lifeline cards</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <ColorInput
+              label="Person Name Accent"
+              field="person_name_accent"
+              description="Color for person names displayed above lifeline titles (e.g., 'ALICE HAN' above 'China Expert...')"
+            />
+            {/* Mini preview */}
+            <div className="mt-4">
+              <p className="text-xs font-medium mb-2 text-muted-foreground">Preview:</p>
+              <div
+                style={{ 
+                  backgroundColor: colors.cards_bg, 
+                  padding: '16px', 
+                  borderRadius: '8px', 
+                  border: `1px solid ${colors.cards_border}` 
+                }}
+              >
+                <p style={{ 
+                  color: colors.person_name_accent, 
+                  fontSize: '10px', 
+                  fontWeight: 700, 
+                  textTransform: 'uppercase', 
+                  letterSpacing: '0.05em',
+                  marginBottom: '4px' 
+                }}>
+                  PERSON NAME
+                </p>
+                <p style={{ color: colors.cards_text, fontSize: '14px', fontWeight: 600 }}>
+                  Context Title Here
+                </p>
               </div>
             </div>
           </CardContent>

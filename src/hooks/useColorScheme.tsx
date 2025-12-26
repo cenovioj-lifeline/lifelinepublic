@@ -178,6 +178,12 @@ export const COLOR_MAPPINGS = {
     uses: ["Text on light backgrounds", "Guaranteed readable on light surfaces"],
     cssVar: "--scheme-dark-text",
   },
+  // Color 30: Person Name Accent
+  person_name_accent: {
+    label: "Color 30: Person Name Accent",
+    uses: ["Person name on lifeline cards", "Name accent in lifeline headers"],
+    cssVar: "--scheme-person-name-accent",
+  },
 } as const;
 
 // Convert hex color to HSL format for CSS variables
@@ -246,6 +252,8 @@ interface ColorScheme {
   // Contrast-aware text colors
   light_text_color?: string;
   dark_text_color?: string;
+  // Person name accent
+  person_name_accent?: string;
 }
 
 // Default values for new fields (fallback if not set in DB)
@@ -259,6 +267,7 @@ const NEW_FIELD_DEFAULTS = {
   filter_controls_text: '#1f2937',
   light_text_color: '#ffffff',
   dark_text_color: '#1f2937',
+  person_name_accent: '#4a9eff',
 };
 
 export function useColorScheme(collectionId?: string) {

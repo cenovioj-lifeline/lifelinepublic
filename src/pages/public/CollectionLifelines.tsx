@@ -496,7 +496,7 @@ export default function CollectionLifelines() {
                       if (parsed.isPersonType) {
                         return (
                           <div className="space-y-0.5">
-                            <span className="text-xs font-bold uppercase tracking-wider text-[hsl(var(--scheme-nav-bg))] block">
+                            <span className="text-xs font-bold uppercase tracking-wider text-[hsl(var(--scheme-person-name-accent))] block">
                               {parsed.personName}
                             </span>
                             <span className="text-lg font-semibold transition-colors text-[hsl(var(--scheme-card-text))] block line-clamp-2">
