@@ -716,10 +716,12 @@ export type Database = {
           ch_actions_text: string | null
           ch_banner_text: string | null
           created_at: string | null
+          dark_text_color: string | null
           description: string | null
           filter_controls_text: string | null
           id: string
           is_default: boolean | null
+          light_text_color: string | null
           ll_display_bg: string
           ll_display_title_text: string
           ll_entry_contributor_button: string
@@ -752,10 +754,12 @@ export type Database = {
           ch_actions_text?: string | null
           ch_banner_text?: string | null
           created_at?: string | null
+          dark_text_color?: string | null
           description?: string | null
           filter_controls_text?: string | null
           id?: string
           is_default?: boolean | null
+          light_text_color?: string | null
           ll_display_bg?: string
           ll_display_title_text?: string
           ll_entry_contributor_button?: string
@@ -788,10 +792,12 @@ export type Database = {
           ch_actions_text?: string | null
           ch_banner_text?: string | null
           created_at?: string | null
+          dark_text_color?: string | null
           description?: string | null
           filter_controls_text?: string | null
           id?: string
           is_default?: boolean | null
+          light_text_color?: string | null
           ll_display_bg?: string
           ll_display_title_text?: string
           ll_entry_contributor_button?: string

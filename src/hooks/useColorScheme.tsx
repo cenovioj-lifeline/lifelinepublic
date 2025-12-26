@@ -166,6 +166,18 @@ export const COLOR_MAPPINGS = {
     uses: ["Search input text", "Dropdown text", "Pagination buttons"],
     cssVar: "--scheme-filter-controls-text",
   },
+  // Color 28: Light Text (for dark backgrounds)
+  light_text_color: {
+    label: "Color 28: Light Text Color",
+    uses: ["Text on dark backgrounds", "Guaranteed readable on dark surfaces"],
+    cssVar: "--scheme-light-text",
+  },
+  // Color 29: Dark Text (for light backgrounds)
+  dark_text_color: {
+    label: "Color 29: Dark Text Color",
+    uses: ["Text on light backgrounds", "Guaranteed readable on light surfaces"],
+    cssVar: "--scheme-dark-text",
+  },
 } as const;
 
 // Convert hex color to HSL format for CSS variables
@@ -231,6 +243,9 @@ interface ColorScheme {
   profile_text?: string;
   profile_label_text?: string;
   filter_controls_text?: string;
+  // Contrast-aware text colors
+  light_text_color?: string;
+  dark_text_color?: string;
 }
 
 // Default values for new fields (fallback if not set in DB)
@@ -242,6 +257,8 @@ const NEW_FIELD_DEFAULTS = {
   profile_text: '#352d28',
   profile_label_text: '#352d28',
   filter_controls_text: '#1f2937',
+  light_text_color: '#ffffff',
+  dark_text_color: '#1f2937',
 };
 
 export function useColorScheme(collectionId?: string) {
@@ -326,14 +343,19 @@ export function useColorScheme(collectionId?: string) {
       // This ensures pages using Tailwind utilities (bg-background, text-foreground, etc.)
       // automatically use the collection's color scheme instead of hardcoded defaults
 
+      // Get the contrast-aware text colors (these are the KEY fix!)
+      const lightText = colorScheme.light_text_color || NEW_FIELD_DEFAULTS.light_text_color;
+      const darkText = colorScheme.dark_text_color || NEW_FIELD_DEFAULTS.dark_text_color;
+
       // Main page colors - NOW USES page_bg explicitly!
       const pageBg = colorScheme.page_bg || NEW_FIELD_DEFAULTS.page_bg;
       root.style.setProperty('--background', hexToHSL(pageBg)); // Page background
-      root.style.setProperty('--foreground', hexToHSL(colorScheme.cards_text)); // Main content text
+      // CRITICAL FIX: Use dark_text_color for --foreground since page background is typically light
+      root.style.setProperty('--foreground', hexToHSL(darkText)); // Main content text - GUARANTEED READABLE
 
       // Card colors
       root.style.setProperty('--card', hexToHSL(colorScheme.cards_bg)); // Card backgrounds
-      root.style.setProperty('--card-foreground', hexToHSL(colorScheme.cards_text)); // Card text
+      root.style.setProperty('--card-foreground', hexToHSL(colorScheme.cards_text)); // Card text (can be specific)
 
       // Border/divider colors
       root.style.setProperty('--border', hexToHSL(colorScheme.cards_border)); // Borders and dividers
@@ -341,24 +363,24 @@ export function useColorScheme(collectionId?: string) {
 
       // Primary/accent colors (used for buttons, links, focus states)
       root.style.setProperty('--primary', hexToHSL(colorScheme.nav_button_color)); // Primary buttons, CTAs
-      root.style.setProperty('--primary-foreground', hexToHSL(colorScheme.nav_text_color)); // Text on primary buttons
+      root.style.setProperty('--primary-foreground', hexToHSL(lightText)); // Text on primary buttons (typically dark bg)
       root.style.setProperty('--ring', hexToHSL(colorScheme.nav_button_color)); // Focus rings
 
       // Secondary colors
       root.style.setProperty('--secondary', hexToHSL(colorScheme.ll_graph_positive)); // Secondary actions
-      root.style.setProperty('--secondary-foreground', hexToHSL(colorScheme.cards_text)); // Text on secondary
+      root.style.setProperty('--secondary-foreground', hexToHSL(lightText)); // Text on secondary (typically dark bg)
 
       // Accent colors
       root.style.setProperty('--accent', hexToHSL(colorScheme.award_bg)); // Accent elements
-      root.style.setProperty('--accent-foreground', hexToHSL(colorScheme.cards_text)); // Text on accent
+      root.style.setProperty('--accent-foreground', hexToHSL(darkText)); // Text on accent
 
       // Muted/subtle colors
       root.style.setProperty('--muted', hexToHSL(colorScheme.ll_graph_bg)); // Subtle backgrounds
-      root.style.setProperty('--muted-foreground', hexToHSL(colorScheme.cards_text)); // Muted text
+      root.style.setProperty('--muted-foreground', hexToHSL(darkText)); // Muted text - GUARANTEED READABLE
 
       // Destructive/error colors
       root.style.setProperty('--destructive', hexToHSL(colorScheme.ll_graph_negative)); // Error states
-      root.style.setProperty('--destructive-foreground', hexToHSL(colorScheme.nav_text_color)); // Error text
+      root.style.setProperty('--destructive-foreground', hexToHSL(lightText)); // Error text (on red bg)
 
       // Popover colors (modals, dropdowns, tooltips)
       root.style.setProperty('--popover', hexToHSL(colorScheme.cards_bg)); // Popover background
