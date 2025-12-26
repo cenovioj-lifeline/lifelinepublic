@@ -17,10 +17,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
-import { Loader2, X, ZoomIn, Check } from 'lucide-react';
+import { Loader2, X, ZoomIn, Check, Upload } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { ImagePositionPicker } from '@/components/ImagePositionPicker';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { uploadImage } from '@/lib/storage';
 
 // ========================================
 // CONFIGURATION
@@ -72,7 +73,64 @@ export const LifelineSerpApiSearchModal = ({
   const [importing, setImporting] = useState(false);
   const [showPositionPicker, setShowPositionPicker] = useState(false);
   const [importedImageUrl, setImportedImageUrl] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const queryClient = useQueryClient();
+
+  // ========================================
+  // DRAG & DROP HANDLERS
+  // ========================================
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const files = Array.from(e.dataTransfer.files);
+    const imageFile = files.find(file => file.type.startsWith('image/'));
+    if (!imageFile) {
+      toast.error("Please drop an image file");
+      return;
+    }
+    await handleDirectUpload(imageFile);
+  };
+
+  const handleDirectUpload = async (file: File) => {
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("File too large. Maximum size is 10MB.");
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const { url } = await uploadImage(file, 'media-uploads');
+      
+      // Update lifeline with uploaded image URL
+      const { error } = await supabase
+        .from('lifelines')
+        .update({ cover_image_url: url })
+        .eq('id', lifelineId);
+
+      if (error) throw error;
+
+      setImportedImageUrl(url);
+      setShowPositionPicker(true);
+      toast.success('Image uploaded! Adjust position if needed.');
+    } catch (error) {
+      console.error('Upload error:', error);
+      toast.error('Failed to upload image');
+    } finally {
+      setUploading(false);
+    }
+  };
 
   // Sync modal state when lifeline or query changes
   useEffect(() => {
@@ -247,14 +305,37 @@ export const LifelineSerpApiSearchModal = ({
           {/* STEP: EDIT QUERY */}
           {step === 'edit' && (
             <div className="space-y-4">
+              {/* Drag & Drop Upload Zone */}
+              <div
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors
+                  ${isDragging ? 'border-primary bg-primary/5' : 'border-muted-foreground/25'}
+                  ${uploading ? 'pointer-events-none opacity-50' : ''}`}
+              >
+                {uploading ? (
+                  <Loader2 className="h-8 w-8 animate-spin mx-auto text-muted-foreground" />
+                ) : (
+                  <>
+                    <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+                    <p className="font-medium">Drag & drop an image</p>
+                    <p className="text-xs text-muted-foreground">PNG, JPG, GIF up to 10MB</p>
+                  </>
+                )}
+              </div>
+
+              <div className="text-center text-sm text-muted-foreground">— or search online —</div>
+
               <div className="space-y-2">
                 <label className="text-sm font-medium">Search Query</label>
                 <Input
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="Enter search query..."
+                  disabled={uploading}
                   onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !loading) {
+                    if (e.key === 'Enter' && !loading && !uploading) {
                       handleSearch();
                     }
                   }}
@@ -262,10 +343,10 @@ export const LifelineSerpApiSearchModal = ({
               </div>
 
               <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={handleModalClose} disabled={loading}>
+                <Button variant="outline" onClick={handleModalClose} disabled={loading || uploading}>
                   Cancel
                 </Button>
-                <Button onClick={handleSearch} disabled={loading || !query.trim()}>
+                <Button onClick={handleSearch} disabled={loading || uploading || !query.trim()}>
                   {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Search Images
                 </Button>
