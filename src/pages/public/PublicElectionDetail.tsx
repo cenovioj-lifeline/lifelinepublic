@@ -7,10 +7,12 @@ import { ElectionDetailView } from "@/components/election/ElectionDetailView";
 import { useElectionData } from "@/hooks/useElectionData";
 
 export default function PublicElectionDetail() {
-  useColorScheme();
   const isMobile = useIsMobile();
   const { slug } = useParams<{ slug: string }>();
   const { election, results, groupedResults, categoryOrdering, isLoading } = useElectionData(slug);
+
+  // Apply color scheme based on collection - will load default first, then collection-specific when election loads
+  useColorScheme(election?.collection_id);
 
   if (isMobile && election?.id) {
     return (
