@@ -418,10 +418,10 @@ export function LifelineViewer({
               if (parsed.isPersonType) {
                 return (
                   <div className="flex items-center gap-3 flex-wrap">
-                    <span className="text-2xl lg:text-2xl md:text-xl sm:text-lg font-bold uppercase tracking-wide text-[hsl(var(--scheme-nav-bg))]">
+                    <span className="text-2xl lg:text-2xl md:text-xl sm:text-lg font-bold uppercase tracking-wide text-[hsl(var(--scheme-person-name-accent))]">
                       {parsed.personName}
                     </span>
-                    <span className="text-[hsl(var(--scheme-nav-bg))] opacity-30 text-2xl">│</span>
+                    <span className="text-[hsl(var(--scheme-person-name-accent))] opacity-30 text-2xl">│</span>
                     <span className="text-xl lg:text-xl md:text-lg sm:text-base text-[hsl(var(--scheme-muted-text))]">
                       {parsed.contextTitle}
                     </span>

@@ -51,7 +51,7 @@ export function StandardizedContentCard({
           <div className="flex items-start justify-between gap-2">
             {parsed?.isPersonType ? (
               <div className="space-y-0.5 flex-1">
-                <span className="text-xs font-bold uppercase tracking-wider text-[hsl(var(--scheme-nav-bg))] block">
+                <span className="text-xs font-bold uppercase tracking-wider text-[hsl(var(--scheme-person-name-accent))] block">
                   {parsed.personName}
                 </span>
                 <span className="text-lg font-semibold transition-colors text-[hsl(var(--scheme-card-text))] block line-clamp-2">

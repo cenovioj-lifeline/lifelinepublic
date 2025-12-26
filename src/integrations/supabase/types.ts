@@ -734,6 +734,7 @@ export type Database = {
           nav_button_color: string
           nav_text_color: string
           page_bg: string | null
+          person_name_accent: string | null
           profile_label_text: string | null
           profile_text: string | null
           title_text: string | null
@@ -772,6 +773,7 @@ export type Database = {
           nav_button_color?: string
           nav_text_color?: string
           page_bg?: string | null
+          person_name_accent?: string | null
           profile_label_text?: string | null
           profile_text?: string | null
           title_text?: string | null
@@ -810,6 +812,7 @@ export type Database = {
           nav_button_color?: string
           nav_text_color?: string
           page_bg?: string | null
+          person_name_accent?: string | null
           profile_label_text?: string | null
           profile_text?: string | null
           title_text?: string | null
