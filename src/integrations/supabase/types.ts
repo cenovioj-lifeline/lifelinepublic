@@ -464,8 +464,10 @@ export type Database = {
           award_icon_color: string | null
           award_title_text: string | null
           banner_text_color: string | null
+          card_image_path: string | null
           card_image_position_x: number | null
           card_image_position_y: number | null
+          card_image_url: string | null
           card_text_color: string | null
           category: string | null
           collection_accent_color: string | null
@@ -536,8 +538,10 @@ export type Database = {
           award_icon_color?: string | null
           award_title_text?: string | null
           banner_text_color?: string | null
+          card_image_path?: string | null
           card_image_position_x?: number | null
           card_image_position_y?: number | null
+          card_image_url?: string | null
           card_text_color?: string | null
           category?: string | null
           collection_accent_color?: string | null
@@ -608,8 +612,10 @@ export type Database = {
           award_icon_color?: string | null
           award_title_text?: string | null
           banner_text_color?: string | null
+          card_image_path?: string | null
           card_image_position_x?: number | null
           card_image_position_y?: number | null
+          card_image_url?: string | null
           card_text_color?: string | null
           category?: string | null
           collection_accent_color?: string | null
@@ -1995,6 +2001,7 @@ export type Database = {
           id: string
           image_query: string | null
           known_for: string[]
+          long_description: string | null
           name: string
           primary_collection_id: string | null
           primary_image_path: string | null
@@ -2018,6 +2025,7 @@ export type Database = {
           id?: string
           image_query?: string | null
           known_for?: string[]
+          long_description?: string | null
           name: string
           primary_collection_id?: string | null
           primary_image_path?: string | null
@@ -2041,6 +2049,7 @@ export type Database = {
           id?: string
           image_query?: string | null
           known_for?: string[]
+          long_description?: string | null
           name?: string
           primary_collection_id?: string | null
           primary_image_path?: string | null

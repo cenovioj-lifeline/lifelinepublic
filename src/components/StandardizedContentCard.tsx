@@ -9,8 +9,6 @@ interface StandardizedContentCardProps {
   description?: string | null;
   imageUrl?: string | null;
   imageAlt?: string | null;
-  imagePositionX?: number;
-  imagePositionY?: number;
   linkPath: string;
   badge?: string;
   type: 'lifeline' | 'collection' | 'election';
@@ -22,8 +20,6 @@ export function StandardizedContentCard({
   description,
   imageUrl,
   imageAlt,
-  imagePositionX = 50,
-  imagePositionY = 50,
   linkPath,
   badge,
   type,
@@ -44,9 +40,6 @@ export function StandardizedContentCard({
               src={imageUrl}
               alt={imageAlt || title}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-              style={{
-                objectPosition: `${imagePositionX}% ${imagePositionY}%`,
-              }}
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center text-gray-400">
