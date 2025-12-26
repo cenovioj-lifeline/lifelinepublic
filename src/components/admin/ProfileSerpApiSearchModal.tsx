@@ -17,10 +17,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
-import { Loader2, X, ZoomIn, Check } from 'lucide-react';
+import { Loader2, X, ZoomIn, Check, Upload } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { ImagePositionPicker } from '@/components/ImagePositionPicker';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { uploadImage } from '@/lib/storage';
 
 // ========================================
 // CONFIGURATION
@@ -73,7 +74,79 @@ export const ProfileSerpApiSearchModal = ({
   const [showPositionPicker, setShowPositionPicker] = useState(false);
   const [importedImageUrl, setImportedImageUrl] = useState<string | null>(null);
   const [mediaAssetId, setMediaAssetId] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const queryClient = useQueryClient();
+
+  // ========================================
+  // DRAG & DROP HANDLERS
+  // ========================================
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const files = Array.from(e.dataTransfer.files);
+    const imageFile = files.find(file => file.type.startsWith('image/'));
+    if (!imageFile) {
+      toast.error("Please drop an image file");
+      return;
+    }
+    await handleDirectUpload(imageFile);
+  };
+
+  const handleDirectUpload = async (file: File) => {
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("File too large. Maximum size is 10MB.");
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const { url, path } = await uploadImage(file, 'media-uploads');
+      
+      // Create media_asset record
+      const { data: mediaAsset, error: mediaError } = await supabase
+        .from('media_assets')
+        .insert({
+          url,
+          filename: path,
+          type: 'image',
+          alt_text: `${initialQuery} profile avatar`,
+        })
+        .select('id')
+        .single();
+
+      if (mediaError) throw mediaError;
+
+      // Update profile with new avatar
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({ avatar_image_id: mediaAsset.id })
+        .eq('id', profileId);
+
+      if (profileError) throw profileError;
+
+      setImportedImageUrl(url);
+      setMediaAssetId(mediaAsset.id);
+      setShowPositionPicker(true);
+      toast.success('Image uploaded! Now position your avatar.');
+    } catch (error) {
+      console.error('Upload error:', error);
+      toast.error('Failed to upload image');
+    } finally {
+      setUploading(false);
+    }
+  };
 
   // Sync modal state when profile or query changes
   useEffect(() => {
@@ -242,8 +315,30 @@ export const ProfileSerpApiSearchModal = ({
           {/* STEP 1: Query Editor */}
           {step === 'edit' && (
             <div className="space-y-6">
+              {/* Drag & Drop Upload Zone */}
+              <div
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors
+                  ${isDragging ? 'border-primary bg-primary/5' : 'border-muted-foreground/25'}
+                  ${uploading ? 'pointer-events-none opacity-50' : ''}`}
+              >
+                {uploading ? (
+                  <Loader2 className="h-8 w-8 animate-spin mx-auto text-muted-foreground" />
+                ) : (
+                  <>
+                    <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+                    <p className="font-medium">Drag & drop an image</p>
+                    <p className="text-xs text-muted-foreground">PNG, JPG, GIF up to 10MB</p>
+                  </>
+                )}
+              </div>
+
+              <div className="text-center text-sm text-muted-foreground">— or search online —</div>
+
               <div>
-                <label className="text-sm font-medium text-gray-700 mb-2 block">
+                <label className="text-sm font-medium text-foreground/70 mb-2 block">
                   Search Query
                 </label>
                 <Input
@@ -251,14 +346,14 @@ export const ProfileSerpApiSearchModal = ({
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="e.g., Jess Day portrait"
                   className="w-full"
-                  disabled={loading}
+                  disabled={loading || uploading}
                   onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !loading && query.trim()) {
+                    if (e.key === 'Enter' && !loading && !uploading && query.trim()) {
                       handleSearch();
                     }
                   }}
                 />
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-muted-foreground mt-1">
                   Describe the profile image you're looking for. Press Enter to search.
                 </p>
               </div>
@@ -266,7 +361,7 @@ export const ProfileSerpApiSearchModal = ({
               <div className="flex gap-3 pt-4">
                 <Button
                   onClick={handleSearch}
-                  disabled={loading || !query.trim()}
+                  disabled={loading || uploading || !query.trim()}
                   className="min-w-[120px]"
                 >
                   {loading ? (
@@ -278,7 +373,7 @@ export const ProfileSerpApiSearchModal = ({
                     'Run Search'
                   )}
                 </Button>
-                <Button variant="outline" onClick={handleClose} disabled={loading}>
+                <Button variant="outline" onClick={handleClose} disabled={loading || uploading}>
                   Cancel
                 </Button>
               </div>
