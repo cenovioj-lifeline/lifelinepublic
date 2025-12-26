@@ -17,6 +17,7 @@ interface BookSidebarProps {
   onBackClick: () => void;
   bookTitle: string;
   authorName: string;
+  hasContext?: boolean;
 }
 
 const FILTER_ICONS: Record<ContentType | 'all', typeof LayoutGrid> = {
@@ -35,6 +36,7 @@ export function BookSidebar({
   onBackClick,
   bookTitle,
   authorName,
+  hasContext = false,
 }: BookSidebarProps) {
   const totalCount = Object.values(counts).reduce((a, b) => a + b, 0);
 
@@ -48,12 +50,19 @@ export function BookSidebar({
   ];
 
   return (
-    <div className="w-full md:w-64 md:border-r bg-background p-4 flex flex-col gap-4 sticky top-0 md:h-screen z-10">
+    <div 
+      className="w-full md:w-64 md:border-r p-4 flex flex-col gap-4 sticky top-0 md:h-screen z-10"
+      style={{ 
+        backgroundColor: hasContext ? "hsl(var(--scheme-cards-bg))" : "hsl(var(--background))",
+        borderColor: hasContext ? "hsl(var(--scheme-cards-border))" : undefined
+      }}
+    >
       {/* Back Button */}
       <Button
         variant="ghost"
         onClick={onBackClick}
         className="justify-start mb-2"
+        style={{ color: hasContext ? "hsl(var(--scheme-cards-text))" : undefined }}
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -75,9 +84,24 @@ export function BookSidebar({
 
       {/* Book Info */}
       <div className="px-2 mb-4">
-        <p className="text-xs font-medium text-muted-foreground">Reading</p>
-        <h2 className="font-bold text-sm leading-tight">{bookTitle}</h2>
-        <p className="text-xs text-muted-foreground">{authorName}</p>
+        <p 
+          className="text-xs font-medium"
+          style={{ color: hasContext ? "hsl(var(--scheme-cards-text))" : "hsl(var(--muted-foreground))" }}
+        >
+          Reading
+        </p>
+        <h2 
+          className="font-bold text-sm leading-tight"
+          style={{ color: hasContext ? "hsl(var(--scheme-title-text))" : undefined }}
+        >
+          {bookTitle}
+        </h2>
+        <p 
+          className="text-xs"
+          style={{ color: hasContext ? "hsl(var(--scheme-cards-text))" : "hsl(var(--muted-foreground))" }}
+        >
+          {authorName}
+        </p>
       </div>
 
       {/* Filter Buttons */}
@@ -86,15 +110,29 @@ export function BookSidebar({
           const Icon = FILTER_ICONS[filter.id];
           const isActive = activeFilter === filter.id;
 
+          // Determine button styling based on context and active state
+          const buttonStyle = isActive
+            ? hasContext
+              ? { 
+                  backgroundColor: "hsl(var(--scheme-nav-button))", 
+                  color: "hsl(var(--scheme-nav-text))" 
+                }
+              : { 
+                  backgroundColor: "hsl(220 9% 20%)", 
+                  color: "white" 
+                }
+            : hasContext
+              ? { color: "hsl(var(--scheme-cards-text))" }
+              : undefined;
+
           return (
             <Button
               key={filter.id}
               variant={isActive ? "secondary" : "ghost"}
               className={`justify-start whitespace-nowrap ${
-                isActive
-                  ? 'bg-slate-800 text-white hover:bg-slate-900 hover:text-white shadow-md font-medium'
-                  : ''
+                isActive ? 'shadow-md font-medium' : ''
               }`}
+              style={buttonStyle}
               onClick={() => onFilterChange(filter.id)}
             >
               <Icon className={`mr-2 h-4 w-4 ${filter.id === 'quote' ? 'fill-current' : ''}`} />

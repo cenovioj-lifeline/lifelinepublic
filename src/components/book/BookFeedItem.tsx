@@ -14,6 +14,7 @@ import { CONTENT_TYPE_CONFIG } from "@/types/book";
 interface BookFeedItemProps {
   item: BookContent;
   authorName: string;
+  hasContext?: boolean;
 }
 
 const TYPE_ICONS: Record<ContentType, typeof Lightbulb> = {
@@ -24,76 +25,131 @@ const TYPE_ICONS: Record<ContentType, typeof Lightbulb> = {
   practical_use: Wrench,
 };
 
-export function BookFeedItem({ item, authorName }: BookFeedItemProps) {
+export function BookFeedItem({ item, authorName, hasContext = false }: BookFeedItemProps) {
   const Icon = TYPE_ICONS[item.contentType] || CheckSquare;
   const config = CONTENT_TYPE_CONFIG[item.contentType];
 
   return (
-    <Card className="overflow-hidden border-none shadow-sm hover:shadow-md transition-shadow">
+    <Card 
+      className="overflow-hidden border-none shadow-sm hover:shadow-md transition-shadow"
+      style={{ backgroundColor: hasContext ? "hsl(var(--scheme-cards-bg))" : undefined }}
+    >
       {/* Header */}
       <CardHeader className="flex flex-row items-center gap-4 pb-2">
         <Avatar className="h-10 w-10">
-          <AvatarFallback className="bg-slate-200 text-slate-700">
+          <AvatarFallback 
+            style={{ 
+              backgroundColor: hasContext ? "hsl(var(--scheme-nav-bg) / 0.2)" : "hsl(220 13% 91%)",
+              color: hasContext ? "hsl(var(--scheme-title-text))" : "hsl(220 9% 30%)"
+            }}
+          >
             {authorName.split(' ').map(n => n[0]).join('')}
           </AvatarFallback>
         </Avatar>
         <div className="flex-1">
           <div className="flex items-center gap-2">
-            <p className="font-semibold text-sm">{authorName}</p>
-            <span className="text-muted-foreground text-xs">•</span>
-            <span className="text-muted-foreground text-xs capitalize">
+            <p 
+              className="font-semibold text-sm"
+              style={{ color: hasContext ? "hsl(var(--scheme-title-text))" : undefined }}
+            >
+              {authorName}
+            </p>
+            <span 
+              className="text-xs"
+              style={{ color: hasContext ? "hsl(var(--scheme-cards-text))" : "hsl(var(--muted-foreground))" }}
+            >
+              •
+            </span>
+            <span 
+              className="text-xs capitalize"
+              style={{ color: hasContext ? "hsl(var(--scheme-cards-text))" : "hsl(var(--muted-foreground))" }}
+            >
               {config.label}
             </span>
           </div>
           {item.chapterReference && (
-            <p className="text-xs text-muted-foreground">{item.chapterReference}</p>
+            <p 
+              className="text-xs"
+              style={{ color: hasContext ? "hsl(var(--scheme-cards-text))" : "hsl(var(--muted-foreground))" }}
+            >
+              {item.chapterReference}
+            </p>
           )}
         </div>
       </CardHeader>
 
       {/* Content based on type */}
       <CardContent className="pb-8 space-y-4">
-        {renderContent(item, Icon)}
+        {renderContent(item, Icon, hasContext)}
       </CardContent>
     </Card>
   );
 }
 
-function renderContent(item: BookContent, Icon: typeof Lightbulb) {
+function renderContent(item: BookContent, Icon: typeof Lightbulb, hasContext: boolean) {
   switch (item.contentType) {
     case 'quote':
-      return <QuoteVisual item={item} />;
+      return <QuoteVisual item={item} hasContext={hasContext} />;
     case 'framework':
-      return <FrameworkVisual item={item} Icon={Icon} />;
+      return <FrameworkVisual item={item} Icon={Icon} hasContext={hasContext} />;
     case 'story':
-      return <StoryVisual item={item} Icon={Icon} />;
+      return <StoryVisual item={item} Icon={Icon} hasContext={hasContext} />;
     case 'practical_use':
-      return <ApplicationVisual item={item} Icon={Icon} />;
+      return <ApplicationVisual item={item} Icon={Icon} hasContext={hasContext} />;
     case 'insight':
     default:
-      return <InsightVisual item={item} Icon={Icon} />;
+      return <InsightVisual item={item} Icon={Icon} hasContext={hasContext} />;
   }
 }
 
 // Insight Visual - Featured card style
-function InsightVisual({ item, Icon }: { item: BookContent; Icon: typeof Lightbulb }) {
+function InsightVisual({ item, Icon, hasContext }: { item: BookContent; Icon: typeof Lightbulb; hasContext: boolean }) {
   return (
-    <div className="bg-white dark:bg-slate-900 p-6 rounded-xl border-l-4 border-l-slate-600 border-y border-r border-slate-200 dark:border-slate-700 shadow-sm">
+    <div 
+      className="p-6 rounded-xl border-l-4 border-y border-r shadow-sm"
+      style={{
+        backgroundColor: hasContext ? "hsl(var(--scheme-cards-bg))" : "hsl(var(--background))",
+        borderLeftColor: hasContext ? "hsl(var(--scheme-nav-button))" : "hsl(220 9% 30%)",
+        borderTopColor: hasContext ? "hsl(var(--scheme-cards-border))" : "hsl(220 13% 91%)",
+        borderRightColor: hasContext ? "hsl(var(--scheme-cards-border))" : "hsl(220 13% 91%)",
+        borderBottomColor: hasContext ? "hsl(var(--scheme-cards-border))" : "hsl(220 13% 91%)"
+      }}
+    >
       <div className="flex gap-3 mb-4">
-        <Icon className="h-5 w-5 text-slate-700 dark:text-slate-300 flex-shrink-0 mt-0.5" />
-        <h3 className="font-bold text-xl text-slate-900 dark:text-white">{item.title}</h3>
+        <Icon 
+          className="h-5 w-5 flex-shrink-0 mt-0.5"
+          style={{ color: hasContext ? "hsl(var(--scheme-title-text))" : "hsl(220 9% 30%)" }}
+        />
+        <h3 
+          className="font-bold text-xl"
+          style={{ color: hasContext ? "hsl(var(--scheme-title-text))" : undefined }}
+        >
+          {item.title}
+        </h3>
       </div>
-      <p className="text-base leading-relaxed text-slate-800 dark:text-slate-200 font-medium mb-4">
+      <p 
+        className="text-base leading-relaxed font-medium mb-4"
+        style={{ color: hasContext ? "hsl(var(--scheme-cards-text))" : "hsl(220 9% 20%)" }}
+      >
         {item.content}
       </p>
       {item.extendedData.details && Array.isArray(item.extendedData.details) && (
-        <div className="grid grid-cols-2 gap-4 mt-4 pt-4 border-t border-slate-200 dark:border-slate-800">
+        <div 
+          className="grid grid-cols-2 gap-4 mt-4 pt-4 border-t"
+          style={{ borderColor: hasContext ? "hsl(var(--scheme-cards-border))" : "hsl(220 13% 91%)" }}
+        >
           {item.extendedData.details.map((d: any, i: number) => (
             <div key={i}>
-              <p className="text-xs font-bold uppercase text-slate-500 dark:text-slate-400">
+              <p 
+                className="text-xs font-bold uppercase"
+                style={{ color: hasContext ? "hsl(var(--scheme-cards-text))" : "hsl(220 9% 46%)" }}
+              >
                 {d.label}
               </p>
-              <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
+              <p 
+                className="text-sm font-medium"
+                style={{ color: hasContext ? "hsl(var(--scheme-title-text))" : undefined }}
+              >
                 {d.value}
               </p>
             </div>
@@ -105,11 +161,23 @@ function InsightVisual({ item, Icon }: { item: BookContent; Icon: typeof Lightbu
 }
 
 // Quote Visual - Centered with quote icon
-function QuoteVisual({ item }: { item: BookContent }) {
+function QuoteVisual({ item, hasContext }: { item: BookContent; hasContext: boolean }) {
   return (
-    <div className="p-10 rounded-xl text-center flex flex-col items-center justify-center bg-white dark:bg-slate-900 text-slate-900 dark:text-white border border-slate-200 dark:border-slate-700 shadow-sm">
-      <Quote className="h-8 w-8 text-slate-400 mb-4" />
-      <p className="font-serif text-2xl italic leading-relaxed">
+    <div 
+      className="p-10 rounded-xl text-center flex flex-col items-center justify-center border shadow-sm"
+      style={{
+        backgroundColor: hasContext ? "hsl(var(--scheme-cards-bg))" : "hsl(var(--background))",
+        borderColor: hasContext ? "hsl(var(--scheme-cards-border))" : "hsl(220 13% 91%)"
+      }}
+    >
+      <Quote 
+        className="h-8 w-8 mb-4"
+        style={{ color: hasContext ? "hsl(var(--scheme-cards-text))" : "hsl(220 9% 64%)" }}
+      />
+      <p 
+        className="font-serif text-2xl italic leading-relaxed"
+        style={{ color: hasContext ? "hsl(var(--scheme-title-text))" : undefined }}
+      >
         "{item.content}"
       </p>
     </div>
@@ -117,17 +185,39 @@ function QuoteVisual({ item }: { item: BookContent }) {
 }
 
 // Framework Visual - List with numbered items
-function FrameworkVisual({ item, Icon }: { item: BookContent; Icon: typeof Lightbulb }) {
+function FrameworkVisual({ item, Icon, hasContext }: { item: BookContent; Icon: typeof Lightbulb; hasContext: boolean }) {
   const items = item.extendedData.items as Array<{ id?: number; title: string; desc: string }> | undefined;
   const steps = item.extendedData.steps as string[] | undefined;
 
   return (
-    <div className="bg-white dark:bg-slate-900 p-6 rounded-xl border-l-4 border-l-slate-600 border-y border-r border-slate-200 dark:border-slate-700 shadow-sm">
+    <div 
+      className="p-6 rounded-xl border-l-4 border-y border-r shadow-sm"
+      style={{
+        backgroundColor: hasContext ? "hsl(var(--scheme-cards-bg))" : "hsl(var(--background))",
+        borderLeftColor: hasContext ? "hsl(var(--scheme-nav-button))" : "hsl(220 9% 30%)",
+        borderTopColor: hasContext ? "hsl(var(--scheme-cards-border))" : "hsl(220 13% 91%)",
+        borderRightColor: hasContext ? "hsl(var(--scheme-cards-border))" : "hsl(220 13% 91%)",
+        borderBottomColor: hasContext ? "hsl(var(--scheme-cards-border))" : "hsl(220 13% 91%)"
+      }}
+    >
       <div className="flex gap-3 mb-4">
-        <Icon className="h-5 w-5 text-slate-700 dark:text-slate-300 flex-shrink-0 mt-0.5" />
-        <h3 className="font-bold text-xl text-slate-900 dark:text-white">{item.title}</h3>
+        <Icon 
+          className="h-5 w-5 flex-shrink-0 mt-0.5"
+          style={{ color: hasContext ? "hsl(var(--scheme-title-text))" : "hsl(220 9% 30%)" }}
+        />
+        <h3 
+          className="font-bold text-xl"
+          style={{ color: hasContext ? "hsl(var(--scheme-title-text))" : undefined }}
+        >
+          {item.title}
+        </h3>
       </div>
-      <p className="text-slate-800 dark:text-slate-200 font-medium mb-6">{item.content}</p>
+      <p 
+        className="font-medium mb-6"
+        style={{ color: hasContext ? "hsl(var(--scheme-cards-text))" : "hsl(220 9% 20%)" }}
+      >
+        {item.content}
+      </p>
 
       {/* Render items if present */}
       {items && items.length > 0 && (
@@ -135,16 +225,32 @@ function FrameworkVisual({ item, Icon }: { item: BookContent; Icon: typeof Light
           {items.map((sub, i) => (
             <div
               key={i}
-              className="flex items-start gap-4 p-4 bg-slate-50 dark:bg-slate-800/40 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm transition-all hover:border-slate-300 hover:shadow-md"
+              className="flex items-start gap-4 p-4 rounded-lg border shadow-sm transition-all hover:shadow-md"
+              style={{
+                backgroundColor: hasContext ? "hsl(var(--scheme-collection-bg) / 0.5)" : "hsl(220 14% 96%)",
+                borderColor: hasContext ? "hsl(var(--scheme-cards-border))" : "hsl(220 13% 91%)"
+              }}
             >
-              <div className="h-8 w-8 rounded-full bg-slate-800 text-white flex items-center justify-center text-sm font-bold shrink-0 shadow-sm">
+              <div 
+                className="h-8 w-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0 shadow-sm"
+                style={{ 
+                  backgroundColor: hasContext ? "hsl(var(--scheme-nav-button))" : "hsl(220 9% 20%)",
+                  color: hasContext ? "hsl(var(--scheme-nav-text))" : "white"
+                }}
+              >
                 {sub.id || i + 1}
               </div>
               <div className="pt-1">
-                <p className="font-bold text-base text-slate-900 dark:text-slate-100 mb-1">
+                <p 
+                  className="font-bold text-base mb-1"
+                  style={{ color: hasContext ? "hsl(var(--scheme-title-text))" : undefined }}
+                >
                   {sub.title}
                 </p>
-                <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                <p 
+                  className="text-sm leading-relaxed"
+                  style={{ color: hasContext ? "hsl(var(--scheme-cards-text))" : "hsl(220 9% 40%)" }}
+                >
                   {sub.desc}
                 </p>
               </div>
@@ -158,10 +264,21 @@ function FrameworkVisual({ item, Icon }: { item: BookContent; Icon: typeof Light
         <div className="space-y-2">
           {steps.map((step, i) => (
             <div key={i} className="flex items-start gap-3">
-              <div className="h-6 w-6 rounded-full bg-slate-800 text-white flex items-center justify-center text-xs font-bold shrink-0">
+              <div 
+                className="h-6 w-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
+                style={{ 
+                  backgroundColor: hasContext ? "hsl(var(--scheme-nav-button))" : "hsl(220 9% 20%)",
+                  color: hasContext ? "hsl(var(--scheme-nav-text))" : "white"
+                }}
+              >
                 {i + 1}
               </div>
-              <p className="text-sm text-slate-700 dark:text-slate-300 pt-0.5">{step}</p>
+              <p 
+                className="text-sm pt-0.5"
+                style={{ color: hasContext ? "hsl(var(--scheme-cards-text))" : "hsl(220 9% 30%)" }}
+              >
+                {step}
+              </p>
             </div>
           ))}
         </div>
@@ -171,19 +288,47 @@ function FrameworkVisual({ item, Icon }: { item: BookContent; Icon: typeof Light
 }
 
 // Story Visual - Prose with optional blockquote
-function StoryVisual({ item, Icon }: { item: BookContent; Icon: typeof Lightbulb }) {
+function StoryVisual({ item, Icon, hasContext }: { item: BookContent; Icon: typeof Lightbulb; hasContext: boolean }) {
   const storyQuote = item.extendedData.quote as string | undefined;
 
   return (
-    <div className="bg-white dark:bg-slate-900 p-6 rounded-xl border-l-4 border-l-slate-600 border-y border-r border-slate-200 dark:border-slate-700 shadow-sm">
+    <div 
+      className="p-6 rounded-xl border-l-4 border-y border-r shadow-sm"
+      style={{
+        backgroundColor: hasContext ? "hsl(var(--scheme-cards-bg))" : "hsl(var(--background))",
+        borderLeftColor: hasContext ? "hsl(var(--scheme-nav-button))" : "hsl(220 9% 30%)",
+        borderTopColor: hasContext ? "hsl(var(--scheme-cards-border))" : "hsl(220 13% 91%)",
+        borderRightColor: hasContext ? "hsl(var(--scheme-cards-border))" : "hsl(220 13% 91%)",
+        borderBottomColor: hasContext ? "hsl(var(--scheme-cards-border))" : "hsl(220 13% 91%)"
+      }}
+    >
       <div className="flex gap-3 mb-4">
-        <Icon className="h-5 w-5 text-slate-700 dark:text-slate-300 flex-shrink-0 mt-0.5" />
-        <h3 className="font-bold text-xl text-slate-900 dark:text-white">{item.title}</h3>
+        <Icon 
+          className="h-5 w-5 flex-shrink-0 mt-0.5"
+          style={{ color: hasContext ? "hsl(var(--scheme-title-text))" : "hsl(220 9% 30%)" }}
+        />
+        <h3 
+          className="font-bold text-xl"
+          style={{ color: hasContext ? "hsl(var(--scheme-title-text))" : undefined }}
+        >
+          {item.title}
+        </h3>
       </div>
-      <div className="prose dark:prose-invert max-w-none text-slate-800 dark:text-slate-200 font-medium">
-        <p>{item.content}</p>
+      <div className="prose dark:prose-invert max-w-none">
+        <p 
+          className="font-medium"
+          style={{ color: hasContext ? "hsl(var(--scheme-cards-text))" : "hsl(220 9% 20%)" }}
+        >
+          {item.content}
+        </p>
         {storyQuote && (
-          <blockquote className="border-l-4 border-slate-300 pl-4 italic my-4 text-slate-600 dark:text-slate-400">
+          <blockquote 
+            className="border-l-4 pl-4 italic my-4"
+            style={{ 
+              borderColor: hasContext ? "hsl(var(--scheme-cards-border))" : "hsl(220 13% 80%)",
+              color: hasContext ? "hsl(var(--scheme-cards-text))" : "hsl(220 9% 40%)"
+            }}
+          >
             "{storyQuote}"
           </blockquote>
         )}
@@ -193,24 +338,56 @@ function StoryVisual({ item, Icon }: { item: BookContent; Icon: typeof Lightbulb
 }
 
 // Application/Practical Use Visual
-function ApplicationVisual({ item, Icon }: { item: BookContent; Icon: typeof Lightbulb }) {
+function ApplicationVisual({ item, Icon, hasContext }: { item: BookContent; Icon: typeof Lightbulb; hasContext: boolean }) {
   const action = item.extendedData.action as { label: string; instruction: string } | undefined;
 
   return (
-    <div className="bg-white dark:bg-slate-900 p-6 rounded-xl border-l-4 border-l-slate-600 border-y border-r border-slate-200 dark:border-slate-700 shadow-sm">
+    <div 
+      className="p-6 rounded-xl border-l-4 border-y border-r shadow-sm"
+      style={{
+        backgroundColor: hasContext ? "hsl(var(--scheme-cards-bg))" : "hsl(var(--background))",
+        borderLeftColor: hasContext ? "hsl(var(--scheme-nav-button))" : "hsl(220 9% 30%)",
+        borderTopColor: hasContext ? "hsl(var(--scheme-cards-border))" : "hsl(220 13% 91%)",
+        borderRightColor: hasContext ? "hsl(var(--scheme-cards-border))" : "hsl(220 13% 91%)",
+        borderBottomColor: hasContext ? "hsl(var(--scheme-cards-border))" : "hsl(220 13% 91%)"
+      }}
+    >
       <div className="flex gap-3 mb-4">
-        <Icon className="h-5 w-5 text-slate-700 dark:text-slate-300 flex-shrink-0 mt-0.5" />
-        <h3 className="font-bold text-xl text-slate-900 dark:text-white">{item.title}</h3>
+        <Icon 
+          className="h-5 w-5 flex-shrink-0 mt-0.5"
+          style={{ color: hasContext ? "hsl(var(--scheme-title-text))" : "hsl(220 9% 30%)" }}
+        />
+        <h3 
+          className="font-bold text-xl"
+          style={{ color: hasContext ? "hsl(var(--scheme-title-text))" : undefined }}
+        >
+          {item.title}
+        </h3>
       </div>
-      <p className="text-base leading-relaxed text-slate-800 dark:text-slate-200 font-medium">
+      <p 
+        className="text-base leading-relaxed font-medium"
+        style={{ color: hasContext ? "hsl(var(--scheme-cards-text))" : "hsl(220 9% 20%)" }}
+      >
         {item.content}
       </p>
       {action && (
-        <div className="mt-4 p-4 bg-slate-50 dark:bg-slate-800/40 rounded-lg border border-slate-200 dark:border-slate-700">
-          <p className="text-xs font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">
+        <div 
+          className="mt-4 p-4 rounded-lg border"
+          style={{
+            backgroundColor: hasContext ? "hsl(var(--scheme-collection-bg) / 0.5)" : "hsl(220 14% 96%)",
+            borderColor: hasContext ? "hsl(var(--scheme-cards-border))" : "hsl(220 13% 91%)"
+          }}
+        >
+          <p 
+            className="text-xs font-bold uppercase mb-1"
+            style={{ color: hasContext ? "hsl(var(--scheme-cards-text))" : "hsl(220 9% 46%)" }}
+          >
             {action.label}
           </p>
-          <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
+          <p 
+            className="text-sm font-medium"
+            style={{ color: hasContext ? "hsl(var(--scheme-title-text))" : undefined }}
+          >
             {action.instruction}
           </p>
         </div>
