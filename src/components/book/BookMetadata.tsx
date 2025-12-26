@@ -17,26 +17,36 @@ interface BookMetadataProps {
 export function BookMetadata({ book }: BookMetadataProps) {
   return (
     <div className="space-y-6">
-      {/* Book Cover Placeholder */}
+      {/* Book Cover */}
       <div>
         <h3 className="font-bold mb-3 flex items-center gap-2">
           <BookOpen className="h-4 w-4" /> About The Book
         </h3>
-        <div className="aspect-[2/3] bg-gradient-to-br from-slate-700 to-slate-900 rounded-lg shadow-inner mb-4 flex items-center justify-center text-white border-2 border-white/20 p-4">
-          <div className="text-center">
-            <span className="font-bold text-lg leading-tight block">
-              {book.title}
-            </span>
-            <span className="font-normal text-xs opacity-75 mt-2 block">
-              {book.authorName}
-            </span>
-            {book.publicationYear && (
-              <span className="font-normal text-xs opacity-50 mt-1 block">
-                {book.publicationYear}
-              </span>
-            )}
+        {book.coverImageUrl ? (
+          <div className="aspect-[2/3] rounded-lg shadow-lg mb-4 overflow-hidden border border-slate-200">
+            <img
+              src={book.coverImageUrl}
+              alt={`${book.title} cover`}
+              className="w-full h-full object-cover"
+            />
           </div>
-        </div>
+        ) : (
+          <div className="aspect-[2/3] bg-gradient-to-br from-slate-700 to-slate-900 rounded-lg shadow-inner mb-4 flex items-center justify-center text-white border-2 border-white/20 p-4">
+            <div className="text-center">
+              <span className="font-bold text-lg leading-tight block">
+                {book.title}
+              </span>
+              <span className="font-normal text-xs opacity-75 mt-2 block">
+                {book.authorName}
+              </span>
+              {book.publicationYear && (
+                <span className="font-normal text-xs opacity-50 mt-1 block">
+                  {book.publicationYear}
+                </span>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* One-sentence summary */}
