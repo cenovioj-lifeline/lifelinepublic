@@ -22,10 +22,20 @@ export interface Book {
   keyThemes?: string[];
   coverImageUrl?: string;
   coverImagePath?: string;
+  coverImageId?: string;
   themeColor?: string;
   status: 'draft' | 'published' | 'archived';
   createdAt?: string;
   updatedAt?: string;
+  // Joined cover_image relationship
+  cover_image?: {
+    id: string;
+    url: string;
+    alt_text?: string;
+    position_x?: number;
+    position_y?: number;
+    scale?: number;
+  };
 }
 
 export interface BookContent {

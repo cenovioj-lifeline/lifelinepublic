@@ -22,12 +22,17 @@ export function BookMetadata({ book }: BookMetadataProps) {
         <h3 className="font-bold mb-3 flex items-center gap-2">
           <BookOpen className="h-4 w-4" /> About The Book
         </h3>
-        {book.coverImageUrl ? (
+        {(book.cover_image?.url || book.coverImageUrl) ? (
           <div className="aspect-[2/3] rounded-lg shadow-lg mb-4 overflow-hidden border border-slate-200">
             <img
-              src={book.coverImageUrl}
+              src={book.cover_image?.url || book.coverImageUrl}
               alt={`${book.title} cover`}
               className="w-full h-full object-cover"
+              style={{
+                objectPosition: `${book.cover_image?.position_x ?? 50}% ${book.cover_image?.position_y ?? 50}%`,
+                transform: `scale(${book.cover_image?.scale ?? 1})`,
+                transformOrigin: `${book.cover_image?.position_x ?? 50}% ${book.cover_image?.position_y ?? 50}%`
+              }}
             />
           </div>
         ) : (

@@ -116,7 +116,11 @@ const themeColorMap: Record<string, { bg: string; text: string }> = {
 
 function BookCoverCard({ book, onClick, onEditClick }: BookCoverCardProps) {
   const themeColors = themeColorMap[book.themeColor || 'slate'] || themeColorMap.slate;
-  const hasCoverImage = !!book.coverImageUrl;
+  const coverImageUrl = book.cover_image?.url || book.coverImageUrl;
+  const hasCoverImage = !!coverImageUrl;
+  const positionX = book.cover_image?.position_x ?? 50;
+  const positionY = book.cover_image?.position_y ?? 50;
+  const scale = book.cover_image?.scale ?? 1;
 
   return (
     <div
@@ -127,9 +131,14 @@ function BookCoverCard({ book, onClick, onEditClick }: BookCoverCardProps) {
       <div className="relative aspect-[2/3] w-full overflow-hidden rounded-lg shadow-md transition-all duration-200 group-hover:shadow-xl group-hover:scale-[1.02]">
         {hasCoverImage ? (
           <img
-            src={book.coverImageUrl}
+            src={coverImageUrl}
             alt={`Cover of ${book.title}`}
             className="h-full w-full object-cover"
+            style={{
+              objectPosition: `${positionX}% ${positionY}%`,
+              transform: `scale(${scale})`,
+              transformOrigin: `${positionX}% ${positionY}%`
+            }}
           />
         ) : (
           /* Placeholder cover with theme color */

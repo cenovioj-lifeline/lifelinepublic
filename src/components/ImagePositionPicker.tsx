@@ -27,7 +27,7 @@ interface ImagePositionPickerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   title?: string;
-  viewType?: "banner" | "card" | "both" | "avatar";
+  viewType?: "banner" | "card" | "both" | "avatar" | "cover";
 }
 
 export function ImagePositionPicker({
@@ -84,6 +84,44 @@ export function ImagePositionPicker({
 
           {/* Preview with visible frame guide */}
           <div className="space-y-4">
+            {viewType === "cover" && (
+              <div>
+                <p className="text-xs text-muted-foreground mb-2">Cover Preview (2:3 ratio):</p>
+                <div 
+                  className="relative w-48 aspect-[2/3] rounded-lg overflow-hidden border-2 border-primary mx-auto cursor-move"
+                  onMouseDown={(e) => {
+                    const handleMove = (moveEvent: MouseEvent) => {
+                      const rect = e.currentTarget.getBoundingClientRect();
+                      const x = Math.max(0, Math.min(100, ((moveEvent.clientX - rect.left) / rect.width) * 100));
+                      const y = Math.max(0, Math.min(100, ((moveEvent.clientY - rect.top) / rect.height) * 100));
+                      setPosition(prev => ({ ...prev, x, y }));
+                    };
+                    const handleUp = () => {
+                      document.removeEventListener('mousemove', handleMove);
+                      document.removeEventListener('mouseup', handleUp);
+                    };
+                    document.addEventListener('mousemove', handleMove);
+                    document.addEventListener('mouseup', handleUp);
+                  }}
+                >
+                  <img
+                    src={imageUrl}
+                    alt="Cover preview"
+                    className="w-full h-full object-cover pointer-events-none"
+                    style={{
+                      objectPosition: `${position.x}% ${position.y}%`,
+                      transform: `scale(${position.scale})`,
+                      transformOrigin: `${position.x}% ${position.y}%`
+                    }}
+                  />
+                  <div className="absolute inset-0 pointer-events-none border-4 border-primary/30" />
+                  <div className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-background/80 px-2 py-0.5 rounded text-xs whitespace-nowrap">
+                    Drag to reposition
+                  </div>
+                </div>
+              </div>
+            )}
+
             {viewType === "avatar" && (
               <div>
                 <p className="text-xs text-muted-foreground mb-2">Avatar Preview (Circle):</p>

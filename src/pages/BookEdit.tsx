@@ -30,6 +30,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { CONTENT_TYPE_CONFIG, ContentType } from "@/types/book";
+import { BookCoverUpload } from "@/components/book/BookCoverUpload";
 
 interface BookContent {
   id: string;
@@ -571,30 +572,20 @@ export default function BookEdit() {
               <CardTitle>Cover Image</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              {coverImageUrl && (
-                <div>
-                  <Label>Current Cover</Label>
-                  <div className="mt-2">
-                    <img
-                      src={coverImageUrl}
-                      alt={title}
-                      className="w-48 h-auto object-cover rounded-lg border shadow-md"
-                    />
-                  </div>
-                </div>
-              )}
-              <div>
-                <Label htmlFor="coverImageUrl">Cover Image URL</Label>
-                <Input
-                  id="coverImageUrl"
-                  value={coverImageUrl}
-                  onChange={(e) => setCoverImageUrl(e.target.value)}
-                  placeholder="https://example.com/cover.jpg"
+              {!isNew && book ? (
+                <BookCoverUpload
+                  book={{
+                    id: book.id,
+                    title: book.title,
+                    authorName: book.author_name,
+                    coverImageUrl: book.cover_image_url,
+                    coverImageId: book.cover_image_id,
+                  }}
+                  onImageUpdate={() => queryClient.invalidateQueries({ queryKey: ["admin-book", id] })}
                 />
-                <p className="text-xs text-muted-foreground mt-1">
-                  Enter a URL for the book cover image
-                </p>
-              </div>
+              ) : (
+                <p className="text-muted-foreground">Save the book first to upload a cover image.</p>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
