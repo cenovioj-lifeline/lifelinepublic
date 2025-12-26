@@ -35,7 +35,6 @@ import { DirectImageUpload } from "@/components/DirectImageUpload";
 import { CollectionQuotesUpload } from "@/components/CollectionQuotesUpload";
 import { CollectionFeaturedProfiles } from "@/components/CollectionFeaturedProfiles";
 import { CollectionProfileManager } from "@/components/CollectionProfileManager";
-import { ImagePositionPicker } from "@/components/ImagePositionPicker";
 import { CollectionContentManager } from "@/components/CollectionContentManager";
 import { CollectionDuplicateCleanup } from "@/components/CollectionDuplicateCleanup";
 
@@ -49,10 +48,8 @@ const collectionFormSchema = z.object({
   color_scheme_id: z.string().nullable(),
   hero_image_url: z.string(),
   hero_image_path: z.string(),
-  hero_image_position_x: z.number(),
-  hero_image_position_y: z.number(),
-  card_image_position_x: z.number(),
-  card_image_position_y: z.number(),
+  card_image_url: z.string(),
+  card_image_path: z.string(),
   created_at: z.string().optional(),
 });
 
@@ -98,10 +95,8 @@ export default function CollectionEdit() {
       color_scheme_id: null,
       hero_image_url: "",
       hero_image_path: "",
-      hero_image_position_x: 50,
-      hero_image_position_y: 50,
-      card_image_position_x: 50,
-      card_image_position_y: 50,
+      card_image_url: "",
+      card_image_path: "",
       created_at: "",
     },
   });
@@ -140,10 +135,8 @@ export default function CollectionEdit() {
         color_scheme_id: collection.color_scheme_id || defaultScheme?.id || null,
         hero_image_url: collection.hero_image_url || "",
         hero_image_path: collection.hero_image_path || "",
-        hero_image_position_x: collection.hero_image_position_x ?? 50,
-        hero_image_position_y: collection.hero_image_position_y ?? 50,
-        card_image_position_x: collection.card_image_position_x ?? 50,
-        card_image_position_y: collection.card_image_position_y ?? 50,
+        card_image_url: (collection as any).card_image_url || "",
+        card_image_path: (collection as any).card_image_path || "",
         created_at: formatDateForInput(collection.created_at),
       });
       setHeroImageUrl(collection.hero_image_url || "");
@@ -166,10 +159,8 @@ export default function CollectionEdit() {
         color_scheme_id: data.color_scheme_id,
         hero_image_url: data.hero_image_url || null,
         hero_image_path: data.hero_image_path || null,
-        hero_image_position_x: data.hero_image_position_x,
-        hero_image_position_y: data.hero_image_position_y,
-        card_image_position_x: data.card_image_position_x,
-        card_image_position_y: data.card_image_position_y,
+        card_image_url: data.card_image_url || null,
+        card_image_path: data.card_image_path || null,
       };
       
       if (isNew) {
@@ -237,19 +228,17 @@ export default function CollectionEdit() {
     },
   });
 
-  // Auto-save position changes
-  const savePositionMutation = useMutation({
-    mutationFn: async (positions: {
-      hero_image_position_x?: number;
-      hero_image_position_y?: number;
-      card_image_position_x?: number;
-      card_image_position_y?: number;
-    }) => {
+  // Auto-save card image changes
+  const saveCardImageMutation = useMutation({
+    mutationFn: async ({ url, path }: { url: string; path: string }) => {
       if (isNew) return;
       
       const { error } = await supabase
         .from("collections")
-        .update(positions)
+        .update({
+          card_image_url: url,
+          card_image_path: path,
+        })
         .eq("id", id);
 
       if (error) throw error;
@@ -259,8 +248,13 @@ export default function CollectionEdit() {
       queryClient.invalidateQueries({ queryKey: ["collections"] });
       queryClient.invalidateQueries({ queryKey: ["collections-grid"] });
       queryClient.invalidateQueries({ queryKey: ["collection-lifelines-all"] });
+      toast({
+        title: "Card image saved",
+        description: "Collection card image updated successfully",
+      });
     },
   });
+
 
   const onSubmit = (data: CollectionForm) => {
     saveMutation.mutate(data);
@@ -448,43 +442,61 @@ export default function CollectionEdit() {
           />
 
           <div className="space-y-6 mt-8">
-            <h3 className="text-lg font-medium">Hero Image</h3>
-            <DirectImageUpload
-              currentImageUrl={form.watch("hero_image_url")}
-              currentImagePath={form.watch("hero_image_path")}
-              onUploadComplete={(url, path) => {
-                form.setValue("hero_image_url", url);
-                form.setValue("hero_image_path", path);
-                setHeroImageUrl(url);
-                if (!isNew) {
-                  saveImageMutation.mutate({ url, path });
-                }
-              }}
-              onRemove={() => {
-                form.setValue("hero_image_url", "");
-                form.setValue("hero_image_path", "");
-                setHeroImageUrl(null);
-                if (!isNew) {
-                  saveImageMutation.mutate({ url: "", path: "" });
-                }
-              }}
-              onPositionChange={(position) => {
-                form.setValue("hero_image_position_x", position.x);
-                form.setValue("hero_image_position_y", position.y);
-                if (!isNew) {
-                  savePositionMutation.mutate({
-                    hero_image_position_x: position.x,
-                    hero_image_position_y: position.y,
-                  });
-                }
-              }}
-              initialPosition={{
-                x: form.watch("hero_image_position_x"),
-                y: form.watch("hero_image_position_y"),
-              }}
-              viewType="banner"
-              label="Upload Collection Hero Image"
-            />
+            <div>
+              <h3 className="text-lg font-medium">Banner Image (4:1)</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Used on the collection detail page header. Upload at 3840×960 or similar 4:1 ratio for best results.
+              </p>
+              <DirectImageUpload
+                currentImageUrl={form.watch("hero_image_url")}
+                currentImagePath={form.watch("hero_image_path")}
+                onUploadComplete={(url, path) => {
+                  form.setValue("hero_image_url", url);
+                  form.setValue("hero_image_path", path);
+                  setHeroImageUrl(url);
+                  if (!isNew) {
+                    saveImageMutation.mutate({ url, path });
+                  }
+                }}
+                onRemove={() => {
+                  form.setValue("hero_image_url", "");
+                  form.setValue("hero_image_path", "");
+                  setHeroImageUrl(null);
+                  if (!isNew) {
+                    saveImageMutation.mutate({ url: "", path: "" });
+                  }
+                }}
+                viewType="banner"
+                label="Upload Banner Image"
+              />
+            </div>
+
+            <div>
+              <h3 className="text-lg font-medium">Card Image (16:9)</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Used in collection grids and cards. Upload at 1920×1080 or similar 16:9 ratio for best results.
+              </p>
+              <DirectImageUpload
+                currentImageUrl={form.watch("card_image_url")}
+                currentImagePath={form.watch("card_image_path")}
+                onUploadComplete={(url, path) => {
+                  form.setValue("card_image_url", url);
+                  form.setValue("card_image_path", path);
+                  if (!isNew) {
+                    saveCardImageMutation.mutate({ url, path });
+                  }
+                }}
+                onRemove={() => {
+                  form.setValue("card_image_url", "");
+                  form.setValue("card_image_path", "");
+                  if (!isNew) {
+                    saveCardImageMutation.mutate({ url: "", path: "" });
+                  }
+                }}
+                viewType="card"
+                label="Upload Card Image"
+              />
+            </div>
           </div>
 
           {!isNew && (

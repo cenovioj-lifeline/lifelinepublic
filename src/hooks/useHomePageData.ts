@@ -10,10 +10,9 @@ interface ContentItem {
   intro?: string | null;
   hero_image_url?: string | null;
   cover_image_url?: string | null;
+  card_image_url?: string | null;
   hero_image?: { url: string; alt_text: string | null } | null;
   cover_image?: { url: string; alt_text: string | null } | null;
-  card_image_position_x?: number | null;
-  card_image_position_y?: number | null;
   cover_image_position_x?: number | null;
   cover_image_position_y?: number | null;
   hero_image_position_x?: number | null;
@@ -72,8 +71,7 @@ async function fetchContentItems(
       ? supabase
           .from("collections")
           .select(`
-            id, title, slug, description, hero_image_url,
-            card_image_position_x, card_image_position_y,
+            id, title, slug, description, hero_image_url, card_image_url,
             hero_image:media_assets!collections_hero_image_id_fkey(url, alt_text)
           `)
           .in("id", collectionIds)
@@ -176,6 +174,7 @@ export function useHomePageData() {
     const allItems = [...data.featuredItems, ...data.newContentItems].slice(0, 6);
     allItems.forEach((item) => {
       const url =
+        item.card_image_url ||
         item.hero_image?.url ||
         item.hero_image_url ||
         item.cover_image?.url ||

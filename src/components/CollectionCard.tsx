@@ -10,8 +10,7 @@ interface CollectionCardProps {
     title: string;
     description: string | null;
     hero_image_url: string | null;
-    card_image_position_x: number | null;
-    card_image_position_y: number | null;
+    card_image_url?: string | null;
     is_featured?: boolean | null;
   };
   showFeaturedBadge?: boolean;
@@ -28,14 +27,11 @@ export function CollectionCard({ collection, showFeaturedBadge = false }: Collec
           <FavoriteButton itemId={collection.id} itemType="collection" />
         </div>
         <div className="aspect-video relative bg-white overflow-hidden">
-          {collection.hero_image_url ? (
+          {(collection.card_image_url || collection.hero_image_url) ? (
             <img
-              src={collection.hero_image_url}
+              src={collection.card_image_url || collection.hero_image_url!}
               alt={collection.title}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-              style={{
-                objectPosition: `${collection.card_image_position_x ?? 50}% ${collection.card_image_position_y ?? 50}%`,
-              }}
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center text-gray-400">

@@ -27,6 +27,7 @@ export default function ProfileEdit() {
   const [realityStatus, setRealityStatus] = useState("");
   const [status, setStatus] = useState<"draft" | "published">("draft");
   const [shortDescription, setShortDescription] = useState("");
+  const [longDescription, setLongDescription] = useState("");
   const [knownFor, setKnownFor] = useState("");
   const [tags, setTags] = useState("");
   const [imageQuery, setImageQuery] = useState("");
@@ -54,6 +55,7 @@ export default function ProfileEdit() {
         setRealityStatus(data.reality_status || "");
         setStatus((data.status as "draft" | "published") || "draft");
         setShortDescription(data.short_description || "");
+        setLongDescription((data as any).long_description || "");
         setKnownFor(data.known_for?.join(", ") || "");
         setTags(data.tags?.join(", ") || "");
         setImageQuery(data.image_query || "");
@@ -73,6 +75,7 @@ export default function ProfileEdit() {
         reality_status: realityStatus,
         status,
         short_description: shortDescription.trim(),
+        long_description: longDescription.trim() || null,
         known_for: knownFor.split(",").map(k => k.trim()).filter(Boolean),
         tags: tags.split(",").map(t => t.trim()).filter(Boolean),
         image_query: imageQuery.trim() || null,
@@ -271,6 +274,22 @@ export default function ProfileEdit() {
               placeholder="Brief description of the profile"
               rows={3}
             />
+          </div>
+
+          {/* Long Description */}
+          <div>
+            <Label htmlFor="longDescription">Long Description (Optional)</Label>
+            <Textarea
+              id="longDescription"
+              value={longDescription}
+              onChange={(e) => setLongDescription(e.target.value)}
+              placeholder="Extended description (2-6 paragraphs). Displays on profile page below the short description."
+              rows={8}
+              maxLength={5000}
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              {longDescription.length}/5000 characters
+            </p>
           </div>
 
           {/* Known For */}

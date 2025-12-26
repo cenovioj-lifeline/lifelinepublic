@@ -199,22 +199,12 @@ export default function Home() {
                 description={item.description}
                 imageUrl={
                   item.type === "collection" 
-                    ? (item.hero_image?.url || item.hero_image_url)
+                    ? (item.card_image_url || item.hero_image?.url || item.hero_image_url)
                     : item.type === "election"
                     ? item.hero_image_url
                     : null
                 }
                 imageAlt={item.type === "collection" ? item.hero_image?.alt_text : item.title}
-                imagePositionX={
-                  item.type === "collection" 
-                    ? (item.card_image_position_x ?? 50)
-                    : (item.hero_image_position_x ?? 50)
-                }
-                imagePositionY={
-                  item.type === "collection"
-                    ? (item.card_image_position_y ?? 50)
-                    : (item.hero_image_position_y ?? 50)
-                }
                 linkPath={
                   item.type === "collection"
                     ? `/public/collections/${item.slug}`
@@ -280,22 +270,12 @@ export default function Home() {
                 description={item.description}
                 imageUrl={
                   item.type === "collection" 
-                    ? (item.hero_image?.url || item.hero_image_url)
+                    ? (item.card_image_url || item.hero_image?.url || item.hero_image_url)
                     : item.type === "election"
                     ? item.hero_image_url
                     : null
                 }
                 imageAlt={item.type === "collection" ? item.hero_image?.alt_text : item.title}
-                imagePositionX={
-                  item.type === "collection" 
-                    ? (item.card_image_position_x ?? 50)
-                    : (item.hero_image_position_x ?? 50)
-                }
-                imagePositionY={
-                  item.type === "collection"
-                    ? (item.card_image_position_y ?? 50)
-                    : (item.hero_image_position_y ?? 50)
-                }
                 linkPath={
                   item.type === "collection"
                     ? `/public/collections/${item.slug}`

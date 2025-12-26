@@ -14,6 +14,7 @@ export interface Profile {
   
   // Core text fields
   short_description: string;
+  long_description?: string | null;
   known_for: string[];
   tags: string[];
   

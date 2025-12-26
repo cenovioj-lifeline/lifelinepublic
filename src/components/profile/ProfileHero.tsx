@@ -92,6 +92,16 @@ export function ProfileHero({ profile, onImageUpdate, collectionContext }: Profi
             </p>
           )}
 
+          {(profile as any).long_description && (
+            <div className="mt-4 space-y-3 text-base" style={mutedStyle}>
+              {((profile as any).long_description as string).split('\n\n').map((paragraph, i) => (
+                <p key={i}>{paragraph.split('\n').map((line, j) => (
+                  <span key={j}>{line}{j < paragraph.split('\n').length - 1 && <br />}</span>
+                ))}</p>
+              ))}
+            </div>
+          )}
+
           {profile.known_for && profile.known_for.length > 0 && (
             <div className="space-y-2">
               <h3 

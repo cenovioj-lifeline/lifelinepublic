@@ -155,8 +155,6 @@ export default function CollectionFeed() {
                   title={lifeline.title}
                   description={lifeline.subtitle || ""}
                   imageUrl={lifeline.cover_image?.url}
-                  imagePositionX={lifeline.cover_image?.position_x}
-                  imagePositionY={lifeline.cover_image?.position_y}
                   linkPath={`/public/collections/${collection.slug}/lifelines/${lifeline.slug}`}
                   type="lifeline"
                 />
@@ -184,8 +182,6 @@ export default function CollectionFeed() {
                   title={profile.name}
                   description={profile.short_description || ""}
                   imageUrl={profile.avatar_image?.url}
-                  imagePositionX={profile.avatar_image?.position_x}
-                  imagePositionY={profile.avatar_image?.position_y}
                   linkPath={`/public/collections/${collection.slug}/profiles/${profile.slug}`}
                   type="lifeline"
                 />
