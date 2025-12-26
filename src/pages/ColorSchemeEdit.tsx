@@ -106,7 +106,12 @@ export default function ColorSchemeEdit() {
       return { isNew: false as const, updated };
     },
     onSuccess: (result) => {
-      // Just invalidate the list - the edit page uses local state
+      // Update the cache for THIS specific color scheme so returning shows fresh data
+      if (!result.isNew) {
+        queryClient.setQueryData(["color-scheme", id], result.updated);
+      }
+
+      // Invalidate the list for the color schemes page
       queryClient.invalidateQueries({ queryKey: ["color-schemes"] });
 
       if (result.isNew && result.newId) {
