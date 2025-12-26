@@ -50,6 +50,10 @@ export type ColorScheme = {
 
   // Filter Controls (1)
   filter_controls_text: string;
+
+  // Contrast-Aware Text Colors (2) - NEW
+  light_text_color: string;
+  dark_text_color: string;
 };
 
 export type ColorSchemeEditorFullProps = {
@@ -93,6 +97,10 @@ export const DEFAULT_COLORS: ColorScheme = {
   profile_text: "#352d28",
   profile_label_text: "#352d28",
   filter_controls_text: "#1f2937",
+
+  // Contrast-aware text colors - NEW
+  light_text_color: "#ffffff",
+  dark_text_color: "#1f2937",
 };
 
 // Helper to extract only color fields from an object
@@ -149,13 +157,67 @@ export function ColorSchemeEditorFull({ colors, onChange }: ColorSchemeEditorFul
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       {/* Left Column: Color Fields */}
       <div className="space-y-6">
-        {/* Page & Background - NEW */}
+        {/* Contrast-Aware Text Colors - CRITICAL NEW SECTION */}
+        <Card className="border-2 border-green-300 bg-green-50/30">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <span className="text-xl">⚡</span>
+              Contrast-Aware Text Colors
+              <span className="text-xs bg-green-600 text-white px-2 py-0.5 rounded">CRITICAL</span>
+            </CardTitle>
+            <CardDescription>These ensure text is ALWAYS readable - used as fallbacks throughout the app</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <ColorInput
+              label="Light Text Color"
+              field="light_text_color"
+              description="Text color for DARK backgrounds (e.g., white text on dark buttons)"
+            />
+            <ColorInput
+              label="Dark Text Color"
+              field="dark_text_color"
+              description="Text color for LIGHT backgrounds (e.g., dark text on light pages)"
+            />
+            {/* Mini preview */}
+            <div className="mt-4">
+              <p className="text-xs font-medium mb-2 text-muted-foreground">Preview:</p>
+              <div className="grid grid-cols-2 gap-3">
+                {/* Light text on dark background */}
+                <div
+                  style={{ 
+                    backgroundColor: colors.nav_bg_color, 
+                    padding: '16px', 
+                    borderRadius: '8px', 
+                    textAlign: 'center' 
+                  }}
+                >
+                  <p style={{ color: colors.light_text_color, fontSize: '12px', fontWeight: 600 }}>Light Text</p>
+                  <p style={{ color: colors.light_text_color, fontSize: '10px', opacity: 0.8 }}>on dark bg</p>
+                </div>
+                {/* Dark text on light background */}
+                <div
+                  style={{ 
+                    backgroundColor: colors.page_bg, 
+                    padding: '16px', 
+                    borderRadius: '8px', 
+                    border: '1px solid #ccc',
+                    textAlign: 'center' 
+                  }}
+                >
+                  <p style={{ color: colors.dark_text_color, fontSize: '12px', fontWeight: 600 }}>Dark Text</p>
+                  <p style={{ color: colors.dark_text_color, fontSize: '10px', opacity: 0.8 }}>on light bg</p>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Page & Background */}
         <Card className="border-2 border-blue-200 bg-blue-50/30">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <span className="text-xl">📄</span>
               Page Background
-              <span className="text-xs bg-blue-500 text-white px-2 py-0.5 rounded">NEW</span>
             </CardTitle>
             <CardDescription>Main page background behind all content</CardDescription>
           </CardHeader>
