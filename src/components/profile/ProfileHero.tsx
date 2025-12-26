@@ -70,9 +70,9 @@ export function ProfileHero({ profile, onImageUpdate, collectionContext }: Profi
             <h1 className="text-4xl font-bold mb-2" style={textStyle}>{profile.name}</h1>
             <div className="flex flex-wrap gap-2 mb-3">
               <Badge className="bg-[hsl(var(--scheme-nav-button))] text-[hsl(var(--scheme-nav-text))] hover:bg-[hsl(var(--scheme-nav-button)/.9)] border-none">
-                {profile.subject_type === 'person_real' ? 'Real Person' : 
-                 profile.subject_type === 'person_fictional' ? 'Fictional Person' : 
-                 profile.subject_type === 'organization' ? 'Organization' : 
+                {profile.subject_type === 'person_real' || profile.subject_type === 'Person' ? 'Real Person' : 
+                 profile.subject_type === 'person_fictional' || profile.subject_type === 'Fictional Character' ? 'Fictional Person' : 
+                 profile.subject_type === 'organization' || profile.subject_type === 'Organization' ? 'Organization' : 
                  profile.subject_type}
               </Badge>
               {profile.subject_status && (
