@@ -12,7 +12,6 @@ import { LifelineDisclaimerDialog } from "@/components/lifeline/LifelineDisclaim
 import { useState, useEffect } from "react";
 
 export default function PublicLifelineDetail() {
-  useColorScheme(); // Apply default color scheme
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const [showDisclaimer, setShowDisclaimer] = useState(false);
@@ -23,7 +22,7 @@ export default function PublicLifelineDetail() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("lifelines")
-        .select("id, title, slug, lifeline_type")
+        .select("id, title, slug, lifeline_type, collection_id")
         .eq("slug", slug)
         .eq("status", "published")
         .eq("visibility", "public")
@@ -33,6 +32,9 @@ export default function PublicLifelineDetail() {
       return data;
     },
   });
+
+  // Apply color scheme based on collection - will load default first, then collection-specific when lifeline loads
+  useColorScheme(lifeline?.collection_id);
 
   // Check if user is authenticated and if they've dismissed the disclaimer
   useEffect(() => {
