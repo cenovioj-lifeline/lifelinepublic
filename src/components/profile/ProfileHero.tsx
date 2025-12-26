@@ -37,7 +37,7 @@ export function ProfileHero({ profile, onImageUpdate, collectionContext }: Profi
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col md:flex-row gap-6 items-start">
+      <div className="flex flex-col md:flex-row gap-6 items-center md:items-start">
         <div className="flex flex-col items-center gap-2">
           <ProfileAvatarUpload
             profile={profile}
@@ -70,10 +70,10 @@ export function ProfileHero({ profile, onImageUpdate, collectionContext }: Profi
             <h1 className="text-4xl font-bold mb-2" style={textStyle}>{profile.name}</h1>
             <div className="flex flex-wrap gap-2 mb-3">
               <Badge className="bg-[hsl(var(--scheme-nav-button))] text-[hsl(var(--scheme-nav-text))] hover:bg-[hsl(var(--scheme-nav-button)/.9)] border-none">
-                {profile.subject_type}
-              </Badge>
-              <Badge variant="outline" className="border-[hsl(var(--scheme-nav-button))] text-[hsl(var(--scheme-nav-button))]">
-                {profile.reality_status}
+                {(profile.subject_type as string) === 'person_real' || profile.subject_type === 'Person' ? 'Real Person' : 
+                 (profile.subject_type as string) === 'person_fictional' || profile.subject_type === 'Fictional Character' ? 'Fictional Person' : 
+                 (profile.subject_type as string) === 'organization' || profile.subject_type === 'Organization' ? 'Organization' : 
+                 profile.subject_type}
               </Badge>
               {profile.subject_status && (
                 <Badge variant="outline" className="border-[hsl(var(--scheme-nav-button))] text-[hsl(var(--scheme-nav-button))]">
@@ -120,23 +120,6 @@ export function ProfileHero({ profile, onImageUpdate, collectionContext }: Profi
             </div>
           )}
 
-          {profile.tags && profile.tags.length > 0 && (
-            <div className="space-y-2">
-              <h3 
-                className="font-semibold text-sm uppercase tracking-wide"
-                style={mutedStyle}
-              >
-                Tags
-              </h3>
-              <div className="flex flex-wrap gap-2">
-                {profile.tags.map((tag, index) => (
-                  <Badge key={index} variant="outline" className="border-[hsl(var(--scheme-nav-button))] text-[hsl(var(--scheme-nav-button))]">
-                    {tag}
-                  </Badge>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
       </div>
 

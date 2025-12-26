@@ -182,7 +182,7 @@ export function ProfileAvatarUpload({ profile, onImageUpdate }: ProfileAvatarUpl
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
       >
-        <Avatar className={`h-32 w-32 flex-shrink-0 transition-all ${
+        <Avatar className={`h-32 w-32 md:h-48 md:w-48 flex-shrink-0 transition-all ${
           isDragging ? 'ring-4 ring-primary scale-105' : ''
         } ${hasAccess && !hasImage ? 'ring-2 ring-dashed ring-muted-foreground/30' : ''}`}>
           <AvatarImage 
