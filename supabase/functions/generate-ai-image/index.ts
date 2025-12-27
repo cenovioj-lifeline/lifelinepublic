@@ -23,7 +23,7 @@ serve(async (req) => {
     }
 
     // 2. Parse request body
-    const { prompt, entryId } = await req.json();
+    const { prompt, sourceImageUrl, entryId } = await req.json();
 
     if (!prompt || typeof prompt !== "string" || prompt.trim() === "") {
       return new Response(
@@ -32,9 +32,24 @@ serve(async (req) => {
       );
     }
 
-    console.log(`Generating AI image for entry ${entryId || 'unknown'}: "${prompt.substring(0, 100)}..."`);
+    // 3. Determine mode and build message content
+    const isEditing = !!sourceImageUrl;
+    let messageContent: string | Array<{ type: string; text?: string; image_url?: { url: string } }>;
 
-    // 3. Call Lovable AI Gateway
+    if (isEditing) {
+      // EDITING MODE: Include both text instruction and source image
+      messageContent = [
+        { type: "text", text: prompt },
+        { type: "image_url", image_url: { url: sourceImageUrl } }
+      ];
+      console.log(`Editing image for entry ${entryId || 'unknown'}: "${prompt.substring(0, 100)}..."`);
+    } else {
+      // GENERATION MODE: Text prompt only
+      messageContent = prompt;
+      console.log(`Generating image for entry ${entryId || 'unknown'}: "${prompt.substring(0, 100)}..."`);
+    }
+
+    // 4. Call Lovable AI Gateway
     const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -46,10 +61,10 @@ serve(async (req) => {
         messages: [
           {
             role: "user",
-            content: prompt
+            content: messageContent
           }
         ],
-        modalities: ["image", "text"]  // CRITICAL: Required for image generation
+        modalities: ["image", "text"]
       })
     });
 
@@ -92,7 +107,7 @@ serve(async (req) => {
     const base64Data = matches[2];
     const imageBuffer = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
 
-    console.log(`Image generated successfully, format: ${imageFormat}, size: ${imageBuffer.length} bytes`);
+    console.log(`Image ${isEditing ? 'edited' : 'generated'} successfully, format: ${imageFormat}, size: ${imageBuffer.length} bytes`);
 
     // 5. Upload to Supabase Storage
     const supabase = createClient(
