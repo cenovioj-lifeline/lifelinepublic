@@ -131,15 +131,12 @@ export const SerpApiSearchModal = ({
   const [isAiDragging, setIsAiDragging] = useState(false);
   const [isUploadingSource, setIsUploadingSource] = useState(false);
   const aiFileInputRef = useRef<HTMLInputElement>(null);
-  
-  // Track if we've auto-populated the prompt (to avoid overwriting user edits)
-  const hasAutoPopulated = useRef(false);
 
   // Computed: Are we in edit mode?
   const isEditMode = !!sourceImageUrl;
 
   // ========================================
-  // FETCH ENTRY DATA
+  // FETCH ENTRY DATA & PRE-POPULATE PROMPT
   // ========================================
 
   useEffect(() => {
@@ -161,6 +158,14 @@ export const SerpApiSearchModal = ({
 
         console.log('[SerpApiModal] Entry data loaded:', data);
         setEntryData(data);
+        
+        // PRE-POPULATE the edit prompt immediately when entry data loads
+        // This way the text is ready BEFORE the user drops an image
+        if (data) {
+          const editPrompt = buildEditPrompt(data);
+          setAiPrompt(editPrompt);
+          console.log('[SerpApiModal] Edit prompt pre-populated');
+        }
       } catch (error) {
         console.error('[SerpApiModal] Error fetching entry:', error);
       }
@@ -168,33 +173,6 @@ export const SerpApiSearchModal = ({
 
     fetchEntryData();
   }, [open, entryId]);
-
-  // ========================================
-  // AUTO-POPULATE EDIT PROMPT (FIX FOR TIMING ISSUE)
-  // ========================================
-  
-  /**
-   * This effect watches for both conditions to be met:
-   * 1. Source image is set (user dropped/selected an image)
-   * 2. Entry data is loaded (async fetch complete)
-   * 
-   * Only then does it auto-populate the prompt.
-   * This fixes the timing issue where the user drops an image before
-   * the entry data fetch completes.
-   */
-  useEffect(() => {
-    // Only auto-populate if:
-    // 1. We have a source image (edit mode)
-    // 2. We have entry data
-    // 3. We haven't already auto-populated
-    // 4. The prompt is empty (user hasn't typed anything)
-    if (sourceImageUrl && entryData && !hasAutoPopulated.current && !aiPrompt.trim()) {
-      console.log('[SerpApiModal] Auto-populating edit prompt with entry data');
-      setAiPrompt(buildEditPrompt(entryData));
-      hasAutoPopulated.current = true;
-      toast.success('Edit instructions populated from entry context!');
-    }
-  }, [sourceImageUrl, entryData, aiPrompt]);
 
   // ========================================
   // DRAG & DROP HANDLERS (Main Upload Zone)
@@ -309,13 +287,11 @@ export const SerpApiSearchModal = ({
       const { url } = await uploadImage(file, 'media-uploads');
       
       // Set as source image for editing
-      // The useEffect above will handle auto-populating the prompt
-      // once both sourceImageUrl and entryData are available
       setSourceImageUrl(url);
       setSourceImagePreview(url);
       
-      console.log('[SerpApiModal] Source image uploaded, entryData available:', !!entryData);
-      toast.success('Source image ready for editing!');
+      console.log('[SerpApiModal] Source image uploaded');
+      toast.success('Source image ready - click Edit Image!');
     } catch (error) {
       console.error('Source upload error:', error);
       toast.error('Failed to upload source image');
@@ -338,9 +314,6 @@ export const SerpApiSearchModal = ({
   const clearSourceImage = () => {
     setSourceImageUrl(null);
     setSourceImagePreview(null);
-    // Clear the auto-populated prompt when clearing source image
-    setAiPrompt('');
-    hasAutoPopulated.current = false;
   };
 
   // Sync modal state when entry or query changes
@@ -351,12 +324,15 @@ export const SerpApiSearchModal = ({
       setResults([]);
       setSelected(new Set());
       setPreviewUrl(null);
-      setAiPrompt('');
+      // Don't reset aiPrompt here - let the fetch populate it
       setGeneratedImage(null);
       setShowPositionPicker(false);
       setSourceImageUrl(null);
       setSourceImagePreview(null);
-      hasAutoPopulated.current = false;
+    } else {
+      // Only reset aiPrompt when modal closes
+      setAiPrompt('');
+      setEntryData(null);
     }
   }, [open, entryId, initialQuery]);
 
@@ -602,11 +578,11 @@ export const SerpApiSearchModal = ({
     setSelected(new Set());
     setPreviewUrl(null);
     setAiPrompt('');
+    setEntryData(null);
     setGeneratedImage(null);
     setShowPositionPicker(false);
     setSourceImageUrl(null);
     setSourceImagePreview(null);
-    hasAutoPopulated.current = false;
     onClose();
   };
 
@@ -780,7 +756,7 @@ export const SerpApiSearchModal = ({
                     value={aiPrompt}
                     onChange={(e) => setAiPrompt(e.target.value)}
                     placeholder={isEditMode 
-                      ? "Edit instructions will be auto-populated when you drop an image..."
+                      ? "Describe how to modify the image..."
                       : "e.g., Professional podcast studio with microphones and monitors, modern minimalist design, warm lighting"
                     }
                     className="w-full min-h-[120px]"
@@ -788,8 +764,8 @@ export const SerpApiSearchModal = ({
                   />
                   <p className="text-xs text-muted-foreground mt-1">
                     {isEditMode 
-                      ? "Instructions auto-populated from entry context. Feel free to modify."
-                      : "Describe the image you want to create. Be specific about style, lighting, and composition."
+                      ? "Instructions pre-populated from entry context. Feel free to modify."
+                      : "For editing: drop an image above first. For generation: describe what you want."
                     }
                   </p>
                 </div>
