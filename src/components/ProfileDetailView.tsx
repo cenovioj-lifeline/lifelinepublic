@@ -341,7 +341,12 @@ export function ProfileDetailView({
             <div className="flex items-center gap-2">
               <Quote className="h-5 w-5" style={labelMutedStyle} />
               <span className="font-semibold" style={labelStyle}>Notable Quotes</span>
-              <Badge variant="secondary">{quotes.length}</Badge>
+              <Badge 
+                variant="secondary"
+                className={collectionContext ? 'bg-[hsl(var(--scheme-nav-bg))] text-[hsl(var(--scheme-nav-text))] border-transparent' : ''}
+              >
+                {quotes.length}
+              </Badge>
             </div>
             <ChevronDown className={cn(
               "h-5 w-5 transition-transform",
@@ -350,7 +355,10 @@ export function ProfileDetailView({
           </button>
           
           {quotesExpanded && (
-            <div className="space-y-3 pl-4 border-l-2 border-muted ml-4 pt-2">
+            <div 
+              className="space-y-3 pl-4 border-l-2 ml-4 pt-2"
+              style={collectionContext ? { borderColor: 'hsl(var(--scheme-cards-border))' } : { borderColor: 'hsl(var(--muted))' }}
+            >
               {quotes.map((quoteItem: any) => (
                 <div key={quoteItem.id} className="space-y-1">
                   <blockquote className="text-base italic" style={labelStyle}>
