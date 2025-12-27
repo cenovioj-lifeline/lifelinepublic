@@ -131,6 +131,9 @@ export const SerpApiSearchModal = ({
   const [isAiDragging, setIsAiDragging] = useState(false);
   const [isUploadingSource, setIsUploadingSource] = useState(false);
   const aiFileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Track if we've auto-populated the prompt (to avoid overwriting user edits)
+  const hasAutoPopulated = useRef(false);
 
   // Computed: Are we in edit mode?
   const isEditMode = !!sourceImageUrl;
@@ -144,6 +147,7 @@ export const SerpApiSearchModal = ({
       if (!open || !entryId) return;
 
       try {
+        console.log('[SerpApiModal] Fetching entry data for:', entryId);
         const { data, error } = await supabase
           .from('entries')
           .select('title, description')
@@ -151,18 +155,46 @@ export const SerpApiSearchModal = ({
           .single();
 
         if (error) {
-          console.error('Failed to fetch entry data:', error);
+          console.error('[SerpApiModal] Failed to fetch entry data:', error);
           return;
         }
 
+        console.log('[SerpApiModal] Entry data loaded:', data);
         setEntryData(data);
       } catch (error) {
-        console.error('Error fetching entry:', error);
+        console.error('[SerpApiModal] Error fetching entry:', error);
       }
     };
 
     fetchEntryData();
   }, [open, entryId]);
+
+  // ========================================
+  // AUTO-POPULATE EDIT PROMPT (FIX FOR TIMING ISSUE)
+  // ========================================
+  
+  /**
+   * This effect watches for both conditions to be met:
+   * 1. Source image is set (user dropped/selected an image)
+   * 2. Entry data is loaded (async fetch complete)
+   * 
+   * Only then does it auto-populate the prompt.
+   * This fixes the timing issue where the user drops an image before
+   * the entry data fetch completes.
+   */
+  useEffect(() => {
+    // Only auto-populate if:
+    // 1. We have a source image (edit mode)
+    // 2. We have entry data
+    // 3. We haven't already auto-populated
+    // 4. The prompt is empty (user hasn't typed anything)
+    if (sourceImageUrl && entryData && !hasAutoPopulated.current && !aiPrompt.trim()) {
+      console.log('[SerpApiModal] Auto-populating edit prompt with entry data');
+      setAiPrompt(buildEditPrompt(entryData));
+      hasAutoPopulated.current = true;
+      toast.success('Edit instructions populated from entry context!');
+    }
+  }, [sourceImageUrl, entryData, aiPrompt]);
 
   // ========================================
   // DRAG & DROP HANDLERS (Main Upload Zone)
@@ -277,15 +309,13 @@ export const SerpApiSearchModal = ({
       const { url } = await uploadImage(file, 'media-uploads');
       
       // Set as source image for editing
+      // The useEffect above will handle auto-populating the prompt
+      // once both sourceImageUrl and entryData are available
       setSourceImageUrl(url);
       setSourceImagePreview(url);
-
-      // Auto-populate AI prompt with entry context if available
-      if (entryData && !aiPrompt.trim()) {
-        setAiPrompt(buildEditPrompt(entryData));
-      }
       
-      toast.success('Source image ready - edit instructions populated!');
+      console.log('[SerpApiModal] Source image uploaded, entryData available:', !!entryData);
+      toast.success('Source image ready for editing!');
     } catch (error) {
       console.error('Source upload error:', error);
       toast.error('Failed to upload source image');
@@ -310,6 +340,7 @@ export const SerpApiSearchModal = ({
     setSourceImagePreview(null);
     // Clear the auto-populated prompt when clearing source image
     setAiPrompt('');
+    hasAutoPopulated.current = false;
   };
 
   // Sync modal state when entry or query changes
@@ -325,6 +356,7 @@ export const SerpApiSearchModal = ({
       setShowPositionPicker(false);
       setSourceImageUrl(null);
       setSourceImagePreview(null);
+      hasAutoPopulated.current = false;
     }
   }, [open, entryId, initialQuery]);
 
@@ -574,6 +606,7 @@ export const SerpApiSearchModal = ({
     setShowPositionPicker(false);
     setSourceImageUrl(null);
     setSourceImagePreview(null);
+    hasAutoPopulated.current = false;
     onClose();
   };
 
