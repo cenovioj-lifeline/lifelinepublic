@@ -12,6 +12,7 @@
  * - Rerun with modified query
  * - AI image generation via Gemini
  * - AI image editing (modify existing images)
+ * - Auto-populated edit instructions from entry context
  */
 
 import { useState, useEffect, useRef } from 'react';
@@ -52,6 +53,11 @@ interface ImageCandidate {
   score: number;       // 0-25 points
 }
 
+interface EntryData {
+  title: string;
+  description: string | null;
+}
+
 interface SerpApiSearchModalProps {
   open: boolean;
   onClose: () => void;
@@ -59,6 +65,32 @@ interface SerpApiSearchModalProps {
   initialQuery: string;
   onImportComplete: () => void;
 }
+
+// ========================================
+// HELPER FUNCTIONS
+// ========================================
+
+/**
+ * Build the default AI edit prompt from entry data
+ */
+const buildEditPrompt = (entry: EntryData): string => {
+  const parts = [
+    `Take the image that is being passed in. This person is trying to convey the following idea:`,
+    ``,
+    `Event Title: ${entry.title}`,
+  ];
+
+  if (entry.description) {
+    parts.push(`Event Details: ${entry.description}`);
+  }
+
+  parts.push(
+    ``,
+    `Feel free to take liberties to make this seem like this person trying to convey this idea. Add images related to the event details if they help tell the story. Use the image of the person however needed to make this funny, compelling, interesting, etc.`
+  );
+
+  return parts.join('\n');
+};
 
 // ========================================
 // MAIN COMPONENT
@@ -84,6 +116,9 @@ export const SerpApiSearchModal = ({
   const [isDragging, setIsDragging] = useState(false);
   const [uploading, setUploading] = useState(false);
 
+  // Entry data for AI prompt context
+  const [entryData, setEntryData] = useState<EntryData | null>(null);
+
   // AI Generation State
   const [aiPrompt, setAiPrompt] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
@@ -99,6 +134,35 @@ export const SerpApiSearchModal = ({
 
   // Computed: Are we in edit mode?
   const isEditMode = !!sourceImageUrl;
+
+  // ========================================
+  // FETCH ENTRY DATA
+  // ========================================
+
+  useEffect(() => {
+    const fetchEntryData = async () => {
+      if (!open || !entryId) return;
+
+      try {
+        const { data, error } = await supabase
+          .from('entries')
+          .select('title, description')
+          .eq('id', entryId)
+          .single();
+
+        if (error) {
+          console.error('Failed to fetch entry data:', error);
+          return;
+        }
+
+        setEntryData(data);
+      } catch (error) {
+        console.error('Error fetching entry:', error);
+      }
+    };
+
+    fetchEntryData();
+  }, [open, entryId]);
 
   // ========================================
   // DRAG & DROP HANDLERS (Main Upload Zone)
@@ -215,8 +279,13 @@ export const SerpApiSearchModal = ({
       // Set as source image for editing
       setSourceImageUrl(url);
       setSourceImagePreview(url);
+
+      // Auto-populate AI prompt with entry context if available
+      if (entryData && !aiPrompt.trim()) {
+        setAiPrompt(buildEditPrompt(entryData));
+      }
       
-      toast.success('Source image ready for editing');
+      toast.success('Source image ready - edit instructions populated!');
     } catch (error) {
       console.error('Source upload error:', error);
       toast.error('Failed to upload source image');
@@ -239,6 +308,8 @@ export const SerpApiSearchModal = ({
   const clearSourceImage = () => {
     setSourceImageUrl(null);
     setSourceImagePreview(null);
+    // Clear the auto-populated prompt when clearing source image
+    setAiPrompt('');
   };
 
   // Sync modal state when entry or query changes
@@ -676,15 +747,15 @@ export const SerpApiSearchModal = ({
                     value={aiPrompt}
                     onChange={(e) => setAiPrompt(e.target.value)}
                     placeholder={isEditMode 
-                      ? "e.g., Remove the background, Change the lighting to warm sunset tones, Add a subtle vignette"
+                      ? "Edit instructions will be auto-populated when you drop an image..."
                       : "e.g., Professional podcast studio with microphones and monitors, modern minimalist design, warm lighting"
                     }
-                    className="w-full min-h-[80px]"
+                    className="w-full min-h-[120px]"
                     disabled={loading || uploading || isGenerating}
                   />
                   <p className="text-xs text-muted-foreground mt-1">
                     {isEditMode 
-                      ? "Describe how you want to modify the image."
+                      ? "Instructions auto-populated from entry context. Feel free to modify."
                       : "Describe the image you want to create. Be specific about style, lighting, and composition."
                     }
                   </p>
