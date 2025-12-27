@@ -10,17 +10,20 @@
  * - Score badges (0-25 points)
  * - Full-size preview lightbox
  * - Rerun with modified query
+ * - AI image generation via Gemini
  */
 
 import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
-import { Loader2, X, ZoomIn, Upload } from 'lucide-react';
+import { Loader2, X, ZoomIn, Upload, Sparkles } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { uploadImage } from '@/lib/storage';
+import { ImagePositionPicker } from '@/components/ImagePositionPicker';
 
 // ========================================
 // CONFIGURATION
@@ -79,6 +82,12 @@ export const SerpApiSearchModal = ({
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [uploading, setUploading] = useState(false);
+
+  // AI Generation State
+  const [aiPrompt, setAiPrompt] = useState('');
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generatedImage, setGeneratedImage] = useState<{ url: string; path: string } | null>(null);
+  const [showPositionPicker, setShowPositionPicker] = useState(false);
 
   // ========================================
   // DRAG & DROP HANDLERS
@@ -159,6 +168,9 @@ export const SerpApiSearchModal = ({
       setResults([]);
       setSelected(new Set());
       setPreviewUrl(null);
+      setAiPrompt('');
+      setGeneratedImage(null);
+      setShowPositionPicker(false);
     }
   }, [open, entryId, initialQuery]);
 
@@ -272,6 +284,103 @@ export const SerpApiSearchModal = ({
   };
 
   // ========================================
+  // AI IMAGE GENERATION
+  // ========================================
+
+  /**
+   * Generate image using Gemini via Lovable AI Gateway
+   * Calls the generate-ai-image edge function
+   */
+  const handleGenerateImage = async () => {
+    if (!aiPrompt.trim()) {
+      toast.error('Please enter a description for the image');
+      return;
+    }
+
+    setIsGenerating(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-ai-image', {
+        body: {
+          prompt: aiPrompt.trim(),
+          entryId: entryId
+        }
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      if (!data?.success) {
+        throw new Error(data?.error || 'Failed to generate image');
+      }
+
+      // Store the generated image info
+      setGeneratedImage({ url: data.url, path: data.path });
+      
+      // Open position picker
+      setShowPositionPicker(true);
+      
+      toast.success('Image generated! Adjust positioning.');
+    } catch (error: any) {
+      console.error('AI generation error:', error);
+      
+      // Handle specific error cases
+      if (error.message?.includes('Rate limited')) {
+        toast.error('Rate limited. Please try again in a moment.');
+      } else if (error.message?.includes('credits')) {
+        toast.error('Out of AI credits. Add credits in Lovable settings.');
+      } else {
+        toast.error(error.message || 'Failed to generate image');
+      }
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  /**
+   * Save AI-generated image to entry after positioning
+   */
+  const handleSaveAiImage = async (position: { x: number; y: number; scale: number }) => {
+    if (!generatedImage) return;
+
+    try {
+      // Create media_asset record with position
+      const { data: mediaAsset, error: mediaError } = await supabase
+        .from('media_assets')
+        .insert({
+          url: generatedImage.url,
+          filename: generatedImage.path,
+          type: 'image',
+          alt_text: aiPrompt.substring(0, 200), // Use prompt as alt text
+          position_x: Math.round(position.x),
+          position_y: Math.round(position.y),
+          scale: position.scale,
+        })
+        .select('id')
+        .single();
+
+      if (mediaError) throw mediaError;
+
+      // Create entry_media link
+      const { error: linkError } = await supabase
+        .from('entry_media')
+        .insert({
+          entry_id: entryId,
+          media_id: mediaAsset.id,
+        });
+
+      if (linkError) throw linkError;
+
+      toast.success('AI image saved to entry!');
+      onImportComplete();
+      onClose();
+    } catch (error) {
+      console.error('Save AI image error:', error);
+      toast.error('Failed to save AI image');
+    }
+  };
+
+  // ========================================
   // UI HANDLERS
   // ========================================
 
@@ -297,6 +406,9 @@ export const SerpApiSearchModal = ({
     setResults([]);
     setSelected(new Set());
     setPreviewUrl(null);
+    setAiPrompt('');
+    setGeneratedImage(null);
+    setShowPositionPicker(false);
     onClose();
   };
 
@@ -363,9 +475,9 @@ export const SerpApiSearchModal = ({
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="e.g., Walter White cooking in lab"
                   className="w-full"
-                  disabled={loading || uploading}
+                  disabled={loading || uploading || isGenerating}
                   onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !loading && !uploading && query.trim()) {
+                    if (e.key === 'Enter' && !loading && !uploading && !isGenerating && query.trim()) {
                       handleSearch();
                     }
                   }}
@@ -375,10 +487,10 @@ export const SerpApiSearchModal = ({
                 </p>
               </div>
 
-              <div className="flex gap-3 pt-4">
+              <div className="flex gap-3">
                 <Button
                   onClick={handleSearch}
-                  disabled={loading || uploading || !query.trim()}
+                  disabled={loading || uploading || isGenerating || !query.trim()}
                   className="min-w-[120px]"
                 >
                   {loading ? (
@@ -390,9 +502,51 @@ export const SerpApiSearchModal = ({
                     'Run Search'
                   )}
                 </Button>
-                <Button variant="outline" onClick={handleClose} disabled={loading || uploading}>
+                <Button variant="outline" onClick={handleClose} disabled={loading || uploading || isGenerating}>
                   Cancel
                 </Button>
+              </div>
+
+              {/* AI Image Generation Section */}
+              <div className="border-t pt-6">
+                <div className="text-center text-sm text-muted-foreground mb-4">— or generate with AI —</div>
+                
+                <div>
+                  <label className="text-sm font-medium text-foreground/70 mb-2 block">
+                    AI Image Prompt
+                  </label>
+                  <Textarea
+                    value={aiPrompt}
+                    onChange={(e) => setAiPrompt(e.target.value)}
+                    placeholder="e.g., Professional podcast studio with microphones and monitors, modern minimalist design, warm lighting"
+                    className="w-full min-h-[80px]"
+                    disabled={loading || uploading || isGenerating}
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Describe the image you want to create. Be specific about style, lighting, and composition.
+                  </p>
+                </div>
+
+                <div className="flex gap-3 mt-4">
+                  <Button
+                    onClick={handleGenerateImage}
+                    disabled={loading || uploading || isGenerating || !aiPrompt.trim()}
+                    variant="secondary"
+                    className="min-w-[160px]"
+                  >
+                    {isGenerating ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Generating...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="w-4 h-4 mr-2" />
+                        Generate Image
+                      </>
+                    )}
+                  </Button>
+                </div>
               </div>
             </div>
           )}
@@ -528,6 +682,25 @@ export const SerpApiSearchModal = ({
             </div>
           </DialogContent>
         </Dialog>
+      )}
+
+      {/* Image Position Picker for AI Generated Images */}
+      {generatedImage && (
+        <ImagePositionPicker
+          imageUrl={generatedImage.url}
+          open={showPositionPicker}
+          onOpenChange={(open) => {
+            setShowPositionPicker(open);
+            if (!open) {
+              // Reset generated image if picker is closed without saving
+              setGeneratedImage(null);
+            }
+          }}
+          onPositionChange={handleSaveAiImage}
+          title="Position AI Generated Image"
+          viewType="card"
+          initialPosition={{ x: 50, y: 50, scale: 1 }}
+        />
       )}
     </>
   );
