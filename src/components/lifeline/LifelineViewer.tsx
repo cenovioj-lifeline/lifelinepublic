@@ -17,6 +17,7 @@ import { SuperFanImageUpload, SuperFanImageDelete } from "@/components/SuperFanI
 import { ImageLockToggle } from "@/components/ImageLockToggle";
 import { CoverImagePicker } from "@/components/CoverImagePicker";
 import { SerpApiSearchModal } from "@/components/admin/SerpApiSearchModal";
+import { AiImageEditModal } from "@/components/admin/AiImageEditModal";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -68,6 +69,7 @@ export function LifelineViewer({
   const [editedTitle, setEditedTitle] = useState("");
   const [editedDetails, setEditedDetails] = useState("");
   const [serpApiModalOpen, setSerpApiModalOpen] = useState(false);
+  const [aiEditModalOpen, setAiEditModalOpen] = useState(false);
   const selectionStyle: SelectionStyle = "glow"; // Always use glow
   const timelineRef = useRef<HTMLDivElement>(null);
   const entryRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
@@ -869,16 +871,26 @@ export function LifelineViewer({
                     currentEntryId={selected.id}
                   />
 
-                  {/* Admin SerpAPI Button - Only for cenovioj@gmail.com */}
+                  {/* Admin Buttons - Only for cenovioj@gmail.com */}
                   {isAdmin && (
-                    <Button
-                      size="sm"
-                      onClick={() => setSerpApiModalOpen(true)}
-                      className="bg-purple-600 hover:bg-purple-700 text-white border-0"
-                    >
-                      <Search className="h-4 w-4 mr-2" />
-                      SerpAPI Search
-                    </Button>
+                    <>
+                      <Button
+                        size="sm"
+                        onClick={() => setSerpApiModalOpen(true)}
+                        className="bg-purple-600 hover:bg-purple-700 text-white border-0"
+                      >
+                        <Search className="h-4 w-4 mr-2" />
+                        SerpAPI
+                      </Button>
+                      <Button
+                        size="sm"
+                        onClick={() => setAiEditModalOpen(true)}
+                        className="bg-purple-600 hover:bg-purple-700 text-white border-0"
+                      >
+                        <span className="mr-2">🍌</span>
+                        Nano
+                      </Button>
+                    </>
                   )}
                 </div>
 
@@ -942,6 +954,20 @@ export function LifelineViewer({
           entryId={selected.id}
           initialQuery={selected.serpapi_query || `${selected.title} ${lifeline.title}`}
           onImportComplete={() => {
+            queryClient.invalidateQueries({ queryKey: ["entries", lifelineId] });
+          }}
+        />
+      )}
+
+      {/* AI Image Edit Modal (Nano Banana) - Only for admin */}
+      {isAdmin && selected && (
+        <AiImageEditModal
+          open={aiEditModalOpen}
+          onClose={() => setAiEditModalOpen(false)}
+          entryId={selected.id}
+          entryTitle={selected.title}
+          entryDescription={selected.summary || selected.details || null}
+          onSaveComplete={() => {
             queryClient.invalidateQueries({ queryKey: ["entries", lifelineId] });
           }}
         />
