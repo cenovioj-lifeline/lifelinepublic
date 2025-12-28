@@ -3,7 +3,7 @@ import { Upload, Loader2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { uploadImage } from "@/lib/storage";
 import { supabase } from "@/integrations/supabase/client";
-import { ImagePositionPicker } from "./ImagePositionPicker";
+import { CropBoxPicker, CropData } from "./admin/CropBoxPicker";
 import { Button } from "./ui/button";
 
 interface SuperFanImageUploadProps {
@@ -15,7 +15,7 @@ export function SuperFanImageUpload({ entryId, onUploadComplete }: SuperFanImage
   const [isDragging, setIsDragging] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [tempImage, setTempImage] = useState<{ url: string; path: string; file: File } | null>(null);
-  const [showPositionPicker, setShowPositionPicker] = useState(false);
+  const [showCropPicker, setShowCropPicker] = useState(false);
   const [imageUrl, setImageUrl] = useState("");
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -53,7 +53,7 @@ export function SuperFanImageUpload({ entryId, onUploadComplete }: SuperFanImage
     try {
       const { url, path } = await uploadImage(file);
       setTempImage({ url, path, file });
-      setShowPositionPicker(true);
+      setShowCropPicker(true);
     } catch (error) {
       console.error("Upload error:", error);
       toast.error("Failed to upload image");
@@ -100,8 +100,13 @@ export function SuperFanImageUpload({ entryId, onUploadComplete }: SuperFanImage
     }
   };
 
-  const handlePositionSave = async (position: { x: number; y: number; scale: number }) => {
+  const handleCropComplete = async (crop: CropData) => {
     if (!tempImage) return;
+
+    // Convert crop box to position/scale
+    const centerX = crop.x + crop.width / 2;
+    const centerY = crop.y + crop.height / 2;
+    const scale = 100 / crop.width;
 
     setUploading(true);
     try {
@@ -112,9 +117,9 @@ export function SuperFanImageUpload({ entryId, onUploadComplete }: SuperFanImage
           url: tempImage.url,
           filename: tempImage.file.name,
           type: tempImage.file.type,
-          position_x: position.x,
-          position_y: position.y,
-          scale: position.scale,
+          position_x: centerX,
+          position_y: centerY,
+          scale: scale,
         })
         .select()
         .single();
@@ -134,7 +139,7 @@ export function SuperFanImageUpload({ entryId, onUploadComplete }: SuperFanImage
 
       toast.success("Image added successfully");
       setTempImage(null);
-      setShowPositionPicker(false);
+      setShowCropPicker(false);
       onUploadComplete();
     } catch (error) {
       console.error("Save error:", error);
@@ -193,14 +198,13 @@ export function SuperFanImageUpload({ entryId, onUploadComplete }: SuperFanImage
       </div>
 
       {tempImage && (
-        <ImagePositionPicker
+        <CropBoxPicker
           imageUrl={tempImage.url}
-          onPositionChange={handlePositionSave}
-          initialPosition={{ x: 50, y: 50, scale: 1 }}
-          open={showPositionPicker}
-          onOpenChange={setShowPositionPicker}
+          open={showCropPicker}
+          onOpenChange={setShowCropPicker}
+          onCropComplete={handleCropComplete}
+          aspectRatio={16 / 9}
           title="Position Your Image"
-          viewType="card"
         />
       )}
     </>
