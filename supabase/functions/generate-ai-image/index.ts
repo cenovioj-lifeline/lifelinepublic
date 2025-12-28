@@ -22,8 +22,8 @@ serve(async (req) => {
       );
     }
 
-    // 2. Parse request body
-    const { prompt, sourceImageUrl, entryId } = await req.json();
+    // 2. Parse request body - now includes experimental size/aspect params
+    const { prompt, sourceImageUrl, entryId, imageSize, aspectRatio } = await req.json();
 
     if (!prompt || typeof prompt !== "string" || prompt.trim() === "") {
       return new Response(
@@ -49,28 +49,51 @@ serve(async (req) => {
       console.log(`Generating image for entry ${entryId || 'unknown'}: "${prompt.substring(0, 100)}..."`);
     }
 
-    // 4. Call Lovable AI Gateway
+    // 4. Build request body with experimental parameters
+    const requestBody: Record<string, unknown> = {
+      model: "google/gemini-3-pro-image-preview",
+      messages: [
+        {
+          role: "user",
+          content: messageContent
+        }
+      ],
+      modalities: ["image", "text"],
+    };
+
+    // Add experimental size/aspect parameters if provided
+    // Testing multiple possible parameter names
+    if (imageSize) {
+      requestBody.image_size = imageSize;      // OpenAI style
+      requestBody.size = imageSize;            // Alternative
+    }
+    if (aspectRatio) {
+      requestBody.aspect_ratio = aspectRatio;  // Snake case
+      requestBody.aspectRatio = aspectRatio;   // Camel case
+    }
+
+    // Log what we're sending
+    console.log("=== AI Gateway Request ===");
+    console.log("Request body:", JSON.stringify(requestBody, null, 2));
+    console.log("Requested imageSize:", imageSize || 'not specified');
+    console.log("Requested aspectRatio:", aspectRatio || 'not specified');
+
+    // 5. Call Lovable AI Gateway
     const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${Deno.env.get("LOVABLE_API_KEY")}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        model: "google/gemini-3-pro-image-preview",
-        messages: [
-          {
-            role: "user",
-            content: messageContent
-          }
-        ],
-        modalities: ["image", "text"]
-      })
+      body: JSON.stringify(requestBody)
     });
 
     // Handle AI gateway errors
     if (!aiResponse.ok) {
+      const errorText = await aiResponse.text();
       console.error(`AI gateway error: ${aiResponse.status}`);
+      console.error(`Error response body:`, errorText);
+      
       if (aiResponse.status === 429) {
         return new Response(
           JSON.stringify({ success: false, error: "Rate limited. Please try again later." }),
@@ -83,12 +106,31 @@ serve(async (req) => {
           { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
-      throw new Error(`AI gateway error: ${aiResponse.status}`);
+      throw new Error(`AI gateway error: ${aiResponse.status} - ${errorText}`);
     }
 
     const aiData = await aiResponse.json();
 
-    // 4. Extract base64 image from response
+    // Log full response structure for analysis
+    console.log("=== AI Gateway Response ===");
+    console.log("Response model:", aiData.model);
+    console.log("Response usage:", JSON.stringify(aiData.usage));
+    console.log("Image count:", aiData.choices?.[0]?.message?.images?.length || 0);
+    console.log("Response metadata:", JSON.stringify(aiData.metadata || 'none'));
+    console.log("Full response keys:", Object.keys(aiData));
+    
+    // Check for any size-related info in the response
+    if (aiData.choices?.[0]?.message) {
+      const message = aiData.choices[0].message;
+      console.log("Message keys:", Object.keys(message));
+      if (message.images?.[0]) {
+        const imageInfo = message.images[0];
+        console.log("Image object keys:", Object.keys(imageInfo));
+        console.log("Image URL type:", imageInfo.image_url ? Object.keys(imageInfo.image_url) : 'no image_url');
+      }
+    }
+
+    // 6. Extract base64 image from response
     const images = aiData.choices?.[0]?.message?.images;
     if (!images || images.length === 0) {
       console.error("No image in AI response:", JSON.stringify(aiData).substring(0, 500));
@@ -107,9 +149,22 @@ serve(async (req) => {
     const base64Data = matches[2];
     const imageBuffer = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
 
-    console.log(`Image ${isEditing ? 'edited' : 'generated'} successfully, format: ${imageFormat}, size: ${imageBuffer.length} bytes`);
+    console.log(`Image ${isEditing ? 'edited' : 'generated'} successfully`);
+    console.log(`Format: ${imageFormat}, Size: ${imageBuffer.length} bytes`);
+    
+    // Try to determine actual image dimensions from the data
+    // PNG: width at bytes 16-19, height at bytes 20-23 (big endian)
+    // JPEG: more complex, skip for now
+    let actualWidth: number | null = null;
+    let actualHeight: number | null = null;
+    
+    if (imageFormat === 'png' && imageBuffer.length > 24) {
+      actualWidth = (imageBuffer[16] << 24) | (imageBuffer[17] << 16) | (imageBuffer[18] << 8) | imageBuffer[19];
+      actualHeight = (imageBuffer[20] << 24) | (imageBuffer[21] << 16) | (imageBuffer[22] << 8) | imageBuffer[23];
+      console.log(`Detected PNG dimensions: ${actualWidth}x${actualHeight}`);
+    }
 
-    // 5. Upload to Supabase Storage
+    // 7. Upload to Supabase Storage
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
@@ -129,19 +184,28 @@ serve(async (req) => {
       throw new Error(`Storage upload failed: ${uploadError.message}`);
     }
 
-    // 6. Get public URL
+    // 8. Get public URL
     const { data: urlData } = supabase.storage
       .from("media-uploads")
       .getPublicUrl(filename);
 
     console.log(`Image uploaded successfully: ${filename}`);
 
-    // 7. Return success response
+    // 9. Return success response with diagnostic info
     return new Response(
       JSON.stringify({
         success: true,
         url: urlData.publicUrl,
-        path: filename
+        path: filename,
+        // Diagnostic info for testing
+        diagnostics: {
+          requestedSize: imageSize || 'not specified',
+          requestedAspect: aspectRatio || 'not specified',
+          actualDimensions: actualWidth && actualHeight ? `${actualWidth}x${actualHeight}` : 'unknown',
+          fileSizeBytes: imageBuffer.length,
+          format: imageFormat,
+          model: aiData.model,
+        }
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
