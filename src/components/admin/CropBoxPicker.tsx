@@ -7,7 +7,13 @@
  * - Smaller box = tighter crop (that portion fills the display frame)
  * - Larger box = wider view (more context visible)
  * - Drag box = select which part of the image to show
- * - Box maintains 16:9 aspect ratio
+ * - Box maintains specified aspect ratio
+ * 
+ * Supported aspect ratios:
+ * - 16/9 (card view)
+ * - 1/1 (avatar - circular)
+ * - 3/1 (banner)
+ * - 2/3 (cover)
  */
 
 import { useState, useRef, useEffect, useCallback } from 'react';
@@ -35,6 +41,29 @@ export interface CropData {
   width: number;  // Width of crop box
   height: number; // Height of crop box
 }
+
+// ========================================
+// HELPERS
+// ========================================
+
+const getAspectRatioLabel = (ratio: number): string => {
+  // Common ratios
+  if (Math.abs(ratio - 16/9) < 0.01) return '16:9';
+  if (Math.abs(ratio - 1) < 0.01) return '1:1';
+  if (Math.abs(ratio - 3) < 0.01) return '3:1';
+  if (Math.abs(ratio - 2/3) < 0.01) return '2:3';
+  if (Math.abs(ratio - 4/3) < 0.01) return '4:3';
+  // Fallback
+  return `${ratio.toFixed(2)}:1`;
+};
+
+const getViewTypeDescription = (ratio: number): string => {
+  if (Math.abs(ratio - 16/9) < 0.01) return 'card view';
+  if (Math.abs(ratio - 1) < 0.01) return 'avatar';
+  if (Math.abs(ratio - 3) < 0.01) return 'banner';
+  if (Math.abs(ratio - 2/3) < 0.01) return 'cover';
+  return 'display';
+};
 
 // ========================================
 // COMPONENT
@@ -67,6 +96,11 @@ export const CropBoxPicker = ({
   const [resizeHandle, setResizeHandle] = useState<string | null>(null);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [boxStart, setBoxStart] = useState({ x: 0, y: 0, width: 0, height: 0 });
+
+  // Derived values
+  const isAvatar = Math.abs(aspectRatio - 1) < 0.01;
+  const aspectLabel = getAspectRatioLabel(aspectRatio);
+  const viewTypeDesc = getViewTypeDescription(aspectRatio);
 
   // Initialize crop box when image loads
   const handleImageLoad = useCallback(() => {
@@ -273,9 +307,6 @@ export const CropBoxPicker = ({
   // Save crop
   const handleSave = () => {
     // Convert pixel values to percentages of the original image
-    const scaleX = imageDimensions.width / displayDimensions.width;
-    const scaleY = imageDimensions.height / displayDimensions.height;
-    
     const crop: CropData = {
       x: (cropBox.x / displayDimensions.width) * 100,
       y: (cropBox.y / displayDimensions.height) * 100,
@@ -287,13 +318,17 @@ export const CropBoxPicker = ({
     onOpenChange(false);
   };
 
+  // Calculate preview dimensions
+  const previewWidth = isAvatar ? 200 : 280;
+  const previewHeight = previewWidth / aspectRatio;
+
   // Calculate preview crop style
   const getPreviewStyle = () => {
     if (cropBox.width === 0) return {};
     
     // For preview, we show what the cropped image will look like
-    const scaleX = 280 / cropBox.width; // Preview width is 280px
-    const scaleY = (280 / aspectRatio) / cropBox.height;
+    const scaleX = previewWidth / cropBox.width;
+    const scaleY = previewHeight / cropBox.height;
     
     return {
       width: displayDimensions.width * scaleX,
@@ -376,7 +411,7 @@ export const CropBoxPicker = ({
                 {/* Crop box */}
                 {cropBox.width > 0 && (
                   <div
-                    className="absolute border-2 border-white cursor-move"
+                    className={`absolute border-2 border-white cursor-move ${isAvatar ? 'rounded-full' : ''}`}
                     style={{
                       left: cropBox.x,
                       top: cropBox.y,
@@ -386,13 +421,15 @@ export const CropBoxPicker = ({
                     }}
                     onMouseDown={handleBoxMouseDown}
                   >
-                    {/* Grid lines */}
-                    <div className="absolute inset-0 pointer-events-none">
-                      <div className="absolute left-1/3 top-0 bottom-0 w-px bg-white/30" />
-                      <div className="absolute left-2/3 top-0 bottom-0 w-px bg-white/30" />
-                      <div className="absolute top-1/3 left-0 right-0 h-px bg-white/30" />
-                      <div className="absolute top-2/3 left-0 right-0 h-px bg-white/30" />
-                    </div>
+                    {/* Grid lines (not for avatar) */}
+                    {!isAvatar && (
+                      <div className="absolute inset-0 pointer-events-none">
+                        <div className="absolute left-1/3 top-0 bottom-0 w-px bg-white/30" />
+                        <div className="absolute left-2/3 top-0 bottom-0 w-px bg-white/30" />
+                        <div className="absolute top-1/3 left-0 right-0 h-px bg-white/30" />
+                        <div className="absolute top-2/3 left-0 right-0 h-px bg-white/30" />
+                      </div>
+                    )}
 
                     {/* Resize handles */}
                     {/* Corners */}
@@ -437,12 +474,12 @@ export const CropBoxPicker = ({
 
             {/* Preview */}
             <div className="w-72 flex-shrink-0">
-              <p className="text-sm font-medium mb-2">Preview (16:9)</p>
+              <p className="text-sm font-medium mb-2">Preview ({aspectLabel})</p>
               <div 
-                className="bg-gray-100 rounded-lg overflow-hidden"
+                className={`bg-gray-100 overflow-hidden ${isAvatar ? 'rounded-full' : 'rounded-lg'}`}
                 style={{ 
-                  width: 280, 
-                  height: 280 / aspectRatio,
+                  width: previewWidth, 
+                  height: previewHeight,
                 }}
               >
                 {cropBox.width > 0 && (
@@ -455,7 +492,7 @@ export const CropBoxPicker = ({
                 )}
               </div>
               <p className="text-xs text-muted-foreground mt-2">
-                This is how the image will appear in the card view.
+                This is how the image will appear as {viewTypeDesc}.
               </p>
             </div>
           </div>
