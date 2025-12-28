@@ -3,6 +3,7 @@
  * 
  * Simple, focused modal for AI image editing using Gemini.
  * Takes entry data as props - no async fetching needed.
+ * Uses CropBoxPicker for intuitive crop selection.
  */
 
 import { useState, useRef } from 'react';
@@ -13,7 +14,7 @@ import { toast } from 'sonner';
 import { Loader2, X, ImageIcon, Pencil } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { uploadImage } from '@/lib/storage';
-import { ImagePositionPicker } from '@/components/ImagePositionPicker';
+import { CropBoxPicker, CropData } from '@/components/admin/CropBoxPicker';
 
 // ========================================
 // TYPES
@@ -74,7 +75,7 @@ export const AiImageEditModal = ({
   const [isUploading, setIsUploading] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedImage, setGeneratedImage] = useState<{ url: string; path: string } | null>(null);
-  const [showPositionPicker, setShowPositionPicker] = useState(false);
+  const [showCropPicker, setShowCropPicker] = useState(false);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -89,7 +90,7 @@ export const AiImageEditModal = ({
       setSourceImageUrl(null);
       setSourceImagePreview(null);
       setGeneratedImage(null);
-      setShowPositionPicker(false);
+      setShowCropPicker(false);
       onClose();
     }
   };
@@ -193,8 +194,8 @@ export const AiImageEditModal = ({
       if (!data?.success) throw new Error(data?.error || 'Failed to generate image');
 
       setGeneratedImage({ url: data.url, path: data.path });
-      setShowPositionPicker(true);
-      toast.success('Image edited! Adjust positioning.');
+      setShowCropPicker(true);
+      toast.success('Image edited! Now select your crop.');
     } catch (error: any) {
       console.error('AI generation error:', error);
       if (error.message?.includes('Rate limited')) {
@@ -210,13 +211,25 @@ export const AiImageEditModal = ({
   };
 
   // ========================================
-  // SAVE
+  // SAVE WITH CROP DATA
   // ========================================
 
-  const handleSaveImage = async (position: { x: number; y: number; scale: number }) => {
+  const handleSaveCrop = async (crop: CropData) => {
     if (!generatedImage) return;
 
     try {
+      // Convert crop box data to position/scale format for storage
+      // The crop data tells us what portion of the image to show
+      // We store this as position (center point) and scale (inverse of crop width)
+      
+      // Calculate center position from crop box
+      const centerX = crop.x + crop.width / 2;
+      const centerY = crop.y + crop.height / 2;
+      
+      // Scale is inverse of crop width (smaller box = higher effective zoom)
+      // If crop covers 100% width, scale = 1. If 50%, scale = 2, etc.
+      const scale = 100 / crop.width;
+
       const { data: mediaAsset, error: mediaError } = await supabase
         .from('media_assets')
         .insert({
@@ -224,9 +237,9 @@ export const AiImageEditModal = ({
           filename: generatedImage.path,
           type: 'image',
           alt_text: aiPrompt.substring(0, 200),
-          position_x: Math.round(position.x),
-          position_y: Math.round(position.y),
-          scale: position.scale,
+          position_x: Math.round(centerX),
+          position_y: Math.round(centerY),
+          scale: Math.round(scale * 100) / 100, // Round to 2 decimal places
         })
         .select('id')
         .single();
@@ -361,19 +374,17 @@ export const AiImageEditModal = ({
         </DialogContent>
       </Dialog>
 
-      {/* Position Picker */}
+      {/* Crop Box Picker */}
       {generatedImage && (
-        <ImagePositionPicker
+        <CropBoxPicker
           imageUrl={generatedImage.url}
-          open={showPositionPicker}
+          open={showCropPicker}
           onOpenChange={(open) => {
-            setShowPositionPicker(open);
+            setShowCropPicker(open);
             if (!open) setGeneratedImage(null);
           }}
-          onPositionChange={handleSaveImage}
-          title="Position Edited Image"
-          viewType="card"
-          initialPosition={{ x: 50, y: 50, scale: 1 }}
+          onCropComplete={handleSaveCrop}
+          title="Crop Your Edited Image"
         />
       )}
     </>
