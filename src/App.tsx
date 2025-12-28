@@ -63,7 +63,6 @@ import LifelineImageManager from "./pages/LifelineImageManager";
 import Feed from "./pages/public/Feed";
 import FeedSetup from "./pages/public/FeedSetup";
 import CollectionReport from "./pages/CollectionReport";
-import TestAiImage from "./pages/admin/TestAiImage";
 
 const queryClient = new QueryClient();
 
@@ -363,16 +362,6 @@ function AppContent() {
               element={
                 <ProtectedRoute>
                   <LifelineImageManager />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/test-ai-image"
-              element={
-                <ProtectedRoute>
-                  <AdminLayout>
-                    <TestAiImage />
-                  </AdminLayout>
                 </ProtectedRoute>
               }
             />
