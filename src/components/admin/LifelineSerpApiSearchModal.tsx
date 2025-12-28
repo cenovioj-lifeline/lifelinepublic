@@ -19,7 +19,7 @@ import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { Loader2, X, ZoomIn, Check, Upload } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { ImagePositionPicker } from '@/components/ImagePositionPicker';
+import { CropBoxPicker, CropData } from '@/components/admin/CropBoxPicker';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { uploadImage } from '@/lib/storage';
 
@@ -71,7 +71,7 @@ export const LifelineSerpApiSearchModal = ({
   const [selectedUrl, setSelectedUrl] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [importing, setImporting] = useState(false);
-  const [showPositionPicker, setShowPositionPicker] = useState(false);
+  const [showCropPicker, setShowCropPicker] = useState(false);
   const [importedImageUrl, setImportedImageUrl] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -122,7 +122,7 @@ export const LifelineSerpApiSearchModal = ({
       if (error) throw error;
 
       setImportedImageUrl(url);
-      setShowPositionPicker(true);
+      setShowCropPicker(true);
       toast.success('Image uploaded! Adjust position if needed.');
     } catch (error) {
       console.error('Upload error:', error);
@@ -206,10 +206,10 @@ export const LifelineSerpApiSearchModal = ({
 
       console.log('Lifeline cover image imported:', data);
 
-      // Store the imported URL for the position picker
+      // Store the imported URL for the crop picker
       if (data?.url) {
         setImportedImageUrl(data.url);
-        setShowPositionPicker(true);
+        setShowCropPicker(true);
         toast.success('Image imported! Adjust position if needed.');
       } else {
         toast.error('Failed to get image URL from import');
@@ -223,19 +223,19 @@ export const LifelineSerpApiSearchModal = ({
   };
 
   // ========================================
-  // POSITION PICKER
+  // CROP PICKER
   // ========================================
 
   const updateLifelineMutation = useMutation({
-    mutationFn: async (position: { x?: number; y?: number; scale?: number }) => {
+    mutationFn: async (position: { x: number; y: number }) => {
       if (!importedImageUrl) return;
 
       const { error } = await supabase
         .from('lifelines')
         .update({
           cover_image_url: importedImageUrl,
-          cover_image_position_x: position.x || 50,
-          cover_image_position_y: position.y || 50
+          cover_image_position_x: position.x,
+          cover_image_position_y: position.y
         })
         .eq('id', lifelineId);
 
@@ -255,8 +255,11 @@ export const LifelineSerpApiSearchModal = ({
     }
   });
 
-  const handlePositionSave = (position: { x?: number; y?: number; scale?: number }) => {
-    updateLifelineMutation.mutate(position);
+  const handleCropComplete = (crop: CropData) => {
+    // Convert crop box to center position
+    const centerX = crop.x + crop.width / 2;
+    const centerY = crop.y + crop.height / 2;
+    updateLifelineMutation.mutate({ x: centerX, y: centerY });
   };
 
   // ========================================
@@ -270,7 +273,7 @@ export const LifelineSerpApiSearchModal = ({
     setSelectedUrl(null);
     setPreviewUrl(null);
     setImporting(false);
-    setShowPositionPicker(false);
+    setShowCropPicker(false);
     setImportedImageUrl(null);
     onClose();
   };
@@ -294,7 +297,7 @@ export const LifelineSerpApiSearchModal = ({
 
   return (
     <>
-      <Dialog open={open && !showPositionPicker} onOpenChange={handleModalClose}>
+      <Dialog open={open && !showCropPicker} onOpenChange={handleModalClose}>
         <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
@@ -457,20 +460,20 @@ export const LifelineSerpApiSearchModal = ({
         </Dialog>
       )}
 
-      {/* Position Picker */}
-      {showPositionPicker && importedImageUrl && (
-        <ImagePositionPicker
+      {/* Crop Picker */}
+      {showCropPicker && importedImageUrl && (
+        <CropBoxPicker
           imageUrl={importedImageUrl}
-          onPositionChange={handlePositionSave}
-          open={showPositionPicker}
+          open={showCropPicker}
           onOpenChange={(open) => {
             if (!open) {
-              setShowPositionPicker(false);
+              setShowCropPicker(false);
               handleModalClose();
             }
           }}
+          onCropComplete={handleCropComplete}
+          aspectRatio={16 / 9}
           title="Position Cover Image"
-          viewType="banner"
         />
       )}
     </>
