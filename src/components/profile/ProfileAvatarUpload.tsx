@@ -5,7 +5,7 @@ import { useAdminAccess } from "@/lib/useAdminAccess";
 import { uploadImage } from "@/lib/storage";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { ImagePositionPicker } from "@/components/ImagePositionPicker";
+import { CropBoxPicker, CropData } from "@/components/admin/CropBoxPicker";
 import { Upload } from "lucide-react";
 
 interface ProfileAvatarUploadProps {
@@ -27,7 +27,7 @@ export function ProfileAvatarUpload({ profile, onImageUpdate }: ProfileAvatarUpl
   const { toast } = useToast();
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
-  const [showPositionPicker, setShowPositionPicker] = useState(false);
+  const [showCropPicker, setShowCropPicker] = useState(false);
   const [uploadedImageUrl, setUploadedImageUrl] = useState<string>("");
   const [uploadedImageId, setUploadedImageId] = useState<string>("");
 
@@ -125,10 +125,10 @@ export function ProfileAvatarUpload({ profile, onImageUpdate }: ProfileAvatarUpl
         description: "Now position your avatar image"
       });
 
-      // Open position picker
+      // Open crop picker
       setUploadedImageUrl(url);
       setUploadedImageId(mediaAsset.id);
-      setShowPositionPicker(true);
+      setShowCropPicker(true);
 
     } catch (error) {
       console.error("Upload error:", error);
@@ -142,15 +142,21 @@ export function ProfileAvatarUpload({ profile, onImageUpdate }: ProfileAvatarUpl
     }
   };
 
-  const handlePositionChange = async (position: { x: number; y: number; scale: number }) => {
+  // Convert crop box data to position/scale format for storage
+  const handleCropComplete = async (crop: CropData) => {
     try {
+      // Convert crop box to center + scale format
+      const centerX = crop.x + crop.width / 2;
+      const centerY = crop.y + crop.height / 2;
+      const scale = 100 / crop.width;
+
       // Update media_asset with new position
       const { error: mediaError } = await supabase
         .from("media_assets")
         .update({
-          position_x: position.x,
-          position_y: position.y,
-          scale: position.scale
+          position_x: Math.round(centerX),
+          position_y: Math.round(centerY),
+          scale: Math.round(scale * 100) / 100
         })
         .eq("id", uploadedImageId);
 
@@ -161,7 +167,7 @@ export function ProfileAvatarUpload({ profile, onImageUpdate }: ProfileAvatarUpl
         description: "Avatar image updated successfully"
       });
 
-      setShowPositionPicker(false);
+      setShowCropPicker(false);
       onImageUpdate?.();
 
     } catch (error) {
@@ -225,18 +231,13 @@ export function ProfileAvatarUpload({ profile, onImageUpdate }: ProfileAvatarUpl
         </p>
       )}
 
-      <ImagePositionPicker
-        open={showPositionPicker}
-        onOpenChange={setShowPositionPicker}
+      <CropBoxPicker
+        open={showCropPicker}
+        onOpenChange={setShowCropPicker}
         imageUrl={uploadedImageUrl}
-        onPositionChange={handlePositionChange}
-        initialPosition={{
-          x: 50,
-          y: 50,
-          scale: 1
-        }}
+        onCropComplete={handleCropComplete}
+        aspectRatio={1}
         title="Position Avatar Image"
-        viewType="avatar"
       />
     </>
   );
