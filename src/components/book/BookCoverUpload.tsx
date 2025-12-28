@@ -3,7 +3,7 @@
  *
  * Drag-and-drop upload component for book cover images.
  * Uploads to Supabase storage, creates media_asset record,
- * and opens ImagePositionPicker for positioning.
+ * and opens CropBoxPicker for positioning.
  */
 
 import { useState, DragEvent } from "react";
@@ -11,7 +11,7 @@ import { useAdminAccess } from "@/lib/useAdminAccess";
 import { uploadImage } from "@/lib/storage";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { ImagePositionPicker } from "@/components/ImagePositionPicker";
+import { CropBoxPicker, CropData } from "@/components/admin/CropBoxPicker";
 import { Upload, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -39,7 +39,7 @@ export function BookCoverUpload({ book, onImageUpdate }: BookCoverUploadProps) {
   const { toast } = useToast();
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
-  const [showPositionPicker, setShowPositionPicker] = useState(false);
+  const [showCropPicker, setShowCropPicker] = useState(false);
   const [uploadedImageUrl, setUploadedImageUrl] = useState<string>("");
   const [uploadedImageId, setUploadedImageId] = useState<string>("");
 
@@ -140,10 +140,10 @@ export function BookCoverUpload({ book, onImageUpdate }: BookCoverUploadProps) {
         description: "Now position your cover image"
       });
 
-      // Open position picker
+      // Open crop picker
       setUploadedImageUrl(url);
       setUploadedImageId(mediaAsset.id);
-      setShowPositionPicker(true);
+      setShowCropPicker(true);
 
     } catch (error) {
       console.error("Upload error:", error);
@@ -157,18 +157,23 @@ export function BookCoverUpload({ book, onImageUpdate }: BookCoverUploadProps) {
     }
   };
 
-  const handlePositionChange = async (position: { x: number; y: number; scale: number }) => {
+  const handleCropComplete = async (crop: CropData) => {
     const imageId = uploadedImageId || coverImage?.id;
     if (!imageId) return;
+
+    // Convert crop box to position/scale
+    const centerX = crop.x + crop.width / 2;
+    const centerY = crop.y + crop.height / 2;
+    const newScale = 100 / crop.width;
 
     try {
       // Update media_asset with new position
       const { error: mediaError } = await supabase
         .from("media_assets")
         .update({
-          position_x: position.x,
-          position_y: position.y,
-          scale: position.scale
+          position_x: centerX,
+          position_y: centerY,
+          scale: newScale
         })
         .eq("id", imageId);
 
@@ -179,7 +184,7 @@ export function BookCoverUpload({ book, onImageUpdate }: BookCoverUploadProps) {
         description: "Cover image updated successfully"
       });
 
-      setShowPositionPicker(false);
+      setShowCropPicker(false);
       onImageUpdate?.();
 
     } catch (error) {
@@ -196,7 +201,7 @@ export function BookCoverUpload({ book, onImageUpdate }: BookCoverUploadProps) {
     if (coverImage?.url) {
       setUploadedImageUrl(coverImage.url);
       setUploadedImageId(coverImage.id);
-      setShowPositionPicker(true);
+      setShowCropPicker(true);
     } else if (book.coverImageUrl) {
       // Legacy URL-only cover, can't edit position without media_asset
       toast({
@@ -276,18 +281,13 @@ export function BookCoverUpload({ book, onImageUpdate }: BookCoverUploadProps) {
         </div>
       </div>
 
-      <ImagePositionPicker
-        open={showPositionPicker}
-        onOpenChange={setShowPositionPicker}
+      <CropBoxPicker
+        open={showCropPicker}
+        onOpenChange={setShowCropPicker}
         imageUrl={uploadedImageUrl}
-        onPositionChange={handlePositionChange}
-        initialPosition={{
-          x: positionX,
-          y: positionY,
-          scale: scale
-        }}
+        onCropComplete={handleCropComplete}
+        aspectRatio={2 / 3}
         title="Position Cover Image"
-        viewType="cover"
       />
     </>
   );
