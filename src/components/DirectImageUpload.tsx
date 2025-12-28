@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { uploadImage, deleteImage, getImageDimensions } from "@/lib/storage";
 import { useToast } from "@/hooks/use-toast";
 import { Upload, X, Loader2, Move } from "lucide-react";
-import { ImagePositionPicker } from "./ImagePositionPicker";
+import { CropBoxPicker, CropData } from "./admin/CropBoxPicker";
 import { cn } from "@/lib/utils";
 
 interface DirectImageUploadProps {
@@ -30,9 +30,29 @@ export function DirectImageUpload({
   viewType = "both",
 }: DirectImageUploadProps) {
   const [uploading, setUploading] = useState(false);
-  const [showPositionPicker, setShowPositionPicker] = useState(false);
+  const [showCropPicker, setShowCropPicker] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const { toast } = useToast();
+
+  // Map viewType to aspect ratio
+  const getAspectRatio = () => {
+    switch (viewType) {
+      case "banner":
+        return 3; // 3:1
+      case "card":
+        return 16 / 9;
+      default:
+        return 16 / 9; // Default for "both"
+    }
+  };
+
+  const handleCropComplete = (crop: CropData) => {
+    // Convert crop box to center position
+    const centerX = crop.x + crop.width / 2;
+    const centerY = crop.y + crop.height / 2;
+    onPositionChange?.({ x: centerX, y: centerY });
+    setShowCropPicker(false);
+  };
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -146,7 +166,7 @@ export function DirectImageUpload({
                   type="button"
                   size="sm"
                   variant="secondary"
-                  onClick={() => setShowPositionPicker(true)}
+                  onClick={() => setShowCropPicker(true)}
                 >
                   <Move className="h-4 w-4" />
                 </Button>
@@ -208,13 +228,13 @@ export function DirectImageUpload({
       )}
 
       {onPositionChange && currentImageUrl && (
-        <ImagePositionPicker
+        <CropBoxPicker
           imageUrl={currentImageUrl}
-          initialPosition={initialPosition}
-          onPositionChange={onPositionChange}
-          open={showPositionPicker}
-          onOpenChange={setShowPositionPicker}
-          viewType={viewType}
+          open={showCropPicker}
+          onOpenChange={setShowCropPicker}
+          onCropComplete={handleCropComplete}
+          aspectRatio={getAspectRatio()}
+          title="Reposition Image"
         />
       )}
     </div>
