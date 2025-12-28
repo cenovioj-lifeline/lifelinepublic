@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { ImagePositionPicker } from "@/components/ImagePositionPicker";
+import { CropBoxPicker, CropData } from "@/components/admin/CropBoxPicker";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Pencil, Trash2 } from "lucide-react";
@@ -28,7 +28,7 @@ interface ProfileImageEditorProps {
 export function ProfileImageEditor({ profile, onImageUpdate }: ProfileImageEditorProps) {
   const [showDialog, setShowDialog] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [showPositionPicker, setShowPositionPicker] = useState(false);
+  const [showCropPicker, setShowCropPicker] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [currentMediaAssetId, setCurrentMediaAssetId] = useState<string | undefined>(
     profile.avatar_image?.id
@@ -117,7 +117,7 @@ export function ProfileImageEditor({ profile, onImageUpdate }: ProfileImageEdito
         if (updateError) throw updateError;
 
         setCurrentMediaAssetId(mediaAsset.id);
-        setShowPositionPicker(true);
+        setShowCropPicker(true);
         toast.success("Image linked to media assets");
       } catch (error) {
         console.error("Error creating media asset:", error);
@@ -127,27 +127,33 @@ export function ProfileImageEditor({ profile, onImageUpdate }: ProfileImageEdito
       }
     } else {
       // Already has media_assets, just open picker
-      setShowPositionPicker(true);
+      setShowCropPicker(true);
     }
   };
 
-  const handlePositionChange = async (position: { x: number; y: number; scale: number }) => {
+  // Convert crop box data to position/scale format for storage
+  const handleCropComplete = async (crop: CropData) => {
     if (!currentMediaAssetId) return;
 
     try {
+      // Convert crop box to center + scale format
+      const centerX = crop.x + crop.width / 2;
+      const centerY = crop.y + crop.height / 2;
+      const scale = 100 / crop.width;
+
       const { error } = await supabase
         .from("media_assets")
         .update({
-          position_x: position.x,
-          position_y: position.y,
-          scale: position.scale
+          position_x: Math.round(centerX),
+          position_y: Math.round(centerY),
+          scale: Math.round(scale * 100) / 100
         })
         .eq("id", currentMediaAssetId);
 
       if (error) throw error;
 
       toast.success("Image position updated");
-      setShowPositionPicker(false);
+      setShowCropPicker(false);
       setShowDialog(false);
       onImageUpdate?.();
     } catch (error) {
@@ -250,18 +256,13 @@ export function ProfileImageEditor({ profile, onImageUpdate }: ProfileImageEdito
         </AlertDialogContent>
       </AlertDialog>
 
-      {showPositionPicker && imageUrl && (
-        <ImagePositionPicker
+      {showCropPicker && imageUrl && (
+        <CropBoxPicker
           imageUrl={imageUrl}
-          initialPosition={{
-            x: profile.avatar_image?.position_x ?? 50,
-            y: profile.avatar_image?.position_y ?? 50,
-            scale: profile.avatar_image?.scale ?? 1
-          }}
-          onPositionChange={handlePositionChange}
-          open={showPositionPicker}
-          onOpenChange={setShowPositionPicker}
-          viewType="avatar"
+          open={showCropPicker}
+          onOpenChange={setShowCropPicker}
+          onCropComplete={handleCropComplete}
+          aspectRatio={1}
           title="Reposition Avatar"
         />
       )}
