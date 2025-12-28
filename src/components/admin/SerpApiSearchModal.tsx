@@ -10,22 +10,20 @@
  * - Score badges (0-25 points)
  * - Full-size preview lightbox
  * - Rerun with modified query
- * - AI image generation via Gemini
- * - AI image editing (modify existing images)
- * - Auto-populated edit instructions from entry context
+ * - Direct image upload via drag & drop
+ * 
+ * Note: AI image generation/editing is now in AiImageEditModal
  */
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
-import { Loader2, X, ZoomIn, Upload, Sparkles, ImageIcon, Pencil } from 'lucide-react';
+import { Loader2, X, ZoomIn, Upload } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { uploadImage } from '@/lib/storage';
-import { ImagePositionPicker } from '@/components/ImagePositionPicker';
 
 // ========================================
 // CONFIGURATION
@@ -53,11 +51,6 @@ interface ImageCandidate {
   score: number;       // 0-25 points
 }
 
-interface EntryData {
-  title: string;
-  description: string | null;
-}
-
 interface SerpApiSearchModalProps {
   open: boolean;
   onClose: () => void;
@@ -65,32 +58,6 @@ interface SerpApiSearchModalProps {
   initialQuery: string;
   onImportComplete: () => void;
 }
-
-// ========================================
-// HELPER FUNCTIONS
-// ========================================
-
-/**
- * Build the default AI edit prompt from entry data
- */
-const buildEditPrompt = (entry: EntryData): string => {
-  const parts = [
-    `Take the image that is being passed in. This person is trying to convey the following idea:`,
-    ``,
-    `Event Title: ${entry.title}`,
-  ];
-
-  if (entry.description) {
-    parts.push(`Event Details: ${entry.description}`);
-  }
-
-  parts.push(
-    ``,
-    `Feel free to take liberties to make this seem like this person trying to convey this idea. Add images related to the event details if they help tell the story. Use the image of the person however needed to make this funny, compelling, interesting, etc.`
-  );
-
-  return parts.join('\n');
-};
 
 // ========================================
 // MAIN COMPONENT
@@ -116,66 +83,8 @@ export const SerpApiSearchModal = ({
   const [isDragging, setIsDragging] = useState(false);
   const [uploading, setUploading] = useState(false);
 
-  // Entry data for AI prompt context
-  const [entryData, setEntryData] = useState<EntryData | null>(null);
-
-  // AI Generation State
-  const [aiPrompt, setAiPrompt] = useState('');
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [generatedImage, setGeneratedImage] = useState<{ url: string; path: string } | null>(null);
-  const [showPositionPicker, setShowPositionPicker] = useState(false);
-
-  // AI Editing State (source image for editing)
-  const [sourceImageUrl, setSourceImageUrl] = useState<string | null>(null);
-  const [sourceImagePreview, setSourceImagePreview] = useState<string | null>(null);
-  const [isAiDragging, setIsAiDragging] = useState(false);
-  const [isUploadingSource, setIsUploadingSource] = useState(false);
-  const aiFileInputRef = useRef<HTMLInputElement>(null);
-
-  // Computed: Are we in edit mode?
-  const isEditMode = !!sourceImageUrl;
-
   // ========================================
-  // FETCH ENTRY DATA & PRE-POPULATE PROMPT
-  // ========================================
-
-  useEffect(() => {
-    const fetchEntryData = async () => {
-      if (!open || !entryId) return;
-
-      try {
-        console.log('[SerpApiModal] Fetching entry data for:', entryId);
-        const { data, error } = await supabase
-          .from('entries')
-          .select('title, description')
-          .eq('id', entryId)
-          .single();
-
-        if (error) {
-          console.error('[SerpApiModal] Failed to fetch entry data:', error);
-          return;
-        }
-
-        console.log('[SerpApiModal] Entry data loaded:', data);
-        setEntryData(data);
-        
-        // PRE-POPULATE the edit prompt immediately when entry data loads
-        // This way the text is ready BEFORE the user drops an image
-        if (data) {
-          const editPrompt = buildEditPrompt(data);
-          setAiPrompt(editPrompt);
-          console.log('[SerpApiModal] Edit prompt pre-populated');
-        }
-      } catch (error) {
-        console.error('[SerpApiModal] Error fetching entry:', error);
-      }
-    };
-
-    fetchEntryData();
-  }, [open, entryId]);
-
-  // ========================================
-  // DRAG & DROP HANDLERS (Main Upload Zone)
+  // DRAG & DROP HANDLERS (Direct Upload Zone)
   // ========================================
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -245,77 +154,6 @@ export const SerpApiSearchModal = ({
     }
   };
 
-  // ========================================
-  // AI SOURCE IMAGE HANDLERS
-  // ========================================
-
-  const handleAiDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsAiDragging(true);
-  };
-
-  const handleAiDragLeave = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsAiDragging(false);
-  };
-
-  const handleAiDrop = async (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsAiDragging(false);
-    
-    const files = Array.from(e.dataTransfer.files);
-    const imageFile = files.find(file => file.type.startsWith('image/'));
-    if (!imageFile) {
-      toast.error("Please drop an image file");
-      return;
-    }
-    await handleSourceImageUpload(imageFile);
-  };
-
-  const handleSourceImageUpload = async (file: File) => {
-    if (file.size > 10 * 1024 * 1024) {
-      toast.error("File too large. Maximum size is 10MB.");
-      return;
-    }
-
-    setIsUploadingSource(true);
-    try {
-      // Upload to storage first so we have a URL
-      const { url } = await uploadImage(file, 'media-uploads');
-      
-      // Set as source image for editing
-      setSourceImageUrl(url);
-      setSourceImagePreview(url);
-      
-      console.log('[SerpApiModal] Source image uploaded');
-      toast.success('Source image ready - click Edit Image!');
-    } catch (error) {
-      console.error('Source upload error:', error);
-      toast.error('Failed to upload source image');
-    } finally {
-      setIsUploadingSource(false);
-    }
-  };
-
-  const handleAiFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      handleSourceImageUpload(file);
-    }
-    // Reset input so same file can be selected again
-    if (aiFileInputRef.current) {
-      aiFileInputRef.current.value = '';
-    }
-  };
-
-  const clearSourceImage = () => {
-    setSourceImageUrl(null);
-    setSourceImagePreview(null);
-  };
-
   // Sync modal state when entry or query changes
   useEffect(() => {
     if (open) {
@@ -324,15 +162,6 @@ export const SerpApiSearchModal = ({
       setResults([]);
       setSelected(new Set());
       setPreviewUrl(null);
-      // Don't reset aiPrompt here - let the fetch populate it
-      setGeneratedImage(null);
-      setShowPositionPicker(false);
-      setSourceImageUrl(null);
-      setSourceImagePreview(null);
-    } else {
-      // Only reset aiPrompt when modal closes
-      setAiPrompt('');
-      setEntryData(null);
     }
   }, [open, entryId, initialQuery]);
 
@@ -446,112 +275,6 @@ export const SerpApiSearchModal = ({
   };
 
   // ========================================
-  // AI IMAGE GENERATION / EDITING
-  // ========================================
-
-  /**
-   * Generate or edit image using Gemini via Lovable AI Gateway
-   * Calls the generate-ai-image edge function
-   * - If sourceImageUrl is set: EDIT mode (modify existing image)
-   * - If no sourceImageUrl: GENERATE mode (create new image)
-   */
-  const handleGenerateImage = async () => {
-    if (!aiPrompt.trim()) {
-      toast.error('Please enter a description for the image');
-      return;
-    }
-
-    setIsGenerating(true);
-    try {
-      const requestBody: { prompt: string; entryId: string; sourceImageUrl?: string } = {
-        prompt: aiPrompt.trim(),
-        entryId: entryId
-      };
-
-      // Include source image if in edit mode
-      if (sourceImageUrl) {
-        requestBody.sourceImageUrl = sourceImageUrl;
-      }
-
-      const { data, error } = await supabase.functions.invoke('generate-ai-image', {
-        body: requestBody
-      });
-
-      if (error) {
-        throw error;
-      }
-
-      if (!data?.success) {
-        throw new Error(data?.error || 'Failed to generate image');
-      }
-
-      // Store the generated/edited image info
-      setGeneratedImage({ url: data.url, path: data.path });
-      
-      // Open position picker
-      setShowPositionPicker(true);
-      
-      toast.success(isEditMode ? 'Image edited! Adjust positioning.' : 'Image generated! Adjust positioning.');
-    } catch (error: any) {
-      console.error('AI generation error:', error);
-      
-      // Handle specific error cases
-      if (error.message?.includes('Rate limited')) {
-        toast.error('Rate limited. Please try again in a moment.');
-      } else if (error.message?.includes('credits')) {
-        toast.error('Out of AI credits. Add credits in Lovable settings.');
-      } else {
-        toast.error(error.message || 'Failed to generate image');
-      }
-    } finally {
-      setIsGenerating(false);
-    }
-  };
-
-  /**
-   * Save AI-generated image to entry after positioning
-   */
-  const handleSaveAiImage = async (position: { x: number; y: number; scale: number }) => {
-    if (!generatedImage) return;
-
-    try {
-      // Create media_asset record with position
-      const { data: mediaAsset, error: mediaError } = await supabase
-        .from('media_assets')
-        .insert({
-          url: generatedImage.url,
-          filename: generatedImage.path,
-          type: 'image',
-          alt_text: aiPrompt.substring(0, 200), // Use prompt as alt text
-          position_x: Math.round(position.x),
-          position_y: Math.round(position.y),
-          scale: position.scale,
-        })
-        .select('id')
-        .single();
-
-      if (mediaError) throw mediaError;
-
-      // Create entry_media link
-      const { error: linkError } = await supabase
-        .from('entry_media')
-        .insert({
-          entry_id: entryId,
-          media_id: mediaAsset.id,
-        });
-
-      if (linkError) throw linkError;
-
-      toast.success('AI image saved to entry!');
-      onImportComplete();
-      onClose();
-    } catch (error) {
-      console.error('Save AI image error:', error);
-      toast.error('Failed to save AI image');
-    }
-  };
-
-  // ========================================
   // UI HANDLERS
   // ========================================
 
@@ -577,12 +300,6 @@ export const SerpApiSearchModal = ({
     setResults([]);
     setSelected(new Set());
     setPreviewUrl(null);
-    setAiPrompt('');
-    setEntryData(null);
-    setGeneratedImage(null);
-    setShowPositionPicker(false);
-    setSourceImageUrl(null);
-    setSourceImagePreview(null);
     onClose();
   };
 
@@ -649,9 +366,9 @@ export const SerpApiSearchModal = ({
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="e.g., Walter White cooking in lab"
                   className="w-full"
-                  disabled={loading || uploading || isGenerating}
+                  disabled={loading || uploading}
                   onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !loading && !uploading && !isGenerating && query.trim()) {
+                    if (e.key === 'Enter' && !loading && !uploading && query.trim()) {
                       handleSearch();
                     }
                   }}
@@ -664,7 +381,7 @@ export const SerpApiSearchModal = ({
               <div className="flex gap-3">
                 <Button
                   onClick={handleSearch}
-                  disabled={loading || uploading || isGenerating || !query.trim()}
+                  disabled={loading || uploading || !query.trim()}
                   className="min-w-[120px]"
                 >
                   {loading ? (
@@ -676,125 +393,9 @@ export const SerpApiSearchModal = ({
                     'Run Search'
                   )}
                 </Button>
-                <Button variant="outline" onClick={handleClose} disabled={loading || uploading || isGenerating}>
+                <Button variant="outline" onClick={handleClose} disabled={loading || uploading}>
                   Cancel
                 </Button>
-              </div>
-
-              {/* AI Image Generation/Editing Section */}
-              <div className="border-t pt-6">
-                <div className="text-center text-sm text-muted-foreground mb-4">
-                  — or {isEditMode ? 'edit' : 'generate'} with AI —
-                </div>
-
-                {/* Source Image Drop Zone (for editing) */}
-                <div className="mb-4">
-                  <label className="text-sm font-medium text-foreground/70 mb-2 block">
-                    Source Image (optional - for editing)
-                  </label>
-                  
-                  {sourceImagePreview ? (
-                    // Show preview of source image
-                    <div className="relative inline-block">
-                      <img 
-                        src={sourceImagePreview} 
-                        alt="Source for editing" 
-                        className="h-24 w-auto rounded-lg border object-cover"
-                      />
-                      <button
-                        onClick={clearSourceImage}
-                        className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1 hover:bg-destructive/90"
-                        title="Remove source image"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
-                      <div className="absolute bottom-1 left-1 bg-black/60 text-white text-xs px-1.5 py-0.5 rounded">
-                        Edit mode
-                      </div>
-                    </div>
-                  ) : (
-                    // Drop zone for source image
-                    <div
-                      onDragOver={handleAiDragOver}
-                      onDragLeave={handleAiDragLeave}
-                      onDrop={handleAiDrop}
-                      onClick={() => aiFileInputRef.current?.click()}
-                      className={`border-2 border-dashed rounded-lg p-4 text-center transition-colors cursor-pointer
-                        ${isAiDragging ? 'border-primary bg-primary/5' : 'border-muted-foreground/25 hover:border-muted-foreground/50'}
-                        ${isUploadingSource ? 'pointer-events-none opacity-50' : ''}`}
-                    >
-                      {isUploadingSource ? (
-                        <Loader2 className="h-6 w-6 animate-spin mx-auto text-muted-foreground" />
-                      ) : (
-                        <>
-                          <ImageIcon className="h-6 w-6 mx-auto mb-1 text-muted-foreground" />
-                          <p className="text-sm text-muted-foreground">
-                            Drop image to edit, or click to browse
-                          </p>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            Leave empty to generate a new image
-                          </p>
-                        </>
-                      )}
-                    </div>
-                  )}
-                  
-                  <input
-                    ref={aiFileInputRef}
-                    type="file"
-                    accept="image/*"
-                    onChange={handleAiFileSelect}
-                    className="hidden"
-                  />
-                </div>
-                
-                <div>
-                  <label className="text-sm font-medium text-foreground/70 mb-2 block">
-                    {isEditMode ? 'Edit Instructions' : 'AI Image Prompt'}
-                  </label>
-                  <Textarea
-                    value={aiPrompt}
-                    onChange={(e) => setAiPrompt(e.target.value)}
-                    placeholder={isEditMode 
-                      ? "Describe how to modify the image..."
-                      : "e.g., Professional podcast studio with microphones and monitors, modern minimalist design, warm lighting"
-                    }
-                    className="w-full min-h-[120px]"
-                    disabled={loading || uploading || isGenerating}
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {isEditMode 
-                      ? "Instructions pre-populated from entry context. Feel free to modify."
-                      : "For editing: drop an image above first. For generation: describe what you want."
-                    }
-                  </p>
-                </div>
-
-                <div className="flex gap-3 mt-4">
-                  <Button
-                    onClick={handleGenerateImage}
-                    disabled={loading || uploading || isGenerating || !aiPrompt.trim()}
-                    variant="secondary"
-                    className="min-w-[160px]"
-                  >
-                    {isGenerating ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        {isEditMode ? 'Editing...' : 'Generating...'}
-                      </>
-                    ) : isEditMode ? (
-                      <>
-                        <Pencil className="w-4 h-4 mr-2" />
-                        Edit Image
-                      </>
-                    ) : (
-                      <>
-                        <Sparkles className="w-4 h-4 mr-2" />
-                        Generate Image
-                      </>
-                    )}
-                  </Button>
-                </div>
               </div>
             </div>
           )}
@@ -930,25 +531,6 @@ export const SerpApiSearchModal = ({
             </div>
           </DialogContent>
         </Dialog>
-      )}
-
-      {/* Image Position Picker for AI Generated/Edited Images */}
-      {generatedImage && (
-        <ImagePositionPicker
-          imageUrl={generatedImage.url}
-          open={showPositionPicker}
-          onOpenChange={(open) => {
-            setShowPositionPicker(open);
-            if (!open) {
-              // Reset generated image if picker is closed without saving
-              setGeneratedImage(null);
-            }
-          }}
-          onPositionChange={handleSaveAiImage}
-          title={isEditMode ? "Position Edited Image" : "Position AI Generated Image"}
-          viewType="card"
-          initialPosition={{ x: 50, y: 50, scale: 1 }}
-        />
       )}
     </>
   );
