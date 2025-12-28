@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/select";
 import { ArrowLeft, Plus, X } from "lucide-react";
 import { DirectImageUpload } from "@/components/DirectImageUpload";
-import { ImagePositionPicker } from "@/components/ImagePositionPicker";
+import { CropBoxPicker, CropData } from "@/components/admin/CropBoxPicker";
 import { EntryCard } from "@/components/EntryCard";
 import { Checkbox } from "@/components/ui/checkbox";
 import { EntryForm } from "@/components/EntryForm";
@@ -69,7 +69,7 @@ export default function LifelineEdit() {
   const [showEntryForm, setShowEntryForm] = useState(false);
   const [editingEntry, setEditingEntry] = useState<any>(null);
   const [deletingEntryId, setDeletingEntryId] = useState<string | null>(null);
-  const [showCoverPositionPicker, setShowCoverPositionPicker] = useState(false);
+  const [showCoverCropPicker, setShowCoverCropPicker] = useState(false);
 
   const form = useForm<LifelineForm>({
     defaultValues: {
@@ -409,6 +409,25 @@ export default function LifelineEdit() {
   const handleEntryCancel = () => {
     setShowEntryForm(false);
     setEditingEntry(null);
+  };
+
+  // Handle crop completion - convert crop box to position values
+  const handleCropComplete = (crop: CropData) => {
+    const centerX = crop.x + crop.width / 2;
+    const centerY = crop.y + crop.height / 2;
+    
+    form.setValue("cover_image_position_x", Math.round(centerX));
+    form.setValue("cover_image_position_y", Math.round(centerY));
+    
+    // Auto-save position immediately
+    if (!isNew) {
+      savePositionMutation.mutate({
+        position_x: Math.round(centerX),
+        position_y: Math.round(centerY)
+      });
+    }
+    
+    setShowCoverCropPicker(false);
   };
 
   return (
@@ -842,27 +861,13 @@ export default function LifelineEdit() {
       </AlertDialog>
 
       {lifeline?.cover_image_url && (
-        <ImagePositionPicker
+        <CropBoxPicker
           imageUrl={lifeline.cover_image_url}
-          open={showCoverPositionPicker}
-          onOpenChange={setShowCoverPositionPicker}
-          initialPosition={{
-            x: form.getValues("cover_image_position_x"),
-            y: form.getValues("cover_image_position_y"),
-          }}
-          onPositionChange={(position) => {
-            form.setValue("cover_image_position_x", position.x);
-            form.setValue("cover_image_position_y", position.y);
-            // Auto-save position immediately
-            if (!isNew) {
-              savePositionMutation.mutate({
-                position_x: position.x,
-                position_y: position.y
-              });
-            }
-          }}
+          open={showCoverCropPicker}
+          onOpenChange={setShowCoverCropPicker}
+          onCropComplete={handleCropComplete}
+          aspectRatio={16 / 9}
           title="Adjust Cover Image Position"
-          viewType="card"
         />
       )}
     </div>
