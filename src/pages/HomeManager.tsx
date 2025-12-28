@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { DirectImageUpload } from "@/components/DirectImageUpload";
-import { ImagePositionPicker } from "@/components/ImagePositionPicker";
+import { CropBoxPicker, CropData } from "@/components/admin/CropBoxPicker";
 import {
   Select,
   SelectContent,
@@ -91,7 +91,7 @@ export default function HomeManager() {
   const [heroImageId, setHeroImageId] = useState<string | null>(null);
   const [heroImageUrl, setHeroImageUrl] = useState<string | null>(null);
   const [heroImagePosition, setHeroImagePosition] = useState({ x: 50, y: 50 });
-  const [showPositionPicker, setShowPositionPicker] = useState(false);
+  const [showCropPicker, setShowCropPicker] = useState(false);
   const [customSectionName, setCustomSectionName] = useState("New Content");
 
   const { data: settings } = useQuery({
@@ -237,8 +237,12 @@ export default function HomeManager() {
     }
   };
 
-  const handlePositionSave = (position: { x: number; y: number }) => {
-    setHeroImagePosition(position);
+  const handleCropComplete = (crop: CropData) => {
+    // Convert crop box to center position
+    const centerX = crop.x + crop.width / 2;
+    const centerY = crop.y + crop.height / 2;
+    setHeroImagePosition({ x: centerX, y: centerY });
+    setShowCropPicker(false);
     toast.success("Position updated. Click 'Save Hero Settings' to apply.");
   };
 
@@ -464,7 +468,7 @@ export default function HomeManager() {
                     type="button"
                     variant="outline"
                     size="sm"
-                    onClick={() => setShowPositionPicker(true)}
+                    onClick={() => setShowCropPicker(true)}
                   >
                     <ImageIcon className="h-4 w-4 mr-2" />
                     Adjust Position
@@ -519,12 +523,13 @@ export default function HomeManager() {
           </Button>
           
           {heroImageUrl && (
-            <ImagePositionPicker
+            <CropBoxPicker
               imageUrl={heroImageUrl}
-              onPositionChange={handlePositionSave}
-              initialPosition={heroImagePosition}
-              open={showPositionPicker}
-              onOpenChange={setShowPositionPicker}
+              open={showCropPicker}
+              onOpenChange={setShowCropPicker}
+              onCropComplete={handleCropComplete}
+              aspectRatio={3}
+              title="Adjust Hero Image Position"
             />
           )}
         </CardContent>
