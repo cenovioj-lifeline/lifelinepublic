@@ -19,7 +19,7 @@ import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { Loader2, X, ZoomIn, Check, Upload } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { ImagePositionPicker } from '@/components/ImagePositionPicker';
+import { CropBoxPicker, CropData } from '@/components/admin/CropBoxPicker';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { uploadImage } from '@/lib/storage';
 
@@ -71,7 +71,7 @@ export const ProfileSerpApiSearchModal = ({
   const [selectedUrl, setSelectedUrl] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [importing, setImporting] = useState(false);
-  const [showPositionPicker, setShowPositionPicker] = useState(false);
+  const [showCropPicker, setShowCropPicker] = useState(false);
   const [importedImageUrl, setImportedImageUrl] = useState<string | null>(null);
   const [mediaAssetId, setMediaAssetId] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -138,7 +138,7 @@ export const ProfileSerpApiSearchModal = ({
 
       setImportedImageUrl(url);
       setMediaAssetId(mediaAsset.id);
-      setShowPositionPicker(true);
+      setShowCropPicker(true);
       toast.success('Image uploaded! Now position your avatar.');
     } catch (error) {
       console.error('Upload error:', error);
@@ -218,7 +218,7 @@ export const ProfileSerpApiSearchModal = ({
       toast.success("Avatar position saved successfully");
       queryClient.invalidateQueries({ queryKey: ["profile-data"] });
       onImportComplete?.();
-      setShowPositionPicker(false);
+      setShowCropPicker(false);
       onClose();
     },
     onError: (error) => {
@@ -245,10 +245,10 @@ export const ProfileSerpApiSearchModal = ({
 
       if (error) throw error;
 
-      // Open position picker with imported image
+      // Open crop picker with imported image
       setImportedImageUrl(data.url);
       setMediaAssetId(data.mediaId);
-      setShowPositionPicker(true);
+      setShowCropPicker(true);
       
       toast.success("Image imported - now position your avatar");
     } catch (error) {
@@ -259,9 +259,13 @@ export const ProfileSerpApiSearchModal = ({
     }
   };
 
-  const handlePositionSave = (position: { x: number; y: number; scale: number }) => {
+  const handleCropComplete = (crop: CropData) => {
     if (mediaAssetId) {
-      updatePositionMutation.mutate({ mediaId: mediaAssetId, position });
+      // Convert crop box to position/scale
+      const centerX = crop.x + crop.width / 2;
+      const centerY = crop.y + crop.height / 2;
+      const scale = 100 / crop.width;
+      updatePositionMutation.mutate({ mediaId: mediaAssetId, position: { x: centerX, y: centerY, scale } });
     }
   };
 
@@ -511,16 +515,15 @@ export const ProfileSerpApiSearchModal = ({
         </Dialog>
       )}
 
-      {/* Position Picker Modal */}
+      {/* Crop Picker Modal */}
       {importedImageUrl && (
-        <ImagePositionPicker
-          open={showPositionPicker}
-          onOpenChange={setShowPositionPicker}
+        <CropBoxPicker
+          open={showCropPicker}
+          onOpenChange={setShowCropPicker}
           imageUrl={importedImageUrl}
-          initialPosition={{ x: 50, y: 50, scale: 1 }}
-          onPositionChange={handlePositionSave}
+          onCropComplete={handleCropComplete}
+          aspectRatio={1}
           title="Position Profile Avatar"
-          viewType="avatar"
         />
       )}
     </>
