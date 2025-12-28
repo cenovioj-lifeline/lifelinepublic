@@ -1,8 +1,7 @@
-import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { ImagePositionPicker } from "./ImagePositionPicker";
+import { CropBoxPicker, CropData } from "./admin/CropBoxPicker";
 
 interface ContributionImagePositionerProps {
   open: boolean;
@@ -25,12 +24,16 @@ export function ContributionImagePositioner({
   const queryClient = useQueryClient();
 
   const updateMutation = useMutation({
-    mutationFn: async (position: { x: number; y: number; scale: number }) => {
+    mutationFn: async (crop: CropData) => {
+      // Convert crop box to center position
+      const centerX = crop.x + crop.width / 2;
+      const centerY = crop.y + crop.height / 2;
+
       const { error } = await supabase
         .from("entry_images")
         .update({
-          position_x: position.x,
-          position_y: position.y,
+          position_x: Math.round(centerX),
+          position_y: Math.round(centerY),
         })
         .eq("id", imageId);
 
@@ -54,14 +57,13 @@ export function ContributionImagePositioner({
   });
 
   return (
-    <ImagePositionPicker
+    <CropBoxPicker
       imageUrl={imageUrl}
-      onPositionChange={(position) => updateMutation.mutate(position)}
-      initialPosition={{ x: initialPositionX, y: initialPositionY, scale: 1 }}
+      onCropComplete={(crop) => updateMutation.mutate(crop)}
       open={open}
       onOpenChange={onOpenChange}
       title="Reposition Your Image"
-      viewType="both"
+      aspectRatio={16 / 9}
     />
   );
 }
