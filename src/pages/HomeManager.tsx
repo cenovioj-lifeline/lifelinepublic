@@ -197,8 +197,8 @@ export default function HomeManager() {
           hero_title: heroTitle,
           hero_subtitle: heroSubtitle,
           hero_image_id: heroImageId,
-          hero_image_position_x: heroImagePosition.x,
-          hero_image_position_y: heroImagePosition.y,
+          hero_image_position_x: Math.round(heroImagePosition.x),
+          hero_image_position_y: Math.round(heroImagePosition.y),
           custom_section_name: customSectionName,
         })
         .eq("id", settings?.id);

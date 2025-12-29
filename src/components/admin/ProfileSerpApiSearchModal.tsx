@@ -206,8 +206,8 @@ export const ProfileSerpApiSearchModal = ({
       const { error } = await supabase
         .from('media_assets')
         .update({
-          position_x: position.x,
-          position_y: position.y,
+          position_x: Math.round(position.x),
+          position_y: Math.round(position.y),
           scale: position.scale,
         })
         .eq('id', mediaId);

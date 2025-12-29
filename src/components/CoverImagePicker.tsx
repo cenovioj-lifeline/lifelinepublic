@@ -109,8 +109,8 @@ export function CoverImagePicker({
         .update({
           cover_image_url: imageUrl,
           cover_image_path: imagePath || null,
-          cover_image_position_x: x,
-          cover_image_position_y: y,
+          cover_image_position_x: Math.round(x),
+          cover_image_position_y: Math.round(y),
         })
         .eq("id", lifelineId);
 
