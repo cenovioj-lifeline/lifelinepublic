@@ -117,8 +117,8 @@ export function SuperFanImageUpload({ entryId, onUploadComplete }: SuperFanImage
           url: tempImage.url,
           filename: tempImage.file.name,
           type: tempImage.file.type,
-          position_x: centerX,
-          position_y: centerY,
+          position_x: Math.round(centerX),
+          position_y: Math.round(centerY),
           scale: scale,
         })
         .select()

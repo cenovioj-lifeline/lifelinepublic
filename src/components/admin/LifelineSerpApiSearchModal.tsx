@@ -234,8 +234,8 @@ export const LifelineSerpApiSearchModal = ({
         .from('lifelines')
         .update({
           cover_image_url: importedImageUrl,
-          cover_image_position_x: position.x,
-          cover_image_position_y: position.y
+          cover_image_position_x: Math.round(position.x),
+          cover_image_position_y: Math.round(position.y)
         })
         .eq('id', lifelineId);
 
