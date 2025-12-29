@@ -638,12 +638,12 @@ export const FeedViewer = ({
               ) : (
                 // New Collection Entry
                 <>
-                  {selectedEntry.collectionHeroImage && (
+                  {(selectedEntry.collectionCardImage || selectedEntry.collectionHeroImage) && (
                     <div className="mb-4 rounded-lg overflow-hidden">
                       <img 
-                        src={selectedEntry.collectionHeroImage} 
+                        src={selectedEntry.collectionCardImage || selectedEntry.collectionHeroImage} 
                         alt={selectedEntry.collectionTitle}
-                        className="w-full h-[300px] object-cover"
+                        className="w-full aspect-video object-cover"
                       />
                     </div>
                   )}
