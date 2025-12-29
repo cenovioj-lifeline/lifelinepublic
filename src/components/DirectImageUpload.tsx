@@ -38,11 +38,23 @@ export function DirectImageUpload({
   const getAspectRatio = () => {
     switch (viewType) {
       case "banner":
-        return 3; // 3:1
+        return 4; // 4:1
       case "card":
         return 16 / 9;
       default:
         return 16 / 9; // Default for "both"
+    }
+  };
+
+  // Get aspect ratio class for display
+  const getAspectClass = () => {
+    switch (viewType) {
+      case "banner":
+        return "aspect-[4/1]";
+      case "card":
+        return "aspect-video";
+      default:
+        return "aspect-video";
     }
   };
 
@@ -154,11 +166,11 @@ export function DirectImageUpload({
     <div className={className}>
       {currentImageUrl ? (
         <div className="space-y-2">
-          <div className="relative rounded-lg overflow-hidden border">
+          <div className={cn("relative rounded-lg overflow-hidden border", getAspectClass())}>
             <img
               src={currentImageUrl}
               alt="Uploaded"
-              className="w-full h-48 object-cover"
+              className="w-full h-full object-cover"
             />
             <div className="absolute top-2 right-2 flex gap-2">
               {onPositionChange && (
@@ -194,7 +206,8 @@ export function DirectImageUpload({
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
           className={cn(
-            "border-2 border-dashed rounded-lg p-8 text-center transition-colors",
+            "border-2 border-dashed rounded-lg flex flex-col items-center justify-center transition-colors",
+            getAspectClass(),
             isDragging
               ? "border-primary bg-primary/5"
               : "border-muted-foreground/25 hover:border-primary/50"
@@ -206,9 +219,9 @@ export function DirectImageUpload({
             onChange={handleFileChange}
             disabled={uploading}
             className="hidden"
-            id="image-upload"
+            id={`image-upload-${viewType}`}
           />
-          <label htmlFor="image-upload" className="cursor-pointer">
+          <label htmlFor={`image-upload-${viewType}`} className="cursor-pointer w-full h-full flex flex-col items-center justify-center">
             {uploading ? (
               <div className="flex flex-col items-center gap-2">
                 <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
