@@ -311,9 +311,15 @@ export function useColorScheme(collectionId?: string) {
       // Apply all colors as CSS variables (including new fields)
       Object.entries(COLOR_MAPPINGS).forEach(([key, config]) => {
         let colorValue = colorScheme[key as keyof ColorScheme];
-        
-        // Use defaults for new fields if not set
-        if (!colorValue && key in NEW_FIELD_DEFAULTS) {
+
+        // Special case: person_name_accent derives from nav_button_color for palette harmony
+        // This ensures person names (e.g., "ARYA STARK") use each collection's accent color
+        // instead of a static blue that clashes with warm/neutral palettes
+        if (!colorValue && key === 'person_name_accent') {
+          colorValue = colorScheme.nav_button_color;
+        }
+        // Use defaults for other new fields if not set
+        else if (!colorValue && key in NEW_FIELD_DEFAULTS) {
           colorValue = NEW_FIELD_DEFAULTS[key as keyof typeof NEW_FIELD_DEFAULTS];
         }
         
