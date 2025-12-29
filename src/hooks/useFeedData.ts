@@ -34,6 +34,7 @@ export interface FeedEntry {
   
   // New collection fields
   collectionHeroImage?: string;
+  collectionCardImage?: string;
   collectionDescription?: string;
 }
 
@@ -147,7 +148,7 @@ export const useFeedData = (userId: string | undefined) => {
       
       const { data: collectionsData, error: collectionsError } = await supabase
         .from('collections')
-        .select('id, title, slug, description, hero_image_url, created_at')
+        .select('id, title, slug, description, hero_image_url, card_image_url, created_at')
         .gte('created_at', thirtyDaysAgo.toISOString())
         .eq('status', 'published')
         .order('created_at', { ascending: false });
@@ -203,6 +204,7 @@ export const useFeedData = (userId: string | undefined) => {
           collectionSlug: col.slug,
           collectionDescription: col.description,
           collectionHeroImage: col.hero_image_url,
+          collectionCardImage: (col as any).card_image_url,
         }));
         
         feedEntries.push(...collectionEntries);
