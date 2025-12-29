@@ -455,7 +455,6 @@ export default function PublicCollectionDetail() {
                 alt={collection.title}
                 className="w-full h-full object-cover"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
               <div className="absolute top-4 right-4 z-10">
                 <FavoriteButton itemId={collection.id} itemType="collection" className="bg-white/80 hover:bg-white" />
               </div>
