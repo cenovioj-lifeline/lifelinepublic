@@ -207,11 +207,12 @@ export function ProfileDetailView({
               </section>
             )}
 
-            {appearsInLifelines && appearsInLifelines.length > 0 && (
+            {/* Opinion Lifelines (rating type) - between subject lifelines and appears in */}
+            {ratingLifelines && ratingLifelines.length > 0 && (
               <section className="space-y-4">
-                <h2 className="text-2xl font-bold" style={textStyle}>Appears in Lifelines</h2>
+                <h2 className="text-2xl font-bold" style={textStyle}>Opinion Lifelines</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {appearsInLifelines.map((lifeline: any) => {
+                  {ratingLifelines.map((lifeline: any) => {
                     const lifelinePath = collectionContext
                       ? `/public/collections/${collectionContext.slug}/lifelines/${lifeline.slug}`
                       : `/public/lifelines/${lifeline.slug}`;
@@ -238,11 +239,11 @@ export function ProfileDetailView({
               </section>
             )}
 
-            {ratingLifelines && ratingLifelines.length > 0 && (
+            {appearsInLifelines && appearsInLifelines.length > 0 && (
               <section className="space-y-4">
-                <h2 className="text-2xl font-bold" style={textStyle}>Rating Lifelines</h2>
+                <h2 className="text-2xl font-bold" style={textStyle}>Appears in Lifelines</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {ratingLifelines.map((lifeline: any) => {
+                  {appearsInLifelines.map((lifeline: any) => {
                     const lifelinePath = collectionContext
                       ? `/public/collections/${collectionContext.slug}/lifelines/${lifeline.slug}`
                       : `/public/lifelines/${lifeline.slug}`;
