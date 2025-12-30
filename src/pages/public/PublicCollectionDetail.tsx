@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { PublicAuthModal } from "@/components/PublicAuthModal";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { FavoriteButton } from "@/components/FavoriteButton";
+import { lifelineLink } from "@/lib/navigationLinks";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -325,10 +326,15 @@ export default function PublicCollectionDetail() {
 
   const renderContentCard = (item: any, collectionSlug: string) => {
     if (item._type === "lifeline") {
+      // Use lifelineLink helper with collection referrer
+      const lifelinePath = lifelineLink(item.slug, {
+        collectionSlug,
+        from: { type: 'collection' }
+      });
       return (
         <Link
           key={item.id}
-          to={`/public/collections/${collectionSlug}/lifelines/${item.slug}`}
+          to={lifelinePath}
           className="group"
         >
           <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
@@ -622,45 +628,52 @@ export default function PublicCollectionDetail() {
                   </Link>
                 </div>
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                  {recentLifelines.map((lifeline: any) => (
-                    <Link
-                      key={lifeline.id}
-                      to={`/public/collections/${collection.slug}/lifelines/${lifeline.slug}`}
-                      className="group"
-                    >
-                      <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
-                        <div className="absolute top-2 right-2 z-10">
-                          <FavoriteButton itemId={lifeline.id} itemType="lifeline" />
-                        </div>
-                        <div className="aspect-video relative bg-white overflow-hidden">
-                          {lifeline.cover_image_url ? (
-                            <img
-                              src={lifeline.cover_image_url}
-                              alt={lifeline.title}
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                              style={{
-                                objectPosition: `${lifeline.cover_image_position_x ?? 50}% ${lifeline.cover_image_position_y ?? 50}%`
-                              }}
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center text-gray-400">
-                              No image
-                            </div>
-                          )}
-                        </div>
-                        <CardHeader className="bg-[hsl(var(--scheme-card-bg))]">
-                          <CardTitle className="text-lg transition-colors text-[hsl(var(--scheme-card-text))]">
-                            {lifeline.title}
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent className="bg-[hsl(var(--scheme-card-bg))]">
-                          <p className="text-sm line-clamp-2 text-[hsl(var(--scheme-cards-text))]">
-                            {lifeline.subtitle || "Explore this lifeline"}
-                          </p>
-                        </CardContent>
-                      </Card>
-                    </Link>
-                  ))}
+                  {recentLifelines.map((lifeline: any) => {
+                    // Use lifelineLink helper with collection referrer
+                    const lifelinePath = lifelineLink(lifeline.slug, {
+                      collectionSlug: collection.slug,
+                      from: { type: 'collection' }
+                    });
+                    return (
+                      <Link
+                        key={lifeline.id}
+                        to={lifelinePath}
+                        className="group"
+                      >
+                        <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
+                          <div className="absolute top-2 right-2 z-10">
+                            <FavoriteButton itemId={lifeline.id} itemType="lifeline" />
+                          </div>
+                          <div className="aspect-video relative bg-white overflow-hidden">
+                            {lifeline.cover_image_url ? (
+                              <img
+                                src={lifeline.cover_image_url}
+                                alt={lifeline.title}
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                style={{
+                                  objectPosition: `${lifeline.cover_image_position_x ?? 50}% ${lifeline.cover_image_position_y ?? 50}%`
+                                }}
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-gray-400">
+                                No image
+                              </div>
+                            )}
+                          </div>
+                          <CardHeader className="bg-[hsl(var(--scheme-card-bg))]">
+                            <CardTitle className="text-lg transition-colors text-[hsl(var(--scheme-card-text))]">
+                              {lifeline.title}
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent className="bg-[hsl(var(--scheme-card-bg))]">
+                            <p className="text-sm line-clamp-2 text-[hsl(var(--scheme-cards-text))]">
+                              {lifeline.subtitle || "Explore this lifeline"}
+                            </p>
+                          </CardContent>
+                        </Card>
+                      </Link>
+                    );
+                  })}
                 </div>
               </section>
             )}
