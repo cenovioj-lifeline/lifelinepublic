@@ -36,6 +36,12 @@ interface Book {
   one_sentence_summary?: string;
   theme_color?: string;
   cover_image_url?: string;
+  cover_image?: {
+    url: string;
+    position_x?: number;
+    position_y?: number;
+    scale?: number;
+  };
   profileSlug?: string;
 }
 
@@ -65,24 +71,48 @@ export default function CollectionMedia() {
     queryFn: async () => {
       if (!collection?.id) return [];
 
-      // Get profile IDs in this collection
+      // Step 1: Get profiles in this collection with their slugs
       const { data: profileConnections, error: pcError } = await supabase
         .from("profile_collections")
-        .select("profile_id")
+        .select(`
+          profile_id,
+          profiles!inner(id, slug)
+        `)
         .eq("collection_id", collection.id);
 
       if (pcError) throw pcError;
       if (!profileConnections || profileConnections.length === 0) return [];
 
       const profileIds = profileConnections.map((pc) => pc.profile_id);
+      
+      // Create a map of profile_id to profile slug
+      const profileSlugMap = new Map(
+        profileConnections.map((pc) => [pc.profile_id, (pc.profiles as any)?.slug])
+      );
 
-      // Get books for these profiles via profile_books
+      // Step 2: Get books for these profiles using the correct join pattern
       const { data: profileBooks, error: pbError } = await supabase
         .from("profile_books")
         .select(`
-          book_id,
+          profile_id,
           display_order,
-          profiles!inner(slug)
+          book:books!inner(
+            id,
+            title,
+            slug,
+            subtitle,
+            author_name,
+            one_sentence_summary,
+            theme_color,
+            cover_image_url,
+            status,
+            cover_image:media_assets!cover_image_id(
+              url,
+              position_x,
+              position_y,
+              scale
+            )
+          )
         `)
         .in("profile_id", profileIds)
         .order("display_order", { ascending: true });
@@ -90,27 +120,33 @@ export default function CollectionMedia() {
       if (pbError) throw pbError;
       if (!profileBooks || profileBooks.length === 0) return [];
 
-      const bookIds = profileBooks.map((pb) => pb.book_id);
+      // Step 3: Transform and filter published books
+      const booksWithProfiles: Book[] = [];
+      const seenBookIds = new Set<string>();
 
-      // Fetch full book details
-      const { data: booksData, error: booksError } = await supabase
-        .from("books")
-        .select("id, title, slug, subtitle, author_name, one_sentence_summary, theme_color, cover_image_url")
-        .in("id", bookIds)
-        .eq("status", "published");
+      for (const pb of profileBooks) {
+        const book = pb.book as any;
+        if (!book || book.status !== 'published') continue;
+        
+        // Dedupe books (same book might be linked to multiple profiles)
+        if (seenBookIds.has(book.id)) continue;
+        seenBookIds.add(book.id);
 
-      if (booksError) throw booksError;
+        booksWithProfiles.push({
+          id: book.id,
+          title: book.title,
+          slug: book.slug,
+          subtitle: book.subtitle,
+          author_name: book.author_name,
+          one_sentence_summary: book.one_sentence_summary,
+          theme_color: book.theme_color,
+          cover_image_url: book.cover_image_url,
+          cover_image: book.cover_image,
+          profileSlug: profileSlugMap.get(pb.profile_id),
+        });
+      }
 
-      // Map books with their profile slug for navigation
-      const bookMap = new Map(profileBooks.map((pb) => [
-        pb.book_id,
-        (pb.profiles as any)?.slug
-      ]));
-
-      return (booksData || []).map((book) => ({
-        ...book,
-        profileSlug: bookMap.get(book.id),
-      })) as Book[];
+      return booksWithProfiles;
     },
     enabled: !!collection?.id,
   });
@@ -191,7 +227,11 @@ interface BookCoverCardProps {
 
 function BookCoverCard({ book, onClick }: BookCoverCardProps) {
   const themeColors = themeColorMap[book.theme_color || 'slate'] || themeColorMap.slate;
-  const hasCoverImage = !!book.cover_image_url;
+  const coverImageUrl = book.cover_image?.url || book.cover_image_url;
+  const hasCoverImage = !!coverImageUrl;
+  const positionX = book.cover_image?.position_x ?? 50;
+  const positionY = book.cover_image?.position_y ?? 50;
+  const scale = book.cover_image?.scale ?? 1;
 
   return (
     <div
@@ -202,9 +242,14 @@ function BookCoverCard({ book, onClick }: BookCoverCardProps) {
       <div className="relative aspect-[2/3] w-full overflow-hidden rounded-lg shadow-md transition-all duration-200 group-hover:shadow-xl group-hover:scale-[1.02]">
         {hasCoverImage ? (
           <img
-            src={book.cover_image_url}
+            src={coverImageUrl}
             alt={`Cover of ${book.title}`}
             className="h-full w-full object-cover"
+            style={{
+              objectPosition: `${positionX}% ${positionY}%`,
+              transform: `scale(${scale})`,
+              transformOrigin: `${positionX}% ${positionY}%`
+            }}
           />
         ) : (
           /* Placeholder cover with theme color */
