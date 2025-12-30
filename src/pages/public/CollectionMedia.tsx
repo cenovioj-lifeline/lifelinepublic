@@ -36,9 +36,6 @@ interface Book {
   one_sentence_summary?: string;
   theme_color?: string;
   cover_image_url?: string;
-  cover_position_x?: number;
-  cover_position_y?: number;
-  cover_scale?: number;
   profileSlug?: string;
 }
 
@@ -98,7 +95,7 @@ export default function CollectionMedia() {
       // Fetch full book details
       const { data: booksData, error: booksError } = await supabase
         .from("books")
-        .select("id, title, slug, subtitle, author_name, one_sentence_summary, theme_color, cover_image_url, cover_position_x, cover_position_y, cover_scale")
+        .select("id, title, slug, subtitle, author_name, one_sentence_summary, theme_color, cover_image_url")
         .in("id", bookIds)
         .eq("status", "published");
 
@@ -195,9 +192,6 @@ interface BookCoverCardProps {
 function BookCoverCard({ book, onClick }: BookCoverCardProps) {
   const themeColors = themeColorMap[book.theme_color || 'slate'] || themeColorMap.slate;
   const hasCoverImage = !!book.cover_image_url;
-  const positionX = book.cover_position_x ?? 50;
-  const positionY = book.cover_position_y ?? 50;
-  const scale = book.cover_scale ?? 1;
 
   return (
     <div
@@ -211,11 +205,6 @@ function BookCoverCard({ book, onClick }: BookCoverCardProps) {
             src={book.cover_image_url}
             alt={`Cover of ${book.title}`}
             className="h-full w-full object-cover"
-            style={{
-              objectPosition: `${positionX}% ${positionY}%`,
-              transform: `scale(${scale})`,
-              transformOrigin: `${positionX}% ${positionY}%`
-            }}
           />
         ) : (
           /* Placeholder cover with theme color */

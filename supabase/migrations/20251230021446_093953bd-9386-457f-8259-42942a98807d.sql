@@ -1,0 +1,1 @@
+ALTER TABLE collections ADD COLUMN media_enabled BOOLEAN NOT NULL DEFAULT false;
