@@ -18,6 +18,7 @@ interface BookSidebarProps {
   bookTitle: string;
   authorName: string;
   hasContext?: boolean;
+  backLabel?: string;
 }
 
 const FILTER_ICONS: Record<ContentType | 'all', typeof LayoutGrid> = {
@@ -37,6 +38,7 @@ export function BookSidebar({
   bookTitle,
   authorName,
   hasContext = false,
+  backLabel = 'Back to Profile',
 }: BookSidebarProps) {
   const totalCount = Object.values(counts).reduce((a, b) => a + b, 0);
 
@@ -72,7 +74,7 @@ export function BookSidebar({
           <path d="m12 19-7-7 7-7" />
           <path d="M19 12H5" />
         </svg>
-        Back to Profile
+        {backLabel}
       </Button>
 
       {/* Book Info */}

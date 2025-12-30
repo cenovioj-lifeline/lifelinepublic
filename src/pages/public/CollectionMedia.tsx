@@ -138,9 +138,10 @@ export default function CollectionMedia() {
 
   const handleBookClick = (book: Book) => {
     if (book.profileSlug) {
-      navigate(`/public/collections/${slug}/profiles/${book.profileSlug}/books/${book.slug}`);
+      // Add ?from=media so the book page knows to navigate back to Media
+      navigate(`/public/collections/${slug}/profiles/${book.profileSlug}/books/${book.slug}?from=media`);
     } else {
-      navigate(`/public/books/${book.slug}`);
+      navigate(`/public/books/${book.slug}?from=media`);
     }
   };
 

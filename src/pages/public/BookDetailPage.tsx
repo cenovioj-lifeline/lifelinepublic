@@ -6,7 +6,7 @@
  *         /public/collections/:collectionSlug/profiles/:profileSlug/books/:bookSlug
  */
 
-import { useParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { useBookData } from "@/hooks/useBookData";
 import { PublicLayout } from "@/components/PublicLayout";
@@ -27,7 +27,11 @@ export default function BookDetailPage() {
   }>();
 
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { data, isLoading, error } = useBookData(bookSlug);
+
+  // Check if user came from Media page
+  const fromMedia = searchParams.get('from') === 'media';
 
   // Fetch collection data when in collection context
   const { data: collection } = useQuery({
@@ -49,6 +53,9 @@ export default function BookDetailPage() {
   useColorScheme(collection?.id);
 
   const hasContext = !!collectionSlug && !!collection;
+
+  // Determine back destination based on where user came from
+  const backDestination = fromMedia && collectionSlug ? 'media' : 'profile';
 
   // Loading state
   if (isLoading) {
@@ -96,7 +103,9 @@ export default function BookDetailPage() {
   // Error state
   if (error || !data) {
     const handleBack = () => {
-      if (collectionSlug && profileSlug) {
+      if (fromMedia && collectionSlug) {
+        navigate(`/public/collections/${collectionSlug}/media`);
+      } else if (collectionSlug && profileSlug) {
         navigate(`/public/collections/${collectionSlug}/profiles/${profileSlug}`);
       } else if (profileSlug) {
         navigate(`/public/profiles/${profileSlug}`);
@@ -116,7 +125,7 @@ export default function BookDetailPage() {
         </p>
         <Button onClick={handleBack}>
           <BookOpen className="mr-2 h-4 w-4" />
-          Back to Profile
+          Back to {fromMedia ? 'Media' : 'Profile'}
         </Button>
       </div>
     );
@@ -146,6 +155,7 @@ export default function BookDetailPage() {
       collectionSlug={collectionSlug}
       hasContext={hasContext}
       collectionId={collection?.id}
+      backDestination={backDestination}
     />
   );
 

@@ -27,6 +27,7 @@ interface BookFeedContentProps {
   collectionSlug?: string;
   hasContext?: boolean;
   collectionId?: string;
+  backDestination?: 'profile' | 'media';
 }
 
 export function BookFeedContent({
@@ -38,6 +39,7 @@ export function BookFeedContent({
   collectionSlug,
   hasContext = false,
   collectionId,
+  backDestination = 'profile',
 }: BookFeedContentProps) {
   const navigate = useNavigate();
   const { hasAccess } = useAdminAccess();
@@ -48,7 +50,10 @@ export function BookFeedContent({
     : contentByType[activeFilter] || [];
 
   const handleBack = () => {
-    if (collectionSlug && profileSlug) {
+    // If user came from Media page, go back to Media
+    if (backDestination === 'media' && collectionSlug) {
+      navigate(`/public/collections/${collectionSlug}/media`);
+    } else if (collectionSlug && profileSlug) {
       navigate(`/public/collections/${collectionSlug}/profiles/${profileSlug}`);
     } else if (profileSlug) {
       navigate(`/public/profiles/${profileSlug}`);
@@ -56,6 +61,9 @@ export function BookFeedContent({
       navigate(-1);
     }
   };
+
+  // Determine back button label
+  const backLabel = backDestination === 'media' ? 'Back to Media' : 'Back to Profile';
 
   return (
     <div 
@@ -71,6 +79,7 @@ export function BookFeedContent({
         bookTitle={book.title}
         authorName={book.authorName}
         hasContext={hasContext}
+        backLabel={backLabel}
       />
 
       {/* Main Feed Area */}
