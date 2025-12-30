@@ -286,8 +286,8 @@ export function CollectionLayout({
                         {user && (
                           <div className="mt-4 pt-4 border-t">
                             <div className="flex items-center gap-3 px-2 py-2">
-                              <Avatar className="h-10 w-10 ring-2 ring-purple-500 ring-offset-2">
-                                <AvatarFallback className="bg-purple-100 text-purple-700 font-medium">
+                              <Avatar className="h-10 w-10 ring-2 ring-gray-600 ring-offset-2">
+                                <AvatarFallback className="bg-gray-200 text-gray-700 font-medium">
                                   {user.email?.charAt(0).toUpperCase() || "U"}
                                 </AvatarFallback>
                               </Avatar>
