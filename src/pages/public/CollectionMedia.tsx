@@ -60,7 +60,7 @@ export default function CollectionMedia() {
   });
 
   // Fetch books from profiles in this collection
-  const { data: books, isLoading: booksLoading, error: booksError } = useQuery({
+  const { data: books, isLoading: booksLoading } = useQuery({
     queryKey: ["collection-media-books", collection?.id],
     queryFn: async () => {
       if (!collection?.id) return [];
@@ -71,15 +71,8 @@ export default function CollectionMedia() {
         .select("profile_id, profiles(id, slug)")
         .eq("collection_id", collection.id);
 
-      if (pcError) {
-        console.error("profile_collections error:", pcError);
-        throw pcError;
-      }
-      
-      if (!profileConnections || profileConnections.length === 0) {
-        console.log("No profile connections found for collection:", collection.id);
-        return [];
-      }
+      if (pcError) throw pcError;
+      if (!profileConnections || profileConnections.length === 0) return [];
 
       const profileIds = profileConnections.map((pc) => pc.profile_id);
       
@@ -88,9 +81,7 @@ export default function CollectionMedia() {
         profileConnections.map((pc) => [pc.profile_id, (pc.profiles as any)?.slug])
       );
 
-      console.log("Found profiles:", profileIds.length, "Profile slugs:", Array.from(profileSlugMap.values()));
-
-      // Step 2: Get books for these profiles (simpler query without nested joins)
+      // Step 2: Get books for these profiles (no status filter - match profile page behavior)
       const { data: profileBooks, error: pbError } = await supabase
         .from("profile_books")
         .select(`
@@ -104,41 +95,24 @@ export default function CollectionMedia() {
             author_name,
             one_sentence_summary,
             theme_color,
-            cover_image_url,
-            status
+            cover_image_url
           )
         `)
         .in("profile_id", profileIds)
         .order("display_order", { ascending: true });
 
-      if (pbError) {
-        console.error("profile_books error:", pbError);
-        throw pbError;
-      }
-      
-      if (!profileBooks || profileBooks.length === 0) {
-        console.log("No profile_books found for profiles:", profileIds);
-        return [];
-      }
+      if (pbError) throw pbError;
+      if (!profileBooks || profileBooks.length === 0) return [];
 
-      console.log("Found profile_books:", profileBooks.length);
-
-      // Step 3: Transform and filter published books
+      // Step 3: Transform books, dedupe if same book linked to multiple profiles
       const booksWithProfiles: Book[] = [];
       const seenBookIds = new Set<string>();
 
       for (const pb of profileBooks) {
         const book = pb.book as any;
-        if (!book) {
-          console.log("Null book in profile_books entry");
-          continue;
-        }
-        if (book.status !== 'published') {
-          console.log("Skipping non-published book:", book.title, book.status);
-          continue;
-        }
+        if (!book) continue;
         
-        // Dedupe books (same book might be linked to multiple profiles)
+        // Dedupe books
         if (seenBookIds.has(book.id)) continue;
         seenBookIds.add(book.id);
 
@@ -155,7 +129,6 @@ export default function CollectionMedia() {
         });
       }
 
-      console.log("Final books count:", booksWithProfiles.length);
       return booksWithProfiles;
     },
     enabled: !!collection?.id,
@@ -167,15 +140,9 @@ export default function CollectionMedia() {
     if (book.profileSlug) {
       navigate(`/public/collections/${slug}/profiles/${book.profileSlug}/books/${book.slug}`);
     } else {
-      // Fallback if no profile slug
       navigate(`/public/books/${book.slug}`);
     }
   };
-
-  // Debug: show error if any
-  if (booksError) {
-    console.error("Books query error:", booksError);
-  }
 
   if (isLoading || !collection) {
     return (
