@@ -14,6 +14,7 @@ import { Trophy, Quote, ChevronDown } from "lucide-react";
 import { Card, CardContent } from "./ui/card";
 import { Badge } from "./ui/badge";
 import { cn } from "@/lib/utils";
+import { lifelineLink } from "@/lib/navigationLinks";
 
 interface ProfileRelationship {
   id: string;
@@ -78,6 +79,14 @@ export function ProfileDetailView({
   const mutedStyle = collectionContext ? { color: 'hsl(var(--scheme-profile-text))', opacity: 0.7 } : undefined;
   const labelStyle = collectionContext ? { color: 'hsl(var(--scheme-profile-label-text))' } : undefined;
   const labelMutedStyle = collectionContext ? { color: 'hsl(var(--scheme-profile-label-text))', opacity: 0.7 } : undefined;
+
+  // Helper to create lifeline path with referrer tracking
+  const getLifelinePath = (lifelineSlug: string) => {
+    return lifelineLink(lifelineSlug, {
+      collectionSlug: collectionContext?.slug,
+      from: { type: 'profile', slug: profile.slug }
+    });
+  };
 
   return (
     <div className="space-y-8">
@@ -152,10 +161,7 @@ export function ProfileDetailView({
               <section className="space-y-4">
                 <h2 className="text-2xl font-bold" style={textStyle}>My Lifeline</h2>
                 <Link 
-                  to={collectionContext
-                    ? `/public/collections/${collectionContext.slug}/lifelines/${myPersonLifeline.slug}`
-                    : `/public/lifelines/${myPersonLifeline.slug}`
-                  } 
+                  to={getLifelinePath(myPersonLifeline.slug)}
                   className="group block"
                 >
                   <div className={`p-4 border rounded-lg hover:shadow-lg hover:border-primary/50 transition-all duration-200 cursor-pointer ${
@@ -180,29 +186,23 @@ export function ProfileDetailView({
               <section className="space-y-4">
                 <h2 className="text-2xl font-bold" style={textStyle}>Organization Lifelines</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {myOrgLifelines.map((lifeline: any) => {
-                    const lifelinePath = collectionContext
-                      ? `/public/collections/${collectionContext.slug}/lifelines/${lifeline.slug}`
-                      : `/public/lifelines/${lifeline.slug}`;
-                    
-                    return (
-                      <Link key={lifeline.id} to={lifelinePath} className="group block">
-                        <div className={`p-4 border rounded-lg hover:shadow-lg hover:border-primary/50 transition-all duration-200 cursor-pointer ${
-                          collectionContext 
-                            ? 'bg-[hsl(var(--scheme-cards-bg))] border-[hsl(var(--scheme-cards-border))]' 
-                            : 'bg-card'
-                        }`}>
-                          <div className="flex items-center gap-2">
-                            <LifelineBookIcon size={20} />
-                            <h3 className="font-semibold group-hover:text-primary transition-colors" style={labelStyle}>
-                              {lifeline.title}
-                            </h3>
-                          </div>
-                          <p className={`text-sm ${collectionContext ? '' : 'text-muted-foreground'}`} style={labelMutedStyle}>{lifeline.type}</p>
+                  {myOrgLifelines.map((lifeline: any) => (
+                    <Link key={lifeline.id} to={getLifelinePath(lifeline.slug)} className="group block">
+                      <div className={`p-4 border rounded-lg hover:shadow-lg hover:border-primary/50 transition-all duration-200 cursor-pointer ${
+                        collectionContext 
+                          ? 'bg-[hsl(var(--scheme-cards-bg))] border-[hsl(var(--scheme-cards-border))]' 
+                          : 'bg-card'
+                      }`}>
+                        <div className="flex items-center gap-2">
+                          <LifelineBookIcon size={20} />
+                          <h3 className="font-semibold group-hover:text-primary transition-colors" style={labelStyle}>
+                            {lifeline.title}
+                          </h3>
                         </div>
-                      </Link>
-                    );
-                  })}
+                        <p className={`text-sm ${collectionContext ? '' : 'text-muted-foreground'}`} style={labelMutedStyle}>{lifeline.type}</p>
+                      </div>
+                    </Link>
+                  ))}
                 </div>
               </section>
             )}
@@ -212,29 +212,23 @@ export function ProfileDetailView({
               <section className="space-y-4">
                 <h2 className="text-2xl font-bold" style={textStyle}>Opinion Lifelines</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {ratingLifelines.map((lifeline: any) => {
-                    const lifelinePath = collectionContext
-                      ? `/public/collections/${collectionContext.slug}/lifelines/${lifeline.slug}`
-                      : `/public/lifelines/${lifeline.slug}`;
-                    
-                    return (
-                      <Link key={lifeline.id} to={lifelinePath} className="group block">
-                        <div className={`p-4 border rounded-lg hover:shadow-lg hover:border-primary/50 transition-all duration-200 cursor-pointer ${
-                          collectionContext 
-                            ? 'bg-[hsl(var(--scheme-cards-bg))] border-[hsl(var(--scheme-cards-border))]' 
-                            : 'bg-card'
-                        }`}>
-                          <div className="flex items-center gap-2">
-                            <LifelineBookIcon size={20} />
-                            <h3 className="font-semibold group-hover:text-primary transition-colors" style={labelStyle}>
-                              {lifeline.title}
-                            </h3>
-                          </div>
-                          <p className={`text-sm ${collectionContext ? '' : 'text-muted-foreground'}`} style={labelMutedStyle}>{lifeline.type}</p>
+                  {ratingLifelines.map((lifeline: any) => (
+                    <Link key={lifeline.id} to={getLifelinePath(lifeline.slug)} className="group block">
+                      <div className={`p-4 border rounded-lg hover:shadow-lg hover:border-primary/50 transition-all duration-200 cursor-pointer ${
+                        collectionContext 
+                          ? 'bg-[hsl(var(--scheme-cards-bg))] border-[hsl(var(--scheme-cards-border))]' 
+                          : 'bg-card'
+                      }`}>
+                        <div className="flex items-center gap-2">
+                          <LifelineBookIcon size={20} />
+                          <h3 className="font-semibold group-hover:text-primary transition-colors" style={labelStyle}>
+                            {lifeline.title}
+                          </h3>
                         </div>
-                      </Link>
-                    );
-                  })}
+                        <p className={`text-sm ${collectionContext ? '' : 'text-muted-foreground'}`} style={labelMutedStyle}>{lifeline.type}</p>
+                      </div>
+                    </Link>
+                  ))}
                 </div>
               </section>
             )}
@@ -243,29 +237,23 @@ export function ProfileDetailView({
               <section className="space-y-4">
                 <h2 className="text-2xl font-bold" style={textStyle}>Appears in Lifelines</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {appearsInLifelines.map((lifeline: any) => {
-                    const lifelinePath = collectionContext
-                      ? `/public/collections/${collectionContext.slug}/lifelines/${lifeline.slug}`
-                      : `/public/lifelines/${lifeline.slug}`;
-                    
-                    return (
-                      <Link key={lifeline.id} to={lifelinePath} className="group block">
-                        <div className={`p-4 border rounded-lg hover:shadow-lg hover:border-primary/50 transition-all duration-200 cursor-pointer ${
-                          collectionContext 
-                            ? 'bg-[hsl(var(--scheme-cards-bg))] border-[hsl(var(--scheme-cards-border))]' 
-                            : 'bg-card'
-                        }`}>
-                          <div className="flex items-center gap-2">
-                            <LifelineBookIcon size={20} />
-                            <h3 className="font-semibold group-hover:text-primary transition-colors" style={labelStyle}>
-                              {lifeline.title}
-                            </h3>
-                          </div>
-                          <p className={`text-sm ${collectionContext ? '' : 'text-muted-foreground'}`} style={labelMutedStyle}>{lifeline.type}</p>
+                  {appearsInLifelines.map((lifeline: any) => (
+                    <Link key={lifeline.id} to={getLifelinePath(lifeline.slug)} className="group block">
+                      <div className={`p-4 border rounded-lg hover:shadow-lg hover:border-primary/50 transition-all duration-200 cursor-pointer ${
+                        collectionContext 
+                          ? 'bg-[hsl(var(--scheme-cards-bg))] border-[hsl(var(--scheme-cards-border))]' 
+                          : 'bg-card'
+                      }`}>
+                        <div className="flex items-center gap-2">
+                          <LifelineBookIcon size={20} />
+                          <h3 className="font-semibold group-hover:text-primary transition-colors" style={labelStyle}>
+                            {lifeline.title}
+                          </h3>
                         </div>
-                      </Link>
-                    );
-                  })}
+                        <p className={`text-sm ${collectionContext ? '' : 'text-muted-foreground'}`} style={labelMutedStyle}>{lifeline.type}</p>
+                      </div>
+                    </Link>
+                  ))}
                 </div>
               </section>
             )}

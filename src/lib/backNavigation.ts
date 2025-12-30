@@ -1,6 +1,7 @@
 /**
  * Utility for determining smart back navigation routes
  * Maps detail pages to their logical parent routes
+ * Supports referrer tracking via URL search params
  */
 
 export interface BackNavigationConfig {
@@ -8,16 +9,90 @@ export interface BackNavigationConfig {
   parentLabel: string;
 }
 
+export interface ReferrerInfo {
+  type: 'profile' | 'collection' | 'lifelines' | 'home';
+  slug?: string;
+  collectionSlug?: string;
+}
+
+/**
+ * Parses referrer information from URL search params
+ * Format: ?from=profile:slug or ?from=collection or ?from=lifelines
+ */
+export function parseReferrer(searchParams: URLSearchParams): ReferrerInfo | null {
+  const from = searchParams.get('from');
+  if (!from) return null;
+
+  // Handle profile:slug format
+  if (from.startsWith('profile:')) {
+    const slug = from.substring('profile:'.length);
+    return { type: 'profile', slug };
+  }
+
+  // Handle simple types
+  if (from === 'collection') {
+    return { type: 'collection' };
+  }
+
+  if (from === 'lifelines') {
+    return { type: 'lifelines' };
+  }
+
+  if (from === 'home') {
+    return { type: 'home' };
+  }
+
+  return null;
+}
+
 /**
  * Determines the logical parent route for back navigation
- * based on the current path and route params
+ * based on the current path, route params, and optional referrer
  */
 export function getBackNavigation(
   pathname: string,
-  params: Record<string, string | undefined>
+  params: Record<string, string | undefined>,
+  searchParams?: URLSearchParams
 ): BackNavigationConfig | null {
   const { collectionSlug, lifelineSlug, profileSlug, electionSlug, bookSlug, slug } = params;
 
+  // Check for referrer first (takes priority)
+  if (searchParams) {
+    const referrer = parseReferrer(searchParams);
+    if (referrer) {
+      // Handle referrer-based navigation
+      if (referrer.type === 'profile' && referrer.slug) {
+        // Came from a profile - go back there
+        if (collectionSlug) {
+          return {
+            parentPath: `/public/collections/${collectionSlug}/profiles/${referrer.slug}`,
+            parentLabel: "Profile"
+          };
+        } else {
+          return {
+            parentPath: `/public/profiles/${referrer.slug}`,
+            parentLabel: "Profile"
+          };
+        }
+      }
+
+      if (referrer.type === 'collection' && collectionSlug) {
+        return {
+          parentPath: `/public/collections/${collectionSlug}`,
+          parentLabel: "Collection"
+        };
+      }
+
+      if (referrer.type === 'home') {
+        return {
+          parentPath: `/`,
+          parentLabel: "Home"
+        };
+      }
+    }
+  }
+
+  // Default deterministic routing (no referrer)
   // Collection context routes
   if (collectionSlug) {
     // Collection lifeline detail -> lifelines list

@@ -39,9 +39,12 @@ export function CollectionLayout({
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const isMobile = useIsMobile();
 
+  // Parse search params for referrer tracking
+  const searchParams = new URLSearchParams(location.search);
+
   // Determine if we're on a detail page and get back navigation info
   const isOnDetailPage = isDetailPage(location.pathname);
-  const backNav = getBackNavigation(location.pathname, params);
+  const backNav = getBackNavigation(location.pathname, params, searchParams);
 
   const isActiveRoute = (path: string) => {
     return location.pathname === path;

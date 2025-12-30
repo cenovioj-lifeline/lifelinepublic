@@ -17,6 +17,7 @@ interface FloatingBackButtonProps {
  * A floating back button for mobile devices.
  * Appears fixed at the bottom-left of the screen.
  * Uses smart navigation to determine the logical parent route.
+ * Supports referrer tracking via URL search params.
  */
 export function FloatingBackButton({ backTo, label, className }: FloatingBackButtonProps) {
   const navigate = useNavigate();
@@ -29,14 +30,17 @@ export function FloatingBackButton({ backTo, label, className }: FloatingBackBut
     return null;
   }
 
+  // Parse search params for referrer tracking
+  const searchParams = new URLSearchParams(location.search);
+
   const handleBack = () => {
     if (backTo) {
       navigate(backTo);
       return;
     }
 
-    // Try smart navigation
-    const backNav = getBackNavigation(location.pathname, params);
+    // Try smart navigation with referrer support
+    const backNav = getBackNavigation(location.pathname, params, searchParams);
     if (backNav) {
       navigate(backNav.parentPath);
     } else {
