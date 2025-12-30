@@ -45,6 +45,7 @@ const collectionFormSchema = z.object({
   category: z.string().optional(),
   status: z.enum(["draft", "published"]),
   is_featured: z.boolean(),
+  media_enabled: z.boolean(),
   color_scheme_id: z.string().nullable(),
   hero_image_url: z.string(),
   hero_image_path: z.string(),
@@ -92,6 +93,7 @@ export default function CollectionEdit() {
       category: "",
       status: "draft",
       is_featured: false,
+      media_enabled: false,
       color_scheme_id: null,
       hero_image_url: "",
       hero_image_path: "",
@@ -132,6 +134,7 @@ export default function CollectionEdit() {
         category: collection.category || "",
         status: collection.status || "draft",
         is_featured: collection.is_featured || false,
+        media_enabled: (collection as any).media_enabled || false,
         color_scheme_id: collection.color_scheme_id || defaultScheme?.id || null,
         hero_image_url: collection.hero_image_url || "",
         hero_image_path: collection.hero_image_path || "",
@@ -156,6 +159,7 @@ export default function CollectionEdit() {
         category: data.category || null,
         status: data.status,
         is_featured: data.is_featured,
+        media_enabled: data.media_enabled,
         color_scheme_id: data.color_scheme_id,
         hero_image_url: data.hero_image_url || null,
         hero_image_path: data.hero_image_path || null,
@@ -372,23 +376,46 @@ export default function CollectionEdit() {
             )}
           />
 
-          <FormField
-            control={form.control}
-            name="is_featured"
-            render={({ field }) => (
-              <FormItem className="flex items-center gap-2">
-                <FormControl>
-                  <input
-                    type="checkbox"
-                    checked={field.value}
-                    onChange={field.onChange}
-                    className="h-4 w-4"
-                  />
-                </FormControl>
-                <FormLabel className="!mt-0">Featured Collection</FormLabel>
-              </FormItem>
-            )}
-          />
+          <div className="flex flex-col gap-3">
+            <FormField
+              control={form.control}
+              name="is_featured"
+              render={({ field }) => (
+                <FormItem className="flex items-center gap-2">
+                  <FormControl>
+                    <input
+                      type="checkbox"
+                      checked={field.value}
+                      onChange={field.onChange}
+                      className="h-4 w-4"
+                    />
+                  </FormControl>
+                  <FormLabel className="!mt-0">Featured Collection</FormLabel>
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="media_enabled"
+              render={({ field }) => (
+                <FormItem className="flex items-center gap-2">
+                  <FormControl>
+                    <input
+                      type="checkbox"
+                      checked={field.value}
+                      onChange={field.onChange}
+                      className="h-4 w-4"
+                    />
+                  </FormControl>
+                  <FormLabel className="!mt-0">Enable Media Section</FormLabel>
+                  <FormDescription className="!mt-0 ml-2">
+                    Shows books from profiles in nav. Moves Awards to More.
+                  </FormDescription>
+                </FormItem>
+              )}
+            />
+          </div>
 
           {!isNew && (
             <FormField

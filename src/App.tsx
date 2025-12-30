@@ -36,6 +36,7 @@ import CollectionLifelines from "./pages/public/CollectionLifelines";
 import CollectionProfiles from "./pages/public/CollectionProfiles";
 import CollectionElections from "./pages/public/CollectionElections";
 import CollectionSettings from "./pages/public/CollectionSettings";
+import CollectionMedia from "./pages/public/CollectionMedia";
 import PublicProfiles from "./pages/public/PublicProfiles";
 import PublicProfileDetail from "./pages/public/PublicProfileDetail";
 import BookDetailPage from "./pages/public/BookDetailPage";
@@ -85,6 +86,7 @@ function AppContent() {
           <Route path="/public/collections/:slug" element={<PublicCollectionDetail />} />
           <Route path="/public/collections/:slug/feed" element={<CollectionFeed />} />
           <Route path="/public/collections/:slug/settings" element={<CollectionSettings />} />
+          <Route path="/public/collections/:slug/media" element={<CollectionMedia />} />
             <Route path="/public/collections/:slug/lifelines" element={<CollectionLifelines />} />
             <Route path="/public/collections/:collectionSlug/lifelines/:lifelineSlug" element={<CollectionLifelineDetail />} />
           <Route path="/public/collections/:slug/profiles" element={<CollectionProfiles />} />

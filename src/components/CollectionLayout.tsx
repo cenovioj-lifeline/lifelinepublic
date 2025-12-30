@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate, useLocation, useParams } from "react-router-dom";
-import { Home, Users, ArrowLeft, Award, BookOpen, Menu, MoreHorizontal } from "lucide-react";
+import { Home, Users, ArrowLeft, Award, Menu, MoreHorizontal, Play } from "lucide-react";
 import { LifelineBookIcon } from "@/components/icons/LifelineBookIcon";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
@@ -47,13 +47,13 @@ export function CollectionLayout({
     return location.pathname === path;
   };
 
-  // Fetch collection settings for quotes
+  // Fetch collection settings for quotes and media_enabled
   const { data: collectionSettings } = useQuery({
     queryKey: ["collection-settings", collectionSlug],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("collections")
-        .select("id, quotes_enabled, quote_frequency")
+        .select("id, quotes_enabled, quote_frequency, media_enabled")
         .eq("slug", collectionSlug)
         .single();
 
@@ -61,6 +61,8 @@ export function CollectionLayout({
       return data;
     },
   });
+
+  const mediaEnabled = (collectionSettings as any)?.media_enabled ?? false;
 
   // Use the quote hook
   const { currentQuote, dismissQuote } = useCollectionQuote(
@@ -99,17 +101,22 @@ export function CollectionLayout({
     },
   });
 
+  // Build nav items based on media_enabled
   const navItems = [
     { label: "Home", icon: Home, to: `/public/collections/${collectionSlug}` },
     { label: "Stories", icon: LifelineBookIcon, to: `/public/collections/${collectionSlug}/lifelines` },
     { label: "Profiles", icon: Users, to: `/public/collections/${collectionSlug}/profiles` },
-    { 
-      label: "Awards", 
-      icon: Award, 
-      to: firstElection 
-        ? `/public/collections/${collectionSlug}/elections/${firstElection.slug}`
-        : `/public/collections/${collectionSlug}/elections`
-    },
+    // Conditionally add Media or Awards
+    ...(mediaEnabled
+      ? [{ label: "Media", icon: Play, to: `/public/collections/${collectionSlug}/media` }]
+      : [{
+          label: "Awards",
+          icon: Award,
+          to: firstElection
+            ? `/public/collections/${collectionSlug}/elections/${firstElection.slug}`
+            : `/public/collections/${collectionSlug}/elections`
+        }]
+    ),
   ];
 
   const actionItems: Array<{ label: string; icon: any; action?: () => void; to?: string }> = [

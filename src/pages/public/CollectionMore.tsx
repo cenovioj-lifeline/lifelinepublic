@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { CollectionLayout } from "@/components/CollectionLayout";
 import { Card, CardContent } from "@/components/ui/card";
-import { Trophy, MessageSquareQuote } from "lucide-react";
+import { Trophy, MessageSquareQuote, Award } from "lucide-react";
 
 export default function CollectionMore() {
   const { slug } = useParams<{ slug: string }>();
@@ -24,7 +24,31 @@ export default function CollectionMore() {
     },
   });
 
-  const features = [
+  // Fetch the first election for direct navigation (when media_enabled)
+  const { data: firstElection } = useQuery({
+    queryKey: ["collection-first-election-more", slug],
+    queryFn: async () => {
+      if (!collection?.id) return null;
+
+      const { data, error } = await supabase
+        .from("mock_elections")
+        .select("slug")
+        .eq("collection_id", collection.id)
+        .eq("status", "published")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (error) return null;
+      return data;
+    },
+    enabled: !!collection?.id,
+  });
+
+  const mediaEnabled = (collection as any)?.media_enabled ?? false;
+
+  // Base features that always show
+  const baseFeatures = [
     {
       id: "contributors",
       label: "Contributors",
@@ -40,6 +64,22 @@ export default function CollectionMore() {
       description: "Browse memorable quotes",
     },
   ];
+
+  // Add Awards to More page when media_enabled is true
+  const features = mediaEnabled
+    ? [
+        ...baseFeatures,
+        {
+          id: "awards",
+          label: "Awards",
+          icon: Award,
+          path: firstElection
+            ? `/public/collections/${slug}/elections/${firstElection.slug}`
+            : `/public/collections/${slug}/elections`,
+          description: "View collection awards",
+        },
+      ]
+    : baseFeatures;
 
   if (isLoading || !collection) {
     return (
