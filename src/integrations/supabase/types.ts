@@ -515,6 +515,7 @@ export type Database = {
           lifeline_display_title_text: string | null
           link_color: string | null
           link_hover_color: string | null
+          media_enabled: boolean
           menu_active_color: string | null
           menu_hover_color: string | null
           menu_text_color: string | null
@@ -589,6 +590,7 @@ export type Database = {
           lifeline_display_title_text?: string | null
           link_color?: string | null
           link_hover_color?: string | null
+          media_enabled?: boolean
           menu_active_color?: string | null
           menu_hover_color?: string | null
           menu_text_color?: string | null
@@ -663,6 +665,7 @@ export type Database = {
           lifeline_display_title_text?: string | null
           link_color?: string | null
           link_hover_color?: string | null
+          media_enabled?: boolean
           menu_active_color?: string | null
           menu_hover_color?: string | null
           menu_text_color?: string | null
