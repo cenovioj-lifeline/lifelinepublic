@@ -16,6 +16,7 @@ import { useColorScheme } from "@/hooks/useColorScheme";
 import { cn } from "@/lib/utils";
 import { NotificationBell } from "@/components/NotificationBell";
 import { getBackNavigation, isDetailPage } from "@/lib/backNavigation";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 interface CollectionLayoutProps {
   children: React.ReactNode;
@@ -284,7 +285,22 @@ export function CollectionLayout({
                         </Button>
                         {user && (
                           <div className="mt-4 pt-4 border-t">
-                            <PublicUserMenu />
+                            <div className="flex items-center gap-3 px-2 py-2">
+                              <Avatar className="h-10 w-10 ring-2 ring-purple-500 ring-offset-2">
+                                <AvatarFallback className="bg-purple-100 text-purple-700 font-medium">
+                                  {user.email?.charAt(0).toUpperCase() || "U"}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div className="flex flex-col">
+                                <span className="text-sm font-medium">Profile</span>
+                                <span className="text-xs text-muted-foreground truncate max-w-[140px]">
+                                  {user.email}
+                                </span>
+                              </div>
+                            </div>
+                            <div className="mt-2">
+                              <PublicUserMenu />
+                            </div>
                           </div>
                         )}
                       </div>

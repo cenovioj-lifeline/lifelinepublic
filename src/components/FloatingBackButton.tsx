@@ -57,13 +57,12 @@ export function FloatingBackButton({ backTo, label, className }: FloatingBackBut
       size="icon"
       onClick={handleBack}
       aria-label={accessibilityLabel}
-      className={`fixed bottom-4 left-4 z-50 rounded-full shadow-lg 
-        h-12 w-12 bg-background/90 backdrop-blur-sm 
-        border border-border hover:bg-accent
-        transition-all duration-200 hover:scale-105
+      className={`fixed bottom-4 left-4 z-50 rounded-full shadow-lg
+        h-12 w-12 bg-white border-2 border-gray-300
+        hover:bg-gray-100 transition-all duration-200 hover:scale-105
         ${className || ""}`}
     >
-      <ArrowLeft className="h-5 w-5" />
+      <ArrowLeft className="h-5 w-5 text-gray-700" />
     </Button>
   );
 }
