@@ -111,7 +111,21 @@ export function useBookData(bookSlug: string | undefined) {
 
       const book = transformBook(bookRow);
 
-      // 2. Fetch all content for this book
+      // 2. Fetch author profile image if author_profile_id exists
+      let authorImageUrl: string | undefined;
+      if (book.authorProfileId) {
+        const { data: authorProfile } = await supabase
+          .from("profiles")
+          .select("primary_image_url")
+          .eq("id", book.authorProfileId)
+          .maybeSingle();
+        
+        if (authorProfile?.primary_image_url) {
+          authorImageUrl = authorProfile.primary_image_url;
+        }
+      }
+
+      // 3. Fetch all content for this book
       const { data: contentRows, error: contentError } = await supabase
         .from("book_content")
         .select("*")
@@ -123,7 +137,7 @@ export function useBookData(bookSlug: string | undefined) {
       const content = (contentRows || []).map(transformContent);
       const contentByType = groupContentByType(content);
 
-      // 3. Calculate counts per type
+      // 4. Calculate counts per type
       const counts: Record<ContentType, number> = {
         insight: contentByType.insight.length,
         framework: contentByType.framework.length,
@@ -138,6 +152,7 @@ export function useBookData(bookSlug: string | undefined) {
         contentByType,
         counts,
         totalCount: content.length,
+        authorImageUrl,
       };
     },
   });

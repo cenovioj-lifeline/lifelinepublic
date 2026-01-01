@@ -156,6 +156,7 @@ export default function BookDetailPage() {
       hasContext={hasContext}
       collectionId={collection?.id}
       backDestination={backDestination}
+      authorImageUrl={data.authorImageUrl}
     />
   );
 
