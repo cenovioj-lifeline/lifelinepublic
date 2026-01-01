@@ -3,6 +3,7 @@
  *
  * Main layout component for the book detail page.
  * Combines sidebar, feed area, and metadata panel.
+ * On mobile (<768px), renders BookMobileView instead.
  */
 
 import { useState } from "react";
@@ -13,7 +14,9 @@ import { BookSidebar } from "./BookSidebar";
 import { BookFeedItem } from "./BookFeedItem";
 import { BookDashboard } from "./BookDashboard";
 import { BookMetadata } from "./BookMetadata";
+import { BookMobileView } from "./mobile";
 import { useAdminAccess } from "@/lib/useAdminAccess";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { Pencil, Plus } from "lucide-react";
 import type { Book, BookContent, ContentType } from "@/types/book";
 import { CONTENT_TYPE_CONFIG } from "@/types/book";
@@ -28,6 +31,7 @@ interface BookFeedContentProps {
   hasContext?: boolean;
   collectionId?: string;
   backDestination?: 'profile' | 'media';
+  authorImageUrl?: string;
 }
 
 export function BookFeedContent({
@@ -40,11 +44,28 @@ export function BookFeedContent({
   hasContext = false,
   collectionId,
   backDestination = 'profile',
+  authorImageUrl,
 }: BookFeedContentProps) {
   const navigate = useNavigate();
   const { hasAccess } = useAdminAccess();
+  const isMobile = useIsMobile();
   const [activeFilter, setActiveFilter] = useState<ContentType | 'all'>('all');
 
+  // Mobile view - completely separate component tree
+  if (isMobile) {
+    return (
+      <BookMobileView
+        book={book}
+        content={content}
+        contentByType={contentByType}
+        counts={counts}
+        authorImageUrl={authorImageUrl}
+        hasContext={hasContext}
+      />
+    );
+  }
+
+  // Desktop view - original implementation
   const filteredContent = activeFilter === 'all'
     ? content
     : contentByType[activeFilter] || [];
@@ -84,7 +105,7 @@ export function BookFeedContent({
 
       {/* Main Feed Area */}
       <main className="flex-1 max-w-3xl mx-auto w-full p-4 md:p-8">
-        {/* Book Header (Mobile) */}
+        {/* Book Header (Mobile) - hidden on mobile now since we use BookMobileView */}
         <div className="mb-6 md:hidden">
           <div className="flex items-start justify-between gap-2">
             <div>
