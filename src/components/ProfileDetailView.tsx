@@ -10,11 +10,15 @@ import { ProfileBooksSection } from "./profile/ProfileBooksSection";
 import { ProfileLegacyImpact } from "./profile/ProfileLegacyImpact";
 import { ProfilePhysicalCharacteristics } from "./profile/ProfilePhysicalCharacteristics";
 import { LifelineBookIcon } from "./icons/LifelineBookIcon";
-import { Trophy, Quote, ChevronDown } from "lucide-react";
+import { Trophy, Quote, ChevronDown, ChevronRight } from "lucide-react";
 import { Card, CardContent } from "./ui/card";
 import { Badge } from "./ui/badge";
 import { cn } from "@/lib/utils";
 import { lifelineLink } from "@/lib/navigationLinks";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { useProfileAwardNavigation, ProfileAward } from "@/hooks/useProfileAwardNavigation";
+import { ProfileAwardDetailSheet } from "./profile/mobile/ProfileAwardDetailSheet";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/collapsible";
 
 interface ProfileRelationship {
   id: string;
@@ -74,7 +78,12 @@ export function ProfileDetailView({
   collectionContext,
 }: ProfileDetailViewProps) {
   const [quotesExpanded, setQuotesExpanded] = useState(false);
-
+  const [awardsExpanded, setAwardsExpanded] = useState(false);
+  const isMobile = useIsMobile();
+  
+  // Cast awards to ProfileAward type for the navigation hook
+  const typedAwards = (awards || []) as ProfileAward[];
+  const awardNavigation = useProfileAwardNavigation(typedAwards);
   const textStyle = collectionContext ? { color: 'hsl(var(--scheme-profile-text))' } : undefined;
   const mutedStyle = collectionContext ? { color: 'hsl(var(--scheme-profile-text))', opacity: 0.7 } : undefined;
   const labelStyle = collectionContext ? { color: 'hsl(var(--scheme-profile-label-text))' } : undefined;
@@ -262,59 +271,127 @@ export function ProfileDetailView({
       })()}
 
       {awards && awards.length > 0 && (
-        <section className="space-y-4">
-          <h2 className="text-2xl font-bold flex items-center gap-2" style={textStyle}>
-            <Trophy className="h-6 w-6 text-yellow-500" />
-            Mock Election Awards
-          </h2>
-          <div className="space-y-4">
-            {awards.map((award: any) => (
-              <Link
-                key={award.id}
-                to={collectionContext
-                  ? `/public/collections/${collectionContext.slug}/elections/${award.election.slug}`
-                  : `/public/elections/${award.election.slug}`
-                }
-                className="group block"
-              >
-                <Card className={`border hover:shadow-lg hover:border-primary/50 hover:brightness-110 transition-all ${
+        isMobile ? (
+          // Mobile: Collapsible awards with detail sheet
+          <section className="space-y-2">
+            <Collapsible open={awardsExpanded} onOpenChange={setAwardsExpanded}>
+              <CollapsibleTrigger
+                className={`w-full flex items-center justify-between p-4 border rounded-lg hover:bg-accent/50 transition-colors ${
                   collectionContext 
                     ? 'bg-[hsl(var(--scheme-cards-bg))] border-[hsl(var(--scheme-cards-border))]' 
                     : 'bg-card'
-                }`}>
-                  <CardContent className="p-6">
-                    <div className="flex items-start gap-4">
-                      <Trophy className="h-8 w-8 text-yellow-500 flex-shrink-0 mt-1" />
-                      <div className="flex-1">
-                        <h3 className="text-xl font-bold group-hover:text-primary transition-colors" style={labelStyle}>
-                          {award.category}
-                        </h3>
-                        <p className={`text-sm mt-1 ${collectionContext ? '' : 'text-muted-foreground'}`} style={labelMutedStyle}>
-                          {award.election.title}
-                        </p>
-                        {award.winner_name && (
-                          <p className="text-sm mt-2" style={labelStyle}>
-                            Winner: {award.winner_name}
-                          </p>
-                        )}
-                        {award.notes && (
-                          <p className={`mt-3 text-base italic ${collectionContext ? '' : 'text-muted-foreground'}`} style={labelMutedStyle}>
-                            {award.notes}
-                          </p>
-                        )}
-                        {award.percentage && (
-                          <p className={`text-xs mt-2 ${collectionContext ? '' : 'text-muted-foreground'}`} style={labelMutedStyle}>
-                            {award.percentage}% of votes
-                          </p>
-                        )}
-                      </div>
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <Trophy className="h-5 w-5 text-amber-500" />
+                  <span className="font-semibold" style={labelStyle}>Awards</span>
+                  <Badge 
+                    variant="secondary"
+                    className={collectionContext ? 'bg-[hsl(var(--scheme-nav-bg))] text-[hsl(var(--scheme-nav-text))] border-transparent' : ''}
+                  >
+                    {awards.length}
+                  </Badge>
+                </div>
+                <ChevronDown className={cn(
+                  "h-5 w-5 transition-transform",
+                  awardsExpanded && "rotate-180"
+                )} style={labelMutedStyle} />
+              </CollapsibleTrigger>
+              
+              <CollapsibleContent className="mt-2 space-y-2">
+                {awards.map((award: any, index: number) => (
+                  <button
+                    key={award.id}
+                    onClick={() => awardNavigation.openDetail(index)}
+                    className={`w-full flex items-center gap-3 p-3 rounded-lg cursor-pointer active:scale-[0.98] transition-all text-left ${
+                      collectionContext 
+                        ? 'bg-[hsl(var(--scheme-cards-bg))] border border-[hsl(var(--scheme-cards-border))] hover:border-amber-400/50' 
+                        : 'bg-amber-50/50 hover:bg-amber-100/50'
+                    }`}
+                  >
+                    <Trophy className="h-4 w-4 text-amber-500 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate" style={labelStyle}>
+                        {award.category}
+                      </p>
+                      <p className="text-xs truncate" style={labelMutedStyle}>
+                        {award.notes || award.election.title}
+                      </p>
                     </div>
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
-          </div>
-        </section>
+                    <ChevronRight className="h-4 w-4 flex-shrink-0" style={labelMutedStyle} />
+                  </button>
+                ))}
+              </CollapsibleContent>
+            </Collapsible>
+
+            <ProfileAwardDetailSheet
+              award={awardNavigation.currentAward}
+              isOpen={awardNavigation.isDetailOpen}
+              onClose={awardNavigation.closeDetail}
+              onNavigate={awardNavigation.navigateDetail}
+              canNavigatePrev={awardNavigation.canNavigate('prev')}
+              canNavigateNext={awardNavigation.canNavigate('next')}
+              currentIndex={awardNavigation.currentIndex}
+              totalCount={awards.length}
+              collectionSlug={collectionContext?.slug}
+            />
+          </section>
+        ) : (
+          // Desktop: Original card layout
+          <section className="space-y-4">
+            <h2 className="text-2xl font-bold flex items-center gap-2" style={textStyle}>
+              <Trophy className="h-6 w-6 text-yellow-500" />
+              Mock Election Awards
+            </h2>
+            <div className="space-y-4">
+              {awards.map((award: any) => (
+                <Link
+                  key={award.id}
+                  to={collectionContext
+                    ? `/public/collections/${collectionContext.slug}/elections/${award.election.slug}`
+                    : `/public/elections/${award.election.slug}`
+                  }
+                  className="group block"
+                >
+                  <Card className={`border hover:shadow-lg hover:border-primary/50 hover:brightness-110 transition-all ${
+                    collectionContext 
+                      ? 'bg-[hsl(var(--scheme-cards-bg))] border-[hsl(var(--scheme-cards-border))]' 
+                      : 'bg-card'
+                  }`}>
+                    <CardContent className="p-6">
+                      <div className="flex items-start gap-4">
+                        <Trophy className="h-8 w-8 text-yellow-500 flex-shrink-0 mt-1" />
+                        <div className="flex-1">
+                          <h3 className="text-xl font-bold group-hover:text-primary transition-colors" style={labelStyle}>
+                            {award.category}
+                          </h3>
+                          <p className={`text-sm mt-1 ${collectionContext ? '' : 'text-muted-foreground'}`} style={labelMutedStyle}>
+                            {award.election.title}
+                          </p>
+                          {award.winner_name && (
+                            <p className="text-sm mt-2" style={labelStyle}>
+                              Winner: {award.winner_name}
+                            </p>
+                          )}
+                          {award.notes && (
+                            <p className={`mt-3 text-base italic ${collectionContext ? '' : 'text-muted-foreground'}`} style={labelMutedStyle}>
+                              {award.notes}
+                            </p>
+                          )}
+                          {award.percentage && (
+                            <p className={`text-xs mt-2 ${collectionContext ? '' : 'text-muted-foreground'}`} style={labelMutedStyle}>
+                              {award.percentage}% of votes
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )
       )}
 
       {quotes && quotes.length > 0 && (
