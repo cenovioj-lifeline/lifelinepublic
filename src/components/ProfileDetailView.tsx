@@ -334,6 +334,13 @@ export function ProfileDetailView({
               currentIndex={awardNavigation.currentIndex}
               totalCount={awards.length}
               collectionSlug={collectionContext?.slug}
+              winnerAvatar={{
+                url: profile.avatar_image?.url,
+                position_x: profile.avatar_image?.position_x,
+                position_y: profile.avatar_image?.position_y,
+                scale: profile.avatar_image?.scale,
+              }}
+              winnerInitials={profile.name?.slice(0, 2).toUpperCase()}
             />
           </section>
         ) : (
