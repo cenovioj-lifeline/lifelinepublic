@@ -345,8 +345,14 @@ export function ProfileDetailView({
           
           {quotesExpanded && (
             <div 
-              className="space-y-3 pl-4 border-l-2 ml-4 pt-2"
-              style={collectionContext ? { borderColor: 'hsl(var(--scheme-cards-border))' } : { borderColor: 'hsl(var(--muted))' }}
+              className="space-y-3 p-4 rounded-lg mt-2"
+              style={collectionContext ? { 
+                backgroundColor: 'hsl(var(--scheme-cards-bg))',
+                border: '1px solid hsl(var(--scheme-cards-border))'
+              } : { 
+                backgroundColor: 'hsl(var(--card))',
+                border: '1px solid hsl(var(--border))'
+              }}
             >
               {quotes.map((quoteItem: any) => (
                 <div key={quoteItem.id} className="space-y-1">
