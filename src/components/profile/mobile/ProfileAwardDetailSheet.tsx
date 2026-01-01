@@ -3,7 +3,8 @@ import { Link } from "react-router-dom";
 import { useSwipeable } from "react-swipeable";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Trophy, ChevronLeft, ChevronRight, X, ExternalLink } from "lucide-react";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { ChevronLeft, ChevronRight, X, ExternalLink } from "lucide-react";
 import { ProfileAward } from "@/hooks/useProfileAwardNavigation";
 
 interface ProfileAwardDetailSheetProps {
@@ -16,6 +17,13 @@ interface ProfileAwardDetailSheetProps {
   currentIndex: number;
   totalCount: number;
   collectionSlug?: string;
+  winnerAvatar?: {
+    url?: string;
+    position_x?: number;
+    position_y?: number;
+    scale?: number;
+  };
+  winnerInitials?: string;
 }
 
 export function ProfileAwardDetailSheet({
@@ -28,6 +36,8 @@ export function ProfileAwardDetailSheet({
   currentIndex,
   totalCount,
   collectionSlug,
+  winnerAvatar,
+  winnerInitials,
 }: ProfileAwardDetailSheetProps) {
   const handleSwipe = useCallback((direction: 'Left' | 'Right') => {
     if (direction === 'Left' && canNavigateNext) {
@@ -81,10 +91,22 @@ export function ProfileAwardDetailSheet({
           {/* Award Content */}
           <div className="flex-1 overflow-y-auto px-6 pb-24">
             <div className="flex flex-col items-center text-center space-y-4 pt-4">
-              {/* Trophy Icon */}
-              <div className="w-20 h-20 rounded-full bg-amber-100 flex items-center justify-center">
-                <Trophy className="h-10 w-10 text-amber-500" />
-              </div>
+              {/* Winner Avatar */}
+              <Avatar className="h-[200px] w-[200px] border-4 border-amber-200">
+                <AvatarImage 
+                  src={winnerAvatar?.url}
+                  alt={award.winner_name || "Winner"}
+                  className="object-cover"
+                  style={{
+                    objectPosition: `${winnerAvatar?.position_x ?? 50}% ${winnerAvatar?.position_y ?? 50}%`,
+                    transform: `scale(${winnerAvatar?.scale ?? 1})`,
+                    transformOrigin: `${winnerAvatar?.position_x ?? 50}% ${winnerAvatar?.position_y ?? 50}%`
+                  }}
+                />
+                <AvatarFallback className="text-6xl font-bold text-white bg-amber-500">
+                  {winnerInitials || award.winner_name?.slice(0, 2).toUpperCase() || "?"}
+                </AvatarFallback>
+              </Avatar>
 
               {/* Category Title */}
               <h2 
