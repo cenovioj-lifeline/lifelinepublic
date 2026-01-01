@@ -132,7 +132,7 @@ export function BookMobileView({
       )}
 
       {/* Floating back button */}
-      <FloatingBackButton />
+      <FloatingBackButton className="bottom-20" />
     </div>
   );
 }
