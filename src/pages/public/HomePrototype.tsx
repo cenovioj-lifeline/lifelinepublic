@@ -43,13 +43,8 @@ export default function HomePrototype() {
   if (isLoading) {
     return (
       <div className="space-y-8">
-        {/* Prototype indicator banner */}
-        <div className="bg-yellow-500/20 border-b border-yellow-500/30 px-4 py-2 text-center text-sm text-yellow-700 dark:text-yellow-300 -mx-4 -mt-4">
-          🧪 Prototype Mode - Changes here don't affect production
-        </div>
-        
         {/* Hero skeleton */}
-        <Skeleton className="w-full aspect-[4/1] rounded-lg" />
+        <Skeleton className="w-full aspect-[4/1] -mx-4 -mt-4 w-[calc(100%+2rem)]" />
         
         {/* Quick actions skeleton */}
         <div className="grid grid-cols-4 gap-2 md:gap-4">
@@ -83,13 +78,8 @@ export default function HomePrototype() {
 
   return (
     <div className="space-y-8">
-      {/* Prototype indicator banner */}
-      <div className="bg-yellow-500/20 border border-yellow-500/30 px-4 py-2 text-center text-sm text-yellow-700 dark:text-yellow-300 rounded-lg">
-        🧪 Prototype Mode - Changes here don't affect production
-      </div>
-
       {/* Hero Section */}
-      <div className="relative w-full rounded-lg overflow-hidden aspect-[4/1]">
+      <div className="relative overflow-hidden aspect-[4/1] -mx-4 -mt-8 w-[calc(100%+2rem)]">
         {homeSettings?.hero_image?.url ? (
           <img
             src={homeSettings.hero_image.url}
