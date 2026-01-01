@@ -251,6 +251,7 @@ export default function PublicCollectionDetail() {
           avatar_image_id,
           primary_image_url,
           created_at,
+          avatar_image:media_assets!avatar_image_id(url),
           profile_collections!inner(is_featured, collection_id)
         `)
         .eq("profile_collections.collection_id", collection!.id)
@@ -698,9 +699,9 @@ export default function PublicCollectionDetail() {
                     >
                       <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
                         <div className="aspect-video relative bg-white overflow-hidden">
-                          {profile.primary_image_url ? (
+                          {(profile.primary_image_url || profile.avatar_image?.url) ? (
                             <img
-                              src={profile.primary_image_url}
+                              src={profile.primary_image_url || profile.avatar_image?.url}
                               alt={profile.name}
                               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                             />
