@@ -45,6 +45,13 @@ export function BookDetailModal({
 
   const { label: categoryLabel } = CATEGORY_INFO[category];
 
+  // Reset scroll position when item changes
+  useEffect(() => {
+    if (contentRef.current) {
+      contentRef.current.scrollTop = 0;
+    }
+  }, [item.id]);
+
   // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
