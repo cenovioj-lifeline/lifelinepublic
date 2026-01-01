@@ -33,7 +33,6 @@ import {
 import { ArrowLeft, ChevronDown } from "lucide-react";
 import { DirectImageUpload } from "@/components/DirectImageUpload";
 import { CollectionQuotesUpload } from "@/components/CollectionQuotesUpload";
-import { CollectionFeaturedProfiles } from "@/components/CollectionFeaturedProfiles";
 import { CollectionProfileManager } from "@/components/CollectionProfileManager";
 import { CollectionContentManager } from "@/components/CollectionContentManager";
 import { CollectionDuplicateCleanup } from "@/components/CollectionDuplicateCleanup";
@@ -64,7 +63,6 @@ export default function CollectionEdit() {
   const isNew = id === "new";
   const [heroImageUrl, setHeroImageUrl] = useState<string | null>(null);
   const [isProfileSectionOpen, setIsProfileSectionOpen] = useState(false);
-  const [isFeaturedProfilesOpen, setIsFeaturedProfilesOpen] = useState(false);
   const [isContentSectionOpen, setIsContentSectionOpen] = useState(false);
   const [isDuplicateCleanupOpen, setIsDuplicateCleanupOpen] = useState(false);
 
@@ -548,24 +546,6 @@ export default function CollectionEdit() {
                 </CollapsibleTrigger>
                 <CollapsibleContent className="mt-4">
                   <CollectionProfileManager collectionId={id!} />
-                </CollapsibleContent>
-              </Collapsible>
-
-              <Collapsible
-                open={isFeaturedProfilesOpen}
-                onOpenChange={setIsFeaturedProfilesOpen}
-                className="mt-8"
-              >
-                <CollapsibleTrigger className="flex items-center gap-2 w-full">
-                  <h3 className="text-lg font-medium">Featured Profiles</h3>
-                  <ChevronDown
-                    className={`h-4 w-4 transition-transform ${
-                      isFeaturedProfilesOpen ? "rotate-180" : ""
-                    }`}
-                  />
-                </CollapsibleTrigger>
-                <CollapsibleContent className="mt-4">
-                  <CollectionFeaturedProfiles collectionId={id!} />
                 </CollapsibleContent>
               </Collapsible>
 
