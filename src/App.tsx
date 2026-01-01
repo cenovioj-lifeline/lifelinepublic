@@ -28,6 +28,7 @@ import LifelineColorEditor from "./pages/LifelineColorEditor";
 import LoadLifelines from "./pages/LoadLifelines";
 import Home from "./pages/public/Home";
 import HomePrototype from "./pages/public/HomePrototype";
+import ProfilePrototype from "./pages/public/ProfilePrototype";
 import PublicLifelines from "./pages/public/PublicLifelines";
 import PublicLifelineDetail from "./pages/public/PublicLifelineDetail";
 import PublicCollections from "./pages/public/PublicCollections";
@@ -81,6 +82,7 @@ function AppContent() {
           <Route path="/" element={<PublicLayout><Home /></PublicLayout>} />
           <Route path="/home" element={<Navigate to="/" replace />} />
           <Route path="/prototype/home" element={<PublicLayout><HomePrototype /></PublicLayout>} />
+          <Route path="/prototype/profile" element={<PublicLayout><ProfilePrototype /></PublicLayout>} />
           <Route path="/public/lifelines" element={<PublicLayout><PublicLifelinesGrid /></PublicLayout>} />
           <Route path="/public/lifelines/:slug" element={<PublicLifelineDetail />} />
           <Route path="/public/collections" element={<PublicLayout><PublicCollections /></PublicLayout>} />
