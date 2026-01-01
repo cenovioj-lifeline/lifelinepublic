@@ -7,6 +7,7 @@
 
 import { useState } from 'react';
 import { useBookMobileNavigation } from '@/hooks/useBookMobileNavigation';
+import { FloatingBackButton } from '@/components/FloatingBackButton';
 import { BookMobileBottomTabs } from './BookMobileBottomTabs';
 import { BookMobileDashboard } from './BookMobileDashboard';
 import { BookCategoryModal } from './BookCategoryModal';
@@ -112,6 +113,9 @@ export function BookMobileView({
           hasContext={hasContext}
         />
       )}
+
+      {/* Floating back button */}
+      <FloatingBackButton />
     </div>
   );
 }
