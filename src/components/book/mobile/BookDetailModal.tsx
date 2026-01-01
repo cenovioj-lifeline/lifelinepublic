@@ -26,6 +26,45 @@ interface BookDetailModalProps {
 
 const SWIPE_THRESHOLD = 50;
 
+// Section header patterns to make bold + underlined
+const SECTION_HEADERS = [
+  'Context:',
+  'The Challenge:',
+  'The Action:',
+  'The Outcome:',
+  'The Moral:',
+  'The Setup:',
+  'The Lesson:',
+  'The Result:',
+  'The Problem:',
+  'The Solution:',
+  'Background:',
+  'Key Point:',
+  'Takeaway:',
+];
+
+// Format content with bold+underlined section headers
+function formatContentWithHeaders(content: string): React.ReactNode {
+  // Create a regex pattern from all headers
+  const headerPattern = new RegExp(
+    `(${SECTION_HEADERS.map(h => h.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})`,
+    'g'
+  );
+  
+  const parts = content.split(headerPattern);
+  
+  return parts.map((part, index) => {
+    if (SECTION_HEADERS.includes(part)) {
+      return (
+        <span key={index} className="font-bold underline">
+          {part}
+        </span>
+      );
+    }
+    return part;
+  });
+}
+
 export function BookDetailModal({
   item,
   category,
@@ -99,6 +138,9 @@ export function BookDetailModal({
     .join('')
     .toUpperCase();
 
+  // Determine if content should have section header formatting
+  const shouldFormatHeaders = category === 'story' || category === 'insight';
+
   return (
     <div 
       className="fixed inset-0 z-50 bg-white flex flex-col"
@@ -169,7 +211,7 @@ export function BookDetailModal({
               <p className="text-sm text-gray-500 mb-4">{item.chapterReference}</p>
             )}
             <p className="text-base text-gray-700 leading-relaxed whitespace-pre-wrap">
-              {item.content}
+              {shouldFormatHeaders ? formatContentWithHeaders(item.content) : item.content}
             </p>
             
             {/* Extended data for frameworks */}

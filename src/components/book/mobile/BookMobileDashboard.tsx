@@ -23,27 +23,27 @@ const CATEGORY_INFO: Record<ContentType, {
   insight: {
     label: 'Insights',
     Icon: Lightbulb,
-    description: 'Key ideas and principles from the book',
+    description: 'The big ideas that change how you think. Core principles and "aha" moments distilled from the book.',
   },
   framework: {
     label: 'Models',
     Icon: LayoutGrid,
-    description: 'Mental models and structured thinking tools',
+    description: 'Mental models and structured approaches you can apply. Think of these as tools for your toolkit.',
   },
   story: {
     label: 'Stories',
     Icon: BookOpen,
-    description: 'Examples, case studies, and narratives',
+    description: 'Real examples and case studies that bring concepts to life. The proof that these ideas actually work.',
   },
   quote: {
     label: 'Quotes',
     Icon: Quote,
-    description: 'Memorable lines and passages',
+    description: 'Memorable lines worth saving. The kind of wisdom you want to screenshot and revisit.',
   },
   practical_use: {
     label: 'Practical',
     Icon: Wrench,
-    description: 'Exercises and real-world applications',
+    description: 'Exercises, prompts, and action steps you can use today. Turn reading into doing.',
   },
 };
 

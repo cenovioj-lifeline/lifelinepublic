@@ -33,6 +33,7 @@ export function BookMobileView({
   hasContext = false,
 }: BookMobileViewProps) {
   const [modalCategory, setModalCategory] = useState<ContentType | null>(null);
+  const [showInfoModal, setShowInfoModal] = useState(false);
 
   const nav = useBookMobileNavigation({ contentByType });
 
@@ -46,12 +47,27 @@ export function BookMobileView({
     if (modalCategory) {
       nav.showCategory(modalCategory);
       setModalCategory(null);
+      setShowInfoModal(false);
     }
   };
 
   // Handle bottom tab tap -> go directly to list
   const handleTabSelect = (category: ContentType) => {
     nav.jumpToCategory(category);
+  };
+
+  // Handle title click in list view -> show info modal
+  const handleTitleClick = () => {
+    if (nav.activeCategory) {
+      setModalCategory(nav.activeCategory);
+      setShowInfoModal(true);
+    }
+  };
+
+  // Close info modal (without navigating)
+  const handleCloseInfoModal = () => {
+    setModalCategory(null);
+    setShowInfoModal(false);
   };
 
   return (
@@ -72,6 +88,7 @@ export function BookMobileView({
           items={nav.currentItems}
           onBack={nav.showDashboard}
           onSelectItem={nav.openItem}
+          onTitleClick={handleTitleClick}
           hasContext={hasContext}
         />
       )}
@@ -86,13 +103,13 @@ export function BookMobileView({
         />
       )}
 
-      {/* Category explanation modal */}
+      {/* Category explanation modal - from dashboard OR title click */}
       {modalCategory && (
         <BookCategoryModal
           category={modalCategory}
           count={counts[modalCategory] || 0}
-          onClose={() => setModalCategory(null)}
-          onViewCategory={handleViewCategory}
+          onClose={handleCloseInfoModal}
+          onViewCategory={showInfoModal ? handleCloseInfoModal : handleViewCategory}
           hasContext={hasContext}
         />
       )}

@@ -63,8 +63,8 @@ export function BookCategoryModal({
           </div>
           
           <h2 className="text-xl font-bold text-gray-900 mb-1">{label}</h2>
-          <p className="text-sm text-gray-500 mb-2">{count} items</p>
-          <p className="text-gray-600 mb-6">{description}</p>
+          <p className="text-sm text-gray-500 mb-3">{count} items</p>
+          <p className="text-base text-gray-700 leading-relaxed mb-6 px-2">{description}</p>
           
           <button
             onClick={onViewCategory}
