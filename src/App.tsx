@@ -10,6 +10,7 @@ import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
 import { AdminLayout } from "./components/AdminLayout";
 import { PublicLayout } from "./components/PublicLayout";
+import { CollectionLayout } from "./components/CollectionLayout";
 import Collections from "./pages/Collections";
 import CollectionEdit from "./pages/CollectionEdit";
 import Lifelines from "./pages/Lifelines";
@@ -82,7 +83,18 @@ function AppContent() {
           <Route path="/" element={<PublicLayout><Home /></PublicLayout>} />
           <Route path="/home" element={<Navigate to="/" replace />} />
           <Route path="/prototype/home" element={<PublicLayout><HomePrototype /></PublicLayout>} />
-          <Route path="/prototype/profile" element={<PublicLayout><ProfilePrototype /></PublicLayout>} />
+                <Route 
+                  path="/prototype/profile" 
+                  element={
+                    <CollectionLayout 
+                      collectionTitle="Prof G Media" 
+                      collectionSlug="prof-g-media" 
+                      collectionId="357ef542-1127-45e2-9174-841f85be6499"
+                    >
+                      <ProfilePrototype />
+                    </CollectionLayout>
+                  } 
+                />
           <Route path="/public/lifelines" element={<PublicLayout><PublicLifelinesGrid /></PublicLayout>} />
           <Route path="/public/lifelines/:slug" element={<PublicLifelineDetail />} />
           <Route path="/public/collections" element={<PublicLayout><PublicCollections /></PublicLayout>} />
