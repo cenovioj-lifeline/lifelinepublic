@@ -139,7 +139,10 @@ export default function PublicCollectionDetail() {
           } else if (item.item_type === "profile") {
             const { data } = await supabase
               .from("profiles")
-              .select("id, slug, name, short_description, primary_image_url, primary_image_path, status")
+              .select(`
+                id, slug, name, short_description, primary_image_url, primary_image_path, status,
+                avatar_image:media_assets!avatar_image_id(url)
+              `)
               .eq("id", item.item_id)
               .eq("status", "published")
               .single();
@@ -190,7 +193,10 @@ export default function PublicCollectionDetail() {
           } else if (item.item_type === "profile") {
             const { data } = await supabase
               .from("profiles")
-              .select("id, slug, name, short_description, primary_image_url, primary_image_path, status")
+              .select(`
+                id, slug, name, short_description, primary_image_url, primary_image_path, status,
+                avatar_image:media_assets!avatar_image_id(url)
+              `)
               .eq("id", item.item_id)
               .eq("status", "published")
               .single();
@@ -417,9 +423,9 @@ export default function PublicCollectionDetail() {
         >
           <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
             <div className="aspect-video relative bg-white overflow-hidden">
-              {item.primary_image_url ? (
+              {(item.primary_image_url || item.avatar_image?.url) ? (
                 <img
-                  src={item.primary_image_url}
+                  src={item.primary_image_url || item.avatar_image?.url}
                   alt={item.name}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
