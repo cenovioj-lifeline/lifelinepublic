@@ -61,6 +61,22 @@ Deno.serve(async (req) => {
       storagePaths.push(collection.hero_image_path);
     }
 
+    // Get all mock_elections for this collection
+    const { data: elections } = await supabase
+      .from('mock_elections')
+      .select('id, hero_image_path')
+      .eq('collection_id', collectionId);
+
+    const electionIds = elections?.map(e => e.id) || [];
+    console.log(`Found ${electionIds.length} elections to delete`);
+
+    // Add election hero images to storage paths
+    elections?.forEach(e => {
+      if (e.hero_image_path) {
+        storagePaths.push(e.hero_image_path);
+      }
+    });
+
     // Get all lifeline IDs for this collection
     const { data: lifelines } = await supabase
       .from('lifelines')
@@ -118,6 +134,7 @@ Deno.serve(async (req) => {
       home_page_new_content: 0,
       user_favorites_collection: 0,
       user_favorites_lifeline: 0,
+      user_favorites_election: 0,
       lifeline_tags: 0,
       profile_lifelines: 0,
       user_feed_subscriptions: 0,
@@ -129,20 +146,97 @@ Deno.serve(async (req) => {
       entries: 0,
       lifelines: 0,
       collections: 0,
-      elections_updated: 0,
+      elections: 0,
+      election_results: 0,
+      election_tags: 0,
+      ballot_items: 0,
+      ballot_options: 0,
       profiles_updated: 0,
     };
     
-    // Update mock_elections to NULL first
-    const { count: electionsCount, error: electionsError } = await supabase
-      .from('mock_elections')
-      .update({ collection_id: null }, { count: 'exact' })
-      .eq('collection_id', collectionId);
-    if (electionsError) {
-      console.error('Error updating elections:', electionsError);
-      throw new Error('Failed to update elections references');
+    // Step 3a: Delete elections and their related data BEFORE updating other references
+    if (electionIds.length > 0) {
+      console.log('Deleting elections and related data...');
+      
+      // Delete election_results
+      const { count: erCount, error: erError } = await supabase
+        .from('election_results')
+        .delete({ count: 'exact' })
+        .in('election_id', electionIds);
+      if (erError) console.error('Error deleting election_results:', erError);
+      else deletedCounts.election_results = erCount || 0;
+
+      // Get ballot_item IDs for these elections
+      const { data: ballotItems } = await supabase
+        .from('ballot_items')
+        .select('id')
+        .in('election_id', electionIds);
+      
+      const ballotItemIds = ballotItems?.map(b => b.id) || [];
+
+      // Delete ballot_options
+      if (ballotItemIds.length > 0) {
+        const { count: boCount, error: boError } = await supabase
+          .from('ballot_options')
+          .delete({ count: 'exact' })
+          .in('ballot_item_id', ballotItemIds);
+        if (boError) console.error('Error deleting ballot_options:', boError);
+        else deletedCounts.ballot_options = boCount || 0;
+      }
+
+      // Delete ballot_items
+      const { count: biCount, error: biError } = await supabase
+        .from('ballot_items')
+        .delete({ count: 'exact' })
+        .in('election_id', electionIds);
+      if (biError) console.error('Error deleting ballot_items:', biError);
+      else deletedCounts.ballot_items = biCount || 0;
+
+      // Delete election_tags
+      const { count: etCount, error: etError } = await supabase
+        .from('election_tags')
+        .delete({ count: 'exact' })
+        .in('election_id', electionIds);
+      if (etError) console.error('Error deleting election_tags:', etError);
+      else deletedCounts.election_tags = etCount || 0;
+
+      // Delete user_favorites for elections
+      const { count: ufeCount, error: ufeError } = await supabase
+        .from('user_favorites')
+        .delete({ count: 'exact' })
+        .eq('item_type', 'election')
+        .in('item_id', electionIds);
+      if (ufeError) console.error('Error deleting user_favorites (elections):', ufeError);
+      else deletedCounts.user_favorites_election = ufeCount || 0;
+
+      // Delete home_page_featured_items for elections
+      const { count: hpfeCount, error: hpfeError } = await supabase
+        .from('home_page_featured_items')
+        .delete({ count: 'exact' })
+        .eq('item_type', 'election')
+        .in('item_id', electionIds);
+      if (hpfeError) console.error('Error deleting home_page_featured_items (elections):', hpfeError);
+      else deletedCounts.home_page_featured += hpfeCount || 0;
+
+      // Delete home_page_new_content_items for elections
+      const { count: hpnceCount, error: hpnceError } = await supabase
+        .from('home_page_new_content_items')
+        .delete({ count: 'exact' })
+        .eq('item_type', 'election')
+        .in('item_id', electionIds);
+      if (hpnceError) console.error('Error deleting home_page_new_content_items (elections):', hpnceError);
+      else deletedCounts.home_page_new_content += hpnceCount || 0;
+
+      // Delete the mock_elections themselves
+      const { count: meCount, error: meError } = await supabase
+        .from('mock_elections')
+        .delete({ count: 'exact' })
+        .in('id', electionIds);
+      if (meError) console.error('Error deleting mock_elections:', meError);
+      else deletedCounts.elections = meCount || 0;
+
+      console.log(`Deleted ${deletedCounts.elections} elections with ${deletedCounts.election_results} results`);
     }
-    deletedCounts.elections_updated = electionsCount || 0;
 
     // Update profiles - primary_collection_id
     const { count: profilesCount1, error: profilesError1 } = await supabase
@@ -169,7 +263,7 @@ Deno.serve(async (req) => {
     }
     deletedCounts.profiles_updated = (profilesCount1 || 0) + profilesCount2;
 
-    console.log(`Updated ${deletedCounts.elections_updated} elections and ${deletedCounts.profiles_updated} profiles`);
+    console.log(`Updated ${deletedCounts.profiles_updated} profiles`);
 
     // Step 3: Delete database records in correct order
     
