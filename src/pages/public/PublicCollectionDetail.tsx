@@ -24,6 +24,24 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
+// Content type label component
+function ContentTypeLabel({ type }: { type: string }) {
+  const labels: Record<string, string> = {
+    lifeline: "Lifeline",
+    profile: "Profile",
+    election: "Awards",
+    book: "Book",
+  };
+  
+  return (
+    <div className="bg-white px-3 py-1.5 border-b">
+      <span className="text-xs font-semibold tracking-wide text-gray-600 uppercase">
+        {labels[type] || type}
+      </span>
+    </div>
+  );
+}
+
 export default function PublicCollectionDetail() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
@@ -147,6 +165,14 @@ export default function PublicCollectionDetail() {
               .eq("status", "published")
               .single();
             return data ? { ...data, _type: "profile" } : null;
+          } else if (item.item_type === "book") {
+            const { data } = await supabase
+              .from("books")
+              .select("*")
+              .eq("id", item.item_id)
+              .eq("status", "published")
+              .single();
+            return data ? { ...data, _type: "book" } : null;
           }
           return null;
         })
@@ -201,6 +227,14 @@ export default function PublicCollectionDetail() {
               .eq("status", "published")
               .single();
             return data ? { ...data, _type: "profile" } : null;
+          } else if (item.item_type === "book") {
+            const { data } = await supabase
+              .from("books")
+              .select("*")
+              .eq("id", item.item_id)
+              .eq("status", "published")
+              .single();
+            return data ? { ...data, _type: "book" } : null;
           }
           return null;
         })
@@ -345,7 +379,8 @@ export default function PublicCollectionDetail() {
           className="group"
         >
           <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
-            <div className="absolute top-2 right-2 z-10">
+            <ContentTypeLabel type="lifeline" />
+            <div className="absolute top-10 right-2 z-10">
               <FavoriteButton itemId={item.id} itemType="lifeline" />
             </div>
             <div className="aspect-video relative bg-white overflow-hidden">
@@ -385,6 +420,7 @@ export default function PublicCollectionDetail() {
           className="group"
         >
           <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
+            <ContentTypeLabel type="election" />
             <div className="aspect-video relative bg-white overflow-hidden">
               {item.hero_image_url ? (
                 <img
@@ -408,7 +444,7 @@ export default function PublicCollectionDetail() {
             </CardHeader>
             <CardContent className="bg-[hsl(var(--scheme-card-bg))]">
               <p className="text-sm line-clamp-2 text-[hsl(var(--scheme-cards-text))]">
-                {item.description || "View this election"}
+                {item.description || "View the awards"}
               </p>
             </CardContent>
           </Card>
@@ -422,6 +458,7 @@ export default function PublicCollectionDetail() {
           className="group"
         >
           <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
+            <ContentTypeLabel type="profile" />
             <div className="aspect-video relative bg-white overflow-hidden">
               {(item.primary_image_url || item.avatar_image?.url) ? (
                 <img
@@ -443,6 +480,44 @@ export default function PublicCollectionDetail() {
             <CardContent className="bg-[hsl(var(--scheme-card-bg))]">
               <p className="text-sm line-clamp-2 text-[hsl(var(--scheme-cards-text))]">
                 {item.short_description || "View this profile"}
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
+      );
+    } else if (item._type === "book") {
+      return (
+        <Link
+          key={item.id}
+          to={`/public/collections/${collectionSlug}/books/${item.slug}`}
+          className="group"
+        >
+          <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
+            <ContentTypeLabel type="book" />
+            <div className="aspect-video relative bg-white overflow-hidden">
+              {item.cover_image_url ? (
+                <img
+                  src={item.cover_image_url}
+                  alt={item.title}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
+                  <div className="text-center px-4">
+                    <div className="text-4xl mb-2">📚</div>
+                    <div className="text-sm font-medium text-gray-600">{item.title}</div>
+                  </div>
+                </div>
+              )}
+            </div>
+            <CardHeader className="bg-[hsl(var(--scheme-card-bg))]">
+              <CardTitle className="text-lg transition-colors text-[hsl(var(--scheme-card-text))]">
+                {item.title}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="bg-[hsl(var(--scheme-card-bg))]">
+              <p className="text-sm line-clamp-2 text-[hsl(var(--scheme-cards-text))]">
+                by {item.author_name}
               </p>
             </CardContent>
           </Card>
@@ -648,7 +723,8 @@ export default function PublicCollectionDetail() {
                         className="group"
                       >
                         <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
-                          <div className="absolute top-2 right-2 z-10">
+                          <ContentTypeLabel type="lifeline" />
+                          <div className="absolute top-10 right-2 z-10">
                             <FavoriteButton itemId={lifeline.id} itemType="lifeline" />
                           </div>
                           <div className="aspect-video relative bg-white overflow-hidden">
@@ -704,6 +780,7 @@ export default function PublicCollectionDetail() {
                       className="group"
                     >
                       <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
+                        <ContentTypeLabel type="profile" />
                         <div className="aspect-video relative bg-white overflow-hidden">
                           {(profile.primary_image_url || profile.avatar_image?.url) ? (
                             <img
