@@ -65,6 +65,7 @@ function SortableItem({
       className="flex items-center gap-2 p-2 border rounded bg-card"
     >
       <button
+        type="button"
         className="cursor-grab active:cursor-grabbing touch-none"
         {...attributes}
         {...listeners}
@@ -75,7 +76,7 @@ function SortableItem({
         <span className="text-sm font-medium">{title}</span>
         <span className="text-xs text-muted-foreground capitalize">{subtitle}</span>
       </div>
-      <Button variant="ghost" size="icon" onClick={onRemove}>
+      <Button type="button" variant="ghost" size="icon" onClick={onRemove}>
         <Trash2 className="h-4 w-4" />
       </Button>
     </div>
@@ -180,6 +181,46 @@ export function CollectionContentManager({ collectionId }: CollectionContentMana
         id: pc.profiles?.id || pc.profile_id, 
         title: pc.profiles?.name || 'Unknown Profile' 
       }));
+    },
+  });
+
+  // Fetch books linked to profiles in this collection
+  const { data: books } = useQuery({
+    queryKey: ["collection-books-list", collectionId],
+    queryFn: async () => {
+      // First get profile IDs for this collection
+      const { data: profileData, error: profileError } = await supabase
+        .from("profile_collections")
+        .select("profile_id")
+        .eq("collection_id", collectionId);
+
+      if (profileError) throw profileError;
+      if (!profileData || profileData.length === 0) return [];
+
+      const profileIds = profileData.map(p => p.profile_id);
+
+      // Get books linked to these profiles
+      const { data: profileBooks, error: booksError } = await supabase
+        .from("profile_books")
+        .select("book_id, books!inner(id, title, author_name, status)")
+        .in("profile_id", profileIds);
+
+      if (booksError) throw booksError;
+      if (!profileBooks) return [];
+
+      // Deduplicate and return published books
+      const bookMap = new Map();
+      profileBooks.forEach(pb => {
+        const book = pb.books as any;
+        if (book && book.status === 'published' && !bookMap.has(book.id)) {
+          bookMap.set(book.id, {
+            id: book.id,
+            title: `${book.title} (${book.author_name})`
+          });
+        }
+      });
+
+      return Array.from(bookMap.values()).sort((a, b) => a.title.localeCompare(b.title));
     },
   });
 
@@ -362,6 +403,9 @@ export function CollectionContentManager({ collectionId }: CollectionContentMana
     } else if (item.item_type === 'profile') {
       const profile = profiles?.find(p => p.id === item.item_id);
       return profile?.title || 'Unknown Profile';
+    } else if (item.item_type === 'book') {
+      const book = books?.find(b => b.id === item.item_id);
+      return book?.title || 'Unknown Book';
     }
     return 'Unknown';
   };
@@ -383,7 +427,7 @@ export function CollectionContentManager({ collectionId }: CollectionContentMana
               placeholder="New Content"
             />
           </div>
-          <Button onClick={() => updateSectionName.mutate()}>
+          <Button type="button" onClick={() => updateSectionName.mutate()}>
             Save Section Name
           </Button>
         </CardContent>
@@ -429,24 +473,46 @@ export function CollectionContentManager({ collectionId }: CollectionContentMana
                 <SelectValue placeholder="Add featured item..." />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="divider" disabled>Profiles</SelectItem>
-                {profiles?.map((p) => (
-                  <SelectItem key={p.id} value={`profile:${p.id}`}>
-                    {p.title}
-                  </SelectItem>
-                ))}
-                <SelectItem value="divider2" disabled>Lifelines</SelectItem>
-                {lifelines?.map((l) => (
-                  <SelectItem key={l.id} value={`lifeline:${l.id}`}>
-                    {l.title}
-                  </SelectItem>
-                ))}
-                <SelectItem value="divider3" disabled>Elections</SelectItem>
-                {elections?.map((e) => (
-                  <SelectItem key={e.id} value={`election:${e.id}`}>
-                    {e.title}
-                  </SelectItem>
-                ))}
+                {profiles && profiles.length > 0 && (
+                  <>
+                    <SelectItem value="divider-profiles" disabled>Profiles</SelectItem>
+                    {profiles.map((p) => (
+                      <SelectItem key={p.id} value={`profile:${p.id}`}>
+                        {p.title}
+                      </SelectItem>
+                    ))}
+                  </>
+                )}
+                {lifelines && lifelines.length > 0 && (
+                  <>
+                    <SelectItem value="divider-lifelines" disabled>Lifelines</SelectItem>
+                    {lifelines.map((l) => (
+                      <SelectItem key={l.id} value={`lifeline:${l.id}`}>
+                        {l.title}
+                      </SelectItem>
+                    ))}
+                  </>
+                )}
+                {elections && elections.length > 0 && (
+                  <>
+                    <SelectItem value="divider-elections" disabled>Awards</SelectItem>
+                    {elections.map((e) => (
+                      <SelectItem key={e.id} value={`election:${e.id}`}>
+                        {e.title}
+                      </SelectItem>
+                    ))}
+                  </>
+                )}
+                {books && books.length > 0 && (
+                  <>
+                    <SelectItem value="divider-books" disabled>Books</SelectItem>
+                    {books.map((b) => (
+                      <SelectItem key={b.id} value={`book:${b.id}`}>
+                        {b.title}
+                      </SelectItem>
+                    ))}
+                  </>
+                )}
               </SelectContent>
             </Select>
           </div>
@@ -493,24 +559,46 @@ export function CollectionContentManager({ collectionId }: CollectionContentMana
                 <SelectValue placeholder="Add item..." />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="divider" disabled>Profiles</SelectItem>
-                {profiles?.map((p) => (
-                  <SelectItem key={p.id} value={`profile:${p.id}`}>
-                    {p.title}
-                  </SelectItem>
-                ))}
-                <SelectItem value="divider2" disabled>Lifelines</SelectItem>
-                {lifelines?.map((l) => (
-                  <SelectItem key={l.id} value={`lifeline:${l.id}`}>
-                    {l.title}
-                  </SelectItem>
-                ))}
-                <SelectItem value="divider3" disabled>Elections</SelectItem>
-                {elections?.map((e) => (
-                  <SelectItem key={e.id} value={`election:${e.id}`}>
-                    {e.title}
-                  </SelectItem>
-                ))}
+                {profiles && profiles.length > 0 && (
+                  <>
+                    <SelectItem value="divider-profiles" disabled>Profiles</SelectItem>
+                    {profiles.map((p) => (
+                      <SelectItem key={p.id} value={`profile:${p.id}`}>
+                        {p.title}
+                      </SelectItem>
+                    ))}
+                  </>
+                )}
+                {lifelines && lifelines.length > 0 && (
+                  <>
+                    <SelectItem value="divider-lifelines" disabled>Lifelines</SelectItem>
+                    {lifelines.map((l) => (
+                      <SelectItem key={l.id} value={`lifeline:${l.id}`}>
+                        {l.title}
+                      </SelectItem>
+                    ))}
+                  </>
+                )}
+                {elections && elections.length > 0 && (
+                  <>
+                    <SelectItem value="divider-elections" disabled>Awards</SelectItem>
+                    {elections.map((e) => (
+                      <SelectItem key={e.id} value={`election:${e.id}`}>
+                        {e.title}
+                      </SelectItem>
+                    ))}
+                  </>
+                )}
+                {books && books.length > 0 && (
+                  <>
+                    <SelectItem value="divider-books" disabled>Books</SelectItem>
+                    {books.map((b) => (
+                      <SelectItem key={b.id} value={`book:${b.id}`}>
+                        {b.title}
+                      </SelectItem>
+                    ))}
+                  </>
+                )}
               </SelectContent>
             </Select>
           </div>
