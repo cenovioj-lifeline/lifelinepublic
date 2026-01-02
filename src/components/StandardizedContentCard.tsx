@@ -46,16 +46,17 @@ export function StandardizedContentCard({
               No image
             </div>
           )}
-          
-          {/* Badge Banner - positioned at bottom of image */}
-          {badge && (
-            <div className="absolute bottom-0 left-0 right-0 bg-white/95 backdrop-blur-sm px-3 py-1.5">
-              <span className="text-xs font-semibold uppercase tracking-wider text-gray-600">
-                {badge}
-              </span>
-            </div>
-          )}
         </div>
+        
+        {/* Badge Banner - separate section below image */}
+        {badge && (
+          <div className="bg-white px-3 py-1.5 border-b border-gray-100">
+            <span className="text-xs font-semibold uppercase tracking-wider text-gray-600">
+              {badge}
+            </span>
+          </div>
+        )}
+        
         <CardHeader className="bg-[hsl(var(--scheme-card-bg))]">
           <div className="flex items-start justify-between gap-2">
             {parsed?.isPersonType ? (
