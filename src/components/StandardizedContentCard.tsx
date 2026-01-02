@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { parseLifelineTitle } from "@/lib/lifelineTitle";
+import { ContentTypeBanner } from "@/components/ContentTypeBanner";
 
 interface StandardizedContentCardProps {
   id: string;
@@ -11,7 +11,7 @@ interface StandardizedContentCardProps {
   imageAlt?: string | null;
   linkPath: string;
   badge?: string;
-  type: 'lifeline' | 'collection' | 'election';
+  type: 'lifeline' | 'collection' | 'election' | 'profile' | 'book';
   lifelineType?: string; // 'person' or 'list' - only for lifeline type cards
 }
 
@@ -29,6 +29,9 @@ export function StandardizedContentCard({
   const parsed = type === 'lifeline' && lifelineType 
     ? parseLifelineTitle(title, lifelineType)
     : null;
+
+  // Determine the label to show - use badge if provided, otherwise derive from type
+  const showBanner = badge || type;
 
   return (
     <Link to={linkPath} className="group">
@@ -48,14 +51,8 @@ export function StandardizedContentCard({
           )}
         </div>
         
-        {/* Badge Banner - separate section below image */}
-        {badge && (
-          <div className="bg-white px-3 py-1.5 border-b border-gray-100">
-            <span className="text-xs font-semibold uppercase tracking-wider text-gray-600">
-              {badge}
-            </span>
-          </div>
-        )}
+        {/* Banner - separate section below image */}
+        <ContentTypeBanner type={badge || type} />
         
         <CardHeader className="bg-[hsl(var(--scheme-card-bg))]">
           <div className="flex items-start justify-between gap-2">
