@@ -1,3 +1,4 @@
+import { ContentTypeBanner } from "@/components/ContentTypeBanner";
 import { StandardizedContentCard } from "@/components/StandardizedContentCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Rss, FileQuestion, Share2, Settings } from "lucide-react";
@@ -179,6 +180,7 @@ export default function Home() {
                       </div>
                     )}
                   </div>
+                  <ContentTypeBanner type="lifeline" />
                   <CardHeader className="bg-[hsl(var(--scheme-card-bg))]">
                     <CardTitle className="text-lg transition-colors text-[hsl(var(--scheme-card-text))]">
                       {item.title}
@@ -250,6 +252,7 @@ export default function Home() {
                       </div>
                     )}
                   </div>
+                  <ContentTypeBanner type="lifeline" />
                   <CardHeader className="bg-[hsl(var(--scheme-card-bg))]">
                     <CardTitle className="text-lg transition-colors text-[hsl(var(--scheme-card-text))]">
                       {item.title}

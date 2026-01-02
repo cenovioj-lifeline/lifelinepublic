@@ -24,23 +24,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-// Content type label component
-function ContentTypeLabel({ type }: { type: string }) {
-  const labels: Record<string, string> = {
-    lifeline: "Lifeline",
-    profile: "Profile",
-    election: "Awards",
-    book: "Book",
-  };
-  
-  return (
-    <div className="bg-white px-3 py-1.5 border-b">
-      <span className="text-xs font-semibold tracking-wide text-gray-600 uppercase">
-        {labels[type] || type}
-      </span>
-    </div>
-  );
-}
+import { ContentTypeBanner } from "@/components/ContentTypeBanner";
 
 export default function PublicCollectionDetail() {
   const { slug } = useParams<{ slug: string }>();
@@ -379,11 +363,10 @@ export default function PublicCollectionDetail() {
           className="group"
         >
           <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
-            <ContentTypeLabel type="lifeline" />
-            <div className="absolute top-10 right-2 z-10">
-              <FavoriteButton itemId={item.id} itemType="lifeline" />
-            </div>
             <div className="aspect-video relative bg-white overflow-hidden">
+              <div className="absolute top-2 right-2 z-10">
+                <FavoriteButton itemId={item.id} itemType="lifeline" />
+              </div>
               {item.cover_image_url ? (
                 <img
                   src={item.cover_image_url}
@@ -399,6 +382,7 @@ export default function PublicCollectionDetail() {
                 </div>
               )}
             </div>
+            <ContentTypeBanner type="lifeline" />
             <CardHeader className="bg-[hsl(var(--scheme-card-bg))]">
               <CardTitle className="text-lg transition-colors text-[hsl(var(--scheme-card-text))]">
                 {item.title}
@@ -420,7 +404,6 @@ export default function PublicCollectionDetail() {
           className="group"
         >
           <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
-            <ContentTypeLabel type="election" />
             <div className="aspect-video relative bg-white overflow-hidden">
               {item.hero_image_url ? (
                 <img
@@ -437,6 +420,7 @@ export default function PublicCollectionDetail() {
                 </div>
               )}
             </div>
+            <ContentTypeBanner type="election" />
             <CardHeader className="bg-[hsl(var(--scheme-card-bg))]">
               <CardTitle className="text-lg transition-colors text-[hsl(var(--scheme-card-text))]">
                 {item.title}
@@ -458,7 +442,6 @@ export default function PublicCollectionDetail() {
           className="group"
         >
           <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
-            <ContentTypeLabel type="profile" />
             <div className="aspect-video relative bg-white overflow-hidden">
               {(item.primary_image_url || item.avatar_image?.url) ? (
                 <img
@@ -472,6 +455,7 @@ export default function PublicCollectionDetail() {
                 </div>
               )}
             </div>
+            <ContentTypeBanner type="profile" />
             <CardHeader className="bg-[hsl(var(--scheme-card-bg))]">
               <CardTitle className="text-lg transition-colors text-[hsl(var(--scheme-card-text))]">
                 {item.name}
@@ -493,7 +477,6 @@ export default function PublicCollectionDetail() {
           className="group"
         >
           <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
-            <ContentTypeLabel type="book" />
             <div className="aspect-video relative bg-white overflow-hidden">
               {item.cover_image_url ? (
                 <img
@@ -510,6 +493,7 @@ export default function PublicCollectionDetail() {
                 </div>
               )}
             </div>
+            <ContentTypeBanner type="book" />
             <CardHeader className="bg-[hsl(var(--scheme-card-bg))]">
               <CardTitle className="text-lg transition-colors text-[hsl(var(--scheme-card-text))]">
                 {item.title}
@@ -723,11 +707,10 @@ export default function PublicCollectionDetail() {
                         className="group"
                       >
                         <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
-                          <ContentTypeLabel type="lifeline" />
-                          <div className="absolute top-10 right-2 z-10">
-                            <FavoriteButton itemId={lifeline.id} itemType="lifeline" />
-                          </div>
                           <div className="aspect-video relative bg-white overflow-hidden">
+                            <div className="absolute top-2 right-2 z-10">
+                              <FavoriteButton itemId={lifeline.id} itemType="lifeline" />
+                            </div>
                             {lifeline.cover_image_url ? (
                               <img
                                 src={lifeline.cover_image_url}
@@ -743,6 +726,7 @@ export default function PublicCollectionDetail() {
                               </div>
                             )}
                           </div>
+                          <ContentTypeBanner type="lifeline" />
                           <CardHeader className="bg-[hsl(var(--scheme-card-bg))]">
                             <CardTitle className="text-lg transition-colors text-[hsl(var(--scheme-card-text))]">
                               {lifeline.title}
@@ -780,7 +764,6 @@ export default function PublicCollectionDetail() {
                       className="group"
                     >
                       <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
-                        <ContentTypeLabel type="profile" />
                         <div className="aspect-video relative bg-white overflow-hidden">
                           {(profile.primary_image_url || profile.avatar_image?.url) ? (
                             <img
@@ -794,6 +777,7 @@ export default function PublicCollectionDetail() {
                             </div>
                           )}
                         </div>
+                        <ContentTypeBanner type="profile" />
                         <CardHeader className="bg-[hsl(var(--scheme-card-bg))]">
                           <CardTitle className="text-lg transition-colors text-[hsl(var(--scheme-card-text))]">
                             {profile.name}
