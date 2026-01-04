@@ -55,6 +55,7 @@ import PublicMore from "./pages/public/PublicMore";
 import CollectionMore from "./pages/public/CollectionMore";
 import CollectionQuotes from "./pages/public/CollectionQuotes";
 import CollectionMembers from "./pages/public/CollectionMembers";
+import CollectionClaim from "./pages/public/CollectionClaim";
 import HomeManager from "./pages/HomeManager";
 import PublicLifelinesGrid from "./pages/public/PublicLifelinesGrid";
 import PublicCollectionsGrid from "./pages/public/PublicCollectionsGrid";
@@ -112,6 +113,7 @@ function AppContent() {
             <Route path="/public/collections/:slug/contributors" element={<TopContributors />} />
             <Route path="/public/collections/:slug/quotes" element={<CollectionQuotes />} />
             <Route path="/public/collections/:slug/members" element={<CollectionMembers />} />
+            <Route path="/public/collections/:slug/claim" element={<CollectionClaim />} />
           <Route path="/public/profiles" element={<PublicLayout><PublicProfiles /></PublicLayout>} />
           <Route path="/public/elections" element={<PublicLayout><PublicElections /></PublicLayout>} />
           <Route path="/public/elections/:slug" element={<PublicElectionDetail />} />
