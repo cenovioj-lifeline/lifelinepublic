@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { CollectionLayout } from "@/components/CollectionLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Trophy, MessageSquareQuote, Award } from "lucide-react";
+import { ClaimCollectionTile } from "@/components/collection/ClaimCollectionTile";
 
 export default function CollectionMore() {
   const { slug } = useParams<{ slug: string }>();
@@ -121,6 +122,12 @@ export default function CollectionMore() {
               </CardContent>
             </Card>
           ))}
+          
+          {/* Claim Collection tile - only shows for logged in users without a role */}
+          <ClaimCollectionTile 
+            collectionSlug={collection.slug} 
+            collectionId={collection.id} 
+          />
         </div>
       </div>
     </CollectionLayout>
