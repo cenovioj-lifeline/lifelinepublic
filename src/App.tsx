@@ -60,6 +60,7 @@ import HomeManager from "./pages/HomeManager";
 import PublicLifelinesGrid from "./pages/public/PublicLifelinesGrid";
 import PublicCollectionsGrid from "./pages/public/PublicCollectionsGrid";
 import UserRequests from "./pages/UserRequests";
+import OwnershipRequests from "./pages/OwnershipRequests";
 import ColorSchemes from "./pages/ColorSchemes";
 import ColorSchemeEdit from "./pages/ColorSchemeEdit";
 import TestImageImport from "./pages/TestImageImport";
@@ -337,6 +338,16 @@ function AppContent() {
                 <ProtectedRoute>
                   <AdminLayout>
                     <UserRequests />
+                  </AdminLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/ownership-requests"
+              element={
+                <ProtectedRoute>
+                  <AdminLayout>
+                    <OwnershipRequests />
                   </AdminLayout>
                 </ProtectedRoute>
               }
