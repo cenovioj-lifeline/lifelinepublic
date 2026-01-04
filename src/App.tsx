@@ -69,6 +69,12 @@ import LifelineImageManager from "./pages/LifelineImageManager";
 import Feed from "./pages/public/Feed";
 import FeedSetup from "./pages/public/FeedSetup";
 import CollectionReport from "./pages/CollectionReport";
+// Collection Management Pages
+import CollectionManageOverview from "./pages/manage/CollectionManageOverview";
+import CollectionManageLifelines from "./pages/manage/CollectionManageLifelines";
+import CollectionManageProfiles from "./pages/manage/CollectionManageProfiles";
+import CollectionManageQuotes from "./pages/manage/CollectionManageQuotes";
+import CollectionManageSettings from "./pages/manage/CollectionManageSettings";
 
 const queryClient = new QueryClient();
 
@@ -115,6 +121,12 @@ function AppContent() {
             <Route path="/public/collections/:slug/quotes" element={<CollectionQuotes />} />
             <Route path="/public/collections/:slug/members" element={<CollectionMembers />} />
             <Route path="/public/collections/:slug/claim" element={<CollectionClaim />} />
+            {/* Collection Management Routes */}
+            <Route path="/public/collections/:slug/manage" element={<CollectionManageOverview />} />
+            <Route path="/public/collections/:slug/manage/lifelines" element={<CollectionManageLifelines />} />
+            <Route path="/public/collections/:slug/manage/profiles" element={<CollectionManageProfiles />} />
+            <Route path="/public/collections/:slug/manage/quotes" element={<CollectionManageQuotes />} />
+            <Route path="/public/collections/:slug/manage/settings" element={<CollectionManageSettings />} />
           <Route path="/public/profiles" element={<PublicLayout><PublicProfiles /></PublicLayout>} />
           <Route path="/public/elections" element={<PublicLayout><PublicElections /></PublicLayout>} />
           <Route path="/public/elections/:slug" element={<PublicElectionDetail />} />
