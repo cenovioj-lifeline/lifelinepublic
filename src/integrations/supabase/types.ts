@@ -364,6 +364,59 @@ export type Database = {
           },
         ]
       }
+      collection_ownership_requests: {
+        Row: {
+          admin_notes: string | null
+          claim_reason: string
+          collection_id: string
+          created_at: string
+          email: string
+          id: string
+          proof_links: string[] | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          claim_reason: string
+          collection_id: string
+          created_at?: string
+          email: string
+          id?: string
+          proof_links?: string[] | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_notes?: string | null
+          claim_reason?: string
+          collection_id?: string
+          created_at?: string
+          email?: string
+          id?: string
+          proof_links?: string[] | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "collection_ownership_requests_collection_id_fkey"
+            columns: ["collection_id"]
+            isOneToOne: false
+            referencedRelation: "collections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       collection_quotes: {
         Row: {
           admin_message: string | null
@@ -423,6 +476,44 @@ export type Database = {
           },
           {
             foreignKeyName: "collection_quotes_collection_id_fkey"
+            columns: ["collection_id"]
+            isOneToOne: false
+            referencedRelation: "collections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      collection_roles: {
+        Row: {
+          collection_id: string
+          created_at: string
+          id: string
+          invited_by: string | null
+          role: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          collection_id: string
+          created_at?: string
+          id?: string
+          invited_by?: string | null
+          role?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          collection_id?: string
+          created_at?: string
+          id?: string
+          invited_by?: string | null
+          role?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "collection_roles_collection_id_fkey"
             columns: ["collection_id"]
             isOneToOne: false
             referencedRelation: "collections"
@@ -533,6 +624,7 @@ export type Database = {
           style_notes: string | null
           title: string
           updated_at: string
+          visibility: Database["public"]["Enums"]["visibility_type"]
           web_primary: string | null
           web_secondary: string | null
         }
@@ -608,6 +700,7 @@ export type Database = {
           style_notes?: string | null
           title: string
           updated_at?: string
+          visibility?: Database["public"]["Enums"]["visibility_type"]
           web_primary?: string | null
           web_secondary?: string | null
         }
@@ -683,6 +776,7 @@ export type Database = {
           style_notes?: string | null
           title?: string
           updated_at?: string
+          visibility?: Database["public"]["Enums"]["visibility_type"]
           web_primary?: string | null
           web_secondary?: string | null
         }
@@ -2365,6 +2459,10 @@ export type Database = {
       calculate_entry_average_score: {
         Args: { entry_uuid: string }
         Returns: number
+      }
+      can_edit_collection: {
+        Args: { p_collection_id: string }
+        Returns: boolean
       }
       get_entry_vote_count: { Args: { entry_uuid: string }; Returns: number }
       has_role: {
