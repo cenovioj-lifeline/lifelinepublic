@@ -5,6 +5,7 @@ import { CollectionLayout } from "@/components/CollectionLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Trophy, MessageSquareQuote, Award } from "lucide-react";
 import { ClaimCollectionTile } from "@/components/collection/ClaimCollectionTile";
+import { ManageCollectionTile } from "@/components/collection/ManageCollectionTile";
 
 export default function CollectionMore() {
   const { slug } = useParams<{ slug: string }>();
@@ -122,6 +123,12 @@ export default function CollectionMore() {
               </CardContent>
             </Card>
           ))}
+          
+          {/* Manage Collection tile - only shows for owners/editors */}
+          <ManageCollectionTile 
+            collectionSlug={collection.slug} 
+            collectionId={collection.id} 
+          />
           
           {/* Claim Collection tile - only shows for logged in users without a role */}
           <ClaimCollectionTile 
