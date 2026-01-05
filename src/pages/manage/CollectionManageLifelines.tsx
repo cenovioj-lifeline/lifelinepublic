@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useParams, useSearchParams } from "react-router-dom";
+import { useParams, useSearchParams, Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { CollectionManageLayout } from "@/components/manage/CollectionManageLayout";
@@ -25,7 +25,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2, Search, ExternalLink } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, ExternalLink, List } from "lucide-react";
 import { LifelineBookIcon } from "@/components/icons/LifelineBookIcon";
 
 interface Lifeline {
@@ -240,7 +240,7 @@ export default function CollectionManageLifelines() {
                   <TableHead>Title</TableHead>
                   <TableHead>Type</TableHead>
                   <TableHead>Entries</TableHead>
-                  <TableHead className="w-[100px]">Actions</TableHead>
+                  <TableHead className="w-[140px]">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -274,7 +274,18 @@ export default function CollectionManageLifelines() {
                           <Button
                             variant="ghost"
                             size="icon"
+                            asChild
+                            title="Manage Entries"
+                          >
+                            <Link to={`/public/collections/${slug}/manage/lifelines/${lifeline.id}/entries`}>
+                              <List className="h-4 w-4" />
+                            </Link>
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
                             onClick={() => openEdit(lifeline)}
+                            title="Edit Lifeline"
                           >
                             <Pencil className="h-4 w-4" />
                           </Button>
@@ -286,6 +297,7 @@ export default function CollectionManageLifelines() {
                                 deleteMutation.mutate(lifeline.id);
                               }
                             }}
+                            title="Delete Lifeline"
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -293,6 +305,7 @@ export default function CollectionManageLifelines() {
                             variant="ghost"
                             size="icon"
                             asChild
+                            title="View Public Page"
                           >
                             <a
                               href={`/public/collections/${slug}/lifelines/${lifeline.slug}`}

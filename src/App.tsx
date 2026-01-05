@@ -77,6 +77,7 @@ import CollectionManageQuotes from "./pages/manage/CollectionManageQuotes";
 import CollectionManageSettings from "./pages/manage/CollectionManageSettings";
 import CollectionManageMER from "./pages/manage/CollectionManageMER";
 import CollectionManageTeam from "./pages/manage/CollectionManageTeam";
+import CollectionManageEntries from "./pages/manage/CollectionManageEntries";
 
 const queryClient = new QueryClient();
 
@@ -126,6 +127,7 @@ function AppContent() {
             {/* Collection Management Routes */}
             <Route path="/public/collections/:slug/manage" element={<CollectionManageOverview />} />
             <Route path="/public/collections/:slug/manage/lifelines" element={<CollectionManageLifelines />} />
+            <Route path="/public/collections/:slug/manage/lifelines/:lifelineId/entries" element={<CollectionManageEntries />} />
             <Route path="/public/collections/:slug/manage/profiles" element={<CollectionManageProfiles />} />
             <Route path="/public/collections/:slug/manage/quotes" element={<CollectionManageQuotes />} />
             <Route path="/public/collections/:slug/manage/settings" element={<CollectionManageSettings />} />
