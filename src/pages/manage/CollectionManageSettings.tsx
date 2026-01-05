@@ -43,7 +43,7 @@ export default function CollectionManageSettings() {
     if (collection) {
       setTitle(collection.title || "");
       setDescription(collection.description || "");
-      setCoverImageUrl(collection.cover_image_url || "");
+      setCoverImageUrl(collection.hero_image_url || "");
       setQuotesEnabled(collection.quotes_enabled ?? true);
       setMediaEnabled(collection.media_enabled ?? false);
     }
@@ -57,7 +57,7 @@ export default function CollectionManageSettings() {
         .update({
           title,
           description: description || null,
-          cover_image_url: coverImageUrl || null,
+          hero_image_url: coverImageUrl || null,
           quotes_enabled: quotesEnabled,
           media_enabled: mediaEnabled,
         })

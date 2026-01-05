@@ -75,19 +75,20 @@ export default function OwnershipRequests() {
 
       // Fetch user profiles separately
       if (data && data.length > 0) {
-        const userIds = [...new Set(data.map((r: OwnershipRequest) => r.user_id))];
+        const userIds = [...new Set(data.map((r) => r.user_id))];
         const { data: profiles } = await supabase
           .from("user_profiles")
           .select("user_id, first_name, last_name, avatar_url")
           .in("user_id", userIds);
 
-        return data.map((request: OwnershipRequest) => ({
+        return data.map((request) => ({
           ...request,
+          status: request.status as RequestStatus,
           user_profiles: profiles?.find((p: any) => p.user_id === request.user_id),
-        }));
+        })) as OwnershipRequest[];
       }
 
-      return data as OwnershipRequest[];
+      return data.map(r => ({ ...r, status: r.status as RequestStatus })) as OwnershipRequest[];
     },
   });
 

@@ -80,42 +80,42 @@ export default function CollectionManageMER() {
       // Get mock elections
       const { data: electionsData, error: electionsError } = await supabase
         .from("mock_elections")
-        .select("id, title, subtitle, slug")
+        .select("id, title, description, slug")
         .eq("collection_id", collection!.id)
         .eq("status", "published")
         .order("created_at", { ascending: false });
 
       if (electionsError) throw electionsError;
 
-      // For each election, get sections and categories
+      // For each election, get categories (election_results)
       const electionsWithSections: MockElection[] = [];
 
       for (const election of electionsData || []) {
-        // Get sections
-        const { data: sectionsData } = await supabase
-          .from("election_sections")
-          .select("id, name, order_index")
-          .eq("mock_election_id", election.id)
-          .order("order_index");
+        // Get categories directly from election_results
+        const { data: categoriesData } = await supabase
+          .from("election_results")
+          .select("id, category, winner_name, notes")
+          .eq("election_id", election.id);
 
-        const sections: ElectionSection[] = [];
-
-        for (const section of sectionsData || []) {
-          // Get categories for this section
-          const { data: categoriesData } = await supabase
-            .from("election_results")
-            .select("id, category, winner, reasoning, order_index")
-            .eq("section_id", section.id)
-            .order("order_index");
-
-          sections.push({
-            ...section,
-            categories: categoriesData || [],
-          });
-        }
+        // Group by superlative_category or just create a single section
+        const sections: ElectionSection[] = [{
+          id: election.id + "-results",
+          name: "Results",
+          order_index: 0,
+          categories: (categoriesData || []).map((c, idx) => ({
+            id: c.id,
+            category: c.category,
+            winner: c.winner_name || "",
+            reasoning: c.notes,
+            order_index: idx,
+          })),
+        }];
 
         electionsWithSections.push({
-          ...election,
+          id: election.id,
+          title: election.title,
+          subtitle: election.description,
+          slug: election.slug,
           sections,
         });
       }

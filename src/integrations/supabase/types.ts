@@ -332,6 +332,50 @@ export type Database = {
           },
         ]
       }
+      collection_invites: {
+        Row: {
+          accepted_at: string | null
+          collection_id: string
+          created_at: string
+          email: string
+          expires_at: string | null
+          id: string
+          invited_by: string
+          role: string
+          status: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          collection_id: string
+          created_at?: string
+          email: string
+          expires_at?: string | null
+          id?: string
+          invited_by: string
+          role?: string
+          status?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          collection_id?: string
+          created_at?: string
+          email?: string
+          expires_at?: string | null
+          id?: string
+          invited_by?: string
+          role?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "collection_invites_collection_id_fkey"
+            columns: ["collection_id"]
+            isOneToOne: false
+            referencedRelation: "collections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       collection_members: {
         Row: {
           collection_id: string
@@ -2456,6 +2500,7 @@ export type Database = {
       }
     }
     Functions: {
+      accept_collection_invite: { Args: { p_invite_id: string }; Returns: Json }
       calculate_entry_average_score: {
         Args: { entry_uuid: string }
         Returns: number

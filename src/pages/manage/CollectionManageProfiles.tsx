@@ -67,30 +67,37 @@ export default function CollectionManageProfiles() {
     enabled: !!slug,
   });
 
-  // Fetch profiles
+  // Fetch profiles linked to this collection via profile_collections
   const { data: profiles, isLoading } = useQuery({
     queryKey: ["manage-profiles", collection?.id],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("profiles")
+      // Get profiles linked to this collection
+      const { data: linkedProfiles, error } = await supabase
+        .from("profile_collections")
         .select(`
-          id,
-          name,
-          slug,
-          bio,
-          image_url,
-          primary_lifeline_id,
-          lifelines!profiles_primary_lifeline_id_fkey(title)
+          profile_id,
+          profiles(
+            id,
+            name,
+            slug,
+            short_description,
+            avatar_image_id,
+            media_assets!profiles_avatar_image_id_fkey(url)
+          )
         `)
-        .eq("primary_collection_id", collection!.id)
-        .order("name");
+        .eq("collection_id", collection!.id);
 
       if (error) throw error;
 
-      return data.map((p: any) => ({
-        ...p,
-        lifeline_title: p.lifelines?.title || null,
-      }));
+      return (linkedProfiles || []).map((pc: any) => ({
+        id: pc.profiles?.id,
+        name: pc.profiles?.name || "Unknown",
+        slug: pc.profiles?.slug || "",
+        bio: pc.profiles?.short_description || null,
+        image_url: pc.profiles?.media_assets?.url || null,
+        primary_lifeline_id: null,
+        lifeline_title: null,
+      })).filter(p => p.id);
     },
     enabled: !!collection?.id,
   });
@@ -103,16 +110,31 @@ export default function CollectionManageProfiles() {
         .replace(/[^a-z0-9]+/g, "-")
         .replace(/^-|-$/g, "");
 
-      const { error } = await supabase.from("profiles").insert({
-        primary_collection_id: collection!.id,
-        name: data.name,
-        slug: profileSlug,
-        bio: data.bio || null,
-        image_url: data.image_url || null,
-        status: "published",
-      });
+      // First create the profile
+      const { data: newProfile, error: profileError } = await supabase
+        .from("profiles")
+        .insert({
+          name: data.name,
+          slug: profileSlug,
+          short_description: data.bio || "No description",
+          reality_status: "real",
+          subject_type: "person",
+          status: "published",
+        })
+        .select("id")
+        .single();
 
-      if (error) throw error;
+      if (profileError) throw profileError;
+
+      // Then link it to the collection
+      const { error: linkError } = await supabase
+        .from("profile_collections")
+        .insert({
+          profile_id: newProfile.id,
+          collection_id: collection!.id,
+        });
+
+      if (linkError) throw linkError;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["manage-profiles"] });
@@ -131,8 +153,7 @@ export default function CollectionManageProfiles() {
         .from("profiles")
         .update({
           name: data.name,
-          bio: data.bio || null,
-          image_url: data.image_url || null,
+          short_description: data.bio || null,
         })
         .eq("id", data.id);
 
