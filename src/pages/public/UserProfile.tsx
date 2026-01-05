@@ -18,6 +18,7 @@ import { EditContributionDialog } from "@/components/EditContributionDialog";
 import { EditQuoteContributionDialog } from "@/components/EditQuoteContributionDialog";
 import { useContributionPreference } from "@/hooks/useContributionPreference";
 import { Switch } from "@/components/ui/switch";
+import { PendingCollectionInvites } from "@/components/collection/PendingCollectionInvites";
 
 export default function UserProfile() {
   const { user } = useAuth();
@@ -192,6 +193,9 @@ export default function UserProfile() {
 
   return (
     <div className="container mx-auto px-4 py-8 space-y-6">
+        {/* Pending Collection Invites - shown at top when user has invites */}
+        <PendingCollectionInvites />
+
         <Card>
           <CardHeader>
             <CardTitle>Contribution Settings</CardTitle>
