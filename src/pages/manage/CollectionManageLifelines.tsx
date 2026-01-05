@@ -106,8 +106,8 @@ export default function CollectionManageLifelines() {
         collection_id: collection!.id,
         title: data.title,
         slug: lifelineSlug,
-        lifeline_type: data.lifeline_type,
-        description: data.description || null,
+        lifeline_type: data.lifeline_type as "person" | "list",
+        intro: data.description || null,
         status: "published",
       });
 

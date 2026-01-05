@@ -74,8 +74,9 @@ export function PendingCollectionInvites() {
       });
 
       if (error) throw error;
-      if (!data.success) throw new Error(data.error);
-      return data;
+      const result = data as { success: boolean; error?: string; role?: string };
+      if (!result.success) throw new Error(result.error || "Failed to accept invite");
+      return result;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["my-pending-invites"] });
