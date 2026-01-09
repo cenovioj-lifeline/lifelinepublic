@@ -1200,6 +1200,7 @@ export type Database = {
           contributed_by_user_id: string | null
           contribution_status: string | null
           created_at: string
+          date_precision: string | null
           details: string | null
           id: string
           is_fan_contributed: boolean | null
@@ -1223,6 +1224,7 @@ export type Database = {
           contributed_by_user_id?: string | null
           contribution_status?: string | null
           created_at?: string
+          date_precision?: string | null
           details?: string | null
           id?: string
           is_fan_contributed?: boolean | null
@@ -1246,6 +1248,7 @@ export type Database = {
           contributed_by_user_id?: string | null
           contribution_status?: string | null
           created_at?: string
+          date_precision?: string | null
           details?: string | null
           id?: string
           is_fan_contributed?: boolean | null
@@ -1657,6 +1660,7 @@ export type Database = {
       }
       lifelines: {
         Row: {
+          chronological_mode: string | null
           collection_id: string | null
           conclusion: string | null
           cover_image_id: string | null
@@ -1682,6 +1686,7 @@ export type Database = {
           visibility: Database["public"]["Enums"]["visibility_type"]
         }
         Insert: {
+          chronological_mode?: string | null
           collection_id?: string | null
           conclusion?: string | null
           cover_image_id?: string | null
@@ -1707,6 +1712,7 @@ export type Database = {
           visibility?: Database["public"]["Enums"]["visibility_type"]
         }
         Update: {
+          chronological_mode?: string | null
           collection_id?: string | null
           conclusion?: string | null
           cover_image_id?: string | null
