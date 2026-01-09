@@ -645,6 +645,7 @@ export type Database = {
           hero_image_url: string | null
           id: string
           is_featured: boolean | null
+          last_monitored_at: string | null
           lifeline_display_bg: string | null
           lifeline_display_border: string | null
           lifeline_display_title_text: string | null
@@ -654,6 +655,8 @@ export type Database = {
           menu_active_color: string | null
           menu_hover_color: string | null
           menu_text_color: string | null
+          monitoring_enabled: boolean | null
+          monitoring_interval: string | null
           nav_button_color: string | null
           primary_color: string | null
           profile_card_bg: string | null
@@ -721,6 +724,7 @@ export type Database = {
           hero_image_url?: string | null
           id?: string
           is_featured?: boolean | null
+          last_monitored_at?: string | null
           lifeline_display_bg?: string | null
           lifeline_display_border?: string | null
           lifeline_display_title_text?: string | null
@@ -730,6 +734,8 @@ export type Database = {
           menu_active_color?: string | null
           menu_hover_color?: string | null
           menu_text_color?: string | null
+          monitoring_enabled?: boolean | null
+          monitoring_interval?: string | null
           nav_button_color?: string | null
           primary_color?: string | null
           profile_card_bg?: string | null
@@ -797,6 +803,7 @@ export type Database = {
           hero_image_url?: string | null
           id?: string
           is_featured?: boolean | null
+          last_monitored_at?: string | null
           lifeline_display_bg?: string | null
           lifeline_display_border?: string | null
           lifeline_display_title_text?: string | null
@@ -806,6 +813,8 @@ export type Database = {
           menu_active_color?: string | null
           menu_hover_color?: string | null
           menu_text_color?: string | null
+          monitoring_enabled?: boolean | null
+          monitoring_interval?: string | null
           nav_button_color?: string | null
           primary_color?: string | null
           profile_card_bg?: string | null
@@ -1208,6 +1217,7 @@ export type Database = {
           media_suggestion: string | null
           occurred_on: string | null
           order_index: number
+          origin: string | null
           related_lifelines: string | null
           score: number | null
           sentiment: Database["public"]["Enums"]["sentiment_type"] | null
@@ -1232,6 +1242,7 @@ export type Database = {
           media_suggestion?: string | null
           occurred_on?: string | null
           order_index?: number
+          origin?: string | null
           related_lifelines?: string | null
           score?: number | null
           sentiment?: Database["public"]["Enums"]["sentiment_type"] | null
@@ -1256,6 +1267,7 @@ export type Database = {
           media_suggestion?: string | null
           occurred_on?: string | null
           order_index?: number
+          origin?: string | null
           related_lifelines?: string | null
           score?: number | null
           sentiment?: Database["public"]["Enums"]["sentiment_type"] | null
@@ -1876,6 +1888,59 @@ export type Database = {
           },
         ]
       }
+      monitoring_runs: {
+        Row: {
+          collection_id: string | null
+          collection_slug: string
+          completed_at: string | null
+          error_message: string | null
+          events_found: number | null
+          events_published: number | null
+          events_skipped: number | null
+          id: string
+          run_log: Json | null
+          started_at: string | null
+          status: string | null
+          subjects_checked: Json | null
+        }
+        Insert: {
+          collection_id?: string | null
+          collection_slug: string
+          completed_at?: string | null
+          error_message?: string | null
+          events_found?: number | null
+          events_published?: number | null
+          events_skipped?: number | null
+          id?: string
+          run_log?: Json | null
+          started_at?: string | null
+          status?: string | null
+          subjects_checked?: Json | null
+        }
+        Update: {
+          collection_id?: string | null
+          collection_slug?: string
+          completed_at?: string | null
+          error_message?: string | null
+          events_found?: number | null
+          events_published?: number | null
+          events_skipped?: number | null
+          id?: string
+          run_log?: Json | null
+          started_at?: string | null
+          status?: string | null
+          subjects_checked?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "monitoring_runs_collection_id_fkey"
+            columns: ["collection_id"]
+            isOneToOne: false
+            referencedRelation: "collections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           created_at: string
@@ -2173,6 +2238,7 @@ export type Database = {
           primary_image_path: string | null
           primary_image_url: string | null
           primary_lifeline_id: string | null
+          prominence_score: number | null
           reality_status: string
           short_description: string
           slug: string
@@ -2197,6 +2263,7 @@ export type Database = {
           primary_image_path?: string | null
           primary_image_url?: string | null
           primary_lifeline_id?: string | null
+          prominence_score?: number | null
           reality_status: string
           short_description: string
           slug: string
@@ -2221,6 +2288,7 @@ export type Database = {
           primary_image_path?: string | null
           primary_image_url?: string | null
           primary_lifeline_id?: string | null
+          prominence_score?: number | null
           reality_status?: string
           short_description?: string
           slug?: string
