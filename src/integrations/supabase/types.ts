@@ -643,6 +643,7 @@ export type Database = {
           hero_image_position_x: number | null
           hero_image_position_y: number | null
           hero_image_url: string | null
+          home_hidden: boolean | null
           id: string
           is_featured: boolean | null
           last_monitored_at: string | null
@@ -658,6 +659,7 @@ export type Database = {
           monitoring_enabled: boolean | null
           monitoring_interval: string | null
           nav_button_color: string | null
+          pitch_enabled: boolean | null
           primary_color: string | null
           profile_card_bg: string | null
           profile_card_border: string | null
@@ -722,6 +724,7 @@ export type Database = {
           hero_image_position_x?: number | null
           hero_image_position_y?: number | null
           hero_image_url?: string | null
+          home_hidden?: boolean | null
           id?: string
           is_featured?: boolean | null
           last_monitored_at?: string | null
@@ -737,6 +740,7 @@ export type Database = {
           monitoring_enabled?: boolean | null
           monitoring_interval?: string | null
           nav_button_color?: string | null
+          pitch_enabled?: boolean | null
           primary_color?: string | null
           profile_card_bg?: string | null
           profile_card_border?: string | null
@@ -801,6 +805,7 @@ export type Database = {
           hero_image_position_x?: number | null
           hero_image_position_y?: number | null
           hero_image_url?: string | null
+          home_hidden?: boolean | null
           id?: string
           is_featured?: boolean | null
           last_monitored_at?: string | null
@@ -816,6 +821,7 @@ export type Database = {
           monitoring_enabled?: boolean | null
           monitoring_interval?: string | null
           nav_button_color?: string | null
+          pitch_enabled?: boolean | null
           primary_color?: string | null
           profile_card_bg?: string | null
           profile_card_border?: string | null
