@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate, useLocation, useParams } from "react-router-dom";
-import { Home, Users, ArrowLeft, Award, Menu, MoreHorizontal, Play, Loader2 } from "lucide-react";
+import { Home, Users, ArrowLeft, Award, Menu, MoreHorizontal, Play, Loader2, BookOpen } from "lucide-react";
 import { LifelineBookIcon } from "@/components/icons/LifelineBookIcon";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
@@ -51,13 +51,13 @@ export function CollectionLayout({
     return location.pathname === path;
   };
 
-  // Fetch collection settings for quotes and media_enabled
+  // Fetch collection settings for quotes, media_enabled, pitch_enabled, home_hidden
   const { data: collectionSettings } = useQuery({
     queryKey: ["collection-settings", collectionSlug],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("collections")
-        .select("id, quotes_enabled, quote_frequency, media_enabled")
+        .select("id, quotes_enabled, quote_frequency, media_enabled, pitch_enabled, home_hidden")
         .eq("slug", collectionSlug)
         .single();
 
@@ -67,6 +67,8 @@ export function CollectionLayout({
   });
 
   const mediaEnabled = (collectionSettings as any)?.media_enabled ?? false;
+  const pitchEnabled = (collectionSettings as any)?.pitch_enabled ?? false;
+  const homeHidden = (collectionSettings as any)?.home_hidden ?? false;
 
   // Use the quote hook
   const { currentQuote, dismissQuote } = useCollectionQuote(
@@ -118,9 +120,18 @@ export function CollectionLayout({
     );
   }
 
-  // Build nav items based on media_enabled
+  // Build nav items based on collection flags
   const navItems = [
-    { label: "Home", icon: Home, to: `/public/collections/${collectionSlug}` },
+    // Pitch nav item (first, when enabled)
+    ...(pitchEnabled
+      ? [{ label: "Pitch", icon: BookOpen, to: `/public/collections/${collectionSlug}/pitch` }]
+      : []
+    ),
+    // Home nav item (hidden when home_hidden is true)
+    ...(!homeHidden
+      ? [{ label: "Home", icon: Home, to: `/public/collections/${collectionSlug}` }]
+      : []
+    ),
     { label: "Stories", icon: LifelineBookIcon, to: `/public/collections/${collectionSlug}/lifelines` },
     { label: "Profiles", icon: Users, to: `/public/collections/${collectionSlug}/profiles` },
     // Conditionally add Media or Awards
