@@ -39,18 +39,6 @@ export function CollectionLayout({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const isMobile = useIsMobile();
-  
-  // Block render until color scheme is loaded to prevent color "blip"
-  if (colorsLoading || !colorScheme) {
-    return (
-      <div 
-        className="min-h-screen flex items-center justify-center"
-        style={{ backgroundColor: '#f5f5f5' }}
-      >
-        <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
-      </div>
-    );
-  }
 
   // Parse search params for referrer tracking
   const searchParams = new URLSearchParams(location.search);
@@ -116,6 +104,19 @@ export function CollectionLayout({
       return data;
     },
   });
+  
+  // Block render until color scheme is loaded to prevent color "blip"
+  // IMPORTANT: This must come AFTER all hooks to avoid React error #310
+  if (colorsLoading || !colorScheme) {
+    return (
+      <div 
+        className="min-h-screen flex items-center justify-center"
+        style={{ backgroundColor: '#f5f5f5' }}
+      >
+        <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+      </div>
+    );
+  }
 
   // Build nav items based on media_enabled
   const navItems = [
