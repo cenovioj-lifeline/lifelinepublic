@@ -213,6 +213,7 @@ export default function Home() {
                     : `/public/elections/${item.slug}`
                 }
                 type={item.type}
+                collectionSlug={item.type === "collection" ? item.slug : undefined}
               />
             )
           ))}
@@ -285,6 +286,7 @@ export default function Home() {
                     : `/public/elections/${item.slug}`
                 }
                 type={item.type}
+                collectionSlug={item.type === "collection" ? item.slug : undefined}
               />
             )
           ))}

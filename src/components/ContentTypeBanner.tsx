@@ -1,5 +1,6 @@
 interface ContentTypeBannerProps {
   type: "lifeline" | "profile" | "election" | "book" | "collection" | string;
+  collectionSlug?: string;
 }
 
 const labels: Record<string, string> = {
@@ -10,11 +11,19 @@ const labels: Record<string, string> = {
   collection: "Collection",
 };
 
-export function ContentTypeBanner({ type }: ContentTypeBannerProps) {
+export function ContentTypeBanner({ type, collectionSlug }: ContentTypeBannerProps) {
+  // Custom banner text for specific collections
+  const getBannerText = () => {
+    if (type === "collection" && collectionSlug === "lifeline-inc") {
+      return "Investor Tour / Sales Pitch";
+    }
+    return labels[type] || type;
+  };
+
   return (
     <div className="bg-white px-3 py-1.5 border-b border-gray-100">
       <span className="text-xs font-semibold tracking-wide text-gray-600 uppercase">
-        {labels[type] || type}
+        {getBannerText()}
       </span>
     </div>
   );
