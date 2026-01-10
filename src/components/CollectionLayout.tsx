@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate, useLocation, useParams } from "react-router-dom";
-import { Home, Users, ArrowLeft, Award, Menu, MoreHorizontal, Play } from "lucide-react";
+import { Home, Users, ArrowLeft, Award, Menu, MoreHorizontal, Play, Loader2 } from "lucide-react";
 import { LifelineBookIcon } from "@/components/icons/LifelineBookIcon";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
@@ -31,7 +31,7 @@ export function CollectionLayout({
   collectionSlug,
   collectionId,
 }: CollectionLayoutProps) {
-  useColorScheme(collectionId);
+  const { colorScheme, isLoading: colorsLoading } = useColorScheme(collectionId);
   const navigate = useNavigate();
   const location = useLocation();
   const params = useParams();
@@ -39,6 +39,18 @@ export function CollectionLayout({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const isMobile = useIsMobile();
+  
+  // Block render until color scheme is loaded to prevent color "blip"
+  if (colorsLoading || !colorScheme) {
+    return (
+      <div 
+        className="min-h-screen flex items-center justify-center"
+        style={{ backgroundColor: '#f5f5f5' }}
+      >
+        <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+      </div>
+    );
+  }
 
   // Parse search params for referrer tracking
   const searchParams = new URLSearchParams(location.search);

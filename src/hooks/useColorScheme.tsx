@@ -270,38 +270,41 @@ const NEW_FIELD_DEFAULTS = {
   person_name_accent: '#4a9eff',
 };
 
-export function useColorScheme(collectionId?: string) {
-  const { data: colorScheme } = useQuery({
-    queryKey: ["color-scheme", collectionId],
-    queryFn: async () => {
-      if (collectionId) {
-        // Try to get collection's specific color scheme
-        const { data: collection } = await supabase
-          .from("collections")
-          .select("color_scheme_id")
-          .eq("id", collectionId)
-          .single();
+// Fetch function for color scheme - exported for prefetching
+export async function fetchColorScheme(collectionId?: string): Promise<ColorScheme | null> {
+  if (collectionId) {
+    // Try to get collection's specific color scheme
+    const { data: collection } = await supabase
+      .from("collections")
+      .select("color_scheme_id")
+      .eq("id", collectionId)
+      .single();
 
-        if (collection?.color_scheme_id) {
-          const { data: scheme } = await supabase
-            .from("color_schemes")
-            .select("*")
-            .eq("id", collection.color_scheme_id)
-            .single();
-          
-          if (scheme) return scheme as ColorScheme;
-        }
-      }
-
-      // Fallback to default color scheme
-      const { data: defaultScheme } = await supabase
+    if (collection?.color_scheme_id) {
+      const { data: scheme } = await supabase
         .from("color_schemes")
         .select("*")
-        .eq("is_default", true)
+        .eq("id", collection.color_scheme_id)
         .single();
+      
+      if (scheme) return scheme as ColorScheme;
+    }
+  }
 
-      return defaultScheme as ColorScheme;
-    },
+  // Fallback to default color scheme
+  const { data: defaultScheme } = await supabase
+    .from("color_schemes")
+    .select("*")
+    .eq("is_default", true)
+    .single();
+
+  return defaultScheme as ColorScheme;
+}
+
+export function useColorScheme(collectionId?: string) {
+  const { data: colorScheme, isLoading } = useQuery({
+    queryKey: ["color-scheme", collectionId],
+    queryFn: () => fetchColorScheme(collectionId),
   });
 
   useEffect(() => {
@@ -403,5 +406,5 @@ export function useColorScheme(collectionId?: string) {
     }
   }, [colorScheme]);
 
-  return { colorScheme, mappings: COLOR_MAPPINGS };
+  return { colorScheme, mappings: COLOR_MAPPINGS, isLoading };
 }

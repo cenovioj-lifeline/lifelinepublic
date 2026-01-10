@@ -1,7 +1,9 @@
 import { Link } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { parseLifelineTitle } from "@/lib/lifelineTitle";
 import { ContentTypeBanner } from "@/components/ContentTypeBanner";
+import { fetchColorScheme } from "@/hooks/useColorScheme";
 
 interface StandardizedContentCardProps {
   id: string;
@@ -13,6 +15,7 @@ interface StandardizedContentCardProps {
   badge?: string;
   type: 'lifeline' | 'collection' | 'election' | 'profile' | 'book';
   lifelineType?: string; // 'person' or 'list' - only for lifeline type cards
+  collectionId?: string; // For prefetching color schemes on hover
 }
 
 export function StandardizedContentCard({
@@ -24,7 +27,10 @@ export function StandardizedContentCard({
   badge,
   type,
   lifelineType,
+  collectionId,
 }: StandardizedContentCardProps) {
+  const queryClient = useQueryClient();
+  
   // Parse title for person-type lifelines
   const parsed = type === 'lifeline' && lifelineType 
     ? parseLifelineTitle(title, lifelineType)
@@ -33,8 +39,19 @@ export function StandardizedContentCard({
   // Determine the label to show - use badge if provided, otherwise derive from type
   const showBanner = badge || type;
 
+  // Prefetch color scheme on hover for collection cards
+  const handleMouseEnter = () => {
+    if (type === 'collection' && collectionId) {
+      queryClient.prefetchQuery({
+        queryKey: ["color-scheme", collectionId],
+        queryFn: () => fetchColorScheme(collectionId),
+        staleTime: 5 * 60 * 1000, // 5 minutes
+      });
+    }
+  };
+
   return (
-    <Link to={linkPath} className="group">
+    <Link to={linkPath} className="group" onMouseEnter={handleMouseEnter}>
       <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
         {/* Standardized 16:9 aspect ratio image */}
         <div className="aspect-video relative overflow-hidden bg-white">
