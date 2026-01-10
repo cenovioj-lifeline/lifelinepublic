@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { CollectionLayout } from "@/components/CollectionLayout";
@@ -14,6 +14,7 @@ import { PublicAuthModal } from "@/components/PublicAuthModal";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { FavoriteButton } from "@/components/FavoriteButton";
 import { lifelineLink } from "@/lib/navigationLinks";
+import { fetchColorScheme } from "@/hooks/useColorScheme";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,6 +31,7 @@ export default function PublicCollectionDetail() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [joinDialogOpen, setJoinDialogOpen] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
@@ -58,6 +60,17 @@ export default function PublicCollectionDetail() {
       return data;
     },
   });
+
+  // Prefetch color scheme as soon as collection data is available
+  useEffect(() => {
+    if (collection?.id) {
+      queryClient.prefetchQuery({
+        queryKey: ["color-scheme", collection.id],
+        queryFn: () => fetchColorScheme(collection.id),
+        staleTime: 5 * 60 * 1000, // 5 minutes
+      });
+    }
+  }, [collection?.id, queryClient]);
 
   const { data: stats } = useQuery({
     queryKey: ["collection-stats", collection?.id],
