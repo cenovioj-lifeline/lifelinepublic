@@ -5,8 +5,9 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { CropBoxPicker, CropData } from "@/components/admin/CropBoxPicker";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2, Square, RectangleHorizontal } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface ProfileImageEditorProps {
   profile: {
@@ -18,6 +19,9 @@ interface ProfileImageEditorProps {
       position_x?: number;
       position_y?: number;
       scale?: number;
+      card_position_x?: number;
+      card_position_y?: number;
+      card_scale?: number;
     };
     primary_image_url?: string;
     primary_image_path?: string;
@@ -25,10 +29,13 @@ interface ProfileImageEditorProps {
   onImageUpdate?: () => void;
 }
 
+type CropMode = 'avatar' | 'card';
+
 export function ProfileImageEditor({ profile, onImageUpdate }: ProfileImageEditorProps) {
   const [showDialog, setShowDialog] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showCropPicker, setShowCropPicker] = useState(false);
+  const [cropMode, setCropMode] = useState<CropMode>('avatar');
   const [isProcessing, setIsProcessing] = useState(false);
   const [currentMediaAssetId, setCurrentMediaAssetId] = useState<string | undefined>(
     profile.avatar_image?.id
@@ -83,7 +90,9 @@ export function ProfileImageEditor({ profile, onImageUpdate }: ProfileImageEdito
     }
   };
 
-  const handleRepositionClick = async () => {
+  const handleRepositionClick = async (mode: CropMode) => {
+    setCropMode(mode);
+    
     if (isLegacyImage) {
       // Create media_assets record for legacy image
       setIsProcessing(true);
@@ -101,7 +110,10 @@ export function ProfileImageEditor({ profile, onImageUpdate }: ProfileImageEdito
             alt_text: `Avatar for ${profile.name}`,
             position_x: 50,
             position_y: 50,
-            scale: 1
+            scale: 1,
+            card_position_x: 50,
+            card_position_y: 50,
+            card_scale: 1
           })
           .select()
           .single();
@@ -141,18 +153,27 @@ export function ProfileImageEditor({ profile, onImageUpdate }: ProfileImageEdito
       const centerY = crop.y + crop.height / 2;
       const scale = 100 / crop.width;
 
+      // Save to the appropriate columns based on crop mode
+      const updateData = cropMode === 'avatar' 
+        ? {
+            position_x: Math.round(centerX),
+            position_y: Math.round(centerY),
+            scale: Math.round(scale * 100) / 100
+          }
+        : {
+            card_position_x: Math.round(centerX),
+            card_position_y: Math.round(centerY),
+            card_scale: Math.round(scale * 100) / 100
+          };
+
       const { error } = await supabase
         .from("media_assets")
-        .update({
-          position_x: Math.round(centerX),
-          position_y: Math.round(centerY),
-          scale: Math.round(scale * 100) / 100
-        })
+        .update(updateData)
         .eq("id", currentMediaAssetId);
 
       if (error) throw error;
 
-      toast.success("Image position updated");
+      toast.success(`${cropMode === 'avatar' ? 'Avatar' : 'Card'} position updated`);
       setShowCropPicker(false);
       setShowDialog(false);
       onImageUpdate?.();
@@ -171,6 +192,20 @@ export function ProfileImageEditor({ profile, onImageUpdate }: ProfileImageEdito
       .slice(0, 2);
   };
 
+  // Get positioning for avatar (1:1)
+  const avatarPosition = {
+    x: profile.avatar_image?.position_x ?? 50,
+    y: profile.avatar_image?.position_y ?? 50,
+    scale: profile.avatar_image?.scale ?? 1
+  };
+
+  // Get positioning for card (16:9)
+  const cardPosition = {
+    x: profile.avatar_image?.card_position_x ?? 50,
+    y: profile.avatar_image?.card_position_y ?? 50,
+    scale: profile.avatar_image?.card_scale ?? 1
+  };
+
   return (
     <>
       <Button
@@ -183,54 +218,107 @@ export function ProfileImageEditor({ profile, onImageUpdate }: ProfileImageEdito
       </Button>
 
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>Edit Profile Image</DialogTitle>
           </DialogHeader>
 
-          <div className="flex flex-col items-center gap-6 py-4">
-            <Avatar className="h-32 w-32">
-              <AvatarImage 
-                src={imageUrl} 
-                alt={profile.name}
-                style={{
-                  objectPosition: `${profile.avatar_image?.position_x ?? 50}% ${profile.avatar_image?.position_y ?? 50}%`,
-                  transform: `scale(${profile.avatar_image?.scale ?? 1})`,
-                  transformOrigin: `${profile.avatar_image?.position_x ?? 50}% ${profile.avatar_image?.position_y ?? 50}%`
-                }}
-              />
-              <AvatarFallback className="text-4xl">
-                {getInitials(profile.name)}
-              </AvatarFallback>
-            </Avatar>
+          <Tabs defaultValue="avatar" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="avatar" className="flex items-center gap-2">
+                <Square className="h-4 w-4" />
+                Avatar (1:1)
+              </TabsTrigger>
+              <TabsTrigger value="card" className="flex items-center gap-2">
+                <RectangleHorizontal className="h-4 w-4" />
+                Card (16:9)
+              </TabsTrigger>
+            </TabsList>
 
-            {profile.avatar_image && (
-              <div className="text-sm text-muted-foreground text-center">
-                <p>Position: {profile.avatar_image.position_x ?? 50}%, {profile.avatar_image.position_y ?? 50}%</p>
-                <p>Scale: {(profile.avatar_image.scale ?? 1).toFixed(1)}x</p>
+            <TabsContent value="avatar" className="space-y-4">
+              <div className="flex flex-col items-center gap-4 py-4">
+                <Avatar className="h-32 w-32">
+                  <AvatarImage 
+                    src={imageUrl} 
+                    alt={profile.name}
+                    style={{
+                      objectPosition: `${avatarPosition.x}% ${avatarPosition.y}%`,
+                      transform: `scale(${avatarPosition.scale})`,
+                      transformOrigin: `${avatarPosition.x}% ${avatarPosition.y}%`
+                    }}
+                  />
+                  <AvatarFallback className="text-4xl">
+                    {getInitials(profile.name)}
+                  </AvatarFallback>
+                </Avatar>
+
+                <div className="text-sm text-muted-foreground text-center">
+                  <p>Position: {avatarPosition.x}%, {avatarPosition.y}%</p>
+                  <p>Scale: {avatarPosition.scale.toFixed(1)}x</p>
+                </div>
+
+                <Button
+                  onClick={() => handleRepositionClick('avatar')}
+                  disabled={isProcessing || !imageUrl}
+                  className="w-full"
+                  variant="default"
+                >
+                  <Pencil className="mr-2 h-4 w-4" />
+                  Edit Avatar Position
+                </Button>
               </div>
-            )}
+            </TabsContent>
 
-            <div className="flex gap-3 w-full">
-              <Button
-                onClick={handleRepositionClick}
-                disabled={isProcessing}
-                className="flex-1"
-                variant="default"
-              >
-                <Pencil className="mr-2 h-4 w-4" />
-                Reposition
-              </Button>
-              <Button
-                onClick={() => setShowDeleteConfirm(true)}
-                disabled={isProcessing}
-                variant="destructive"
-                className="flex-1"
-              >
-                <Trash2 className="mr-2 h-4 w-4" />
-                Delete
-              </Button>
-            </div>
+            <TabsContent value="card" className="space-y-4">
+              <div className="flex flex-col items-center gap-4 py-4">
+                {/* 16:9 preview */}
+                <div className="w-full aspect-video bg-muted rounded-lg overflow-hidden">
+                  {imageUrl ? (
+                    <img
+                      src={imageUrl}
+                      alt={profile.name}
+                      className="w-full h-full object-cover"
+                      style={{
+                        objectPosition: `${cardPosition.x}% ${cardPosition.y}%`,
+                        transform: `scale(${cardPosition.scale})`,
+                        transformOrigin: `${cardPosition.x}% ${cardPosition.y}%`
+                      }}
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+                      No image
+                    </div>
+                  )}
+                </div>
+
+                <div className="text-sm text-muted-foreground text-center">
+                  <p>Position: {cardPosition.x}%, {cardPosition.y}%</p>
+                  <p>Scale: {cardPosition.scale.toFixed(1)}x</p>
+                </div>
+
+                <Button
+                  onClick={() => handleRepositionClick('card')}
+                  disabled={isProcessing || !imageUrl}
+                  className="w-full"
+                  variant="default"
+                >
+                  <Pencil className="mr-2 h-4 w-4" />
+                  Edit Card Position
+                </Button>
+              </div>
+            </TabsContent>
+          </Tabs>
+
+          <div className="border-t pt-4">
+            <Button
+              onClick={() => setShowDeleteConfirm(true)}
+              disabled={isProcessing || !imageUrl}
+              variant="destructive"
+              className="w-full"
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              Delete Image
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
@@ -262,8 +350,8 @@ export function ProfileImageEditor({ profile, onImageUpdate }: ProfileImageEdito
           open={showCropPicker}
           onOpenChange={setShowCropPicker}
           onCropComplete={handleCropComplete}
-          aspectRatio={1}
-          title="Reposition Avatar"
+          aspectRatio={cropMode === 'avatar' ? 1 : 16/9}
+          title={cropMode === 'avatar' ? "Reposition Avatar (1:1)" : "Reposition Card Image (16:9)"}
         />
       )}
     </>

@@ -25,7 +25,10 @@ export function useProfileData(slug: string | undefined, options?: UseProfileDat
             alt_text,
             position_x,
             position_y,
-            scale
+            scale,
+            card_position_x,
+            card_position_y,
+            card_scale
           )
         `)
         .eq("slug", slug)

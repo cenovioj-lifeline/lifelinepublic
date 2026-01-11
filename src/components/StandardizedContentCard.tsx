@@ -11,6 +11,9 @@ interface StandardizedContentCardProps {
   description?: string | null;
   imageUrl?: string | null;
   imageAlt?: string | null;
+  imagePositionX?: number | null;
+  imagePositionY?: number | null;
+  imageScale?: number | null;
   linkPath: string;
   badge?: string;
   type: 'lifeline' | 'collection' | 'election' | 'profile' | 'book';
@@ -24,6 +27,9 @@ export function StandardizedContentCard({
   description,
   imageUrl,
   imageAlt,
+  imagePositionX,
+  imagePositionY,
+  imageScale,
   linkPath,
   badge,
   type,
@@ -62,6 +68,11 @@ export function StandardizedContentCard({
               src={imageUrl}
               alt={imageAlt || title}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              style={{
+                objectPosition: `${imagePositionX ?? 50}% ${imagePositionY ?? 50}%`,
+                transform: `scale(${imageScale ?? 1})`,
+                transformOrigin: `${imagePositionX ?? 50}% ${imagePositionY ?? 50}%`
+              }}
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center text-gray-400">

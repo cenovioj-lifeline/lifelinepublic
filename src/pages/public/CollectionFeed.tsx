@@ -83,7 +83,7 @@ export default function CollectionFeed() {
           short_description,
           avatar_image_id,
           created_at,
-          avatar_image:media_assets!profiles_avatar_image_id_fkey(url, position_x, position_y),
+          avatar_image:media_assets!profiles_avatar_image_id_fkey(url, position_x, position_y, card_position_x, card_position_y, card_scale),
           profile_collections!inner(is_featured, collection_id)
         `)
         .eq("profile_collections.collection_id", collection!.id)
@@ -182,8 +182,11 @@ export default function CollectionFeed() {
                   title={profile.name}
                   description={profile.short_description || ""}
                   imageUrl={profile.avatar_image?.url}
+                  imagePositionX={profile.avatar_image?.card_position_x}
+                  imagePositionY={profile.avatar_image?.card_position_y}
+                  imageScale={profile.avatar_image?.card_scale}
                   linkPath={`/public/collections/${collection.slug}/profiles/${profile.slug}`}
-                  type="lifeline"
+                  type="profile"
                 />
               ))}
             </div>

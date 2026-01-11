@@ -36,7 +36,7 @@ export default function CollectionProfiles() {
           role_in_collection,
           profiles!inner(
             *,
-            avatar_image:media_assets!profiles_avatar_image_id_fkey(url, alt_text, position_x, position_y, scale)
+            avatar_image:media_assets!profiles_avatar_image_id_fkey(url, alt_text, position_x, position_y, scale, card_position_x, card_position_y, card_scale)
           )
         `)
         .eq("collection_id", collection.id);
