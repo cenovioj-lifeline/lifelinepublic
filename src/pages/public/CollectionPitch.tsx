@@ -118,6 +118,13 @@ export default function CollectionPitch() {
 
   // Handlers
   const handleFilterClick = (filterKey: string) => {
+    // If clicking the same filter again (and it's not 'all'), unselect it
+    if (filterKey === currentFilter && filterKey !== 'all') {
+      setCurrentFilter('all');
+      setCurrentView('hub');
+      return;
+    }
+    
     setCurrentFilter(filterKey);
     if (filterKey === 'all') {
       setCurrentView('hub');
