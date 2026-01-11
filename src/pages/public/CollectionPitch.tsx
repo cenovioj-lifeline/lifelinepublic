@@ -299,9 +299,9 @@ export default function CollectionPitch() {
           </div>
         )}
 
-        {/* Hub View - Books Grid */}
+        {/* Hub View - Books Grid - 6 columns on large screens */}
         {currentView === 'hub' && (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 md:gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 lg:gap-4">
             {bookMeta.map((book) => {
               const isMatching = currentFilter === 'all' || book.category === currentFilter;
               const topic = topics[book.num];
@@ -313,27 +313,26 @@ export default function CollectionPitch() {
                   onClick={() => handleBookClick(book.num)}
                   className={`
                     cursor-pointer rounded-lg overflow-hidden transition-all duration-300
-                    hover:shadow-xl hover:-translate-y-1 shadow-md
+                    hover:shadow-xl hover:-translate-y-1 shadow-md flex flex-col
                     ${!isMatching ? 'opacity-30' : ''}
                   `}
-                  style={{ aspectRatio: '3/4' }}
                 >
-                  {/* Header - colored title section (40% height) */}
+                  {/* Header - colored section, wraps content naturally */}
                   <div 
-                    className="h-[40%] p-3 flex flex-col justify-start"
+                    className="px-3 py-2"
                     style={{ backgroundColor: headerColor }}
                   >
-                    <h3 className="text-white font-bold text-sm lg:text-base leading-tight text-left">
+                    <h3 className="text-white font-bold text-sm leading-tight">
                       {book.title}
                     </h3>
                   </div>
                   
-                  {/* Body - light section with tagline at bottom (60% height) */}
+                  {/* Body - light section */}
                   <div 
-                    className="h-[60%] p-3 flex flex-col justify-end border-x border-b border-gray-200"
+                    className="px-3 py-2 flex-1 flex flex-col justify-between border-x border-b border-gray-200 min-h-[80px]"
                     style={{ backgroundColor: '#f8f9fa' }}
                   >
-                    <p className="text-gray-600 text-xs italic line-clamp-2 mb-2">
+                    <p className="text-gray-600 text-xs italic line-clamp-3 mb-2">
                       {book.tagline}
                     </p>
                     <p className="text-gray-400 text-xs">
@@ -451,9 +450,7 @@ function TopicView({ topicNum, topic, bookColor, bookCategory, onMobileCardClick
       <div className="hidden md:block">
         <div className="sticky top-24">
           <p className="text-sm text-muted-foreground mb-3">Source</p>
-          <div
-            className="rounded-lg overflow-hidden"
-          >
+          <div className="rounded-lg overflow-hidden">
             {/* Sidebar header matches book style */}
             <div 
               className="p-4"
