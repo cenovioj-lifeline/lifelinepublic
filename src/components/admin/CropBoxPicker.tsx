@@ -16,10 +16,10 @@
  * - 2/3 (cover)
  */
 
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { RotateCcw } from 'lucide-react';
+import { RotateCcw, Maximize2, AlertCircle } from 'lucide-react';
 
 // ========================================
 // TYPES
@@ -101,6 +101,40 @@ export const CropBoxPicker = ({
   const isAvatar = Math.abs(aspectRatio - 1) < 0.01;
   const aspectLabel = getAspectRatioLabel(aspectRatio);
   const viewTypeDesc = getViewTypeDescription(aspectRatio);
+
+  // Calculate maximum possible crop box dimensions
+  const maxCropBox = useMemo(() => {
+    if (displayDimensions.width === 0 || displayDimensions.height === 0) {
+      return { width: 0, height: 0 };
+    }
+    
+    // Max width is constrained by image width
+    // Max height is constrained by image height
+    // We need to find the largest box that fits within both constraints while maintaining aspect ratio
+    
+    const maxWidthByWidth = displayDimensions.width;
+    const maxHeightByWidth = maxWidthByWidth / aspectRatio;
+    
+    const maxHeightByHeight = displayDimensions.height;
+    const maxWidthByHeight = maxHeightByHeight * aspectRatio;
+    
+    // Use the smaller constraint
+    if (maxHeightByWidth <= displayDimensions.height) {
+      return { width: maxWidthByWidth, height: maxHeightByWidth };
+    } else {
+      return { width: maxWidthByHeight, height: maxHeightByHeight };
+    }
+  }, [displayDimensions.width, displayDimensions.height, aspectRatio]);
+
+  // Check if current crop box is at maximum size (within 2px tolerance)
+  const isAtMaxSize = useMemo(() => {
+    if (maxCropBox.width === 0) return false;
+    const tolerance = 2;
+    return (
+      Math.abs(cropBox.width - maxCropBox.width) < tolerance &&
+      Math.abs(cropBox.height - maxCropBox.height) < tolerance
+    );
+  }, [cropBox.width, cropBox.height, maxCropBox.width, maxCropBox.height]);
 
   // Initialize crop box when image loads
   const handleImageLoad = useCallback(() => {
@@ -304,6 +338,20 @@ export const CropBoxPicker = ({
     });
   };
 
+  // Fit to maximum size
+  const handleFitToMax = () => {
+    // Center the max-size box
+    const newX = (displayDimensions.width - maxCropBox.width) / 2;
+    const newY = (displayDimensions.height - maxCropBox.height) / 2;
+    
+    setCropBox({
+      x: newX,
+      y: newY,
+      width: maxCropBox.width,
+      height: maxCropBox.height
+    });
+  };
+
   // Save crop
   const handleSave = () => {
     // Convert pixel values to percentages of the original image
@@ -349,6 +397,13 @@ export const CropBoxPicker = ({
           <p className="text-sm text-muted-foreground">
             Drag the box to position. Drag corners to resize. Smaller box = tighter crop.
           </p>
+          
+          {isAtMaxSize && (
+            <div className="flex items-center gap-2 text-sm text-amber-600 bg-amber-50 border border-amber-200 rounded-md p-2">
+              <AlertCircle className="w-4 h-4 flex-shrink-0" />
+              <span>Box is at maximum size for this image's dimensions and aspect ratio.</span>
+            </div>
+          )}
 
           <div className="flex gap-6">
             {/* Main editing area */}
@@ -411,13 +466,13 @@ export const CropBoxPicker = ({
                 {/* Crop box */}
                 {cropBox.width > 0 && (
                   <div
-                    className={`absolute border-2 border-white cursor-move ${isAvatar ? 'rounded-full' : ''}`}
+                    className={`absolute border-2 cursor-move ${isAvatar ? 'rounded-full' : ''} ${isAtMaxSize ? 'border-amber-400' : 'border-white'}`}
                     style={{
                       left: cropBox.x,
                       top: cropBox.y,
                       width: cropBox.width,
                       height: cropBox.height,
-                      boxShadow: '0 0 0 9999px rgba(0,0,0,0.5)',
+                      boxShadow: `0 0 0 9999px rgba(0,0,0,0.5)${isAtMaxSize ? ', 0 0 8px 2px rgba(251, 191, 36, 0.5)' : ''}`,
                     }}
                     onMouseDown={handleBoxMouseDown}
                   >
@@ -499,10 +554,21 @@ export const CropBoxPicker = ({
 
           {/* Action buttons */}
           <div className="flex justify-between pt-4 border-t">
-            <Button variant="outline" onClick={handleReset}>
-              <RotateCcw className="w-4 h-4 mr-2" />
-              Reset
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={handleReset}>
+                <RotateCcw className="w-4 h-4 mr-2" />
+                Reset
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={handleFitToMax}
+                disabled={isAtMaxSize}
+                title="Expand crop box to maximum possible size"
+              >
+                <Maximize2 className="w-4 h-4 mr-2" />
+                Fit to Max
+              </Button>
+            </div>
             <div className="flex gap-3">
               <Button variant="outline" onClick={() => onOpenChange(false)}>
                 Cancel

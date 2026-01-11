@@ -156,7 +156,7 @@ export default function PublicCollectionDetail() {
               .from("profiles")
               .select(`
                 id, slug, name, short_description, primary_image_url, primary_image_path, status,
-                avatar_image:media_assets!avatar_image_id(url)
+                avatar_image:media_assets!avatar_image_id(url, card_position_x, card_position_y, card_scale)
               `)
               .eq("id", item.item_id)
               .eq("status", "published")
@@ -218,7 +218,7 @@ export default function PublicCollectionDetail() {
               .from("profiles")
               .select(`
                 id, slug, name, short_description, primary_image_url, primary_image_path, status,
-                avatar_image:media_assets!avatar_image_id(url)
+                avatar_image:media_assets!avatar_image_id(url, card_position_x, card_position_y, card_scale)
               `)
               .eq("id", item.item_id)
               .eq("status", "published")
@@ -288,7 +288,7 @@ export default function PublicCollectionDetail() {
           avatar_image_id,
           primary_image_url,
           created_at,
-          avatar_image:media_assets!avatar_image_id(url),
+          avatar_image:media_assets!avatar_image_id(url, card_position_x, card_position_y, card_scale),
           profile_collections!inner(is_featured, collection_id)
         `)
         .eq("profile_collections.collection_id", collection!.id)
@@ -448,6 +448,8 @@ export default function PublicCollectionDetail() {
         </Link>
       );
     } else if (item._type === "profile") {
+      const cardPosX = item.avatar_image?.card_position_x ?? 50;
+      const cardPosY = item.avatar_image?.card_position_y ?? 50;
       return (
         <Link
           key={item.id}
@@ -461,6 +463,9 @@ export default function PublicCollectionDetail() {
                   src={item.primary_image_url || item.avatar_image?.url}
                   alt={item.name}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  style={{
+                    objectPosition: `${cardPosX}% ${cardPosY}%`
+                  }}
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-gray-400">
