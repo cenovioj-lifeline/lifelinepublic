@@ -40,7 +40,7 @@ export default function ProfileEdit() {
         .from("profiles")
         .select(`
           *,
-          avatar_image:media_assets(id, url)
+          avatar_image:media_assets(id, url, position_x, position_y, scale, card_position_x, card_position_y, card_scale)
         `)
         .eq("id", id)
         .single();
