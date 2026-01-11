@@ -8,12 +8,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { X, ChevronLeft, ChevronRight, ArrowLeft, ArrowRight } from "lucide-react";
-import { 
-  categories, 
-  bookMeta, 
-  topics, 
-  getCardsByCategory, 
-  getTotalCardCount, 
+import {
+  categories,
+  bookMeta,
+  topics,
+  getCardsByCategory,
+  getTotalCardCount,
   getCardCountByCategory,
   type Card,
   type Topic
@@ -44,7 +44,7 @@ interface FilteredCard extends Card {
 
 export default function CollectionPitch() {
   const { slug } = useParams<{ slug: string }>();
-  
+
   // State
   const [currentView, setCurrentView] = useState<ViewType>('hub');
   const [currentTopic, setCurrentTopic] = useState<number | null>(null);
@@ -90,11 +90,11 @@ export default function CollectionPitch() {
     setFilteredCards(getCurrentCards());
   }, [getCurrentCards]);
 
-  // Keyboard navigation
+  // Keyboard navigation for mobile modal
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!modalOpen) return;
-      
+
       if (e.key === 'Escape') {
         setModalOpen(false);
       } else if (e.key === 'ArrowLeft' && currentCardIndex > 0) {
@@ -131,7 +131,8 @@ export default function CollectionPitch() {
     setCurrentTopic(null);
   };
 
-  const handleCardClick = (index: number) => {
+  // Mobile-only: card click opens modal
+  const handleMobileCardClick = (index: number) => {
     setCurrentCardIndex(index);
     setModalOpen(true);
   };
@@ -193,8 +194,8 @@ export default function CollectionPitch() {
       <div className="space-y-6">
         {/* Back button for topic/filtered view */}
         {currentView !== 'hub' && (
-          <Button 
-            variant="ghost" 
+          <Button
+            variant="ghost"
             onClick={handleBack}
             className="gap-2"
             style={{ color: 'hsl(var(--scheme-nav-bg))' }}
@@ -207,7 +208,7 @@ export default function CollectionPitch() {
         {/* Intro Section - only show on hub */}
         {currentView === 'hub' && (
           <div className="text-center py-8 max-w-2xl mx-auto">
-            <h2 
+            <h2
               className="text-3xl md:text-4xl font-bold mb-4"
               style={{ color: 'hsl(var(--scheme-nav-bg))' }}
             >
@@ -261,9 +262,9 @@ export default function CollectionPitch() {
 
         {/* Consolidated Banner - only show when filtered and on hub view */}
         {currentFilter !== 'all' && currentView === 'hub' && (
-          <div 
+          <div
             className="rounded-lg p-4 flex flex-col sm:flex-row items-center justify-between gap-4"
-            style={{ 
+            style={{
               backgroundColor: 'hsl(var(--scheme-card-bg))',
               borderLeft: '4px solid hsl(var(--scheme-nav-bg))'
             }}
@@ -276,9 +277,9 @@ export default function CollectionPitch() {
                 {categories[currentFilter as keyof typeof categories]?.desc}
               </p>
             </div>
-            <Button 
+            <Button
               onClick={handleViewFiltered}
-              style={{ 
+              style={{
                 backgroundColor: 'hsl(var(--scheme-nav-button))',
                 color: 'hsl(var(--scheme-dark-text))'
               }}
@@ -294,7 +295,7 @@ export default function CollectionPitch() {
             {bookMeta.map((book) => {
               const isMatching = currentFilter === 'all' || book.category === currentFilter;
               const topic = topics[book.num];
-              
+
               return (
                 <div
                   key={book.num}
@@ -315,7 +316,7 @@ export default function CollectionPitch() {
                       {book.num.toString().padStart(2, '0')}
                     </span>
                   </div>
-                  
+
                   {/* Content */}
                   <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/60 to-transparent">
                     <h3 className="text-white font-bold text-lg leading-tight mb-1">
@@ -336,11 +337,11 @@ export default function CollectionPitch() {
 
         {/* Topic View */}
         {currentView === 'topic' && currentTopic && (
-          <TopicView 
+          <TopicView
             topicNum={currentTopic}
             topic={topics[currentTopic]}
             bookColor={bookMeta.find(b => b.num === currentTopic)?.color || 'c1'}
-            onCardClick={handleCardClick}
+            onMobileCardClick={handleMobileCardClick}
             cards={filteredCards}
           />
         )}
@@ -350,11 +351,11 @@ export default function CollectionPitch() {
           <FilteredView
             categoryKey={currentFilter}
             cards={filteredCards}
-            onCardClick={handleCardClick}
+            onMobileCardClick={handleMobileCardClick}
           />
         )}
 
-        {/* Modal */}
+        {/* Modal - only used for mobile */}
         {modalOpen && filteredCards.length > 0 && (
           <CardModal
             cards={filteredCards}
@@ -374,11 +375,14 @@ interface TopicViewProps {
   topicNum: number;
   topic: Topic;
   bookColor: string;
-  onCardClick: (index: number) => void;
+  onMobileCardClick: (index: number) => void;
   cards: FilteredCard[];
 }
 
-function TopicView({ topicNum, topic, bookColor, onCardClick, cards }: TopicViewProps) {
+function TopicView({ topicNum, topic, bookColor, onMobileCardClick, cards }: TopicViewProps) {
+  const gradient = bookGradients[bookColor];
+  const primaryColor = gradient.match(/#[a-f0-9]{6}/i)?.[0] || '#2d5a4a';
+
   return (
     <div className="grid md:grid-cols-3 gap-8">
       {/* Main content */}
@@ -386,7 +390,7 @@ function TopicView({ topicNum, topic, bookColor, onCardClick, cards }: TopicView
         {/* Topic header */}
         <div>
           <p className="text-sm text-muted-foreground mb-1">Topic {topicNum} of 12</p>
-          <h2 
+          <h2
             className="text-3xl font-bold mb-2"
             style={{ color: 'hsl(var(--scheme-title-text))' }}
           >
@@ -394,22 +398,21 @@ function TopicView({ topicNum, topic, bookColor, onCardClick, cards }: TopicView
           </h2>
           <p className="text-lg text-muted-foreground">{topic.desc}</p>
           <p className="text-sm text-muted-foreground mt-2">
-            {topic.cards.length} sections • Tap any to read full content
+            {topic.cards.length} sections
           </p>
         </div>
 
-        {/* Cards - horizontal scroll on mobile, vertical on desktop */}
+        {/* Mobile: horizontal scroll with compact cards (click to expand in modal) */}
         <div className="md:hidden">
           <ScrollArea className="w-full whitespace-nowrap">
             <div className="flex gap-4 pb-4">
               {cards.map((card, index) => (
-                <TopicCard
+                <MobileCard
                   key={index}
                   card={card}
                   index={index}
                   bookColor={bookColor}
-                  onClick={() => onCardClick(index)}
-                  horizontal
+                  onClick={() => onMobileCardClick(index)}
                 />
               ))}
             </div>
@@ -417,14 +420,16 @@ function TopicView({ topicNum, topic, bookColor, onCardClick, cards }: TopicView
           </ScrollArea>
         </div>
 
-        <div className="hidden md:flex flex-col gap-4">
+        {/* Desktop: fully expanded cards - just scroll to read */}
+        <div className="hidden md:flex flex-col gap-6">
           {cards.map((card, index) => (
-            <TopicCard
+            <ExpandedCard
               key={index}
               card={card}
               index={index}
-              bookColor={bookColor}
-              onClick={() => onCardClick(index)}
+              primaryColor={primaryColor}
+              topicTitle={topic.title}
+              totalCards={cards.length}
             />
           ))}
         </div>
@@ -452,42 +457,99 @@ function TopicView({ topicNum, topic, bookColor, onCardClick, cards }: TopicView
   );
 }
 
-// Topic Card Component
-interface TopicCardProps {
+// Expanded Card Component - for desktop view (full content, no click needed)
+interface ExpandedCardProps {
+  card: FilteredCard;
+  index: number;
+  primaryColor: string;
+  topicTitle: string;
+  totalCards: number;
+}
+
+function ExpandedCard({ card, index, primaryColor, topicTitle, totalCards }: ExpandedCardProps) {
+  return (
+    <div
+      className="rounded-lg p-6"
+      style={{
+        backgroundColor: 'hsl(var(--scheme-card-bg))',
+        borderLeft: `4px solid ${primaryColor}`
+      }}
+    >
+      {/* Header */}
+      <div className="flex items-start gap-4 mb-4">
+        <div
+          className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold shrink-0"
+          style={{ backgroundColor: primaryColor }}
+        >
+          {index + 1}
+        </div>
+        <div className="flex-1">
+          <div className="flex justify-between items-start mb-1">
+            <h3
+              className="font-bold text-xl"
+              style={{ color: 'hsl(var(--scheme-title-text))' }}
+            >
+              {card.title}
+            </h3>
+            <Badge
+              variant="secondary"
+              className="text-xs shrink-0 ml-2"
+              style={{
+                backgroundColor: `${primaryColor}20`,
+                color: primaryColor
+              }}
+            >
+              {topics[card.topicNum]?.category}
+            </Badge>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Section {index + 1} of {totalCards} • {topicTitle}
+          </p>
+        </div>
+      </div>
+
+      {/* Full content - rendered as HTML */}
+      <div
+        className="prose prose-lg max-w-none"
+        style={{ color: 'hsl(var(--scheme-dark-text))' }}
+        dangerouslySetInnerHTML={{ __html: card.content }}
+      />
+    </div>
+  );
+}
+
+// Mobile Card Component - compact, click to open modal
+interface MobileCardProps {
   card: FilteredCard;
   index: number;
   bookColor: string;
   onClick: () => void;
-  horizontal?: boolean;
 }
 
-function TopicCard({ card, index, bookColor, onClick, horizontal }: TopicCardProps) {
+function MobileCard({ card, index, bookColor, onClick }: MobileCardProps) {
   const gradient = bookGradients[bookColor];
   const primaryColor = gradient.match(/#[a-f0-9]{6}/i)?.[0] || '#2d5a4a';
-  
+
   return (
     <div
       onClick={onClick}
-      className={`
-        rounded-lg p-4 cursor-pointer transition-all hover:shadow-lg
-        ${horizontal ? 'min-w-[280px] w-[280px]' : 'w-full'}
-      `}
-      style={{ 
+      className="min-w-[280px] w-[280px] rounded-lg p-4 cursor-pointer transition-all hover:shadow-lg"
+      style={{
         backgroundColor: 'hsl(var(--scheme-card-bg))',
         borderLeft: `4px solid ${primaryColor}`
       }}
     >
       <div className="flex justify-between items-start mb-2">
-        <h3 
+        <h3
           className="font-semibold"
           style={{ color: 'hsl(var(--scheme-title-text))' }}
         >
           {card.title}
         </h3>
-        <Badge 
-          variant="secondary" 
+        <Badge
+          variant="secondary"
           className="text-xs shrink-0"
-          style={{ 
+          style={{
             backgroundColor: `${primaryColor}20`,
             color: primaryColor
           }}
@@ -495,17 +557,17 @@ function TopicCard({ card, index, bookColor, onClick, horizontal }: TopicCardPro
           {topics[card.topicNum]?.category}
         </Badge>
       </div>
-      <p 
+      <p
         className="text-sm line-clamp-3 mb-3"
         style={{ color: 'hsl(var(--scheme-cards-text))' }}
       >
         {card.preview}
       </p>
-      <p 
+      <p
         className="text-sm font-medium"
         style={{ color: 'hsl(var(--scheme-nav-bg))' }}
       >
-        Read more →
+        Tap to read →
       </p>
     </div>
   );
@@ -515,16 +577,16 @@ function TopicCard({ card, index, bookColor, onClick, horizontal }: TopicCardPro
 interface FilteredViewProps {
   categoryKey: string;
   cards: FilteredCard[];
-  onCardClick: (index: number) => void;
+  onMobileCardClick: (index: number) => void;
 }
 
-function FilteredView({ categoryKey, cards, onCardClick }: FilteredViewProps) {
+function FilteredView({ categoryKey, cards, onMobileCardClick }: FilteredViewProps) {
   const category = categories[categoryKey as keyof typeof categories];
-  
+
   return (
     <div className="space-y-6">
       <div>
-        <h2 
+        <h2
           className="text-3xl font-bold mb-2"
           style={{ color: 'hsl(var(--scheme-title-text))' }}
         >
@@ -536,48 +598,43 @@ function FilteredView({ categoryKey, cards, onCardClick }: FilteredViewProps) {
         </p>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-4">
+      {/* Mobile: horizontal scroll with compact cards */}
+      <div className="md:hidden">
+        <ScrollArea className="w-full whitespace-nowrap">
+          <div className="flex gap-4 pb-4">
+            {cards.map((card, index) => {
+              const book = bookMeta.find(b => b.num === card.topicNum);
+              return (
+                <MobileCard
+                  key={`${card.topicNum}-${index}`}
+                  card={card}
+                  index={index}
+                  bookColor={book?.color || 'c1'}
+                  onClick={() => onMobileCardClick(index)}
+                />
+              );
+            })}
+          </div>
+          <ScrollBar orientation="horizontal" />
+        </ScrollArea>
+      </div>
+
+      {/* Desktop: fully expanded cards */}
+      <div className="hidden md:flex flex-col gap-6">
         {cards.map((card, index) => {
           const book = bookMeta.find(b => b.num === card.topicNum);
           const gradient = bookGradients[book?.color || 'c1'];
           const primaryColor = gradient.match(/#[a-f0-9]{6}/i)?.[0] || '#2d5a4a';
 
           return (
-            <div
+            <ExpandedCard
               key={`${card.topicNum}-${index}`}
-              onClick={() => onCardClick(index)}
-              className="rounded-lg p-4 cursor-pointer transition-all hover:shadow-lg"
-              style={{ 
-                backgroundColor: 'hsl(var(--scheme-card-bg))',
-                borderLeft: `4px solid ${primaryColor}`
-              }}
-            >
-              <div className="flex justify-between items-start mb-2">
-                <div>
-                  <p className="text-xs text-muted-foreground mb-1">
-                    From: {card.topicTitle}
-                  </p>
-                  <h3 
-                    className="font-semibold"
-                    style={{ color: 'hsl(var(--scheme-title-text))' }}
-                  >
-                    {card.title}
-                  </h3>
-                </div>
-              </div>
-              <p 
-                className="text-sm line-clamp-3 mb-3"
-                style={{ color: 'hsl(var(--scheme-cards-text))' }}
-              >
-                {card.preview}
-              </p>
-              <p 
-                className="text-sm font-medium"
-                style={{ color: 'hsl(var(--scheme-nav-bg))' }}
-              >
-                Read more →
-              </p>
-            </div>
+              card={card}
+              index={index}
+              primaryColor={primaryColor}
+              topicTitle={card.topicTitle}
+              totalCards={cards.length}
+            />
           );
         })}
       </div>
@@ -585,7 +642,7 @@ function FilteredView({ categoryKey, cards, onCardClick }: FilteredViewProps) {
   );
 }
 
-// Modal Component
+// Modal Component - only for mobile
 interface CardModalProps {
   cards: FilteredCard[];
   currentIndex: number;
@@ -615,7 +672,7 @@ function CardModal({ cards, currentIndex, onClose, onPrev, onNext }: CardModalPr
 
   const onTouchEnd = () => {
     if (!touchStart || !touchEnd) return;
-    
+
     const distance = touchStart - touchEnd;
     const isLeftSwipe = distance > minSwipeDistance;
     const isRightSwipe = distance < -minSwipeDistance;
@@ -629,7 +686,7 @@ function CardModal({ cards, currentIndex, onClose, onPrev, onNext }: CardModalPr
   };
 
   return (
-    <div 
+    <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
       style={{ backgroundColor: 'rgba(0, 0, 0, 0.92)' }}
       onClick={onClose}
@@ -645,7 +702,7 @@ function CardModal({ cards, currentIndex, onClose, onPrev, onNext }: CardModalPr
         >
           <ChevronLeft className="w-6 h-6" />
         </Button>
-        
+
         <Button
           variant="ghost"
           size="icon"
@@ -667,14 +724,14 @@ function CardModal({ cards, currentIndex, onClose, onPrev, onNext }: CardModalPr
       </div>
 
       {/* Content */}
-      <div 
+      <div
         className="bg-white rounded-xl max-w-[700px] w-full max-h-[80vh] overflow-y-auto p-6 md:p-8"
         onClick={e => e.stopPropagation()}
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
       >
-        <h2 
+        <h2
           className="text-2xl md:text-3xl font-bold mb-2"
           style={{ color: 'hsl(var(--scheme-nav-bg))' }}
         >
@@ -683,8 +740,8 @@ function CardModal({ cards, currentIndex, onClose, onPrev, onNext }: CardModalPr
         <p className="text-sm text-muted-foreground mb-6">
           Section {currentIndex + 1} of {cards.length} • {topic?.title}
         </p>
-        
-        <div 
+
+        <div
           className="prose prose-lg max-w-none"
           style={{ color: 'hsl(var(--scheme-dark-text))' }}
           dangerouslySetInnerHTML={{ __html: card.content }}
