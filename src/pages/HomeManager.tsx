@@ -449,11 +449,14 @@ export default function HomeManager() {
             />
           </div>
           <div className="space-y-4">
-            <Label>Hero Image (1920x480 recommended)</Label>
+            <Label>Hero Image (4:1)</Label>
+            <p className="text-xs text-muted-foreground">
+              Used on the home page header. Upload at 3840×960 or similar 4:1 ratio for best results.
+            </p>
             
             {heroImageUrl ? (
               <div className="space-y-2">
-                <div className="relative w-full rounded-lg overflow-hidden border" style={{ height: "240px" }}>
+                <div className="relative w-full rounded-lg overflow-hidden border aspect-[4/1]">
                   <img
                     src={heroImageUrl}
                     alt="Hero preview"
@@ -490,6 +493,7 @@ export default function HomeManager() {
             ) : (
               <DirectImageUpload
                 currentImageUrl={heroImageUrl || undefined}
+                viewType="banner"
                 onUploadComplete={(url, path) => {
                   setHeroImageUrl(url);
                   // Auto-save after upload
@@ -514,9 +518,6 @@ export default function HomeManager() {
               />
             )}
             
-            <div className="text-xs text-muted-foreground">
-              Hero image must be 1920x480 recommended
-            </div>
           </div>
           <Button onClick={() => updateSettings.mutate()}>
             Save Hero Settings
@@ -528,7 +529,7 @@ export default function HomeManager() {
               open={showCropPicker}
               onOpenChange={setShowCropPicker}
               onCropComplete={handleCropComplete}
-              aspectRatio={3}
+              aspectRatio={4}
               title="Adjust Hero Image Position"
             />
           )}
