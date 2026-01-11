@@ -221,30 +221,13 @@ export default function CollectionPitch() {
           </div>
         )}
 
-        {/* Filter Chips */}
-        <div className="flex flex-wrap gap-2 justify-center">
-          <Badge
-            variant={currentFilter === 'all' ? 'default' : 'outline'}
-            className="cursor-pointer px-4 py-2 text-sm transition-all"
-            style={currentFilter === 'all' ? {
-              backgroundColor: 'hsl(var(--scheme-nav-bg))',
-              color: 'hsl(var(--scheme-nav-text))',
-              borderColor: 'hsl(var(--scheme-nav-bg))'
-            } : {
-              backgroundColor: 'white',
-              color: 'hsl(var(--scheme-nav-bg))',
-              borderColor: 'hsl(var(--scheme-nav-bg))'
-            }}
-            onClick={() => handleFilterClick('all')}
-          >
-            All ({getTotalCardCount()})
-          </Badge>
-          {Object.entries(categories).map(([key, cat]) => (
+        {/* Filter Chips - only show on hub view */}
+        {currentView === 'hub' && (
+          <div className="flex flex-wrap gap-2 justify-center">
             <Badge
-              key={key}
-              variant={currentFilter === key ? 'default' : 'outline'}
+              variant={currentFilter === 'all' ? 'default' : 'outline'}
               className="cursor-pointer px-4 py-2 text-sm transition-all"
-              style={currentFilter === key ? {
+              style={currentFilter === 'all' ? {
                 backgroundColor: 'hsl(var(--scheme-nav-bg))',
                 color: 'hsl(var(--scheme-nav-text))',
                 borderColor: 'hsl(var(--scheme-nav-bg))'
@@ -253,12 +236,31 @@ export default function CollectionPitch() {
                 color: 'hsl(var(--scheme-nav-bg))',
                 borderColor: 'hsl(var(--scheme-nav-bg))'
               }}
-              onClick={() => handleFilterClick(key)}
+              onClick={() => handleFilterClick('all')}
             >
-              {cat.name} ({getCardCountByCategory(key)})
+              All ({getTotalCardCount()})
             </Badge>
-          ))}
-        </div>
+            {Object.entries(categories).map(([key, cat]) => (
+              <Badge
+                key={key}
+                variant={currentFilter === key ? 'default' : 'outline'}
+                className="cursor-pointer px-4 py-2 text-sm transition-all"
+                style={currentFilter === key ? {
+                  backgroundColor: 'hsl(var(--scheme-nav-bg))',
+                  color: 'hsl(var(--scheme-nav-text))',
+                  borderColor: 'hsl(var(--scheme-nav-bg))'
+                } : {
+                  backgroundColor: 'white',
+                  color: 'hsl(var(--scheme-nav-bg))',
+                  borderColor: 'hsl(var(--scheme-nav-bg))'
+                }}
+                onClick={() => handleFilterClick(key)}
+              >
+                {cat.name} ({getCardCountByCategory(key)})
+              </Badge>
+            ))}
+          </div>
+        )}
 
         {/* Consolidated Banner - only show when filtered and on hub view */}
         {currentFilter !== 'all' && currentView === 'hub' && (
@@ -291,7 +293,7 @@ export default function CollectionPitch() {
 
         {/* Hub View - Books Grid */}
         {currentView === 'hub' && (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 md:gap-6">
             {bookMeta.map((book) => {
               const isMatching = currentFilter === 'all' || book.category === currentFilter;
               const topic = topics[book.num];
@@ -310,16 +312,9 @@ export default function CollectionPitch() {
                     aspectRatio: '3/4'
                   }}
                 >
-                  {/* Number badge */}
-                  <div className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
-                    <span className="text-white text-sm font-bold">
-                      {book.num.toString().padStart(2, '0')}
-                    </span>
-                  </div>
-
                   {/* Content */}
-                  <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/60 to-transparent">
-                    <h3 className="text-white font-bold text-lg leading-tight mb-1">
+                  <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/70 to-transparent">
+                    <h3 className="text-white font-bold text-xl leading-tight mb-1">
                       {book.title}
                     </h3>
                     <p className="text-white/80 text-sm italic line-clamp-2">
