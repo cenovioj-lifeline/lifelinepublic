@@ -450,6 +450,9 @@ export default function PublicCollectionDetail() {
     } else if (item._type === "profile") {
       const cardPosX = item.avatar_image?.card_position_x ?? 50;
       const cardPosY = item.avatar_image?.card_position_y ?? 50;
+      const cardScale = item.avatar_image?.card_scale ?? 1;
+      // Prefer avatar_image.url (media asset) as it has the crop data
+      const imageUrl = item.avatar_image?.url ?? item.primary_image_url;
       return (
         <Link
           key={item.id}
@@ -458,13 +461,15 @@ export default function PublicCollectionDetail() {
         >
           <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
             <div className="aspect-video relative bg-white overflow-hidden">
-              {(item.primary_image_url || item.avatar_image?.url) ? (
+              {imageUrl ? (
                 <img
-                  src={item.primary_image_url || item.avatar_image?.url}
+                  src={imageUrl}
                   alt={item.name}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  className="w-full h-full object-cover"
                   style={{
-                    objectPosition: `${cardPosX}% ${cardPosY}%`
+                    objectPosition: `${cardPosX}% ${cardPosY}%`,
+                    transform: `scale(${cardScale})`,
+                    transformOrigin: `${cardPosX}% ${cardPosY}%`
                   }}
                 />
               ) : (

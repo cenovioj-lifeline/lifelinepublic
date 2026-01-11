@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { Pencil, Trash2, Square, RectangleHorizontal } from "lucide-react";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface ProfileImageEditorProps {
   profile: {
@@ -32,6 +33,7 @@ interface ProfileImageEditorProps {
 type CropMode = 'avatar' | 'card';
 
 export function ProfileImageEditor({ profile, onImageUpdate }: ProfileImageEditorProps) {
+  const queryClient = useQueryClient();
   const [showDialog, setShowDialog] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showCropPicker, setShowCropPicker] = useState(false);
@@ -43,6 +45,16 @@ export function ProfileImageEditor({ profile, onImageUpdate }: ProfileImageEdito
 
   const imageUrl = profile.avatar_image?.url || profile.primary_image_url;
   const isLegacyImage = profile.primary_image_url && !profile.avatar_image?.id;
+  
+  // Helper to invalidate all relevant caches after image updates
+  const invalidateProfileCaches = () => {
+    queryClient.invalidateQueries({ queryKey: ["profile"] });
+    queryClient.invalidateQueries({ queryKey: ["profiles"] });
+    queryClient.invalidateQueries({ queryKey: ["featuredItems"] });
+    queryClient.invalidateQueries({ queryKey: ["customSectionItems"] });
+    queryClient.invalidateQueries({ queryKey: ["recentProfiles"] });
+    queryClient.invalidateQueries({ queryKey: ["collection"] });
+  };
 
   const handleDelete = async () => {
     setIsProcessing(true);
@@ -81,6 +93,7 @@ export function ProfileImageEditor({ profile, onImageUpdate }: ProfileImageEdito
       toast.success("Image deleted successfully");
       setShowDeleteConfirm(false);
       setShowDialog(false);
+      invalidateProfileCaches();
       onImageUpdate?.();
     } catch (error) {
       console.error("Error deleting image:", error);
@@ -176,6 +189,7 @@ export function ProfileImageEditor({ profile, onImageUpdate }: ProfileImageEdito
       toast.success(`${cropMode === 'avatar' ? 'Avatar' : 'Card'} position updated`);
       setShowCropPicker(false);
       setShowDialog(false);
+      invalidateProfileCaches();
       onImageUpdate?.();
     } catch (error) {
       console.error("Error updating position:", error);
