@@ -1,7 +1,8 @@
 import { ContentTypeBanner } from "@/components/ContentTypeBanner";
 import { StandardizedContentCard } from "@/components/StandardizedContentCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Rss, FileQuestion, Share2, Settings } from "lucide-react";
+import { Rss, Share2, Settings } from "lucide-react";
+import { GrowIcon } from "@/components/icons/GrowIcon";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Link, useNavigate } from "react-router-dom";
 import { RequestLifelineDialog } from "@/components/RequestLifelineDialog";
@@ -27,10 +28,10 @@ export default function Home() {
   const { settings: homeSettings, featuredItems, newContentItems, isLoading } = useHomePageData();
 
   const quickActionCards = [
-    { icon: Rss, label: "Feed", onClick: () => navigate('/feed') },
-    { icon: FileQuestion, label: "Request", onClick: () => setRequestDialogOpen(true) },
-    { icon: Share2, label: "Share", onClick: () => setShareModalOpen(true) },
-    { icon: Settings, label: "Settings", onClick: () => setConstructionAlertOpen(true) },
+    { icon: Rss, label: "Feed", onClick: () => navigate('/feed'), isCustomIcon: false },
+    { icon: GrowIcon, label: "Grow", onClick: () => setRequestDialogOpen(true), isCustomIcon: true },
+    { icon: Share2, label: "Share", onClick: () => setShareModalOpen(true), isCustomIcon: false },
+    { icon: Settings, label: "Settings", onClick: () => setConstructionAlertOpen(true), isCustomIcon: false },
   ];
 
   // Unified loading state - show skeleton for entire page
@@ -108,7 +109,11 @@ export default function Home() {
               onClick={action.onClick}
             >
               <CardContent className="flex flex-col items-center justify-center p-3 md:p-6 gap-1 md:gap-2">
-                <Icon className="h-5 w-5 md:h-8 md:w-8 text-[hsl(var(--scheme-actions-icon))]" />
+                {action.isCustomIcon ? (
+                  <Icon className="h-5 w-5 md:h-8 md:w-8 text-[hsl(var(--scheme-actions-icon))]" />
+                ) : (
+                  <Icon className="h-5 w-5 md:h-8 md:w-8 text-[hsl(var(--scheme-actions-icon))]" />
+                )}
                 <span className="text-[10px] md:text-sm font-medium text-[hsl(var(--scheme-actions-text))]">{action.label}</span>
               </CardContent>
             </Card>
