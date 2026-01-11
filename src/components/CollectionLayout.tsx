@@ -122,14 +122,14 @@ export function CollectionLayout({
 
   // Build nav items based on collection flags
   const navItems = [
-    // Pitch nav item (first, when enabled)
-    ...(pitchEnabled
-      ? [{ label: "Pitch", icon: BookOpen, to: `/public/collections/${collectionSlug}/pitch` }]
-      : []
-    ),
-    // Home nav item (hidden when home_hidden is true)
+    // Home nav item (first, hidden when home_hidden is true)
     ...(!homeHidden
       ? [{ label: "Home", icon: Home, to: `/public/collections/${collectionSlug}` }]
+      : []
+    ),
+    // Pitch nav item (when enabled)
+    ...(pitchEnabled
+      ? [{ label: "Pitch", icon: BookOpen, to: `/public/collections/${collectionSlug}/pitch` }]
       : []
     ),
     { label: "Stories", icon: LifelineBookIcon, to: `/public/collections/${collectionSlug}/lifelines` },
