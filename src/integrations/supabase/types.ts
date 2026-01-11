@@ -1580,8 +1580,10 @@ export type Database = {
           created_at: string
           custom_section_name: string | null
           hero_image_id: string | null
+          hero_image_path: string | null
           hero_image_position_x: number | null
           hero_image_position_y: number | null
+          hero_image_url: string | null
           hero_subtitle: string | null
           hero_title: string | null
           id: string
@@ -1591,8 +1593,10 @@ export type Database = {
           created_at?: string
           custom_section_name?: string | null
           hero_image_id?: string | null
+          hero_image_path?: string | null
           hero_image_position_x?: number | null
           hero_image_position_y?: number | null
+          hero_image_url?: string | null
           hero_subtitle?: string | null
           hero_title?: string | null
           id?: string
@@ -1602,8 +1606,10 @@ export type Database = {
           created_at?: string
           custom_section_name?: string | null
           hero_image_id?: string | null
+          hero_image_path?: string | null
           hero_image_position_x?: number | null
           hero_image_position_y?: number | null
+          hero_image_url?: string | null
           hero_subtitle?: string | null
           hero_title?: string | null
           id?: string

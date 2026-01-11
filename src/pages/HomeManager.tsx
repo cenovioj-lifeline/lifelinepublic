@@ -90,6 +90,7 @@ export default function HomeManager() {
   const [heroSubtitle, setHeroSubtitle] = useState("");
   const [heroImageId, setHeroImageId] = useState<string | null>(null);
   const [heroImageUrl, setHeroImageUrl] = useState<string | null>(null);
+  const [heroImagePath, setHeroImagePath] = useState<string | null>(null);
   const [heroImagePosition, setHeroImagePosition] = useState({ x: 50, y: 50 });
   const [showCropPicker, setShowCropPicker] = useState(false);
   const [customSectionName, setCustomSectionName] = useState("New Content");
@@ -110,7 +111,9 @@ export default function HomeManager() {
       setHeroTitle(data.hero_title || "");
       setHeroSubtitle(data.hero_subtitle || "");
       setHeroImageId(data.hero_image_id);
-      setHeroImageUrl(data.hero_image?.url || null);
+      // Prefer hero_image_url column, fallback to media_asset relation
+      setHeroImageUrl((data as any).hero_image_url || data.hero_image?.url || null);
+      setHeroImagePath((data as any).hero_image_path || null);
       setHeroImagePosition({
         x: data.hero_image_position_x || 50,
         y: data.hero_image_position_y || 50,
@@ -496,10 +499,13 @@ export default function HomeManager() {
                 viewType="banner"
                 onUploadComplete={(url, path) => {
                   setHeroImageUrl(url);
-                  // Auto-save after upload
+                  setHeroImagePath(path);
+                  // Auto-save after upload - save URL and path to new columns
                   supabase
                     .from("home_page_settings")
                     .update({
+                      hero_image_url: url,
+                      hero_image_path: path,
                       hero_image_id: null,
                       hero_image_position_x: 50,
                       hero_image_position_y: 50,
@@ -513,6 +519,19 @@ export default function HomeManager() {
                 }}
                 onRemove={() => {
                   setHeroImageUrl(null);
+                  setHeroImagePath(null);
+                  // Clear from database
+                  supabase
+                    .from("home_page_settings")
+                    .update({
+                      hero_image_url: null,
+                      hero_image_path: null,
+                      hero_image_id: null,
+                    })
+                    .eq("id", settings?.id)
+                    .then(() => {
+                      queryClient.invalidateQueries({ queryKey: ["home-settings"] });
+                    });
                 }}
                 label="Upload Hero Image"
               />
