@@ -14,7 +14,7 @@ const labels: Record<string, string> = {
 export function ContentTypeBanner({ type, collectionSlug }: ContentTypeBannerProps) {
   // Custom banner text for specific collections
   const getBannerText = () => {
-    if (type === "collection" && collectionSlug === "lifeline-inc") {
+    if (type === "collection" && collectionSlug === "the-lifeline-story") {
       return "Investor Tour / Sales Pitch";
     }
     return labels[type] || type;
