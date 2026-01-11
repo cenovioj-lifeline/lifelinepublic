@@ -27,6 +27,7 @@ interface HomePageSettings {
   hero_image_position_x: number | null;
   hero_image_position_y: number | null;
   hero_image: { url: string; alt_text: string | null } | null;
+  hero_image_url: string | null;
   custom_section_name: string | null;
 }
 
@@ -132,7 +133,7 @@ export function useHomePageData() {
       const [settingsResult, featuredResult, newContentResult] = await Promise.all([
         supabase
           .from("home_page_settings")
-          .select(`*, hero_image:media_assets(url, alt_text)`)
+          .select(`*, hero_image_url, hero_image:media_assets(url, alt_text)`)
           .single(),
         supabase
           .from("home_page_featured_items")
@@ -165,9 +166,10 @@ export function useHomePageData() {
 
     const imageUrls: string[] = [];
 
-    // Hero image
-    if (data.settings?.hero_image?.url) {
-      imageUrls.push(data.settings.hero_image.url);
+    // Hero image - prefer hero_image_url, fallback to media_asset relation
+    const heroUrl = data.settings?.hero_image_url || data.settings?.hero_image?.url;
+    if (heroUrl) {
+      imageUrls.push(heroUrl);
     }
 
     // First 6 content images (featured + new content)

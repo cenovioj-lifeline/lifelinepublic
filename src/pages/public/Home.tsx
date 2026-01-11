@@ -74,10 +74,10 @@ export default function Home() {
     <div className="space-y-8">
       {/* Hero Section */}
       <div className="relative w-full rounded-lg overflow-hidden aspect-[4/1]">
-        {homeSettings?.hero_image?.url ? (
+        {(homeSettings?.hero_image_url || homeSettings?.hero_image?.url) ? (
           <img
-            src={homeSettings.hero_image.url}
-            alt={homeSettings.hero_image.alt_text || "Hero"}
+            src={homeSettings.hero_image_url || homeSettings.hero_image?.url}
+            alt={homeSettings.hero_image?.alt_text || "Hero"}
             className="w-full h-full object-cover"
             style={{
               objectPosition: `${homeSettings.hero_image_position_x || 50}% ${homeSettings.hero_image_position_y || 50}%`,
