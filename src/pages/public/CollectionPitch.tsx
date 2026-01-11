@@ -19,7 +19,15 @@ import {
   type Topic
 } from "@/data/pitchContent";
 
-// Book cover gradient styles
+// Category colors for book headers - professional, coordinated palette
+const categoryColors: Record<string, string> = {
+  vision: '#0f766e',   // Teal - matches site theme
+  product: '#1d4ed8',  // Blue - tech, product
+  business: '#b45309', // Amber - business, value
+  founder: '#6d28d9',  // Violet - personal, wisdom
+};
+
+// Book cover gradient styles (kept for topic view sidebar)
 const bookGradients: Record<string, string> = {
   c1: 'linear-gradient(135deg, #2d5a4a, #1a3a30)',
   c2: 'linear-gradient(135deg, #4a5568, #2d3748)',
@@ -246,13 +254,13 @@ export default function CollectionPitch() {
                 variant={currentFilter === key ? 'default' : 'outline'}
                 className="cursor-pointer px-4 py-2 text-sm transition-all"
                 style={currentFilter === key ? {
-                  backgroundColor: 'hsl(var(--scheme-nav-bg))',
-                  color: 'hsl(var(--scheme-nav-text))',
-                  borderColor: 'hsl(var(--scheme-nav-bg))'
+                  backgroundColor: categoryColors[key],
+                  color: 'white',
+                  borderColor: categoryColors[key]
                 } : {
                   backgroundColor: 'white',
-                  color: 'hsl(var(--scheme-nav-bg))',
-                  borderColor: 'hsl(var(--scheme-nav-bg))'
+                  color: categoryColors[key],
+                  borderColor: categoryColors[key]
                 }}
                 onClick={() => handleFilterClick(key)}
               >
@@ -268,7 +276,7 @@ export default function CollectionPitch() {
             className="rounded-lg p-4 flex flex-col sm:flex-row items-center justify-between gap-4"
             style={{
               backgroundColor: 'hsl(var(--scheme-card-bg))',
-              borderLeft: '4px solid hsl(var(--scheme-nav-bg))'
+              borderLeft: `4px solid ${categoryColors[currentFilter]}`
             }}
           >
             <div>
@@ -282,8 +290,8 @@ export default function CollectionPitch() {
             <Button
               onClick={handleViewFiltered}
               style={{
-                backgroundColor: 'hsl(var(--scheme-nav-button))',
-                color: 'hsl(var(--scheme-dark-text))'
+                backgroundColor: categoryColors[currentFilter],
+                color: 'white'
               }}
             >
               View all combined →
@@ -297,30 +305,38 @@ export default function CollectionPitch() {
             {bookMeta.map((book) => {
               const isMatching = currentFilter === 'all' || book.category === currentFilter;
               const topic = topics[book.num];
+              const headerColor = categoryColors[book.category] || '#0f766e';
 
               return (
                 <div
                   key={book.num}
                   onClick={() => handleBookClick(book.num)}
                   className={`
-                    relative cursor-pointer rounded-lg overflow-hidden transition-all duration-300
-                    hover:shadow-xl hover:-translate-y-1
+                    cursor-pointer rounded-lg overflow-hidden transition-all duration-300
+                    hover:shadow-xl hover:-translate-y-1 shadow-md
                     ${!isMatching ? 'opacity-30' : ''}
                   `}
-                  style={{
-                    background: bookGradients[book.color],
-                    aspectRatio: '3/4'
-                  }}
+                  style={{ aspectRatio: '3/4' }}
                 >
-                  {/* Content */}
-                  <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/70 to-transparent">
-                    <h3 className="text-white font-bold text-xl leading-tight mb-1">
+                  {/* Header - colored title section (40% height) */}
+                  <div 
+                    className="h-[40%] p-3 flex flex-col justify-start"
+                    style={{ backgroundColor: headerColor }}
+                  >
+                    <h3 className="text-white font-bold text-sm lg:text-base leading-tight text-left">
                       {book.title}
                     </h3>
-                    <p className="text-white/80 text-sm italic line-clamp-2">
+                  </div>
+                  
+                  {/* Body - light section with tagline at bottom (60% height) */}
+                  <div 
+                    className="h-[60%] p-3 flex flex-col justify-end border-x border-b border-gray-200"
+                    style={{ backgroundColor: '#f8f9fa' }}
+                  >
+                    <p className="text-gray-600 text-xs italic line-clamp-2 mb-2">
                       {book.tagline}
                     </p>
-                    <p className="text-white/60 text-xs mt-2">
+                    <p className="text-gray-400 text-xs">
                       {topic?.cards.length || 0} sections
                     </p>
                   </div>
@@ -336,6 +352,7 @@ export default function CollectionPitch() {
             topicNum={currentTopic}
             topic={topics[currentTopic]}
             bookColor={bookMeta.find(b => b.num === currentTopic)?.color || 'c1'}
+            bookCategory={bookMeta.find(b => b.num === currentTopic)?.category || 'vision'}
             onMobileCardClick={handleMobileCardClick}
             cards={filteredCards}
           />
@@ -370,13 +387,13 @@ interface TopicViewProps {
   topicNum: number;
   topic: Topic;
   bookColor: string;
+  bookCategory: string;
   onMobileCardClick: (index: number) => void;
   cards: FilteredCard[];
 }
 
-function TopicView({ topicNum, topic, bookColor, onMobileCardClick, cards }: TopicViewProps) {
-  const gradient = bookGradients[bookColor];
-  const primaryColor = gradient.match(/#[a-f0-9]{6}/i)?.[0] || '#2d5a4a';
+function TopicView({ topicNum, topic, bookColor, bookCategory, onMobileCardClick, cards }: TopicViewProps) {
+  const primaryColor = categoryColors[bookCategory] || '#0f766e';
 
   return (
     <div className="grid md:grid-cols-3 gap-8">
@@ -406,7 +423,7 @@ function TopicView({ topicNum, topic, bookColor, onMobileCardClick, cards }: Top
                   key={index}
                   card={card}
                   index={index}
-                  bookColor={bookColor}
+                  categoryColor={primaryColor}
                   onClick={() => onMobileCardClick(index)}
                 />
               ))}
@@ -435,16 +452,23 @@ function TopicView({ topicNum, topic, bookColor, onMobileCardClick, cards }: Top
         <div className="sticky top-24">
           <p className="text-sm text-muted-foreground mb-3">Source</p>
           <div
-            className="rounded-lg p-6 text-white"
-            style={{ background: bookGradients[bookColor] }}
+            className="rounded-lg overflow-hidden"
           >
-            <div className="text-5xl font-bold opacity-50 mb-4">
-              {topicNum.toString().padStart(2, '0')}
+            {/* Sidebar header matches book style */}
+            <div 
+              className="p-4"
+              style={{ backgroundColor: primaryColor }}
+            >
+              <div className="text-4xl font-bold text-white/50 mb-2">
+                {topicNum.toString().padStart(2, '0')}
+              </div>
+              <h3 className="font-bold text-lg text-white">{topic.title}</h3>
             </div>
-            <h3 className="font-bold text-xl">{topic.title}</h3>
-            <p className="text-sm opacity-80 italic mt-2">
-              {bookMeta.find(b => b.num === topicNum)?.tagline}
-            </p>
+            <div className="p-4 bg-gray-50 border-x border-b border-gray-200">
+              <p className="text-sm text-gray-600 italic">
+                {bookMeta.find(b => b.num === topicNum)?.tagline}
+              </p>
+            </div>
           </div>
         </div>
       </div>
@@ -517,21 +541,18 @@ function ExpandedCard({ card, index, primaryColor, topicTitle, totalCards }: Exp
 interface MobileCardProps {
   card: FilteredCard;
   index: number;
-  bookColor: string;
+  categoryColor: string;
   onClick: () => void;
 }
 
-function MobileCard({ card, index, bookColor, onClick }: MobileCardProps) {
-  const gradient = bookGradients[bookColor];
-  const primaryColor = gradient.match(/#[a-f0-9]{6}/i)?.[0] || '#2d5a4a';
-
+function MobileCard({ card, index, categoryColor, onClick }: MobileCardProps) {
   return (
     <div
       onClick={onClick}
       className="min-w-[280px] w-[280px] rounded-lg p-4 cursor-pointer transition-all hover:shadow-lg"
       style={{
         backgroundColor: 'hsl(var(--scheme-card-bg))',
-        borderLeft: `4px solid ${primaryColor}`
+        borderLeft: `4px solid ${categoryColor}`
       }}
     >
       <div className="flex justify-between items-start mb-2">
@@ -545,8 +566,8 @@ function MobileCard({ card, index, bookColor, onClick }: MobileCardProps) {
           variant="secondary"
           className="text-xs shrink-0"
           style={{
-            backgroundColor: `${primaryColor}20`,
-            color: primaryColor
+            backgroundColor: `${categoryColor}20`,
+            color: categoryColor
           }}
         >
           {topics[card.topicNum]?.category}
@@ -560,7 +581,7 @@ function MobileCard({ card, index, bookColor, onClick }: MobileCardProps) {
       </p>
       <p
         className="text-sm font-medium"
-        style={{ color: 'hsl(var(--scheme-nav-bg))' }}
+        style={{ color: categoryColor }}
       >
         Tap to read →
       </p>
@@ -577,6 +598,7 @@ interface FilteredViewProps {
 
 function FilteredView({ categoryKey, cards, onMobileCardClick }: FilteredViewProps) {
   const category = categories[categoryKey as keyof typeof categories];
+  const categoryColor = categoryColors[categoryKey] || '#0f766e';
 
   return (
     <div className="space-y-6">
@@ -599,12 +621,13 @@ function FilteredView({ categoryKey, cards, onMobileCardClick }: FilteredViewPro
           <div className="flex gap-4 pb-4">
             {cards.map((card, index) => {
               const book = bookMeta.find(b => b.num === card.topicNum);
+              const cardColor = categoryColors[book?.category || 'vision'];
               return (
                 <MobileCard
                   key={`${card.topicNum}-${index}`}
                   card={card}
                   index={index}
-                  bookColor={book?.color || 'c1'}
+                  categoryColor={cardColor}
                   onClick={() => onMobileCardClick(index)}
                 />
               );
@@ -618,8 +641,7 @@ function FilteredView({ categoryKey, cards, onMobileCardClick }: FilteredViewPro
       <div className="hidden md:flex flex-col gap-6">
         {cards.map((card, index) => {
           const book = bookMeta.find(b => b.num === card.topicNum);
-          const gradient = bookGradients[book?.color || 'c1'];
-          const primaryColor = gradient.match(/#[a-f0-9]{6}/i)?.[0] || '#2d5a4a';
+          const primaryColor = categoryColors[book?.category || 'vision'];
 
           return (
             <ExpandedCard
@@ -649,6 +671,8 @@ interface CardModalProps {
 function CardModal({ cards, currentIndex, onClose, onPrev, onNext }: CardModalProps) {
   const card = cards[currentIndex];
   const topic = topics[card.topicNum];
+  const book = bookMeta.find(b => b.num === card.topicNum);
+  const categoryColor = categoryColors[book?.category || 'vision'];
 
   // Handle swipe
   const [touchStart, setTouchStart] = useState<number | null>(null);
@@ -728,7 +752,7 @@ function CardModal({ cards, currentIndex, onClose, onPrev, onNext }: CardModalPr
       >
         <h2
           className="text-2xl md:text-3xl font-bold mb-2"
-          style={{ color: 'hsl(var(--scheme-nav-bg))' }}
+          style={{ color: categoryColor }}
         >
           {card.title}
         </h2>
