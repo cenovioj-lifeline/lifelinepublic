@@ -780,26 +780,37 @@ export default function PublicCollectionDetail() {
                   </Link>
                 </div>
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                  {recentProfiles.map((profile: any) => (
-                    <Link
-                      key={profile.id}
-                      to={`/public/collections/${collection.slug}/profiles/${profile.slug}`}
-                      className="group"
-                    >
-                      <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
-                        <div className="aspect-video relative bg-white overflow-hidden">
-                          {(profile.primary_image_url || profile.avatar_image?.url) ? (
-                            <img
-                              src={profile.primary_image_url || profile.avatar_image?.url}
-                              alt={profile.name}
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center text-gray-400">
-                              No image
-                            </div>
-                          )}
-                        </div>
+                  {recentProfiles.map((profile: any) => {
+                    const cardPosX = profile.avatar_image?.card_position_x ?? 50;
+                    const cardPosY = profile.avatar_image?.card_position_y ?? 50;
+                    const cardScale = profile.avatar_image?.card_scale ?? 1;
+                    const imageUrl = profile.avatar_image?.url ?? profile.primary_image_url;
+                    
+                    return (
+                      <Link
+                        key={profile.id}
+                        to={`/public/collections/${collection.slug}/profiles/${profile.slug}`}
+                        className="group"
+                      >
+                        <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
+                          <div className="aspect-video relative bg-white overflow-hidden">
+                            {imageUrl ? (
+                              <img
+                                src={imageUrl}
+                                alt={profile.name}
+                                className="w-full h-full object-cover"
+                                style={{
+                                  objectPosition: `${cardPosX}% ${cardPosY}%`,
+                                  transform: `scale(${cardScale})`,
+                                  transformOrigin: `${cardPosX}% ${cardPosY}%`
+                                }}
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-gray-400">
+                                No image
+                              </div>
+                            )}
+                          </div>
                         <ContentTypeBanner type="profile" />
                         <CardHeader className="bg-[hsl(var(--scheme-card-bg))]">
                           <CardTitle className="text-lg transition-colors text-[hsl(var(--scheme-card-text))]">
@@ -811,9 +822,10 @@ export default function PublicCollectionDetail() {
                             {profile.short_description || "View this profile"}
                           </p>
                         </CardContent>
-                      </Card>
-                    </Link>
-                  ))}
+                        </Card>
+                      </Link>
+                    );
+                  })}
                 </div>
               </section>
             )}

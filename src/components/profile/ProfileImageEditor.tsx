@@ -48,11 +48,16 @@ export function ProfileImageEditor({ profile, onImageUpdate }: ProfileImageEdito
   
   // Helper to invalidate all relevant caches after image updates
   const invalidateProfileCaches = () => {
+    // Admin/editor pages
     queryClient.invalidateQueries({ queryKey: ["profile"] });
     queryClient.invalidateQueries({ queryKey: ["profiles"] });
-    queryClient.invalidateQueries({ queryKey: ["featuredItems"] });
-    queryClient.invalidateQueries({ queryKey: ["customSectionItems"] });
-    queryClient.invalidateQueries({ queryKey: ["recentProfiles"] });
+    // Public collection pages - these are the actual query keys used
+    queryClient.invalidateQueries({ queryKey: ["collection-featured-items"] });
+    queryClient.invalidateQueries({ queryKey: ["collection-custom-section-items"] });
+    queryClient.invalidateQueries({ queryKey: ["collection-recent-profiles"] });
+    queryClient.invalidateQueries({ queryKey: ["collection-profiles"] });
+    queryClient.invalidateQueries({ queryKey: ["public-profiles"] });
+    queryClient.invalidateQueries({ queryKey: ["profile-data"] });
     queryClient.invalidateQueries({ queryKey: ["collection"] });
   };
 
