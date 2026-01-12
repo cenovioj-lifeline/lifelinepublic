@@ -10,7 +10,6 @@ import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
 import { AdminLayout } from "./components/AdminLayout";
 import { PublicLayout } from "./components/PublicLayout";
-import { CollectionLayout } from "./components/CollectionLayout";
 import Collections from "./pages/Collections";
 import CollectionEdit from "./pages/CollectionEdit";
 import Lifelines from "./pages/Lifelines";
@@ -28,8 +27,6 @@ import Settings from "./pages/Settings";
 import LifelineColorEditor from "./pages/LifelineColorEditor";
 import LoadLifelines from "./pages/LoadLifelines";
 import Home from "./pages/public/Home";
-import HomePrototype from "./pages/public/HomePrototype";
-import ProfilePrototype from "./pages/public/ProfilePrototype";
 import PublicLifelines from "./pages/public/PublicLifelines";
 import PublicLifelineDetail from "./pages/public/PublicLifelineDetail";
 import PublicCollections from "./pages/public/PublicCollections";
@@ -39,8 +36,6 @@ import CollectionLifelines from "./pages/public/CollectionLifelines";
 import CollectionProfiles from "./pages/public/CollectionProfiles";
 import CollectionElections from "./pages/public/CollectionElections";
 import CollectionSettings from "./pages/public/CollectionSettings";
-import CollectionMedia from "./pages/public/CollectionMedia";
-import CollectionPitch from "./pages/public/CollectionPitch";
 import PublicProfiles from "./pages/public/PublicProfiles";
 import PublicProfileDetail from "./pages/public/PublicProfileDetail";
 import BookDetailPage from "./pages/public/BookDetailPage";
@@ -56,29 +51,20 @@ import PublicMore from "./pages/public/PublicMore";
 import CollectionMore from "./pages/public/CollectionMore";
 import CollectionQuotes from "./pages/public/CollectionQuotes";
 import CollectionMembers from "./pages/public/CollectionMembers";
-import CollectionClaim from "./pages/public/CollectionClaim";
 import HomeManager from "./pages/HomeManager";
 import PublicLifelinesGrid from "./pages/public/PublicLifelinesGrid";
 import PublicCollectionsGrid from "./pages/public/PublicCollectionsGrid";
 import UserRequests from "./pages/UserRequests";
-import OwnershipRequests from "./pages/OwnershipRequests";
 import ColorSchemes from "./pages/ColorSchemes";
 import ColorSchemeEdit from "./pages/ColorSchemeEdit";
+import ActionCards from "./pages/ActionCards";
+import ActionCardEdit from "./pages/ActionCardEdit";
 import TestImageImport from "./pages/TestImageImport";
 import ImportNewsImages from "./pages/ImportNewsImages";
 import LifelineImageManager from "./pages/LifelineImageManager";
 import Feed from "./pages/public/Feed";
 import FeedSetup from "./pages/public/FeedSetup";
 import CollectionReport from "./pages/CollectionReport";
-// Collection Management Pages
-import CollectionManageOverview from "./pages/manage/CollectionManageOverview";
-import CollectionManageLifelines from "./pages/manage/CollectionManageLifelines";
-import CollectionManageProfiles from "./pages/manage/CollectionManageProfiles";
-import CollectionManageQuotes from "./pages/manage/CollectionManageQuotes";
-import CollectionManageSettings from "./pages/manage/CollectionManageSettings";
-import CollectionManageMER from "./pages/manage/CollectionManageMER";
-import CollectionManageTeam from "./pages/manage/CollectionManageTeam";
-import CollectionManageEntries from "./pages/manage/CollectionManageEntries";
 
 const queryClient = new QueryClient();
 
@@ -94,19 +80,6 @@ function AppContent() {
             {/* Public Routes */}
           <Route path="/" element={<PublicLayout><Home /></PublicLayout>} />
           <Route path="/home" element={<Navigate to="/" replace />} />
-          <Route path="/prototype/home" element={<PublicLayout><HomePrototype /></PublicLayout>} />
-                <Route 
-                  path="/prototype/profile" 
-                  element={
-                    <CollectionLayout 
-                      collectionTitle="Prof G Media" 
-                      collectionSlug="prof-g-media" 
-                      collectionId="357ef542-1127-45e2-9174-841f85be6499"
-                    >
-                      <ProfilePrototype />
-                    </CollectionLayout>
-                  } 
-                />
           <Route path="/public/lifelines" element={<PublicLayout><PublicLifelinesGrid /></PublicLayout>} />
           <Route path="/public/lifelines/:slug" element={<PublicLifelineDetail />} />
           <Route path="/public/collections" element={<PublicLayout><PublicCollections /></PublicLayout>} />
@@ -114,8 +87,6 @@ function AppContent() {
           <Route path="/public/collections/:slug" element={<PublicCollectionDetail />} />
           <Route path="/public/collections/:slug/feed" element={<CollectionFeed />} />
           <Route path="/public/collections/:slug/settings" element={<CollectionSettings />} />
-          <Route path="/public/collections/:slug/media" element={<CollectionMedia />} />
-          <Route path="/public/collections/:slug/pitch" element={<CollectionPitch />} />
             <Route path="/public/collections/:slug/lifelines" element={<CollectionLifelines />} />
             <Route path="/public/collections/:collectionSlug/lifelines/:lifelineSlug" element={<CollectionLifelineDetail />} />
           <Route path="/public/collections/:slug/profiles" element={<CollectionProfiles />} />
@@ -125,16 +96,6 @@ function AppContent() {
             <Route path="/public/collections/:slug/contributors" element={<TopContributors />} />
             <Route path="/public/collections/:slug/quotes" element={<CollectionQuotes />} />
             <Route path="/public/collections/:slug/members" element={<CollectionMembers />} />
-            <Route path="/public/collections/:slug/claim" element={<CollectionClaim />} />
-            {/* Collection Management Routes */}
-            <Route path="/public/collections/:slug/manage" element={<CollectionManageOverview />} />
-            <Route path="/public/collections/:slug/manage/lifelines" element={<CollectionManageLifelines />} />
-            <Route path="/public/collections/:slug/manage/lifelines/:lifelineId/entries" element={<CollectionManageEntries />} />
-            <Route path="/public/collections/:slug/manage/profiles" element={<CollectionManageProfiles />} />
-            <Route path="/public/collections/:slug/manage/quotes" element={<CollectionManageQuotes />} />
-            <Route path="/public/collections/:slug/manage/settings" element={<CollectionManageSettings />} />
-            <Route path="/public/collections/:slug/manage/mer" element={<CollectionManageMER />} />
-            <Route path="/public/collections/:slug/manage/team" element={<CollectionManageTeam />} />
           <Route path="/public/profiles" element={<PublicLayout><PublicProfiles /></PublicLayout>} />
           <Route path="/public/elections" element={<PublicLayout><PublicElections /></PublicLayout>} />
           <Route path="/public/elections/:slug" element={<PublicElectionDetail />} />
@@ -363,16 +324,6 @@ function AppContent() {
               }
             />
             <Route
-              path="/ownership-requests"
-              element={
-                <ProtectedRoute>
-                  <AdminLayout>
-                    <OwnershipRequests />
-                  </AdminLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
               path="/admin/color-schemes"
               element={
                 <ProtectedRoute>
@@ -385,6 +336,22 @@ function AppContent() {
               element={
                 <ProtectedRoute>
                   <ColorSchemeEdit />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/action-cards"
+              element={
+                <ProtectedRoute>
+                  <ActionCards />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/action-cards/:id"
+              element={
+                <ProtectedRoute>
+                  <ActionCardEdit />
                 </ProtectedRoute>
               }
             />
