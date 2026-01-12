@@ -65,6 +65,7 @@ import LifelineImageManager from "./pages/LifelineImageManager";
 import Feed from "./pages/public/Feed";
 import FeedSetup from "./pages/public/FeedSetup";
 import CollectionReport from "./pages/CollectionReport";
+import CollectionPitch from "./pages/public/CollectionPitch";
 
 const queryClient = new QueryClient();
 
@@ -107,6 +108,7 @@ function AppContent() {
           <Route path="/top-contributors" element={<PublicLayout><TopContributors /></PublicLayout>} />
           <Route path="/public/more" element={<PublicLayout><PublicMore /></PublicLayout>} />
           <Route path="/public/collections/:slug/more" element={<CollectionMore />} />
+          <Route path="/public/collections/:slug/pitch" element={<CollectionPitch />} />
           <Route path="/public/contributors" element={<PublicLayout><TopContributors /></PublicLayout>} />
             <Route path="/feed" element={<Feed />} />
             <Route path="/feed/setup" element={<PublicLayout><FeedSetup /></PublicLayout>} />
