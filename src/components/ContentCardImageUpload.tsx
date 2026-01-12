@@ -36,10 +36,10 @@ interface ContentCardImageUploadProps {
 }
 
 // Map content types to their database tables and image columns
-const contentTypeConfig: Record<ContentType, { table: string; imageColumn: string }> = {
-  election: { table: "mock_elections", imageColumn: "hero_image_url" },
-  quote: { table: "quotes", imageColumn: "image_url" },
-};
+const contentTypeConfig = {
+  election: { table: "mock_elections" as const, imageColumn: "hero_image_url" },
+  quote: { table: "collection_quotes" as const, imageColumn: "image_url" },
+} satisfies Record<ContentType, { table: "mock_elections" | "collection_quotes"; imageColumn: string }>;
 
 export function ContentCardImageUpload({
   contentType,
