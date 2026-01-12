@@ -15,6 +15,7 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 import { FavoriteButton } from "@/components/FavoriteButton";
 import { lifelineLink } from "@/lib/navigationLinks";
 import { fetchColorScheme } from "@/hooks/useColorScheme";
+import { ContentCardImageUpload } from "@/components/ContentCardImageUpload";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -327,6 +328,12 @@ export default function PublicCollectionDetail() {
     enabled: !!collection?.id,
   });
 
+  // Helper to invalidate content queries after image upload
+  const handleImageUploadComplete = () => {
+    queryClient.invalidateQueries({ queryKey: ["collection-featured-items", collection?.id] });
+    queryClient.invalidateQueries({ queryKey: ["collection-custom-section-items", collection?.id] });
+  };
+
   if (collectionLoading) {
     return (
       <CollectionLayout collectionTitle="Loading..." collectionSlug={slug || ""}>
@@ -428,8 +435,13 @@ export default function PublicCollectionDetail() {
                   }}
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-gray-400">
+                <div className="w-full h-full flex items-center justify-center text-gray-400 relative">
                   No image
+                  <ContentCardImageUpload
+                    contentType="election"
+                    contentId={item.id}
+                    onUploadComplete={handleImageUploadComplete}
+                  />
                 </div>
               )}
             </div>
