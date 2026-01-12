@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowRight, Share2, Rss, Users, Settings } from "lucide-react";
+import * as LucideIcons from "lucide-react";
 import { CollectionShareModal } from "@/components/CollectionShareModal";
 import { JoinCommunityDialog } from "@/components/JoinCommunityDialog";
 import { useState, useEffect } from "react";
@@ -27,6 +28,24 @@ import {
 } from "@/components/ui/alert-dialog";
 
 import { ContentTypeBanner } from "@/components/ContentTypeBanner";
+
+// Dynamic icon component for action cards
+const DynamicIcon = ({ name, className }: { name: string | null; className?: string }) => {
+  if (!name) return null;
+  const Icon = (LucideIcons as any)[name];
+  if (!Icon) return null;
+  return <Icon className={className} />;
+};
+
+// Define action card type
+interface ActionCardData {
+  id: string;
+  slug: string;
+  name: string;
+  icon_name: string | null;
+  icon_url: string | null;
+  label_override?: string | null;
+}
 
 export default function PublicCollectionDetail() {
   const { slug } = useParams<{ slug: string }>();
@@ -72,6 +91,50 @@ export default function PublicCollectionDetail() {
       });
     }
   }, [collection?.id, queryClient]);
+
+  // Fetch action cards for this collection (custom or defaults)
+  const { data: actionCards } = useQuery({
+    queryKey: ["collection-action-cards-display", collection?.id],
+    queryFn: async () => {
+      if (!collection?.id) return [];
+
+      // First try to get custom cards for this collection
+      const { data: customCards, error: customError } = await supabase
+        .from("collection_action_cards")
+        .select(`
+          id,
+          label_override,
+          action_card:action_cards(id, slug, name, icon_name, icon_url)
+        `)
+        .eq("collection_id", collection.id)
+        .eq("is_enabled", true)
+        .order("display_order");
+
+      if (!customError && customCards && customCards.length > 0) {
+        // Return custom cards with label overrides
+        return customCards.map((cc: any) => ({
+          id: cc.action_card.id,
+          slug: cc.action_card.slug,
+          name: cc.action_card.name,
+          icon_name: cc.action_card.icon_name,
+          icon_url: cc.action_card.icon_url,
+          label_override: cc.label_override,
+        })) as ActionCardData[];
+      }
+
+      // Fall back to default cards
+      const { data: defaultCards, error: defaultError } = await supabase
+        .from("action_cards")
+        .select("id, slug, name, icon_name, icon_url")
+        .eq("is_default", true)
+        .eq("status", "active")
+        .order("default_order");
+
+      if (defaultError) throw defaultError;
+      return (defaultCards || []) as ActionCardData[];
+    },
+    enabled: !!collection?.id,
+  });
 
   const { data: stats } = useQuery({
     queryKey: ["collection-stats", collection?.id],
@@ -334,6 +397,64 @@ export default function PublicCollectionDetail() {
     queryClient.invalidateQueries({ queryKey: ["collection-custom-section-items", collection?.id] });
   };
 
+  // Handle action card click based on slug
+  const handleActionCardClick = (card: ActionCardData) => {
+    switch (card.slug) {
+      case "feed":
+        setConstructionAlertOpen(true);
+        break;
+      case "share":
+        setShareModalOpen(true);
+        break;
+      case "members":
+        setJoinDialogOpen(true);
+        break;
+      case "settings":
+        navigate(`/public/collections/${collection?.slug}/settings`);
+        break;
+      default:
+        // For unimplemented cards, show construction alert
+        setConstructionAlertOpen(true);
+        break;
+    }
+  };
+
+  // Render dynamic icon for action card
+  const renderActionCardIcon = (card: ActionCardData, className: string) => {
+    if (card.icon_url) {
+      return <img src={card.icon_url} alt="" className={className} />;
+    }
+    if (card.icon_name) {
+      return <DynamicIcon name={card.icon_name} className={className} />;
+    }
+    // Fallback icons based on slug
+    switch (card.slug) {
+      case "feed":
+        return <Rss className={className} />;
+      case "share":
+        return <Share2 className={className} />;
+      case "members":
+        return <Users className={className} />;
+      case "settings":
+        return <Settings className={className} />;
+      default:
+        return null;
+    }
+  };
+
+  // Get display label for action card
+  const getActionCardLabel = (card: ActionCardData): string => {
+    // Use label override if set
+    if (card.label_override) {
+      return card.label_override;
+    }
+    // Special handling for members to show count
+    if (card.slug === "members") {
+      return `${memberCount || 0} Members`;
+    }
+    return card.name;
+  };
+
   if (collectionLoading) {
     return (
       <CollectionLayout collectionTitle="Loading..." collectionSlug={slug || ""}>
@@ -590,62 +711,32 @@ export default function PublicCollectionDetail() {
           )}
         </div>
 
-        {/* Action Cards */}
-        <div className="grid grid-cols-4 gap-2 md:gap-4">
-          <Card
-            className="cursor-pointer hover:shadow-lg transition-shadow"
-            style={{ backgroundColor: 'hsl(var(--scheme-actions-bg))', borderColor: 'hsl(var(--scheme-actions-border))' }}
-            onClick={() => setConstructionAlertOpen(true)}
-          >
-            <CardContent className="p-3 md:p-6 text-center">
-              <Rss
-                className="h-5 w-5 md:h-8 md:w-8 mx-auto mb-1 md:mb-2"
-                style={{ color: 'hsl(var(--scheme-actions-icon))' }}
-              />
-              <div className="text-[10px] md:text-sm mt-1" style={{ color: 'hsl(var(--scheme-actions-text))' }}>Feed</div>
-            </CardContent>
-          </Card>
-          <Card
-            className="cursor-pointer hover:shadow-lg transition-shadow"
-            style={{ backgroundColor: 'hsl(var(--scheme-ch-actions-bg))', borderColor: 'hsl(var(--scheme-ch-actions-border))' }}
-            onClick={() => setShareModalOpen(true)}
-          >
-            <CardContent className="p-3 md:p-6 text-center">
-              <Share2
-                className="h-5 w-5 md:h-8 md:w-8 mx-auto mb-1 md:mb-2"
-                style={{ color: 'hsl(var(--scheme-ch-actions-icon))' }}
-              />
-              <div className="text-[10px] md:text-sm mt-1" style={{ color: 'hsl(var(--scheme-ch-actions-text))' }}>Share</div>
-            </CardContent>
-          </Card>
-          <Card
-            className="cursor-pointer hover:shadow-lg transition-shadow"
-            style={{ backgroundColor: 'hsl(var(--scheme-ch-actions-bg))', borderColor: 'hsl(var(--scheme-ch-actions-border))' }}
-            onClick={() => setJoinDialogOpen(true)}
-          >
-            <CardContent className="p-3 md:p-6 text-center">
-              <Users
-                className="h-5 w-5 md:h-8 md:w-8 mx-auto mb-1 md:mb-2"
-                style={{ color: 'hsl(var(--scheme-ch-actions-icon))' }}
-              />
-              <div className="text-[10px] md:text-sm mt-1" style={{ color: 'hsl(var(--scheme-ch-actions-text))' }}>
-                {memberCount || 0} Members
-              </div>
-            </CardContent>
-          </Card>
-          <Card
-            className="cursor-pointer hover:shadow-lg transition-shadow"
-            style={{ backgroundColor: 'hsl(var(--scheme-ch-actions-bg))', borderColor: 'hsl(var(--scheme-ch-actions-border))' }}
-            onClick={() => navigate(`/public/collections/${collection.slug}/settings`)}
-          >
-            <CardContent className="p-3 md:p-6 text-center">
-              <Settings
-                className="h-5 w-5 md:h-8 md:w-8 mx-auto mb-1 md:mb-2"
-                style={{ color: 'hsl(var(--scheme-ch-actions-icon))' }}
-              />
-              <div className="text-[10px] md:text-sm mt-1" style={{ color: 'hsl(var(--scheme-ch-actions-text))' }}>Settings</div>
-            </CardContent>
-          </Card>
+        {/* Dynamic Action Cards */}
+        <div className={`grid gap-2 md:gap-4`} style={{ gridTemplateColumns: `repeat(${actionCards?.length || 4}, minmax(0, 1fr))` }}>
+          {actionCards && actionCards.map((card, index) => (
+            <Card
+              key={card.id}
+              className="cursor-pointer hover:shadow-lg transition-shadow"
+              style={{ 
+                backgroundColor: index === 0 ? 'hsl(var(--scheme-actions-bg))' : 'hsl(var(--scheme-ch-actions-bg))', 
+                borderColor: index === 0 ? 'hsl(var(--scheme-actions-border))' : 'hsl(var(--scheme-ch-actions-border))' 
+              }}
+              onClick={() => handleActionCardClick(card)}
+            >
+              <CardContent className="p-3 md:p-6 text-center">
+                {renderActionCardIcon(
+                  card, 
+                  `h-5 w-5 md:h-8 md:w-8 mx-auto mb-1 md:mb-2`
+                )}
+                <div 
+                  className="text-[10px] md:text-sm mt-1" 
+                  style={{ color: index === 0 ? 'hsl(var(--scheme-actions-text))' : 'hsl(var(--scheme-ch-actions-text))' }}
+                >
+                  {getActionCardLabel(card)}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
 
         {/* Featured Content */}
