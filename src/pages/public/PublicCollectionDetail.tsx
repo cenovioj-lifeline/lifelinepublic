@@ -822,19 +822,19 @@ export default function PublicCollectionDetail() {
                                 No image
                               </div>
                             )}
-                          </div>
-                        <ContentTypeBanner type="profile" />
-                        <CardHeader className="bg-[hsl(var(--scheme-card-bg))]">
-                          <CardTitle className="text-lg transition-colors text-[hsl(var(--scheme-card-text))]">
-                            {profile.name}
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent className="bg-[hsl(var(--scheme-card-bg))]">
-                          <p className="text-sm line-clamp-2 text-[hsl(var(--scheme-cards-text))]">
-                            {profile.short_description || "View this profile"}
-                          </p>
-                        </CardContent>
-                        </Card>
+                            </div>
+                            <ContentTypeBanner type="profile" />
+                            <CardHeader className="bg-[hsl(var(--scheme-card-bg))]">
+                              <CardTitle className="text-lg transition-colors text-[hsl(var(--scheme-card-text))]">
+                                {profile.name}
+                              </CardTitle>
+                            </CardHeader>
+                            <CardContent className="bg-[hsl(var(--scheme-card-bg))]">
+                              <p className="text-sm line-clamp-2 text-[hsl(var(--scheme-cards-text))]">
+                                {profile.short_description || "View this profile"}
+                              </p>
+                            </CardContent>
+                          </Card>
                       </Link>
                     );
                   })}
