@@ -14,6 +14,54 @@ export type Database = {
   }
   public: {
     Tables: {
+      action_cards: {
+        Row: {
+          created_at: string
+          default_order: number | null
+          description: string | null
+          icon_name: string | null
+          icon_url: string | null
+          id: string
+          implementation_notes: string | null
+          is_default: boolean | null
+          is_implemented: boolean | null
+          name: string
+          slug: string
+          status: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          default_order?: number | null
+          description?: string | null
+          icon_name?: string | null
+          icon_url?: string | null
+          id?: string
+          implementation_notes?: string | null
+          is_default?: boolean | null
+          is_implemented?: boolean | null
+          name: string
+          slug: string
+          status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          default_order?: number | null
+          description?: string | null
+          icon_name?: string | null
+          icon_url?: string | null
+          id?: string
+          implementation_notes?: string | null
+          is_default?: boolean | null
+          is_implemented?: boolean | null
+          name?: string
+          slug?: string
+          status?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       ballot_items: {
         Row: {
           created_at: string
@@ -258,6 +306,54 @@ export type Database = {
             columns: ["cover_image_id"]
             isOneToOne: false
             referencedRelation: "media_assets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      collection_action_cards: {
+        Row: {
+          action_card_id: string
+          collection_id: string
+          created_at: string
+          display_order: number | null
+          id: string
+          is_enabled: boolean | null
+          label_override: string | null
+          updated_at: string
+        }
+        Insert: {
+          action_card_id: string
+          collection_id: string
+          created_at?: string
+          display_order?: number | null
+          id?: string
+          is_enabled?: boolean | null
+          label_override?: string | null
+          updated_at?: string
+        }
+        Update: {
+          action_card_id?: string
+          collection_id?: string
+          created_at?: string
+          display_order?: number | null
+          id?: string
+          is_enabled?: boolean | null
+          label_override?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "collection_action_cards_action_card_id_fkey"
+            columns: ["action_card_id"]
+            isOneToOne: false
+            referencedRelation: "action_cards"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "collection_action_cards_collection_id_fkey"
+            columns: ["collection_id"]
+            isOneToOne: false
+            referencedRelation: "collections"
             referencedColumns: ["id"]
           },
         ]
