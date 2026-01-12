@@ -717,19 +717,19 @@ export default function PublicCollectionDetail() {
             <Card
               key={card.id}
               className="cursor-pointer hover:shadow-lg transition-shadow"
-              style={{ 
-                backgroundColor: index === 0 ? 'hsl(var(--scheme-actions-bg))' : 'hsl(var(--scheme-ch-actions-bg))', 
-                borderColor: index === 0 ? 'hsl(var(--scheme-actions-border))' : 'hsl(var(--scheme-ch-actions-border))' 
+              style={{
+                backgroundColor: index === 0 ? 'hsl(var(--scheme-actions-bg))' : 'hsl(var(--scheme-ch-actions-bg))',
+                borderColor: index === 0 ? 'hsl(var(--scheme-actions-border))' : 'hsl(var(--scheme-ch-actions-border))'
               }}
               onClick={() => handleActionCardClick(card)}
             >
               <CardContent className="p-3 md:p-6 text-center">
                 {renderActionCardIcon(
-                  card, 
+                  card,
                   `h-5 w-5 md:h-8 md:w-8 mx-auto mb-1 md:mb-2`
                 )}
-                <div 
-                  className="text-[10px] md:text-sm mt-1" 
+                <div
+                  className="text-[10px] md:text-sm mt-1"
                   style={{ color: index === 0 ? 'hsl(var(--scheme-actions-text))' : 'hsl(var(--scheme-ch-actions-text))' }}
                 >
                   {getActionCardLabel(card)}
@@ -888,7 +888,7 @@ export default function PublicCollectionDetail() {
                     const cardPosY = profile.avatar_image?.card_position_y ?? 50;
                     const cardScale = profile.avatar_image?.card_scale ?? 1;
                     const imageUrl = profile.avatar_image?.url ?? profile.primary_image_url;
-                    
+
                     return (
                       <Link
                         key={profile.id}
@@ -913,19 +913,19 @@ export default function PublicCollectionDetail() {
                                 No image
                               </div>
                             )}
-                            </div>
-                            <ContentTypeBanner type="profile" />
-                            <CardHeader className="bg-[hsl(var(--scheme-card-bg))]">
-                              <CardTitle className="text-lg transition-colors text-[hsl(var(--scheme-card-text))]">
-                                {profile.name}
-                              </CardTitle>
-                            </CardHeader>
-                            <CardContent className="bg-[hsl(var(--scheme-card-bg))]">
-                              <p className="text-sm line-clamp-2 text-[hsl(var(--scheme-cards-text))]">
-                                {profile.short_description || "View this profile"}
-                              </p>
-                            </CardContent>
-                          </Card>
+                          </div>
+                          <ContentTypeBanner type="profile" />
+                          <CardHeader className="bg-[hsl(var(--scheme-card-bg))]">
+                            <CardTitle className="text-lg transition-colors text-[hsl(var(--scheme-card-text))]">
+                              {profile.name}
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent className="bg-[hsl(var(--scheme-card-bg))]">
+                            <p className="text-sm line-clamp-2 text-[hsl(var(--scheme-cards-text))]">
+                              {profile.short_description || "View this profile"}
+                            </p>
+                          </CardContent>
+                        </Card>
                       </Link>
                     );
                   })}
