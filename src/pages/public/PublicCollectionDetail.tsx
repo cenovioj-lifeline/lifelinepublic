@@ -547,14 +547,23 @@ export default function PublicCollectionDetail() {
           <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
             <div className="aspect-video relative bg-white overflow-hidden">
               {item.hero_image_url ? (
-                <img
-                  src={item.hero_image_url}
-                  alt={item.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  style={{
-                    objectPosition: `${item.hero_image_position_x ?? 50}% ${item.hero_image_position_y ?? 50}%`
-                  }}
-                />
+                <>
+                  <img
+                    src={item.hero_image_url}
+                    alt={item.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    style={{
+                      objectPosition: `${item.hero_image_position_x ?? 50}% ${item.hero_image_position_y ?? 50}%`
+                    }}
+                  />
+                  {/* Admin can change the image */}
+                  <ContentCardImageUpload
+                    contentType="election"
+                    contentId={item.id}
+                    onUploadComplete={handleImageUploadComplete}
+                    hasImage={true}
+                  />
+                </>
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-gray-400 relative">
                   No image
@@ -562,6 +571,7 @@ export default function PublicCollectionDetail() {
                     contentType="election"
                     contentId={item.id}
                     onUploadComplete={handleImageUploadComplete}
+                    hasImage={false}
                   />
                 </div>
               )}
