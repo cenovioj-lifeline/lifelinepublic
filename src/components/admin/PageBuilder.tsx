@@ -1,5 +1,19 @@
 import React, { useState, useEffect } from "react";
-import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  rectSortingStrategy,
+} from "@dnd-kit/sortable";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -21,7 +35,7 @@ import {
   useResolveLayoutContent,
 } from "@/hooks/usePageLayout";
 import { AddCardModal } from "./AddCardModal";
-import { PageLayoutCard } from "./PageLayoutCard";
+import { SortablePageLayoutCard } from "./SortablePageLayoutCard";
 import type { PageType } from "@/types/pageLayout";
 
 interface PageBuilderProps {
@@ -37,6 +51,14 @@ export function PageBuilder({
   const [pageType, setPageType] = useState<PageType>(initialPageType);
   const [entityId, setEntityId] = useState<string | undefined>(initialEntityId);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+
+  // DnD sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   // Fetch collections for dropdown
   const { data: collections = [] } = useQuery({
@@ -81,12 +103,17 @@ export function PageBuilder({
   };
 
   // Handle drag end for reordering
-  const handleDragEnd = (result: any) => {
-    if (!result.destination || !layout) return;
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
 
-    const reordered = Array.from(items);
-    const [removed] = reordered.splice(result.source.index, 1);
-    reordered.splice(result.destination.index, 0, removed);
+    if (!over || active.id === over.id || !layout) return;
+
+    const oldIndex = items.findIndex((item) => item.id === active.id);
+    const newIndex = items.findIndex((item) => item.id === over.id);
+
+    if (oldIndex === -1 || newIndex === -1) return;
+
+    const reordered = arrayMove(items, oldIndex, newIndex);
 
     // Update display_order for all items
     const updates = reordered.map((item, index) => ({
@@ -141,45 +168,35 @@ export function PageBuilder({
       </div>
 
       {/* Card Grid */}
-      <DragDropContext onDragEnd={handleDragEnd}>
-        <Droppable droppableId="cards" direction="horizontal">
-          {(provided) => (
-            <div
-              ref={provided.innerRef}
-              {...provided.droppableProps}
-              className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"
-            >
-              {isLoading ? (
-                // Loading skeletons
-                Array(4)
-                  .fill(0)
-                  .map((_, i) => (
-                    <Card key={i} className="h-48 animate-pulse bg-muted" />
-                  ))
-              ) : (
-                itemsWithContent.map((item, index) => (
-                  <Draggable key={item.id} draggableId={item.id} index={index}>
-                    {(provided, snapshot) => (
-                      <div
-                        ref={provided.innerRef}
-                        {...provided.draggableProps}
-                        className={snapshot.isDragging ? "opacity-50" : ""}
-                      >
-                        <PageLayoutCard
-                          item={item}
-                          dragHandleProps={provided.dragHandleProps}
-                          onRemove={() => handleRemove(item.id)}
-                        />
-                      </div>
-                    )}
-                  </Draggable>
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
+      >
+        <SortableContext
+          items={itemsWithContent.map((item) => item.id)}
+          strategy={rectSortingStrategy}
+        >
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {isLoading ? (
+              // Loading skeletons
+              Array(4)
+                .fill(0)
+                .map((_, i) => (
+                  <Card key={i} className="h-48 animate-pulse bg-muted" />
                 ))
-              )}
-              {provided.placeholder}
-            </div>
-          )}
-        </Droppable>
-      </DragDropContext>
+            ) : (
+              itemsWithContent.map((item) => (
+                <SortablePageLayoutCard
+                  key={item.id}
+                  item={item}
+                  onRemove={() => handleRemove(item.id)}
+                />
+              ))
+            )}
+          </div>
+        </SortableContext>
+      </DndContext>
 
       {/* Empty state */}
       {!isLoading && items.length === 0 && (
