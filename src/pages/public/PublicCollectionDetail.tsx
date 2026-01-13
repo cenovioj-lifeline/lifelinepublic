@@ -17,6 +17,8 @@ import { FavoriteButton } from "@/components/FavoriteButton";
 import { lifelineLink } from "@/lib/navigationLinks";
 import { fetchColorScheme } from "@/hooks/useColorScheme";
 import { ContentCardImageUpload } from "@/components/ContentCardImageUpload";
+import { usePageLayoutWithContent } from "@/hooks/usePageLayout";
+import type { PageLayoutItemWithContent } from "@/types/pageLayout";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -80,6 +82,17 @@ export default function PublicCollectionDetail() {
       return data;
     },
   });
+
+  // Try new page layout system
+  const { 
+    layout: pageLayout, 
+    items: layoutItems, 
+    isLoading: layoutLoading, 
+    isEmpty: layoutEmpty 
+  } = usePageLayoutWithContent('collection', collection?.id);
+
+  // Determine if we should use new layout system
+  const useNewLayout = !layoutEmpty && layoutItems.length > 0;
 
   // Prefetch color scheme as soon as collection data is available
   useEffect(() => {
@@ -182,6 +195,7 @@ export default function PublicCollectionDetail() {
     enabled: !!collection?.id,
   });
 
+  // Legacy: Fetch featured items (only if not using new layout)
   const { data: featuredItems } = useQuery({
     queryKey: ["collection-featured-items", collection?.id],
     queryFn: async () => {
@@ -241,9 +255,10 @@ export default function PublicCollectionDetail() {
 
       return items.filter(Boolean);
     },
-    enabled: !!collection?.id,
+    enabled: !!collection?.id && !useNewLayout,
   });
 
+  // Legacy: Fetch custom section items (only if not using new layout)
   const { data: customSectionItems } = useQuery({
     queryKey: ["collection-custom-section-items", collection?.id],
     queryFn: async () => {
@@ -303,13 +318,13 @@ export default function PublicCollectionDetail() {
 
       return items.filter(Boolean);
     },
-    enabled: !!collection?.id,
+    enabled: !!collection?.id && !useNewLayout,
   });
 
-  // Fetch lifelines when no featured items exist
+  // Fetch lifelines when no featured items exist (legacy fallback)
   const { data: recentLifelines } = useQuery({
     queryKey: ["collection-recent-lifelines", collection?.id],
-    enabled: !!collection?.id && (!featuredItems || featuredItems.length === 0),
+    enabled: !!collection?.id && !useNewLayout && (!featuredItems || featuredItems.length === 0),
     queryFn: async () => {
       const { data, error } = await supabase
         .from("lifelines")
@@ -337,10 +352,10 @@ export default function PublicCollectionDetail() {
     },
   });
 
-  // Fetch profiles when no featured items exist
+  // Fetch profiles when no featured items exist (legacy fallback)
   const { data: recentProfiles } = useQuery({
     queryKey: ["collection-recent-profiles", collection?.id],
-    enabled: !!collection?.id && (!featuredItems || featuredItems.length === 0),
+    enabled: !!collection?.id && !useNewLayout && (!featuredItems || featuredItems.length === 0),
     queryFn: async () => {
       const { data, error } = await supabase
         .from("profiles")
@@ -395,6 +410,7 @@ export default function PublicCollectionDetail() {
   const handleImageUploadComplete = () => {
     queryClient.invalidateQueries({ queryKey: ["collection-featured-items", collection?.id] });
     queryClient.invalidateQueries({ queryKey: ["collection-custom-section-items", collection?.id] });
+    queryClient.invalidateQueries({ queryKey: ["page-layout-content"] });
   };
 
   // Handle action card click based on slug
@@ -490,6 +506,183 @@ export default function PublicCollectionDetail() {
     return num.toString();
   };
 
+  // Render card from new page layout system
+  const renderLayoutCard = (item: PageLayoutItemWithContent) => {
+    const { item_type, content } = item;
+    
+    if (!content) return null;
+
+    // Action cards render differently
+    if (item_type === 'action_card' && content.isActionCard) {
+      return null; // Action cards handled separately
+    }
+
+    // Lifeline cards
+    if (item_type === 'lifeline') {
+      const lifelinePath = lifelineLink(content.slug || '', {
+        collectionSlug: collection.slug,
+        from: { type: 'collection' }
+      });
+      return (
+        <Link
+          key={item.id}
+          to={lifelinePath}
+          className="group"
+        >
+          <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
+            <div className="aspect-video relative bg-white overflow-hidden">
+              <div className="absolute top-2 right-2 z-10">
+                <FavoriteButton itemId={item.item_id} itemType="lifeline" />
+              </div>
+              {content.image_url ? (
+                <img
+                  src={content.image_url}
+                  alt={content.title}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-gray-400">
+                  No image
+                </div>
+              )}
+            </div>
+            <ContentTypeBanner type="lifeline" />
+            <CardHeader className="bg-[hsl(var(--scheme-card-bg))]">
+              <CardTitle className="text-lg transition-colors text-[hsl(var(--scheme-card-text))]">
+                {content.title}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="bg-[hsl(var(--scheme-card-bg))]">
+              <p className="text-sm line-clamp-2 text-[hsl(var(--scheme-cards-text))]">
+                {content.subtitle || "Explore this lifeline"}
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
+      );
+    }
+
+    // Profile cards
+    if (item_type === 'profile') {
+      return (
+        <Link
+          key={item.id}
+          to={`/public/collections/${collection.slug}/profiles/${content.slug}`}
+          className="group"
+        >
+          <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
+            <div className="aspect-video relative bg-white overflow-hidden">
+              {content.image_url ? (
+                <img
+                  src={content.image_url}
+                  alt={content.title}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-gray-400">
+                  No image
+                </div>
+              )}
+            </div>
+            <ContentTypeBanner type="profile" />
+            <CardHeader className="bg-[hsl(var(--scheme-card-bg))]">
+              <CardTitle className="text-lg transition-colors text-[hsl(var(--scheme-card-text))]">
+                {content.title}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="bg-[hsl(var(--scheme-card-bg))]">
+              <p className="text-sm line-clamp-2 text-[hsl(var(--scheme-cards-text))]">
+                {content.subtitle || "View this profile"}
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
+      );
+    }
+
+    // Election cards
+    if (item_type === 'election') {
+      return (
+        <Link
+          key={item.id}
+          to={`/public/collections/${collection.slug}/elections/${content.slug}`}
+          className="group"
+        >
+          <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
+            <div className="aspect-video relative bg-white overflow-hidden">
+              {content.image_url ? (
+                <img
+                  src={content.image_url}
+                  alt={content.title}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-gray-400">
+                  No image
+                </div>
+              )}
+            </div>
+            <ContentTypeBanner type="election" />
+            <CardHeader className="bg-[hsl(var(--scheme-card-bg))]">
+              <CardTitle className="text-lg transition-colors text-[hsl(var(--scheme-card-text))]">
+                {content.title}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="bg-[hsl(var(--scheme-card-bg))]">
+              <p className="text-sm line-clamp-2 text-[hsl(var(--scheme-cards-text))]">
+                {content.subtitle || "View the awards"}
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
+      );
+    }
+
+    // Book cards
+    if (item_type === 'book') {
+      return (
+        <Link
+          key={item.id}
+          to={`/public/collections/${collection.slug}/books/${content.slug}`}
+          className="group"
+        >
+          <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
+            <div className="aspect-video relative bg-white overflow-hidden">
+              {content.image_url ? (
+                <img
+                  src={content.image_url}
+                  alt={content.title}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
+                  <div className="text-center px-4">
+                    <div className="text-4xl mb-2">📚</div>
+                    <div className="text-sm font-medium text-gray-600">{content.title}</div>
+                  </div>
+                </div>
+              )}
+            </div>
+            <ContentTypeBanner type="book" />
+            <CardHeader className="bg-[hsl(var(--scheme-card-bg))]">
+              <CardTitle className="text-lg transition-colors text-[hsl(var(--scheme-card-text))]">
+                {content.title}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="bg-[hsl(var(--scheme-card-bg))]">
+              <p className="text-sm line-clamp-2 text-[hsl(var(--scheme-cards-text))]">
+                {content.subtitle}
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
+      );
+    }
+
+    return null;
+  };
+
+  // Legacy: Render content card from old system
   const renderContentCard = (item: any, collectionSlug: string) => {
     if (item._type === "lifeline") {
       // Use lifelineLink helper with collection referrer
@@ -749,198 +942,216 @@ export default function PublicCollectionDetail() {
           ))}
         </div>
 
-        {/* Featured Content */}
-        {featuredItems && featuredItems.length > 0 && (
-          <section>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl font-bold text-[hsl(var(--scheme-title-text))]">Featured</h2>
-            </div>
-            {featuredItems.length <= 3 ? (
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {featuredItems.map((item: any) => renderContentCard(item, collection.slug))}
-              </div>
-            ) : (
-              <Carousel
-                opts={{
-                  align: "start",
-                  loop: false,
-                }}
-                className="w-full"
-              >
-                <CarouselContent>
-                  {featuredItems.map((item: any) => (
-                    <CarouselItem key={item.id} className="md:basis-1/2 lg:basis-1/3">
-                      {renderContentCard(item, collection.slug)}
-                    </CarouselItem>
-                  ))}
-                </CarouselContent>
-                <CarouselPrevious />
-                <CarouselNext />
-              </Carousel>
-            )}
-          </section>
-        )}
-
-        {/* Custom Section */}
-        {customSectionItems && customSectionItems.length > 0 && (
+        {/* Content Section - New unified layout OR Legacy two-section layout */}
+        {useNewLayout ? (
+          // New unified layout from page_layout_items
           <section>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-2xl font-bold text-[hsl(var(--scheme-title-text))]">
-                {collection.custom_section_name || "New Content"}
+                {collection.custom_section_name || "Explore"}
               </h2>
             </div>
-            {customSectionItems.length <= 3 ? (
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {customSectionItems.map((item: any) => renderContentCard(item, collection.slug))}
-              </div>
-            ) : (
-              <Carousel
-                opts={{
-                  align: "start",
-                  loop: false,
-                }}
-                className="w-full"
-              >
-                <CarouselContent>
-                  {customSectionItems.map((item: any) => (
-                    <CarouselItem key={item.id} className="md:basis-1/2 lg:basis-1/3">
-                      {renderContentCard(item, collection.slug)}
-                    </CarouselItem>
-                  ))}
-                </CarouselContent>
-                <CarouselPrevious />
-                <CarouselNext />
-              </Carousel>
-            )}
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {layoutItems.filter(item => item.content).map(renderLayoutCard)}
+            </div>
           </section>
-        )}
-
-        {/* Fallback: Show recent content when no featured items */}
-        {(!featuredItems || featuredItems.length === 0) && (
+        ) : (
+          // Legacy system with Featured + Custom Section
           <>
-            {/* Recent Lifelines Section */}
-            {recentLifelines && recentLifelines.length > 0 && (
+            {/* Featured Content */}
+            {featuredItems && featuredItems.length > 0 && (
               <section>
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-2xl font-bold text-[hsl(var(--scheme-title-text))]">Lifelines</h2>
-                  <Link to={`/public/collections/${collection.slug}/lifelines`}>
-                    <button className="flex items-center gap-2 text-sm hover:underline">
-                      View All <ArrowRight className="h-4 w-4" />
-                    </button>
-                  </Link>
+                  <h2 className="text-2xl font-bold text-[hsl(var(--scheme-title-text))]">Featured</h2>
                 </div>
-                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                  {recentLifelines.map((lifeline: any) => {
-                    // Use lifelineLink helper with collection referrer
-                    const lifelinePath = lifelineLink(lifeline.slug, {
-                      collectionSlug: collection.slug,
-                      from: { type: 'collection' }
-                    });
-                    return (
-                      <Link
-                        key={lifeline.id}
-                        to={lifelinePath}
-                        className="group"
-                      >
-                        <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
-                          <div className="aspect-video relative bg-white overflow-hidden">
-                            <div className="absolute top-2 right-2 z-10">
-                              <FavoriteButton itemId={lifeline.id} itemType="lifeline" />
-                            </div>
-                            {lifeline.cover_image_url ? (
-                              <img
-                                src={lifeline.cover_image_url}
-                                alt={lifeline.title}
-                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                                style={{
-                                  objectPosition: `${lifeline.cover_image_position_x ?? 50}% ${lifeline.cover_image_position_y ?? 50}%`
-                                }}
-                              />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center text-gray-400">
-                                No image
-                              </div>
-                            )}
-                          </div>
-                          <ContentTypeBanner type="lifeline" />
-                          <CardHeader className="bg-[hsl(var(--scheme-card-bg))]">
-                            <CardTitle className="text-lg transition-colors text-[hsl(var(--scheme-card-text))]">
-                              {lifeline.title}
-                            </CardTitle>
-                          </CardHeader>
-                          <CardContent className="bg-[hsl(var(--scheme-card-bg))]">
-                            <p className="text-sm line-clamp-2 text-[hsl(var(--scheme-cards-text))]">
-                              {lifeline.subtitle || "Explore this lifeline"}
-                            </p>
-                          </CardContent>
-                        </Card>
-                      </Link>
-                    );
-                  })}
-                </div>
+                {featuredItems.length <= 3 ? (
+                  <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                    {featuredItems.map((item: any) => renderContentCard(item, collection.slug))}
+                  </div>
+                ) : (
+                  <Carousel
+                    opts={{
+                      align: "start",
+                      loop: false,
+                    }}
+                    className="w-full"
+                  >
+                    <CarouselContent>
+                      {featuredItems.map((item: any) => (
+                        <CarouselItem key={item.id} className="md:basis-1/2 lg:basis-1/3">
+                          {renderContentCard(item, collection.slug)}
+                        </CarouselItem>
+                      ))}
+                    </CarouselContent>
+                    <CarouselPrevious />
+                    <CarouselNext />
+                  </Carousel>
+                )}
               </section>
             )}
 
-            {/* Recent Profiles Section */}
-            {recentProfiles && recentProfiles.length > 0 && (
+            {/* Custom Section */}
+            {customSectionItems && customSectionItems.length > 0 && (
               <section>
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-2xl font-bold text-[hsl(var(--scheme-title-text))]">People</h2>
-                  <Link to={`/public/collections/${collection.slug}/profiles`}>
-                    <button className="flex items-center gap-2 text-sm hover:underline">
-                      View All <ArrowRight className="h-4 w-4" />
-                    </button>
-                  </Link>
+                  <h2 className="text-2xl font-bold text-[hsl(var(--scheme-title-text))]">
+                    {collection.custom_section_name || "New Content"}
+                  </h2>
                 </div>
-                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                  {recentProfiles.map((profile: any) => {
-                    const cardPosX = profile.avatar_image?.card_position_x ?? 50;
-                    const cardPosY = profile.avatar_image?.card_position_y ?? 50;
-                    const cardScale = profile.avatar_image?.card_scale ?? 1;
-                    const imageUrl = profile.avatar_image?.url ?? profile.primary_image_url;
-
-                    return (
-                      <Link
-                        key={profile.id}
-                        to={`/public/collections/${collection.slug}/profiles/${profile.slug}`}
-                        className="group"
-                      >
-                        <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
-                          <div className="aspect-video relative bg-white overflow-hidden">
-                            {imageUrl ? (
-                              <img
-                                src={imageUrl}
-                                alt={profile.name}
-                                className="w-full h-full object-cover"
-                                style={{
-                                  objectPosition: `${cardPosX}% ${cardPosY}%`,
-                                  transform: `scale(${cardScale})`,
-                                  transformOrigin: `${cardPosX}% ${cardPosY}%`
-                                }}
-                              />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center text-gray-400">
-                                No image
-                              </div>
-                            )}
-                          </div>
-                          <ContentTypeBanner type="profile" />
-                          <CardHeader className="bg-[hsl(var(--scheme-card-bg))]">
-                            <CardTitle className="text-lg transition-colors text-[hsl(var(--scheme-card-text))]">
-                              {profile.name}
-                            </CardTitle>
-                          </CardHeader>
-                          <CardContent className="bg-[hsl(var(--scheme-card-bg))]">
-                            <p className="text-sm line-clamp-2 text-[hsl(var(--scheme-cards-text))]">
-                              {profile.short_description || "View this profile"}
-                            </p>
-                          </CardContent>
-                        </Card>
-                      </Link>
-                    );
-                  })}
-                </div>
+                {customSectionItems.length <= 3 ? (
+                  <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                    {customSectionItems.map((item: any) => renderContentCard(item, collection.slug))}
+                  </div>
+                ) : (
+                  <Carousel
+                    opts={{
+                      align: "start",
+                      loop: false,
+                    }}
+                    className="w-full"
+                  >
+                    <CarouselContent>
+                      {customSectionItems.map((item: any) => (
+                        <CarouselItem key={item.id} className="md:basis-1/2 lg:basis-1/3">
+                          {renderContentCard(item, collection.slug)}
+                        </CarouselItem>
+                      ))}
+                    </CarouselContent>
+                    <CarouselPrevious />
+                    <CarouselNext />
+                  </Carousel>
+                )}
               </section>
+            )}
+
+            {/* Fallback: Show recent content when no featured items */}
+            {(!featuredItems || featuredItems.length === 0) && (
+              <>
+                {/* Recent Lifelines Section */}
+                {recentLifelines && recentLifelines.length > 0 && (
+                  <section>
+                    <div className="flex items-center justify-between mb-4">
+                      <h2 className="text-2xl font-bold text-[hsl(var(--scheme-title-text))]">Lifelines</h2>
+                      <Link to={`/public/collections/${collection.slug}/lifelines`}>
+                        <button className="flex items-center gap-2 text-sm hover:underline">
+                          View All <ArrowRight className="h-4 w-4" />
+                        </button>
+                      </Link>
+                    </div>
+                    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                      {recentLifelines.map((lifeline: any) => {
+                        // Use lifelineLink helper with collection referrer
+                        const lifelinePath = lifelineLink(lifeline.slug, {
+                          collectionSlug: collection.slug,
+                          from: { type: 'collection' }
+                        });
+                        return (
+                          <Link
+                            key={lifeline.id}
+                            to={lifelinePath}
+                            className="group"
+                          >
+                            <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
+                              <div className="aspect-video relative bg-white overflow-hidden">
+                                <div className="absolute top-2 right-2 z-10">
+                                  <FavoriteButton itemId={lifeline.id} itemType="lifeline" />
+                                </div>
+                                {lifeline.cover_image_url ? (
+                                  <img
+                                    src={lifeline.cover_image_url}
+                                    alt={lifeline.title}
+                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                    style={{
+                                      objectPosition: `${lifeline.cover_image_position_x ?? 50}% ${lifeline.cover_image_position_y ?? 50}%`
+                                    }}
+                                  />
+                                ) : (
+                                  <div className="w-full h-full flex items-center justify-center text-gray-400">
+                                    No image
+                                  </div>
+                                )}
+                              </div>
+                              <ContentTypeBanner type="lifeline" />
+                              <CardHeader className="bg-[hsl(var(--scheme-card-bg))]">
+                                <CardTitle className="text-lg transition-colors text-[hsl(var(--scheme-card-text))]">
+                                  {lifeline.title}
+                                </CardTitle>
+                              </CardHeader>
+                              <CardContent className="bg-[hsl(var(--scheme-card-bg))]">
+                                <p className="text-sm line-clamp-2 text-[hsl(var(--scheme-cards-text))]">
+                                  {lifeline.subtitle || "Explore this lifeline"}
+                                </p>
+                              </CardContent>
+                            </Card>
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  </section>
+                )}
+
+                {/* Recent Profiles Section */}
+                {recentProfiles && recentProfiles.length > 0 && (
+                  <section>
+                    <div className="flex items-center justify-between mb-4">
+                      <h2 className="text-2xl font-bold text-[hsl(var(--scheme-title-text))]">People</h2>
+                      <Link to={`/public/collections/${collection.slug}/profiles`}>
+                        <button className="flex items-center gap-2 text-sm hover:underline">
+                          View All <ArrowRight className="h-4 w-4" />
+                        </button>
+                      </Link>
+                    </div>
+                    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                      {recentProfiles.map((profile: any) => {
+                        const cardPosX = profile.avatar_image?.card_position_x ?? 50;
+                        const cardPosY = profile.avatar_image?.card_position_y ?? 50;
+                        const cardScale = profile.avatar_image?.card_scale ?? 1;
+                        const imageUrl = profile.avatar_image?.url ?? profile.primary_image_url;
+
+                        return (
+                          <Link
+                            key={profile.id}
+                            to={`/public/collections/${collection.slug}/profiles/${profile.slug}`}
+                            className="group"
+                          >
+                            <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
+                              <div className="aspect-video relative bg-white overflow-hidden">
+                                {imageUrl ? (
+                                  <img
+                                    src={imageUrl}
+                                    alt={profile.name}
+                                    className="w-full h-full object-cover"
+                                    style={{
+                                      objectPosition: `${cardPosX}% ${cardPosY}%`,
+                                      transform: `scale(${cardScale})`,
+                                      transformOrigin: `${cardPosX}% ${cardPosY}%`
+                                    }}
+                                  />
+                                ) : (
+                                  <div className="w-full h-full flex items-center justify-center text-gray-400">
+                                    No image
+                                  </div>
+                                )}
+                              </div>
+                              <ContentTypeBanner type="profile" />
+                              <CardHeader className="bg-[hsl(var(--scheme-card-bg))]">
+                                <CardTitle className="text-lg transition-colors text-[hsl(var(--scheme-card-text))]">
+                                  {profile.name}
+                                </CardTitle>
+                              </CardHeader>
+                              <CardContent className="bg-[hsl(var(--scheme-card-bg))]">
+                                <p className="text-sm line-clamp-2 text-[hsl(var(--scheme-cards-text))]">
+                                  {profile.short_description || "View this profile"}
+                                </p>
+                              </CardContent>
+                            </Card>
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  </section>
+                )}
+              </>
             )}
           </>
         )}
