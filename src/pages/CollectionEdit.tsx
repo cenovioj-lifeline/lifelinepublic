@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useForm } from "react-hook-form";
@@ -30,7 +30,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { ArrowLeft, ChevronDown } from "lucide-react";
+import { ArrowLeft, ChevronDown, LayoutGrid } from "lucide-react";
 import { DirectImageUpload } from "@/components/DirectImageUpload";
 import { CollectionQuotesUpload } from "@/components/CollectionQuotesUpload";
 import { CollectionProfileManager } from "@/components/CollectionProfileManager";
@@ -531,6 +531,23 @@ export default function CollectionEdit() {
               <div className="mt-8">
                 <h3 className="text-lg font-medium mb-4">Collection Quotes</h3>
                 <CollectionQuotesUpload collectionId={id!} />
+              </div>
+
+              <div className="mt-8 p-4 border rounded-lg bg-muted/50">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-medium">Homepage Layout</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Customize which cards appear on this collection's homepage and their order.
+                    </p>
+                  </div>
+                  <Button asChild>
+                    <Link to={`/admin/page-builder?collection=${id}`}>
+                      <LayoutGrid className="h-4 w-4 mr-2" />
+                      Edit Homepage Layout
+                    </Link>
+                  </Button>
+                </div>
               </div>
 
               <Collapsible
