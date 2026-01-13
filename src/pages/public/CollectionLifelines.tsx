@@ -6,7 +6,8 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Trash2, SlidersHorizontal, X } from "lucide-react";
+import { Search, Trash2, SlidersHorizontal, X, Move } from "lucide-react";
+import { CoverImagePicker } from "@/components/CoverImagePicker";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetFooter } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
 import { useState, useMemo } from "react";
@@ -34,6 +35,11 @@ export default function CollectionLifelines() {
   const [serpModalOpen, setSerpModalOpen] = useState(false);
   const [selectedLifeline, setSelectedLifeline] = useState<{ id: string; title: string; serpapi_query?: string | null } | null>(null);
   const [filterSheetOpen, setFilterSheetOpen] = useState(false);
+  const [coverPickerOpen, setCoverPickerOpen] = useState(false);
+  const [selectedCoverLifeline, setSelectedCoverLifeline] = useState<{
+    id: string;
+    imageUrl?: string;
+  } | null>(null);
 
   useState(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -458,6 +464,25 @@ export default function CollectionLifelines() {
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     )}
+                    {isAdmin && lifeline.cover_image_url && (
+                      <Button
+                        size="icon"
+                        variant="secondary"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setSelectedCoverLifeline({
+                            id: lifeline.id,
+                            imageUrl: lifeline.cover_image_url || undefined,
+                          });
+                          setCoverPickerOpen(true);
+                        }}
+                        className="h-8 w-8"
+                        title="Reposition cover image"
+                      >
+                        <Move className="h-4 w-4" />
+                      </Button>
+                    )}
                     {isAdmin && (
                       <Button
                         size="icon"
@@ -582,6 +607,20 @@ export default function CollectionLifelines() {
           initialQuery={selectedLifeline.serpapi_query || ''}
           onImportComplete={() => {
             refetch();
+          }}
+        />
+      )}
+
+      {/* Cover Image Repositioner */}
+      {selectedCoverLifeline && (
+        <CoverImagePicker
+          lifelineId={selectedCoverLifeline.id}
+          currentImageUrl={selectedCoverLifeline.imageUrl}
+          open={coverPickerOpen}
+          onOpenChange={setCoverPickerOpen}
+          onSuccess={() => {
+            refetch();
+            setCoverPickerOpen(false);
           }}
         />
       )}
