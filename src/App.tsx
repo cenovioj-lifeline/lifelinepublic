@@ -66,6 +66,7 @@ import Feed from "./pages/public/Feed";
 import FeedSetup from "./pages/public/FeedSetup";
 import CollectionReport from "./pages/CollectionReport";
 import CollectionPitch from "./pages/public/CollectionPitch";
+import { PageBuilder } from "./components/admin/PageBuilder";
 
 const queryClient = new QueryClient();
 
@@ -301,6 +302,16 @@ function AppContent() {
                 <ProtectedRoute>
                   <AdminLayout>
                     <HomeManager />
+                  </AdminLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/page-builder"
+              element={
+                <ProtectedRoute>
+                  <AdminLayout>
+                    <PageBuilder />
                   </AdminLayout>
                 </ProtectedRoute>
               }
