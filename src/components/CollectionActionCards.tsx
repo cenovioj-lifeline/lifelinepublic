@@ -244,7 +244,9 @@ export function CollectionActionCards({ collectionId }: CollectionActionCardsPro
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="defaults" id="defaults" />
             <Label htmlFor="defaults" className="font-normal cursor-pointer">
-              Use Defaults ({defaultCards?.map(c => c.name).join(", ") || "Loading..."})
+              Use Defaults {defaultCards && defaultCards.length > 0 
+                ? `(${defaultCards.map(c => c.name).join(", ")})` 
+                : "(No defaults configured)"}
             </Label>
           </div>
           <div className="flex items-center space-x-2">

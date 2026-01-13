@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Edit, Trash2, Star, Check, X } from "lucide-react";
+import { Plus, Edit, Trash2, Star, Check, X, ChevronUp, ChevronDown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import * as LucideIcons from "lucide-react";
 import {
@@ -30,7 +30,7 @@ interface ActionCard {
   is_implemented: boolean;
   implementation_notes: string | null;
   is_default: boolean;
-  default_order: number;
+  default_order: number | null;
   status: string;
   created_at: string;
 }
@@ -56,27 +56,68 @@ export default function ActionCards() {
         .from("action_cards")
         .select("*")
         .order("is_default", { ascending: false })
-        .order("default_order")
+        .order("default_order", { ascending: true, nullsFirst: false })
         .order("name");
       if (error) throw error;
       return data as ActionCard[];
     },
   });
 
+  // Get default cards sorted by order
+  const defaultCards = actionCards?.filter(c => c.is_default).sort((a, b) => (a.default_order || 0) - (b.default_order || 0)) || [];
+  const nonDefaultCards = actionCards?.filter(c => !c.is_default) || [];
+
   const setDefaultMutation = useMutation({
     mutationFn: async ({ id, isDefault }: { id: string; isDefault: boolean }) => {
+      // If adding to defaults, assign next order number
+      let newOrder = null;
+      if (isDefault) {
+        const maxOrder = defaultCards.reduce((max, c) => Math.max(max, c.default_order || 0), 0);
+        newOrder = maxOrder + 1;
+      }
+      
       const { error } = await supabase
         .from("action_cards")
-        .update({ is_default: isDefault })
+        .update({ is_default: isDefault, default_order: newOrder })
         .eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["action-cards"] });
+      queryClient.invalidateQueries({ queryKey: ["action-cards-defaults"] });
       toast({
         title: "Updated",
         description: "Default status has been updated",
       });
+    },
+  });
+
+  // Reorder default cards
+  const reorderMutation = useMutation({
+    mutationFn: async ({ id, direction }: { id: string; direction: "up" | "down" }) => {
+      const cardIndex = defaultCards.findIndex(c => c.id === id);
+      if (cardIndex === -1) return;
+
+      const swapIndex = direction === "up" ? cardIndex - 1 : cardIndex + 1;
+      if (swapIndex < 0 || swapIndex >= defaultCards.length) return;
+
+      const card = defaultCards[cardIndex];
+      const swapCard = defaultCards[swapIndex];
+
+      // Swap default_order values
+      await supabase
+        .from("action_cards")
+        .update({ default_order: swapCard.default_order })
+        .eq("id", card.id);
+
+      await supabase
+        .from("action_cards")
+        .update({ default_order: card.default_order })
+        .eq("id", swapCard.id);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["action-cards"] });
+      queryClient.invalidateQueries({ queryKey: ["action-cards-defaults"] });
     },
   });
 
@@ -129,6 +170,83 @@ export default function ActionCards() {
             New Action Card
           </Button>
         </div>
+
+        {/* Default Cards Configuration Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Star className="h-5 w-5 fill-primary text-primary" />
+              Default Cards ({defaultCards.length})
+            </CardTitle>
+            <CardDescription>
+              These cards appear on all collections that use default settings. Drag to reorder.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {defaultCards.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                No default cards configured. Mark cards as default below to add them here.
+              </p>
+            ) : (
+              <div className="space-y-2">
+                {defaultCards.map((card, index) => (
+                  <div
+                    key={card.id}
+                    className="flex items-center gap-3 p-3 rounded-lg border bg-card"
+                  >
+                    <div className="flex flex-col gap-0.5">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6"
+                        disabled={index === 0}
+                        onClick={() => reorderMutation.mutate({ id: card.id, direction: "up" })}
+                      >
+                        <ChevronUp className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6"
+                        disabled={index === defaultCards.length - 1}
+                        onClick={() => reorderMutation.mutate({ id: card.id, direction: "down" })}
+                      >
+                        <ChevronDown className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    
+                    <span className="text-lg font-bold text-muted-foreground w-6">
+                      {index + 1}
+                    </span>
+                    
+                    <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center">
+                      {card.icon_url ? (
+                        <img src={card.icon_url} alt="" className="h-6 w-6" />
+                      ) : (
+                        <DynamicIcon name={card.icon_name} className="h-6 w-6" />
+                      )}
+                    </div>
+                    
+                    <div className="flex-1">
+                      <div className="font-medium">{card.name}</div>
+                      <code className="text-xs text-muted-foreground">{card.slug}</code>
+                    </div>
+                    
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setDefaultMutation.mutate({ id: card.id, isDefault: false })}
+                    >
+                      Remove from Defaults
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <h2 className="text-xl font-semibold pt-4">All Action Cards</h2>
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {actionCards?.map((card) => (
