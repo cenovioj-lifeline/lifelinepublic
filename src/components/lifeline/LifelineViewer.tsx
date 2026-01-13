@@ -9,13 +9,14 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { parseLifelineTitle } from "@/lib/lifelineTitle";
-import { Plus, Star, Menu, Image as ImageIcon, ImageUp, Pencil, Check, X, Search, Calendar } from "lucide-react";
+import { Plus, Star, Menu, Image as ImageIcon, ImageUp, Pencil, Check, X, Search, Calendar, Move } from "lucide-react";
 import { ContributeEventDialog } from "@/components/ContributeEventDialog";
 import { useAuth } from "@/lib/auth";
 import { PublicAuthModal } from "@/components/PublicAuthModal";
 import { SuperFanImageUpload, SuperFanImageDelete } from "@/components/SuperFanImageUpload";
 import { ImageLockToggle } from "@/components/ImageLockToggle";
 import { CoverImagePicker } from "@/components/CoverImagePicker";
+import { EntryImageRepositioner } from "@/components/EntryImageRepositioner";
 import { SerpApiSearchModal } from "@/components/admin/SerpApiSearchModal";
 import { AiImageEditModal } from "@/components/admin/AiImageEditModal";
 import { Link } from "react-router-dom";
@@ -70,6 +71,8 @@ export function LifelineViewer({
   const [editedDetails, setEditedDetails] = useState("");
   const [serpApiModalOpen, setSerpApiModalOpen] = useState(false);
   const [aiEditModalOpen, setAiEditModalOpen] = useState(false);
+  const [repositionMedia, setRepositionMedia] = useState<{ id: string; url: string; position_x?: number; position_y?: number } | null>(null);
+  const [repositionPickerOpen, setRepositionPickerOpen] = useState(false);
   const selectionStyle: SelectionStyle = "glow"; // Always use glow
   const timelineRef = useRef<HTMLDivElement>(null);
   const entryRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
@@ -692,9 +695,26 @@ export function LifelineViewer({
                                      className="absolute top-12 left-2 z-10"
                                      title="Use as cover image"
                                    >
-                                     <ImageUp className="h-4 w-4" />
-                                   </Button>
-                                   {!media.locked && (
+                                      <ImageUp className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                      variant="secondary"
+                                      size="sm"
+                                      onClick={() => {
+                                        setRepositionMedia({
+                                          id: media.id,
+                                          url: media.url,
+                                          position_x: media.position_x,
+                                          position_y: media.position_y,
+                                        });
+                                        setRepositionPickerOpen(true);
+                                      }}
+                                      className="absolute top-[5.5rem] left-2 z-10"
+                                      title="Reposition image"
+                                    >
+                                      <Move className="h-4 w-4" />
+                                    </Button>
+                                    {!media.locked && (
                                      <SuperFanImageDelete
                                        mediaId={media.id}
                                        entryId={selected.id}
@@ -970,6 +990,21 @@ export function LifelineViewer({
           onSaveComplete={() => {
             queryClient.invalidateQueries({ queryKey: ["entries", lifelineId] });
           }}
+        />
+      )}
+      
+      {repositionMedia && (
+        <EntryImageRepositioner
+          open={repositionPickerOpen}
+          onOpenChange={(open) => {
+            setRepositionPickerOpen(open);
+            if (!open) setRepositionMedia(null);
+          }}
+          mediaId={repositionMedia.id}
+          imageUrl={repositionMedia.url}
+          lifelineId={lifelineId}
+          initialPositionX={repositionMedia.position_x}
+          initialPositionY={repositionMedia.position_y}
         />
       )}
     </Card>
