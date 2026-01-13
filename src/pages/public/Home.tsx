@@ -18,6 +18,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useHomePageData } from "@/hooks/useHomePageData";
+import { usePageLayoutWithContent } from "@/hooks/usePageLayout";
+import type { PageLayoutItemWithContent } from "@/types/pageLayout";
 
 export default function Home() {
   const navigate = useNavigate();
@@ -25,7 +27,15 @@ export default function Home() {
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [constructionAlertOpen, setConstructionAlertOpen] = useState(false);
   
-  const { settings: homeSettings, featuredItems, newContentItems, isLoading } = useHomePageData();
+  // Try new page layout system first
+  const { layout, items: layoutItems, isLoading: layoutLoading, isEmpty: layoutEmpty } = usePageLayoutWithContent('home');
+  
+  // Fallback to old system if no layout exists
+  const { settings: homeSettings, featuredItems, newContentItems, isLoading: oldLoading } = useHomePageData();
+  
+  // Determine which system to use
+  const useNewLayout = !layoutEmpty && layoutItems.length > 0;
+  const isLoading = useNewLayout ? layoutLoading : oldLoading;
 
   const quickActionCards = [
     { icon: Rss, label: "Feed", onClick: () => navigate('/feed'), isCustomIcon: false },
@@ -48,21 +58,11 @@ export default function Home() {
           ))}
         </div>
         
-        {/* Featured section skeleton */}
+        {/* Content section skeleton */}
         <div className="space-y-4">
           <Skeleton className="h-8 w-32" />
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {[...Array(3)].map((_, i) => (
-              <Skeleton key={i} className="h-80" />
-            ))}
-          </div>
-        </div>
-        
-        {/* New content section skeleton */}
-        <div className="space-y-4">
-          <Skeleton className="h-8 w-40" />
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {[...Array(3)].map((_, i) => (
+            {[...Array(6)].map((_, i) => (
               <Skeleton key={i} className="h-80" />
             ))}
           </div>
@@ -70,6 +70,138 @@ export default function Home() {
       </div>
     );
   }
+
+  // Render card based on layout item type
+  const renderLayoutCard = (item: PageLayoutItemWithContent) => {
+    const { item_type, content } = item;
+    
+    if (!content) return null;
+
+    // Action cards render as quick actions style
+    if (item_type === 'action_card' && content.isActionCard) {
+      return null; // Action cards are handled separately in quick actions
+    }
+
+    // Lifeline cards
+    if (item_type === 'lifeline') {
+      return (
+        <Link
+          key={item.id}
+          to={content.link || `/public/lifelines/${content.slug}`}
+          className="group relative"
+        >
+          <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
+            <div className="aspect-video relative overflow-hidden bg-white">
+              {content.image_url ? (
+                <img
+                  src={content.image_url}
+                  alt={content.title}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-gray-400">
+                  No image
+                </div>
+              )}
+            </div>
+            <ContentTypeBanner type="lifeline" />
+            <CardHeader className="bg-[hsl(var(--scheme-card-bg))]">
+              <CardTitle className="text-lg transition-colors text-[hsl(var(--scheme-card-text))]">
+                {content.title}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="bg-[hsl(var(--scheme-card-bg))]">
+              <p className="text-sm line-clamp-2 text-[hsl(var(--scheme-cards-text))]">
+                {content.subtitle || "Explore this lifeline"}
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
+      );
+    }
+
+    // Collection, profile, election, book cards
+    return (
+      <StandardizedContentCard
+        key={item.id}
+        id={item.item_id}
+        title={content.title}
+        description={content.subtitle}
+        imageUrl={content.image_url}
+        imageAlt={content.title}
+        linkPath={content.link || '#'}
+        type={item_type as 'collection' | 'profile' | 'election' | 'book'}
+        collectionSlug={item_type === 'collection' ? content.slug : undefined}
+      />
+    );
+  };
+
+  // Render legacy card (from old system)
+  const renderLegacyCard = (item: any) => {
+    if (item.type === "lifeline") {
+      return (
+        <Link
+          key={item.id}
+          to={`/public/lifelines/${item.slug}`}
+          className="group relative"
+        >
+          <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
+            <div className="aspect-video relative overflow-hidden bg-white">
+              {item.cover_image?.url || item.cover_image_url ? (
+                <img
+                  src={item.cover_image?.url || item.cover_image_url}
+                  alt={item.cover_image?.alt_text || item.title}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  style={{
+                    objectPosition: `${item.cover_image_position_x ?? 50}% ${item.cover_image_position_y ?? 50}%`,
+                  }}
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-gray-400">
+                  No image
+                </div>
+              )}
+            </div>
+            <ContentTypeBanner type="lifeline" />
+            <CardHeader className="bg-[hsl(var(--scheme-card-bg))]">
+              <CardTitle className="text-lg transition-colors text-[hsl(var(--scheme-card-text))]">
+                {item.title}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="bg-[hsl(var(--scheme-card-bg))]">
+              <p className="text-sm line-clamp-2 text-[hsl(var(--scheme-cards-text))]">
+                {item.intro || "Explore this lifeline"}
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
+      );
+    }
+
+    return (
+      <StandardizedContentCard
+        key={item.id}
+        id={item.id}
+        title={item.title}
+        description={item.description}
+        imageUrl={
+          item.type === "collection" 
+            ? (item.card_image_url || item.hero_image?.url || item.hero_image_url)
+            : item.type === "election"
+            ? item.hero_image_url
+            : null
+        }
+        imageAlt={item.type === "collection" ? item.hero_image?.alt_text : item.title}
+        linkPath={
+          item.type === "collection"
+            ? `/public/collections/${item.slug}`
+            : `/public/elections/${item.slug}`
+        }
+        type={item.type}
+        collectionSlug={item.type === "collection" ? item.slug : undefined}
+      />
+    );
+  };
 
   return (
     <div className="space-y-8">
@@ -152,151 +284,52 @@ export default function Home() {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Featured Section */}
-      <section>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-2xl font-semibold" style={{ color: 'hsl(var(--scheme-title-text))' }}>Featured</h2>
-          <Link to="/public/collections" className="hover:underline text-sm" style={{ color: 'hsl(var(--scheme-actions-icon))' }}>
-            View All
-          </Link>
-        </div>
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {featuredItems.map((item: any) => (
-            item.type === "lifeline" ? (
-              <Link
-                key={item.id}
-                to={`/public/lifelines/${item.slug}`}
-                className="group relative"
-              >
-                <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
-                  <div className="aspect-video relative overflow-hidden bg-white">
-                    {item.cover_image?.url || item.cover_image_url ? (
-                      <img
-                        src={item.cover_image?.url || item.cover_image_url}
-                        alt={item.cover_image?.alt_text || item.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        style={{
-                          objectPosition: `${item.cover_image_position_x ?? 50}% ${item.cover_image_position_y ?? 50}%`,
-                        }}
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-gray-400">
-                        No image
-                      </div>
-                    )}
-                  </div>
-                  <ContentTypeBanner type="lifeline" />
-                  <CardHeader className="bg-[hsl(var(--scheme-card-bg))]">
-                    <CardTitle className="text-lg transition-colors text-[hsl(var(--scheme-card-text))]">
-                      {item.title}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="bg-[hsl(var(--scheme-card-bg))]">
-                    <p className="text-sm line-clamp-2 text-[hsl(var(--scheme-cards-text))]">
-                      {item.intro || "Explore this lifeline"}
-                    </p>
-                  </CardContent>
-                </Card>
+      {/* Content Section - Uses new Page Layout system with fallback to old */}
+      {useNewLayout ? (
+        // New unified layout system
+        <section>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-2xl font-semibold" style={{ color: 'hsl(var(--scheme-title-text))' }}>
+              {homeSettings?.custom_section_name || 'Explore'}
+            </h2>
+            <Link to="/public/collections" className="hover:underline text-sm" style={{ color: 'hsl(var(--scheme-actions-icon))' }}>
+              View All
+            </Link>
+          </div>
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {layoutItems.filter(item => item.content).map(renderLayoutCard)}
+          </div>
+        </section>
+      ) : (
+        // Legacy two-section layout
+        <>
+          {/* Featured Section */}
+          <section>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-2xl font-semibold" style={{ color: 'hsl(var(--scheme-title-text))' }}>Featured</h2>
+              <Link to="/public/collections" className="hover:underline text-sm" style={{ color: 'hsl(var(--scheme-actions-icon))' }}>
+                View All
               </Link>
-            ) : (
-              <StandardizedContentCard
-                key={item.id}
-                id={item.id}
-                title={item.title}
-                description={item.description}
-                imageUrl={
-                  item.type === "collection" 
-                    ? (item.card_image_url || item.hero_image?.url || item.hero_image_url)
-                    : item.type === "election"
-                    ? item.hero_image_url
-                    : null
-                }
-                imageAlt={item.type === "collection" ? item.hero_image?.alt_text : item.title}
-                linkPath={
-                  item.type === "collection"
-                    ? `/public/collections/${item.slug}`
-                    : `/public/elections/${item.slug}`
-                }
-                type={item.type}
-                collectionSlug={item.type === "collection" ? item.slug : undefined}
-              />
-            )
-          ))}
-        </div>
-      </section>
+            </div>
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {featuredItems.map(renderLegacyCard)}
+            </div>
+          </section>
 
-      {/* New Content Section */}
-      <section>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-2xl font-semibold" style={{ color: 'hsl(var(--scheme-title-text))' }}>New Content</h2>
-          <Link to="/public/lifelines" className="hover:underline text-sm" style={{ color: 'hsl(var(--scheme-actions-icon))' }}>
-            View All
-          </Link>
-        </div>
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {newContentItems.map((item: any) => (
-            item.type === "lifeline" ? (
-              <Link
-                key={item.id}
-                to={`/public/lifelines/${item.slug}`}
-                className="group relative"
-              >
-                <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
-                  <div className="aspect-video relative overflow-hidden bg-white">
-                    {item.cover_image?.url || item.cover_image_url ? (
-                      <img
-                        src={item.cover_image?.url || item.cover_image_url}
-                        alt={item.cover_image?.alt_text || item.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        style={{
-                          objectPosition: `${item.cover_image_position_x ?? 50}% ${item.cover_image_position_y ?? 50}%`,
-                        }}
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-gray-400">
-                        No image
-                      </div>
-                    )}
-                  </div>
-                  <ContentTypeBanner type="lifeline" />
-                  <CardHeader className="bg-[hsl(var(--scheme-card-bg))]">
-                    <CardTitle className="text-lg transition-colors text-[hsl(var(--scheme-card-text))]">
-                      {item.title}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="bg-[hsl(var(--scheme-card-bg))]">
-                    <p className="text-sm line-clamp-2 text-[hsl(var(--scheme-cards-text))]">
-                      {item.intro || "Explore this lifeline"}
-                    </p>
-                  </CardContent>
-                </Card>
+          {/* New Content Section */}
+          <section>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-2xl font-semibold" style={{ color: 'hsl(var(--scheme-title-text))' }}>New Content</h2>
+              <Link to="/public/lifelines" className="hover:underline text-sm" style={{ color: 'hsl(var(--scheme-actions-icon))' }}>
+                View All
               </Link>
-            ) : (
-              <StandardizedContentCard
-                key={item.id}
-                id={item.id}
-                title={item.title}
-                description={item.description}
-                imageUrl={
-                  item.type === "collection" 
-                    ? (item.card_image_url || item.hero_image?.url || item.hero_image_url)
-                    : item.type === "election"
-                    ? item.hero_image_url
-                    : null
-                }
-                imageAlt={item.type === "collection" ? item.hero_image?.alt_text : item.title}
-                linkPath={
-                  item.type === "collection"
-                    ? `/public/collections/${item.slug}`
-                    : `/public/elections/${item.slug}`
-                }
-                type={item.type}
-                collectionSlug={item.type === "collection" ? item.slug : undefined}
-              />
-            )
-          ))}
-        </div>
-      </section>
+            </div>
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {newContentItems.map(renderLegacyCard)}
+            </div>
+          </section>
+        </>
+      )}
     </div>
   );
 }
