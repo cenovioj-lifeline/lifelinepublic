@@ -218,7 +218,7 @@ function normalizeContent(
   switch (itemType) {
     case "collection":
       return {
-        title: data.name || data.title,
+        title: data.title,
         subtitle: data.description,
         image_url: data.card_image_url || data.hero_image_url,
         slug: data.slug,
@@ -285,7 +285,7 @@ async function fetchItemContent(
     case "collection": {
       const { data: collection } = await supabase
         .from("collections")
-        .select("id, name, title, slug, description, card_image_url, hero_image_url")
+        .select("id, title, slug, description, card_image_url, hero_image_url")
         .eq("id", item_id)
         .single();
       data = collection;
