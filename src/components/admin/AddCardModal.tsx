@@ -44,11 +44,11 @@ export function AddCardModal({
     queryFn: async () => {
       const { data, error } = await supabase
         .from("collections")
-        .select("id, name, title, slug, description, card_image_url, hero_image_url")
+        .select("id, title, slug, description, card_image_url, hero_image_url")
         .eq("status", "published")
-        .order("name");
+        .order("title");
       if (error) throw error;
-      return data || [];
+      return data ?? [];
     },
     enabled: open,
   });
@@ -57,28 +57,19 @@ export function AddCardModal({
   const { data: profiles = [] } = useQuery({
     queryKey: ["available-profiles", entityId],
     queryFn: async () => {
-      let query = supabase
+      const query = supabase
         .from("profiles")
-        .select("id, name, slug, tagline, profile_image_url, collection_slug")
+        .select("id, name, slug, tagline, profile_image_url, primary_collection_id")
         .eq("status", "published")
         .order("name");
 
       if (entityId) {
-        // Get collection slug first
-        const { data: collection } = await supabase
-          .from("collections")
-          .select("slug")
-          .eq("id", entityId)
-          .single();
-
-        if (collection) {
-          query = query.eq("collection_slug", collection.slug);
-        }
+        query.eq("primary_collection_id", entityId);
       }
 
       const { data, error } = await query;
       if (error) throw error;
-      return data || [];
+      return data ?? [];
     },
     enabled: open && pageType === "collection",
   });
@@ -87,27 +78,19 @@ export function AddCardModal({
   const { data: lifelines = [] } = useQuery({
     queryKey: ["available-lifelines", entityId],
     queryFn: async () => {
-      let query = supabase
+      const query = supabase
         .from("lifelines")
-        .select("id, title, slug, description, cover_image_url, collection_slug")
+        .select("id, title, slug, intro, cover_image_url, collection_id")
         .eq("status", "published")
         .order("title");
 
       if (entityId) {
-        const { data: collection } = await supabase
-          .from("collections")
-          .select("slug")
-          .eq("id", entityId)
-          .single();
-
-        if (collection) {
-          query = query.eq("collection_slug", collection.slug);
-        }
+        query.eq("collection_id", entityId);
       }
 
       const { data, error } = await query;
       if (error) throw error;
-      return data || [];
+      return data ?? [];
     },
     enabled: open && pageType === "collection",
   });
@@ -116,27 +99,19 @@ export function AddCardModal({
   const { data: elections = [] } = useQuery({
     queryKey: ["available-elections", entityId],
     queryFn: async () => {
-      let query = supabase
+      const query = supabase
         .from("mock_elections")
-        .select("id, title, slug, subtitle, collection_slug")
+        .select("id, title, slug, subtitle, collection_id")
         .eq("status", "published")
         .order("title");
 
       if (entityId) {
-        const { data: collection } = await supabase
-          .from("collections")
-          .select("slug")
-          .eq("id", entityId)
-          .single();
-
-        if (collection) {
-          query = query.eq("collection_slug", collection.slug);
-        }
+        query.eq("collection_id", entityId);
       }
 
       const { data, error } = await query;
       if (error) throw error;
-      return data || [];
+      return data ?? [];
     },
     enabled: open && pageType === "collection",
   });
@@ -151,7 +126,7 @@ export function AddCardModal({
         .eq("status", "published")
         .order("title");
       if (error) throw error;
-      return data || [];
+      return data ?? [];
     },
     enabled: open,
   });
@@ -166,7 +141,7 @@ export function AddCardModal({
         .eq("status", "active")
         .order("name");
       if (error) throw error;
-      return data || [];
+      return data ?? [];
     },
     enabled: open,
   });

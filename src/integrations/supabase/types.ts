@@ -2094,6 +2094,65 @@ export type Database = {
         }
         Relationships: []
       }
+      page_layout_items: {
+        Row: {
+          created_at: string
+          display_order: number
+          id: string
+          item_id: string
+          item_type: string
+          layout_id: string
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          item_id: string
+          item_type: string
+          layout_id: string
+        }
+        Update: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          item_id?: string
+          item_type?: string
+          layout_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "page_layout_items_layout_id_fkey"
+            columns: ["layout_id"]
+            isOneToOne: false
+            referencedRelation: "page_layouts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      page_layouts: {
+        Row: {
+          created_at: string
+          entity_id: string | null
+          id: string
+          page_type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          entity_id?: string | null
+          id?: string
+          page_type: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          entity_id?: string | null
+          id?: string
+          page_type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profile_books: {
         Row: {
           book_id: string

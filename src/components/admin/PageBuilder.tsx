@@ -66,9 +66,9 @@ export function PageBuilder({
     queryFn: async () => {
       const { data, error } = await supabase
         .from("collections")
-        .select("id, name, title, slug")
+        .select("id, title, slug")
         .eq("status", "published")
-        .order("name");
+        .order("title");
       if (error) throw error;
       return data || [];
     },
@@ -149,7 +149,7 @@ export function PageBuilder({
             <SelectItem value="home">Home Page</SelectItem>
             {collections.map((collection) => (
               <SelectItem key={collection.id} value={collection.id}>
-                {collection.name || collection.title}
+                {collection.title}
               </SelectItem>
             ))}
           </SelectContent>
