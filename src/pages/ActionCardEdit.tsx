@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,9 +10,11 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Save } from "lucide-react";
+import { ArrowLeft, Save, Upload, Info, X } from "lucide-react";
 import * as LucideIcons from "lucide-react";
+import { uploadImage } from "@/lib/storage";
 
 // Common icons to show first
 const COMMON_ICONS = [
@@ -40,6 +42,9 @@ interface ActionCardFormData {
   is_default: boolean;
   default_order: number;
   status: string;
+  behavior_type: "static_url" | "context_aware" | "custom";
+  static_url: string;
+  behavior_description: string;
 }
 
 const generateSlug = (name: string) => {
@@ -55,6 +60,7 @@ export default function ActionCardEdit() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [formData, setFormData] = useState<ActionCardFormData>({
     name: "",
@@ -65,8 +71,12 @@ export default function ActionCardEdit() {
     is_default: false,
     default_order: 0,
     status: "active",
+    behavior_type: "context_aware",
+    static_url: "",
+    behavior_description: "",
   });
   const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
 
   // Fetch existing card if editing
   const { data: existingCard, isLoading } = useQuery({
@@ -96,6 +106,9 @@ export default function ActionCardEdit() {
         is_default: existingCard.is_default || false,
         default_order: existingCard.default_order || 0,
         status: existingCard.status || "active",
+        behavior_type: (existingCard.behavior_type as ActionCardFormData["behavior_type"]) || "context_aware",
+        static_url: existingCard.static_url || "",
+        behavior_description: existingCard.behavior_description || "",
       });
       setSlugManuallyEdited(true); // Don't auto-generate slug for existing cards
     }
@@ -108,34 +121,68 @@ export default function ActionCardEdit() {
     }
   }, [formData.name, slugManuallyEdited]);
 
+  // Handle SVG file upload
+  const handleSvgUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.type !== "image/svg+xml") {
+      toast({
+        title: "Invalid file type",
+        description: "Please upload an SVG file",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      const { url } = await uploadImage(file, "media-uploads");
+      setFormData(prev => ({ ...prev, icon_url: url, icon_name: "" }));
+      toast({
+        title: "Uploaded",
+        description: "SVG icon uploaded successfully",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Upload failed",
+        description: error.message || "Could not upload SVG",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
+  };
+
   const saveMutation = useMutation({
     mutationFn: async (data: ActionCardFormData) => {
+      const payload = {
+        name: data.name,
+        slug: data.slug,
+        description: data.description || null,
+        icon_name: data.icon_name || null,
+        icon_url: data.icon_url || null,
+        is_default: data.is_default,
+        default_order: data.default_order,
+        status: data.status,
+        behavior_type: data.behavior_type,
+        static_url: data.behavior_type === "static_url" ? data.static_url : null,
+        behavior_description: data.behavior_description || null,
+      };
+
       if (isNew) {
         const { error } = await supabase.from("action_cards").insert({
-          name: data.name,
-          slug: data.slug,
-          description: data.description || null,
-          icon_name: data.icon_name || null,
-          icon_url: data.icon_url || null,
-          is_default: data.is_default,
-          default_order: data.default_order,
-          status: data.status,
-          is_implemented: false,
+          ...payload,
+          is_implemented: data.behavior_type === "static_url", // Static URL cards are auto-implemented
         });
         if (error) throw error;
       } else {
         const { error } = await supabase
           .from("action_cards")
-          .update({
-            name: data.name,
-            slug: data.slug,
-            description: data.description || null,
-            icon_name: data.icon_name || null,
-            icon_url: data.icon_url || null,
-            is_default: data.is_default,
-            default_order: data.default_order,
-            status: data.status,
-          })
+          .update(payload)
           .eq("id", id);
         if (error) throw error;
       }
@@ -164,6 +211,14 @@ export default function ActionCardEdit() {
       toast({
         title: "Validation Error",
         description: "Name and slug are required",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (formData.behavior_type === "static_url" && !formData.static_url) {
+      toast({
+        title: "Validation Error",
+        description: "Target URL is required for static URL behavior",
         variant: "destructive",
       });
       return;
@@ -267,27 +322,56 @@ export default function ActionCardEdit() {
             <Card>
               <CardHeader>
                 <CardTitle>Icon</CardTitle>
-                <CardDescription>Choose an icon from Lucide or upload custom SVG</CardDescription>
+                <CardDescription>Choose a Lucide icon or upload a custom SVG</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <Label>Selected Icon</Label>
                   <div className="flex items-center gap-4">
-                    <div className="h-16 w-16 rounded-lg bg-muted flex items-center justify-center">
+                    <div className="h-16 w-16 rounded-lg bg-muted flex items-center justify-center relative">
                       {formData.icon_url ? (
-                        <img src={formData.icon_url} alt="" className="h-10 w-10" />
+                        <>
+                          <img src={formData.icon_url} alt="" className="h-10 w-10" />
+                          <button
+                            type="button"
+                            onClick={() => setFormData({ ...formData, icon_url: "" })}
+                            className="absolute -top-2 -right-2 h-5 w-5 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </>
                       ) : formData.icon_name ? (
                         <DynamicIcon name={formData.icon_name} className="h-10 w-10" />
                       ) : (
                         <span className="text-muted-foreground text-xs">No icon</span>
                       )}
                     </div>
-                    <div className="flex-1">
+                    <div className="flex-1 space-y-2">
                       <Input
                         value={formData.icon_name}
-                        onChange={(e) => setFormData({ ...formData, icon_name: e.target.value })}
+                        onChange={(e) => setFormData({ ...formData, icon_name: e.target.value, icon_url: "" })}
                         placeholder="Type icon name (e.g., Rss, Share2)"
+                        disabled={!!formData.icon_url}
                       />
+                      <div className="flex gap-2">
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          accept=".svg,image/svg+xml"
+                          onChange={handleSvgUpload}
+                          className="hidden"
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => fileInputRef.current?.click()}
+                          disabled={isUploading}
+                        >
+                          <Upload className="h-4 w-4 mr-2" />
+                          {isUploading ? "Uploading..." : "Upload SVG"}
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -300,7 +384,7 @@ export default function ActionCardEdit() {
                         key={iconName}
                         type="button"
                         className={`h-10 w-10 rounded flex items-center justify-center hover:bg-muted transition-colors ${
-                          formData.icon_name === iconName ? "bg-primary text-primary-foreground" : ""
+                          formData.icon_name === iconName && !formData.icon_url ? "bg-primary text-primary-foreground" : ""
                         }`}
                         onClick={() => setFormData({ ...formData, icon_name: iconName, icon_url: "" })}
                         title={iconName}
@@ -310,19 +394,112 @@ export default function ActionCardEdit() {
                     ))}
                   </div>
                 </div>
+              </CardContent>
+            </Card>
 
-                <div className="space-y-2">
-                  <Label htmlFor="icon_url">Custom Icon URL (optional)</Label>
-                  <Input
-                    id="icon_url"
-                    value={formData.icon_url}
-                    onChange={(e) => setFormData({ ...formData, icon_url: e.target.value })}
-                    placeholder="https://... (SVG URL)"
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    If set, this URL will be used instead of the Lucide icon
-                  </p>
-                </div>
+            {/* Behavior Configuration */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Behavior</CardTitle>
+                <CardDescription>How this action card works when tapped</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <RadioGroup
+                  value={formData.behavior_type}
+                  onValueChange={(value: ActionCardFormData["behavior_type"]) =>
+                    setFormData({ ...formData, behavior_type: value })
+                  }
+                  className="space-y-3"
+                >
+                  <div className="flex items-start space-x-3">
+                    <RadioGroupItem value="static_url" id="static_url" className="mt-1" />
+                    <div className="space-y-1">
+                      <Label htmlFor="static_url" className="font-medium cursor-pointer">
+                        Static URL
+                      </Label>
+                      <p className="text-xs text-muted-foreground">
+                        Always goes to the same URL (e.g., /settings, /help)
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start space-x-3">
+                    <RadioGroupItem value="context_aware" id="context_aware" className="mt-1" />
+                    <div className="space-y-1">
+                      <Label htmlFor="context_aware" className="font-medium cursor-pointer">
+                        Context-Aware (Built-in)
+                      </Label>
+                      <p className="text-xs text-muted-foreground">
+                        Adapts based on the current collection or page
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start space-x-3">
+                    <RadioGroupItem value="custom" id="custom" className="mt-1" />
+                    <div className="space-y-1">
+                      <Label htmlFor="custom" className="font-medium cursor-pointer">
+                        Custom Implementation
+                      </Label>
+                      <p className="text-xs text-muted-foreground">
+                        Special behavior that requires custom coding
+                      </p>
+                    </div>
+                  </div>
+                </RadioGroup>
+
+                {/* Conditional fields based on behavior type */}
+                {formData.behavior_type === "static_url" && (
+                  <div className="space-y-2 pt-4 border-t">
+                    <Label htmlFor="static_url">Target URL *</Label>
+                    <Input
+                      id="static_url"
+                      value={formData.static_url}
+                      onChange={(e) => setFormData({ ...formData, static_url: e.target.value })}
+                      placeholder="/settings, /help, https://external.com"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Relative path for internal pages, or full URL for external links
+                    </p>
+                  </div>
+                )}
+
+                {formData.behavior_type === "context_aware" && (
+                  <div className="pt-4 border-t">
+                    <div className="flex gap-2 p-3 bg-muted rounded-lg">
+                      <Info className="h-4 w-4 mt-0.5 text-muted-foreground flex-shrink-0" />
+                      <div className="text-sm text-muted-foreground">
+                        This card uses built-in behavior that adapts to the current context.
+                        Examples: Share (shares current page), Members (shows collection members).
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {formData.behavior_type === "custom" && (
+                  <div className="pt-4 border-t">
+                    <div className="flex gap-2 p-3 bg-muted rounded-lg">
+                      <Info className="h-4 w-4 mt-0.5 text-muted-foreground flex-shrink-0" />
+                      <div className="text-sm text-muted-foreground">
+                        This card requires custom code implementation. Work with Lovable outside
+                        this editor to define the behavior, then return here to configure other settings.
+                      </div>
+                    </div>
+                    <div className="space-y-2 mt-4">
+                      <Label htmlFor="behavior_description">Behavior Notes</Label>
+                      <Textarea
+                        id="behavior_description"
+                        value={formData.behavior_description}
+                        onChange={(e) => setFormData({ ...formData, behavior_description: e.target.value })}
+                        placeholder="Describe what this card should do..."
+                        rows={3}
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Notes for reference when implementing or maintaining this card
+                      </p>
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -378,29 +555,29 @@ export default function ActionCardEdit() {
                 <CardHeader>
                   <CardTitle>Implementation Status</CardTitle>
                   <CardDescription>
-                    Status of the card's functionality (managed by Claude Code)
+                    Status of the card's functionality
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="flex items-center gap-2">
                     <div
                       className={`h-3 w-3 rounded-full ${
-                        existingCard.is_implemented ? "bg-green-500" : "bg-red-500"
+                        existingCard.is_implemented ? "bg-green-500" : "bg-amber-500"
                       }`}
                     />
                     <span>
-                      {existingCard.is_implemented ? "Implemented" : "Not Implemented"}
+                      {existingCard.is_implemented ? "Implemented" : "Pending Implementation"}
                     </span>
                   </div>
 
-                  {!existingCard.is_implemented && (
+                  {!existingCard.is_implemented && formData.behavior_type !== "static_url" && (
                     <p className="text-sm text-muted-foreground italic">
-                      Work with Claude Code to implement this action card's behavior.
+                      Work with Lovable to implement this action card's behavior.
                       The slug "{formData.slug}" will be used to identify this card in code.
                     </p>
                   )}
 
-                  {existingCard.is_implemented && existingCard.implementation_notes && (
+                  {existingCard.implementation_notes && (
                     <div className="space-y-2">
                       <Label>Implementation Notes</Label>
                       <p className="text-sm text-muted-foreground bg-muted p-3 rounded">

@@ -16,6 +16,8 @@ export type Database = {
     Tables: {
       action_cards: {
         Row: {
+          behavior_description: string | null
+          behavior_type: string | null
           created_at: string
           default_order: number | null
           description: string | null
@@ -27,10 +29,13 @@ export type Database = {
           is_implemented: boolean | null
           name: string
           slug: string
+          static_url: string | null
           status: string | null
           updated_at: string
         }
         Insert: {
+          behavior_description?: string | null
+          behavior_type?: string | null
           created_at?: string
           default_order?: number | null
           description?: string | null
@@ -42,10 +47,13 @@ export type Database = {
           is_implemented?: boolean | null
           name: string
           slug: string
+          static_url?: string | null
           status?: string | null
           updated_at?: string
         }
         Update: {
+          behavior_description?: string | null
+          behavior_type?: string | null
           created_at?: string
           default_order?: number | null
           description?: string | null
@@ -57,6 +65,7 @@ export type Database = {
           is_implemented?: boolean | null
           name?: string
           slug?: string
+          static_url?: string | null
           status?: string | null
           updated_at?: string
         }
