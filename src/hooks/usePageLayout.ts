@@ -227,26 +227,26 @@ function normalizeContent(
     case "profile":
       return {
         title: data.name,
-        subtitle: data.tagline,
-        image_url: data.profile_image_url,
+        subtitle: data.short_description,
+        image_url: data.primary_image_url,
         slug: data.slug,
-        link: `/collections/${data.collection_slug}/profiles/${data.slug}`,
+        link: `/collections/${data.collections?.slug}/profiles/${data.slug}`,
       };
     case "lifeline":
       return {
         title: data.title,
-        subtitle: data.description || data.intro,
-        image_url: data.cover_image_url || data.card_image_url,
+        subtitle: data.subtitle || data.intro,
+        image_url: data.cover_image_url,
         slug: data.slug,
-        link: `/collections/${data.collection_slug}/lifelines/${data.slug}`,
+        link: `/collections/${data.collections?.slug}/lifelines/${data.slug}`,
       };
     case "election":
       return {
         title: data.title,
-        subtitle: data.subtitle || data.description,
+        subtitle: data.description,
         image_url: data.hero_image_url,
         slug: data.slug,
-        link: `/collections/${data.collection_slug}/awards/${data.slug}`,
+        link: `/collections/${data.collections?.slug}/awards/${data.slug}`,
       };
     case "book":
       return {
@@ -294,7 +294,7 @@ async function fetchItemContent(
     case "profile": {
       const { data: profile } = await supabase
         .from("profiles")
-        .select("id, name, slug, tagline, profile_image_url, collection_slug")
+        .select("id, name, slug, short_description, primary_image_url, primary_collection_id, collections:primary_collection_id(slug)")
         .eq("id", item_id)
         .single();
       data = profile;
@@ -303,7 +303,7 @@ async function fetchItemContent(
     case "lifeline": {
       const { data: lifeline } = await supabase
         .from("lifelines")
-        .select("id, title, slug, description, intro, cover_image_url, card_image_url, collection_slug")
+        .select("id, title, slug, subtitle, intro, cover_image_url, collection_id, collections(slug)")
         .eq("id", item_id)
         .single();
       data = lifeline;
@@ -312,7 +312,7 @@ async function fetchItemContent(
     case "election": {
       const { data: election } = await supabase
         .from("mock_elections")
-        .select("id, title, slug, subtitle, description, hero_image_url, collection_slug")
+        .select("id, title, slug, description, hero_image_url, collection_id, collections(slug)")
         .eq("id", item_id)
         .single();
       data = election;
