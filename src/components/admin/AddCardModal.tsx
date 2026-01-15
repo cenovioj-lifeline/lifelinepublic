@@ -14,6 +14,7 @@ import { Search, Plus, Link } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAddLayoutItem } from "@/hooks/usePageLayout";
+import { toast } from "@/hooks/use-toast";
 import type { PageType, PageLayoutItemType } from "@/types/pageLayout";
 
 interface AddCardModalProps {
@@ -181,6 +182,13 @@ export function AddCardModal({
           onOpenChange(false);
           setSearch("");
         },
+        onError: (error) => {
+          toast({
+            title: "Failed to add card",
+            description: error.message,
+            variant: "destructive",
+          });
+        },
       }
     );
   };
@@ -208,6 +216,13 @@ export function AddCardModal({
           setCustomSubtitle("");
           setCustomLink("");
           setCustomImageUrl("");
+        },
+        onError: (error) => {
+          toast({
+            title: "Failed to add custom link",
+            description: error.message,
+            variant: "destructive",
+          });
         },
       }
     );
