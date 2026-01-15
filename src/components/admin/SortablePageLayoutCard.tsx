@@ -76,11 +76,11 @@ export function SortablePageLayoutCard({
             </Button>
           </div>
 
-          <CardContent className="p-6 flex flex-col items-center justify-center h-32">
+          <CardContent className="p-6 flex flex-col items-center justify-center h-48">
             {IconComponent && <IconComponent className="w-8 h-8 mb-2" />}
-            <span className="font-medium">{content.title}</span>
+            <span className="font-medium text-center">{content.title}</span>
             <Badge
-              className={itemTypeBadgeColors[item_type]}
+              className={`${itemTypeBadgeColors[item_type]} mt-2`}
               variant="secondary"
             >
               {itemTypeLabels[item_type]}
@@ -115,20 +115,20 @@ export function SortablePageLayoutCard({
           </Button>
         </div>
 
-        {/* Card image */}
-        {content.image_url ? (
-          <div className="aspect-video bg-muted">
+        {/* Card image - fixed aspect for consistent height */}
+        <div className="h-32 bg-muted overflow-hidden">
+          {content.image_url ? (
             <img
               src={content.image_url}
               alt={content.title}
               className="w-full h-full object-cover"
             />
-          </div>
-        ) : (
-          <div className="aspect-video bg-muted flex items-center justify-center">
-            <span className="text-muted-foreground text-sm">No image</span>
-          </div>
-        )}
+          ) : (
+            <div className="w-full h-full flex items-center justify-center">
+              <span className="text-muted-foreground text-sm">No image</span>
+            </div>
+          )}
+        </div>
 
         <CardContent className="p-4">
           {/* Type badge */}

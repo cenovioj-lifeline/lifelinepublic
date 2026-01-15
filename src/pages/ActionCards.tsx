@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Edit, Trash2, Star, Check, X, ChevronUp, ChevronDown, RotateCcw } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -47,6 +49,7 @@ interface Collection {
   id: string;
   title: string;
   slug: string;
+  show_action_cards: boolean | null;
 }
 
 interface CollectionActionCard {
@@ -79,10 +82,30 @@ export default function ActionCards() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("collections")
-        .select("id, title, slug")
+        .select("id, title, slug, show_action_cards")
         .order("title");
       if (error) throw error;
       return data as Collection[];
+    },
+  });
+
+  // Get the selected collection's show_action_cards setting
+  const selectedCollection = collections?.find(c => c.id === selectedContext);
+  const showActionCards = selectedCollection?.show_action_cards !== false;
+
+  // Toggle show action cards mutation
+  const toggleShowActionCards = useMutation({
+    mutationFn: async (show: boolean) => {
+      const { error } = await supabase
+        .from("collections")
+        .update({ show_action_cards: show })
+        .eq("id", selectedContext);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["collections-list"] });
+      queryClient.invalidateQueries({ queryKey: ["public-collection"] });
+      toast({ title: showActionCards ? "Action cards hidden" : "Action cards shown" });
     },
   });
 
@@ -129,7 +152,6 @@ export default function ActionCards() {
   // Determine if we're in defaults mode or collection mode
   const isDefaultsMode = selectedContext === "defaults";
   const hasCustomCards = collectionCards && collectionCards.length > 0;
-  const selectedCollection = collections?.find(c => c.id === selectedContext);
 
   // Set default mutation
   const setDefaultMutation = useMutation({
@@ -363,6 +385,27 @@ export default function ActionCards() {
             </Button>
           </div>
         </div>
+
+        {/* Show Action Cards Toggle (for collections) */}
+        {!isDefaultsMode && selectedCollection && (
+          <Card className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label htmlFor="show-action-cards" className="text-base font-medium">
+                  Show action cards in collection
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                  When disabled, action cards won't appear on this collection's public page
+                </p>
+              </div>
+              <Switch
+                id="show-action-cards"
+                checked={showActionCards}
+                onCheckedChange={(checked) => toggleShowActionCards.mutate(checked)}
+              />
+            </div>
+          </Card>
+        )}
 
         {/* Context-specific Cards Section */}
         <Card>

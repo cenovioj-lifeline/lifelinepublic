@@ -26,6 +26,7 @@ interface AddCardModalProps {
   entityId: string | undefined;
   existingItemIds: string[];
   nextOrder: number;
+  sectionId?: string | null;
 }
 
 export function AddCardModal({
@@ -36,6 +37,7 @@ export function AddCardModal({
   entityId,
   existingItemIds,
   nextOrder,
+  sectionId,
 }: AddCardModalProps) {
   const [search, setSearch] = useState("");
   const [activeTab, setActiveTab] = useState<PageLayoutItemType>("collection");
@@ -180,6 +182,7 @@ export function AddCardModal({
         itemType,
         itemId,
         displayOrder: nextOrder,
+        sectionId: sectionId || undefined,
       },
       {
         onSuccess: () => {
@@ -211,7 +214,7 @@ export function AddCardModal({
       {
         layoutId,
         itemType: "custom_link",
-        itemId: crypto.randomUUID(), // Generate a unique ID
+        itemId: crypto.randomUUID(),
         displayOrder: nextOrder,
         customTitle: customTitle.trim(),
         customSubtitle: customSubtitle.trim() || undefined,
@@ -219,6 +222,7 @@ export function AddCardModal({
         customImageUrl: customImageUrl || undefined,
         customImagePositionX: imagePositionX,
         customImagePositionY: imagePositionY,
+        sectionId: sectionId || undefined,
       },
       {
         onSuccess: () => {

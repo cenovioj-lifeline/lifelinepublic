@@ -123,6 +123,7 @@ export function useAddLayoutItem() {
       customImageUrl,
       customImagePositionX,
       customImagePositionY,
+      sectionId,
     }: {
       layoutId: string;
       itemType: PageLayoutItemType;
@@ -134,6 +135,7 @@ export function useAddLayoutItem() {
       customImageUrl?: string;
       customImagePositionX?: number;
       customImagePositionY?: number;
+      sectionId?: string;
     }) => {
       const { data, error } = await supabase
         .from("page_layout_items")
@@ -148,6 +150,7 @@ export function useAddLayoutItem() {
           custom_image_url: customImageUrl || null,
           custom_image_position_x: customImagePositionX ?? 50,
           custom_image_position_y: customImagePositionY ?? 50,
+          section_id: sectionId || null,
         })
         .select()
         .single();

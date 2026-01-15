@@ -980,33 +980,35 @@ export default function PublicCollectionDetail() {
           )}
         </div>
 
-        {/* Dynamic Action Cards */}
-        <div className={`grid gap-2 md:gap-4`} style={{ gridTemplateColumns: `repeat(${actionCards?.length || 4}, minmax(0, 1fr))` }}>
-          {actionCards && actionCards.map((card, index) => (
-            <Card
-              key={card.id}
-              className="cursor-pointer hover:shadow-lg transition-shadow"
-              style={{
-                backgroundColor: index === 0 ? 'hsl(var(--scheme-actions-bg))' : 'hsl(var(--scheme-ch-actions-bg))',
-                borderColor: index === 0 ? 'hsl(var(--scheme-actions-border))' : 'hsl(var(--scheme-ch-actions-border))'
-              }}
-              onClick={() => handleActionCardClick(card)}
-            >
-              <CardContent className="p-3 md:p-6 text-center">
-                {renderActionCardIcon(
-                  card,
-                  `h-5 w-5 md:h-8 md:w-8 mx-auto mb-1 md:mb-2`
-                )}
-                <div
-                  className="text-[10px] md:text-sm mt-1"
-                  style={{ color: index === 0 ? 'hsl(var(--scheme-actions-text))' : 'hsl(var(--scheme-ch-actions-text))' }}
-                >
-                  {getActionCardLabel(card)}
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+        {/* Dynamic Action Cards - Only show if show_action_cards !== false */}
+        {collection.show_action_cards !== false && actionCards && actionCards.length > 0 && (
+          <div className={`grid gap-2 md:gap-4`} style={{ gridTemplateColumns: `repeat(${actionCards.length}, minmax(0, 1fr))` }}>
+            {actionCards.map((card, index) => (
+              <Card
+                key={card.id}
+                className="cursor-pointer hover:shadow-lg transition-shadow"
+                style={{
+                  backgroundColor: index === 0 ? 'hsl(var(--scheme-actions-bg))' : 'hsl(var(--scheme-ch-actions-bg))',
+                  borderColor: index === 0 ? 'hsl(var(--scheme-actions-border))' : 'hsl(var(--scheme-ch-actions-border))'
+                }}
+                onClick={() => handleActionCardClick(card)}
+              >
+                <CardContent className="p-3 md:p-6 text-center">
+                  {renderActionCardIcon(
+                    card,
+                    `h-5 w-5 md:h-8 md:w-8 mx-auto mb-1 md:mb-2`
+                  )}
+                  <div
+                    className="text-[10px] md:text-sm mt-1"
+                    style={{ color: index === 0 ? 'hsl(var(--scheme-actions-text))' : 'hsl(var(--scheme-ch-actions-text))' }}
+                  >
+                    {getActionCardLabel(card)}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
 
         {/* Content Section - New unified layout OR Legacy two-section layout */}
         {useNewLayout ? (
