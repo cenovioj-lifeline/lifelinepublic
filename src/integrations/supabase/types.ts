@@ -773,6 +773,7 @@ export type Database = {
           quote_frequency: number | null
           quotes_enabled: boolean | null
           secondary_color: string | null
+          show_action_cards: boolean | null
           slug: string
           status: Database["public"]["Enums"]["content_status"]
           style_notes: string | null
@@ -854,6 +855,7 @@ export type Database = {
           quote_frequency?: number | null
           quotes_enabled?: boolean | null
           secondary_color?: string | null
+          show_action_cards?: boolean | null
           slug: string
           status?: Database["public"]["Enums"]["content_status"]
           style_notes?: string | null
@@ -935,6 +937,7 @@ export type Database = {
           quote_frequency?: number | null
           quotes_enabled?: boolean | null
           secondary_color?: string | null
+          show_action_cards?: boolean | null
           slug?: string
           status?: Database["public"]["Enums"]["content_status"]
           style_notes?: string | null
@@ -2117,6 +2120,7 @@ export type Database = {
           item_id: string
           item_type: string
           layout_id: string
+          section_id: string | null
         }
         Insert: {
           created_at?: string
@@ -2131,6 +2135,7 @@ export type Database = {
           item_id: string
           item_type: string
           layout_id: string
+          section_id?: string | null
         }
         Update: {
           created_at?: string
@@ -2145,10 +2150,53 @@ export type Database = {
           item_id?: string
           item_type?: string
           layout_id?: string
+          section_id?: string | null
         }
         Relationships: [
           {
             foreignKeyName: "page_layout_items_layout_id_fkey"
+            columns: ["layout_id"]
+            isOneToOne: false
+            referencedRelation: "page_layouts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "page_layout_items_section_id_fkey"
+            columns: ["section_id"]
+            isOneToOne: false
+            referencedRelation: "page_layout_sections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      page_layout_sections: {
+        Row: {
+          columns_count: number
+          created_at: string
+          display_order: number
+          id: string
+          layout_id: string
+          section_title: string | null
+        }
+        Insert: {
+          columns_count?: number
+          created_at?: string
+          display_order?: number
+          id?: string
+          layout_id: string
+          section_title?: string | null
+        }
+        Update: {
+          columns_count?: number
+          created_at?: string
+          display_order?: number
+          id?: string
+          layout_id?: string
+          section_title?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "page_layout_sections_layout_id_fkey"
             columns: ["layout_id"]
             isOneToOne: false
             referencedRelation: "page_layouts"

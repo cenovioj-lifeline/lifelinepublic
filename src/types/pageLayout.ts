@@ -34,6 +34,7 @@ export interface PageLayoutItem {
   item_type: PageLayoutItemType;
   item_id: string;
   display_order: number;
+  section_id?: string | null;
   created_at: string;
   // Custom link fields (only used when item_type is 'custom_link')
   custom_title?: string | null;
@@ -42,6 +43,21 @@ export interface PageLayoutItem {
   custom_image_url?: string | null;
   custom_image_position_x?: number | null;
   custom_image_position_y?: number | null;
+}
+
+// Database row: page_layout_sections table
+export interface PageLayoutSection {
+  id: string;
+  layout_id: string;
+  section_title: string | null;
+  display_order: number;
+  columns_count: number;
+  created_at: string;
+}
+
+// Extended section with items
+export interface PageLayoutSectionWithItems extends PageLayoutSection {
+  items: PageLayoutItemWithContent[];
 }
 
 // Normalized content for rendering cards
