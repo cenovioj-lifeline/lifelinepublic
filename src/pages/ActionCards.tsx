@@ -5,8 +5,9 @@ import { AdminLayout } from "@/components/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Edit, Trash2, Star, Check, X, ChevronUp, ChevronDown } from "lucide-react";
+import { Plus, Edit, Trash2, Star, Check, X, ChevronUp, ChevronDown, RotateCcw } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import * as LucideIcons from "lucide-react";
 import {
@@ -19,6 +20,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface ActionCard {
   id: string;
@@ -35,6 +43,20 @@ interface ActionCard {
   created_at: string;
 }
 
+interface Collection {
+  id: string;
+  title: string;
+  slug: string;
+}
+
+interface CollectionActionCard {
+  id: string;
+  action_card_id: string;
+  display_order: number;
+  label_override: string | null;
+  action_card: ActionCard;
+}
+
 // Dynamic icon component
 const DynamicIcon = ({ name, className }: { name: string | null; className?: string }) => {
   if (!name) return null;
@@ -48,6 +70,21 @@ export default function ActionCards() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [selectedContext, setSelectedContext] = useState<string>("defaults");
+  const [selectedCardToAdd, setSelectedCardToAdd] = useState<string>("");
+
+  // Fetch all collections
+  const { data: collections } = useQuery({
+    queryKey: ["collections-list"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("collections")
+        .select("id, title, slug")
+        .order("title");
+      if (error) throw error;
+      return data as Collection[];
+    },
+  });
 
   const { data: actionCards, isLoading } = useQuery({
     queryKey: ["action-cards"],
@@ -63,13 +100,40 @@ export default function ActionCards() {
     },
   });
 
+  // Fetch collection's custom action cards when a collection is selected
+  const { data: collectionCards } = useQuery({
+    queryKey: ["collection-action-cards", selectedContext],
+    queryFn: async () => {
+      if (selectedContext === "defaults") return null;
+      const { data, error } = await supabase
+        .from("collection_action_cards")
+        .select(`
+          id,
+          action_card_id,
+          display_order,
+          label_override,
+          action_card:action_cards(*)
+        `)
+        .eq("collection_id", selectedContext)
+        .eq("is_enabled", true)
+        .order("display_order");
+      if (error) throw error;
+      return data as unknown as CollectionActionCard[];
+    },
+    enabled: selectedContext !== "defaults",
+  });
+
   // Get default cards sorted by order
   const defaultCards = actionCards?.filter(c => c.is_default).sort((a, b) => (a.default_order || 0) - (b.default_order || 0)) || [];
-  const nonDefaultCards = actionCards?.filter(c => !c.is_default) || [];
+  
+  // Determine if we're in defaults mode or collection mode
+  const isDefaultsMode = selectedContext === "defaults";
+  const hasCustomCards = collectionCards && collectionCards.length > 0;
+  const selectedCollection = collections?.find(c => c.id === selectedContext);
 
+  // Set default mutation
   const setDefaultMutation = useMutation({
     mutationFn: async ({ id, isDefault }: { id: string; isDefault: boolean }) => {
-      // If adding to defaults, assign next order number
       let newOrder = null;
       if (isDefault) {
         const maxOrder = defaultCards.reduce((max, c) => Math.max(max, c.default_order || 0), 0);
@@ -85,10 +149,7 @@ export default function ActionCards() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["action-cards"] });
       queryClient.invalidateQueries({ queryKey: ["action-cards-defaults"] });
-      toast({
-        title: "Updated",
-        description: "Default status has been updated",
-      });
+      toast({ title: "Updated", description: "Default status has been updated" });
     },
   });
 
@@ -104,7 +165,6 @@ export default function ActionCards() {
       const card = defaultCards[cardIndex];
       const swapCard = defaultCards[swapIndex];
 
-      // Swap default_order values
       await supabase
         .from("action_cards")
         .update({ default_order: swapCard.default_order })
@@ -121,6 +181,7 @@ export default function ActionCards() {
     },
   });
 
+  // Delete action card
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
@@ -131,13 +192,10 @@ export default function ActionCards() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["action-cards"] });
-      toast({
-        title: "Deleted",
-        description: "Action card has been deleted",
-      });
+      toast({ title: "Deleted", description: "Action card has been deleted" });
       setDeleteId(null);
     },
-    onError: (error) => {
+    onError: () => {
       toast({
         title: "Error",
         description: "Could not delete action card. It may be in use by collections.",
@@ -146,6 +204,121 @@ export default function ActionCards() {
       setDeleteId(null);
     },
   });
+
+  // Collection-specific mutations
+  const addToCollectionMutation = useMutation({
+    mutationFn: async (actionCardId: string) => {
+      const maxOrder = collectionCards?.reduce((max, c) => Math.max(max, c.display_order), 0) || 0;
+      const { error } = await supabase
+        .from("collection_action_cards")
+        .insert({
+          collection_id: selectedContext,
+          action_card_id: actionCardId,
+          display_order: maxOrder + 1,
+          is_enabled: true,
+        });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["collection-action-cards", selectedContext] });
+      setSelectedCardToAdd("");
+      toast({ title: "Card added to collection" });
+    },
+  });
+
+  const removeFromCollectionMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from("collection_action_cards")
+        .delete()
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["collection-action-cards", selectedContext] });
+      toast({ title: "Card removed from collection" });
+    },
+  });
+
+  const updateLabelMutation = useMutation({
+    mutationFn: async ({ id, label }: { id: string; label: string }) => {
+      const { error } = await supabase
+        .from("collection_action_cards")
+        .update({ label_override: label || null })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["collection-action-cards", selectedContext] });
+    },
+  });
+
+  const reorderCollectionCardMutation = useMutation({
+    mutationFn: async ({ id, direction }: { id: string; direction: "up" | "down" }) => {
+      if (!collectionCards) return;
+
+      const cardIndex = collectionCards.findIndex(c => c.id === id);
+      if (cardIndex === -1) return;
+
+      const swapIndex = direction === "up" ? cardIndex - 1 : cardIndex + 1;
+      if (swapIndex < 0 || swapIndex >= collectionCards.length) return;
+
+      const card = collectionCards[cardIndex];
+      const swapCard = collectionCards[swapIndex];
+
+      await supabase
+        .from("collection_action_cards")
+        .update({ display_order: swapCard.display_order })
+        .eq("id", card.id);
+
+      await supabase
+        .from("collection_action_cards")
+        .update({ display_order: card.display_order })
+        .eq("id", swapCard.id);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["collection-action-cards", selectedContext] });
+    },
+  });
+
+  const resetToDefaultsMutation = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase
+        .from("collection_action_cards")
+        .delete()
+        .eq("collection_id", selectedContext);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["collection-action-cards", selectedContext] });
+      toast({ title: "Reset to defaults", description: "Collection will now use default action cards" });
+    },
+  });
+
+  const initializeFromDefaultsMutation = useMutation({
+    mutationFn: async () => {
+      const inserts = defaultCards.map((card, index) => ({
+        collection_id: selectedContext,
+        action_card_id: card.id,
+        display_order: index + 1,
+        is_enabled: true,
+      }));
+
+      const { error } = await supabase
+        .from("collection_action_cards")
+        .insert(inserts);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["collection-action-cards", selectedContext] });
+      toast({ title: "Initialized from defaults", description: "You can now customize the cards" });
+    },
+  });
+
+  // Cards assigned to collection
+  const assignedCardIds = collectionCards?.map(c => c.action_card_id) || [];
+  // Available cards to add
+  const availableCards = actionCards?.filter(c => c.status === "active" && !assignedCardIds.includes(c.id)) || [];
 
   if (isLoading) {
     return (
@@ -165,83 +338,235 @@ export default function ActionCards() {
               Manage action cards that appear below collection hero images
             </p>
           </div>
-          <Button onClick={() => navigate("/admin/action-cards/new")}>
-            <Plus className="mr-2 h-4 w-4" />
-            New Action Card
-          </Button>
+          <div className="flex items-center gap-4">
+            <Select value={selectedContext} onValueChange={setSelectedContext}>
+              <SelectTrigger className="w-64">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="defaults">
+                  <span className="flex items-center gap-2">
+                    <Star className="h-4 w-4" />
+                    Default Home Page
+                  </span>
+                </SelectItem>
+                {collections?.map((collection) => (
+                  <SelectItem key={collection.id} value={collection.id}>
+                    {collection.title}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button onClick={() => navigate("/admin/action-cards/new")}>
+              <Plus className="mr-2 h-4 w-4" />
+              New Action Card
+            </Button>
+          </div>
         </div>
 
-        {/* Default Cards Configuration Section */}
+        {/* Context-specific Cards Section */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Star className="h-5 w-5 fill-primary text-primary" />
-              Default Cards ({defaultCards.length})
+              {isDefaultsMode ? (
+                <>
+                  <Star className="h-5 w-5 fill-primary text-primary" />
+                  Default Cards ({defaultCards.length})
+                </>
+              ) : (
+                <>
+                  Cards for {selectedCollection?.title || "Collection"} 
+                  ({hasCustomCards ? collectionCards?.length : "Using Defaults"})
+                </>
+              )}
             </CardTitle>
             <CardDescription>
-              These cards appear on all collections that use default settings. Drag to reorder.
+              {isDefaultsMode 
+                ? "These cards appear on all collections that use default settings."
+                : hasCustomCards 
+                  ? "Custom cards configured for this collection."
+                  : "This collection uses default cards. Add cards below to customize."
+              }
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {defaultCards.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
-                No default cards configured. Mark cards as default below to add them here.
-              </p>
+            {isDefaultsMode ? (
+              // Default cards management
+              defaultCards.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  No default cards configured. Mark cards as default in "All Action Cards" below.
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  {defaultCards.map((card, index) => (
+                    <div
+                      key={card.id}
+                      className="flex items-center gap-3 p-3 rounded-lg border bg-card"
+                    >
+                      <div className="flex flex-col gap-0.5">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6"
+                          disabled={index === 0}
+                          onClick={() => reorderMutation.mutate({ id: card.id, direction: "up" })}
+                        >
+                          <ChevronUp className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6"
+                          disabled={index === defaultCards.length - 1}
+                          onClick={() => reorderMutation.mutate({ id: card.id, direction: "down" })}
+                        >
+                          <ChevronDown className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      
+                      <span className="text-lg font-bold text-muted-foreground w-6">
+                        {index + 1}
+                      </span>
+                      
+                      <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center">
+                        {card.icon_url ? (
+                          <img src={card.icon_url} alt="" className="h-6 w-6" />
+                        ) : (
+                          <DynamicIcon name={card.icon_name} className="h-6 w-6" />
+                        )}
+                      </div>
+                      
+                      <div className="flex-1">
+                        <div className="font-medium">{card.name}</div>
+                        <code className="text-xs text-muted-foreground">{card.slug}</code>
+                      </div>
+                      
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setDefaultMutation.mutate({ id: card.id, isDefault: false })}
+                      >
+                        Remove from Defaults
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )
             ) : (
-              <div className="space-y-2">
-                {defaultCards.map((card, index) => (
-                  <div
-                    key={card.id}
-                    className="flex items-center gap-3 p-3 rounded-lg border bg-card"
-                  >
-                    <div className="flex flex-col gap-0.5">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-6 w-6"
-                        disabled={index === 0}
-                        onClick={() => reorderMutation.mutate({ id: card.id, direction: "up" })}
-                      >
-                        <ChevronUp className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-6 w-6"
-                        disabled={index === defaultCards.length - 1}
-                        onClick={() => reorderMutation.mutate({ id: card.id, direction: "down" })}
-                      >
-                        <ChevronDown className="h-4 w-4" />
-                      </Button>
+              // Collection-specific cards management
+              <>
+                {!hasCustomCards ? (
+                  <div className="space-y-4">
+                    <p className="text-sm text-muted-foreground">
+                      Currently showing default cards: {defaultCards.map(c => c.name).join(", ") || "None"}
+                    </p>
+                    <Button onClick={() => initializeFromDefaultsMutation.mutate()}>
+                      <Plus className="mr-2 h-4 w-4" />
+                      Customize Cards for This Collection
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      {collectionCards?.map((card, index) => (
+                        <div
+                          key={card.id}
+                          className="flex items-center gap-3 p-3 rounded-lg border bg-card"
+                        >
+                          <div className="flex flex-col gap-0.5">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-6 w-6"
+                              disabled={index === 0}
+                              onClick={() => reorderCollectionCardMutation.mutate({ id: card.id, direction: "up" })}
+                            >
+                              <ChevronUp className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-6 w-6"
+                              disabled={index === (collectionCards?.length || 0) - 1}
+                              onClick={() => reorderCollectionCardMutation.mutate({ id: card.id, direction: "down" })}
+                            >
+                              <ChevronDown className="h-4 w-4" />
+                            </Button>
+                          </div>
+                          
+                          <span className="text-lg font-bold text-muted-foreground w-6">
+                            {index + 1}
+                          </span>
+                          
+                          <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center">
+                            {card.action_card.icon_url ? (
+                              <img src={card.action_card.icon_url} alt="" className="h-6 w-6" />
+                            ) : (
+                              <DynamicIcon name={card.action_card.icon_name} className="h-6 w-6" />
+                            )}
+                          </div>
+                          
+                          <div className="flex-1 min-w-0">
+                            <div className="font-medium">{card.action_card.name}</div>
+                            <code className="text-xs text-muted-foreground">{card.action_card.slug}</code>
+                          </div>
+                          
+                          <Input
+                            placeholder="Label override"
+                            className="w-36 h-8 text-sm"
+                            defaultValue={card.label_override || ""}
+                            onBlur={(e) => updateLabelMutation.mutate({ id: card.id, label: e.target.value })}
+                          />
+                          
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-destructive"
+                            onClick={() => removeFromCollectionMutation.mutate(card.id)}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))}
                     </div>
                     
-                    <span className="text-lg font-bold text-muted-foreground w-6">
-                      {index + 1}
-                    </span>
-                    
-                    <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center">
-                      {card.icon_url ? (
-                        <img src={card.icon_url} alt="" className="h-6 w-6" />
-                      ) : (
-                        <DynamicIcon name={card.icon_name} className="h-6 w-6" />
-                      )}
-                    </div>
-                    
-                    <div className="flex-1">
-                      <div className="font-medium">{card.name}</div>
-                      <code className="text-xs text-muted-foreground">{card.slug}</code>
-                    </div>
+                    {availableCards.length > 0 && (
+                      <div className="flex items-center gap-2">
+                        <Select value={selectedCardToAdd} onValueChange={setSelectedCardToAdd}>
+                          <SelectTrigger className="w-48">
+                            <SelectValue placeholder="Select card to add" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {availableCards.map((card) => (
+                              <SelectItem key={card.id} value={card.id}>
+                                {card.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={!selectedCardToAdd}
+                          onClick={() => selectedCardToAdd && addToCollectionMutation.mutate(selectedCardToAdd)}
+                        >
+                          <Plus className="h-4 w-4 mr-1" />
+                          Add Card
+                        </Button>
+                      </div>
+                    )}
                     
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => setDefaultMutation.mutate({ id: card.id, isDefault: false })}
+                      onClick={() => resetToDefaultsMutation.mutate()}
                     >
-                      Remove from Defaults
+                      <RotateCcw className="h-4 w-4 mr-2" />
+                      Reset to Defaults
                     </Button>
                   </div>
-                ))}
-              </div>
+                )}
+              </>
             )}
           </CardContent>
         </Card>
@@ -314,24 +639,37 @@ export default function ActionCards() {
                     <Edit className="mr-2 h-4 w-4" />
                     Edit
                   </Button>
-                  {!card.is_default ? (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setDefaultMutation.mutate({ id: card.id, isDefault: true })}
-                    >
-                      <Star className="mr-2 h-4 w-4" />
-                      Make Default
-                    </Button>
+                  {isDefaultsMode ? (
+                    !card.is_default ? (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setDefaultMutation.mutate({ id: card.id, isDefault: true })}
+                      >
+                        <Star className="mr-2 h-4 w-4" />
+                        Make Default
+                      </Button>
+                    ) : (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setDefaultMutation.mutate({ id: card.id, isDefault: false })}
+                      >
+                        <Star className="mr-2 h-4 w-4 fill-current" />
+                        Remove Default
+                      </Button>
+                    )
                   ) : (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setDefaultMutation.mutate({ id: card.id, isDefault: false })}
-                    >
-                      <Star className="mr-2 h-4 w-4 fill-current" />
-                      Remove Default
-                    </Button>
+                    hasCustomCards && !assignedCardIds.includes(card.id) && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => addToCollectionMutation.mutate(card.id)}
+                      >
+                        <Plus className="mr-2 h-4 w-4" />
+                        Add to {selectedCollection?.title}
+                      </Button>
+                    )
                   )}
                   <Button
                     variant="destructive"
