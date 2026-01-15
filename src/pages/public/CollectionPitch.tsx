@@ -521,8 +521,7 @@ export default function CollectionPitch() {
           <TopicView
             topicNum={currentTopic}
             topic={topics[currentTopic]}
-            bookColor={bookMeta.find(b => b.num === currentTopic)?.color || 'c1'}
-            bookCategory={bookMeta.find(b => b.num === currentTopic)?.category || 'vision'}
+            bookImageMap={bookImageMap}
             onMobileCardClick={handleMobileCardClick}
             cards={filteredCards}
           />
@@ -552,18 +551,21 @@ export default function CollectionPitch() {
   );
 }
 
+// Consistent accent color for pitch views (product blue)
+const PITCH_ACCENT_COLOR = '#1d4ed8';
+
 // Topic View Component
 interface TopicViewProps {
   topicNum: number;
   topic: Topic;
-  bookColor: string;
-  bookCategory: string;
+  bookImageMap: Record<number, string>;
   onMobileCardClick: (index: number) => void;
   cards: FilteredCard[];
 }
 
-function TopicView({ topicNum, topic, bookColor, bookCategory, onMobileCardClick, cards }: TopicViewProps) {
-  const primaryColor = categoryColors[bookCategory] || '#0f766e';
+function TopicView({ topicNum, topic, bookImageMap, onMobileCardClick, cards }: TopicViewProps) {
+  const bookImage = bookImageMap[topicNum];
+  const book = bookMeta.find(b => b.num === topicNum);
 
   return (
     <div className="grid md:grid-cols-3 gap-8">
@@ -593,7 +595,6 @@ function TopicView({ topicNum, topic, bookColor, bookCategory, onMobileCardClick
                   key={index}
                   card={card}
                   index={index}
-                  categoryColor={primaryColor}
                   onClick={() => onMobileCardClick(index)}
                 />
               ))}
@@ -609,7 +610,6 @@ function TopicView({ topicNum, topic, bookColor, bookCategory, onMobileCardClick
               key={index}
               card={card}
               index={index}
-              primaryColor={primaryColor}
               topicTitle={topic.title}
               totalCards={cards.length}
             />
@@ -617,24 +617,67 @@ function TopicView({ topicNum, topic, bookColor, bookCategory, onMobileCardClick
         </div>
       </div>
 
-      {/* Sidebar - desktop only */}
+      {/* Sidebar - desktop only - matches V4 book card style */}
       <div className="hidden md:block">
         <div className="sticky top-24">
           <p className="text-sm text-muted-foreground mb-3">Source</p>
-          <div className="rounded-lg overflow-hidden">
-            {/* Sidebar header matches book style */}
+          
+          {/* Book card style sidebar */}
+          <div 
+            className="rounded-sm shadow-lg flex flex-col border border-gray-200"
+            style={{ 
+              backgroundColor: '#fafaf9',
+              aspectRatio: '2/3',
+              maxWidth: '280px'
+            }}
+          >
+            {/* Title Area - flexible whitespace, title at bottom */}
             <div 
-              className="p-4"
-              style={{ backgroundColor: primaryColor }}
+              className="flex items-end justify-center text-center px-4 pt-4 pb-3"
+              style={{ minHeight: '56px', flexShrink: 0 }}
             >
-              <div className="text-4xl font-bold text-white/50 mb-2">
-                {topicNum.toString().padStart(2, '0')}
-              </div>
-              <h3 className="font-bold text-lg text-white">{topic.title}</h3>
+              <h3 
+                className="font-bold text-lg leading-tight text-gray-800"
+                style={{ fontFamily: 'Georgia, serif' }}
+              >
+                {topic.title}
+              </h3>
             </div>
-            <div className="p-4 bg-gray-50 border-x border-b border-gray-200">
-              <p className="text-sm text-gray-600 italic">
-                {bookMeta.find(b => b.num === topicNum)?.tagline}
+            
+            {/* Image Area - FIXED 45% height */}
+            <div 
+              className="mx-4 rounded overflow-hidden"
+              style={{ 
+                height: '45%', 
+                flexShrink: 0, 
+                flexGrow: 0 
+              }}
+            >
+              {bookImage ? (
+                <img 
+                  src={bookImage} 
+                  alt={topic.title}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div 
+                  className="w-full h-full flex items-center justify-center"
+                  style={{ 
+                    background: 'linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%)' 
+                  }}
+                >
+                  <span className="text-gray-400 text-xs">No image</span>
+                </div>
+              )}
+            </div>
+            
+            {/* Footer Area - tagline + section count */}
+            <div className="flex-1 flex flex-col justify-start items-center text-center px-4 py-3">
+              <p className="text-gray-500 text-xs italic line-clamp-2">
+                {book?.tagline}
+              </p>
+              <p className="text-gray-400 text-[10px] mt-1">
+                {topic.cards.length} sections
               </p>
             </div>
           </div>
@@ -648,47 +691,34 @@ function TopicView({ topicNum, topic, bookColor, bookCategory, onMobileCardClick
 interface ExpandedCardProps {
   card: FilteredCard;
   index: number;
-  primaryColor: string;
   topicTitle: string;
   totalCards: number;
 }
 
-function ExpandedCard({ card, index, primaryColor, topicTitle, totalCards }: ExpandedCardProps) {
+function ExpandedCard({ card, index, topicTitle, totalCards }: ExpandedCardProps) {
   return (
     <div
       className="rounded-lg p-6"
       style={{
         backgroundColor: 'hsl(var(--scheme-card-bg))',
-        borderLeft: `4px solid ${primaryColor}`
+        borderLeft: `4px solid #e5e5e5`
       }}
     >
       {/* Header */}
       <div className="flex items-start gap-4 mb-4">
         <div
           className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold shrink-0"
-          style={{ backgroundColor: primaryColor }}
+          style={{ backgroundColor: PITCH_ACCENT_COLOR }}
         >
           {index + 1}
         </div>
         <div className="flex-1">
-          <div className="flex justify-between items-start mb-1">
-            <h3
-              className="font-bold text-xl"
-              style={{ color: 'hsl(var(--scheme-title-text))' }}
-            >
-              {card.title}
-            </h3>
-            <Badge
-              variant="secondary"
-              className="text-xs shrink-0 ml-2"
-              style={{
-                backgroundColor: `${primaryColor}20`,
-                color: primaryColor
-              }}
-            >
-              {topics[card.topicNum]?.category}
-            </Badge>
-          </div>
+          <h3
+            className="font-bold text-xl mb-1"
+            style={{ color: 'hsl(var(--scheme-title-text))' }}
+          >
+            {card.title}
+          </h3>
           <p className="text-sm text-muted-foreground">
             Section {index + 1} of {totalCards} • {topicTitle}
           </p>
@@ -709,38 +739,25 @@ function ExpandedCard({ card, index, primaryColor, topicTitle, totalCards }: Exp
 interface MobileCardProps {
   card: FilteredCard;
   index: number;
-  categoryColor: string;
   onClick: () => void;
 }
 
-function MobileCard({ card, index, categoryColor, onClick }: MobileCardProps) {
+function MobileCard({ card, index, onClick }: MobileCardProps) {
   return (
     <div
       onClick={onClick}
       className="min-w-[280px] w-[280px] rounded-lg p-4 cursor-pointer transition-all hover:shadow-lg"
       style={{
         backgroundColor: 'hsl(var(--scheme-card-bg))',
-        borderLeft: `4px solid ${categoryColor}`
+        borderLeft: `4px solid #e5e5e5`
       }}
     >
-      <div className="flex justify-between items-start mb-2">
-        <h3
-          className="font-semibold"
-          style={{ color: 'hsl(var(--scheme-title-text))' }}
-        >
-          {card.title}
-        </h3>
-        <Badge
-          variant="secondary"
-          className="text-xs shrink-0"
-          style={{
-            backgroundColor: `${categoryColor}20`,
-            color: categoryColor
-          }}
-        >
-          {topics[card.topicNum]?.category}
-        </Badge>
-      </div>
+      <h3
+        className="font-semibold mb-2"
+        style={{ color: 'hsl(var(--scheme-title-text))' }}
+      >
+        {card.title}
+      </h3>
       <p
         className="text-sm line-clamp-3 mb-3"
         style={{ color: 'hsl(var(--scheme-cards-text))' }}
@@ -749,7 +766,7 @@ function MobileCard({ card, index, categoryColor, onClick }: MobileCardProps) {
       </p>
       <p
         className="text-sm font-medium"
-        style={{ color: categoryColor }}
+        style={{ color: PITCH_ACCENT_COLOR }}
       >
         Tap to read →
       </p>
@@ -766,7 +783,6 @@ interface FilteredViewProps {
 
 function FilteredView({ categoryKey, cards, onMobileCardClick }: FilteredViewProps) {
   const category = categories[categoryKey as keyof typeof categories];
-  const categoryColor = categoryColors[categoryKey] || '#0f766e';
 
   return (
     <div className="space-y-6">
@@ -787,19 +803,14 @@ function FilteredView({ categoryKey, cards, onMobileCardClick }: FilteredViewPro
       <div className="md:hidden">
         <ScrollArea className="w-full whitespace-nowrap">
           <div className="flex gap-4 pb-4">
-            {cards.map((card, index) => {
-              const book = bookMeta.find(b => b.num === card.topicNum);
-              const cardColor = categoryColors[book?.category || 'vision'];
-              return (
-                <MobileCard
-                  key={`${card.topicNum}-${index}`}
-                  card={card}
-                  index={index}
-                  categoryColor={cardColor}
-                  onClick={() => onMobileCardClick(index)}
-                />
-              );
-            })}
+            {cards.map((card, index) => (
+              <MobileCard
+                key={`${card.topicNum}-${index}`}
+                card={card}
+                index={index}
+                onClick={() => onMobileCardClick(index)}
+              />
+            ))}
           </div>
           <ScrollBar orientation="horizontal" />
         </ScrollArea>
@@ -807,21 +818,15 @@ function FilteredView({ categoryKey, cards, onMobileCardClick }: FilteredViewPro
 
       {/* Desktop: fully expanded cards */}
       <div className="hidden md:flex flex-col gap-6">
-        {cards.map((card, index) => {
-          const book = bookMeta.find(b => b.num === card.topicNum);
-          const primaryColor = categoryColors[book?.category || 'vision'];
-
-          return (
-            <ExpandedCard
-              key={`${card.topicNum}-${index}`}
-              card={card}
-              index={index}
-              primaryColor={primaryColor}
-              topicTitle={card.topicTitle}
-              totalCards={cards.length}
-            />
-          );
-        })}
+        {cards.map((card, index) => (
+          <ExpandedCard
+            key={`${card.topicNum}-${index}`}
+            card={card}
+            index={index}
+            topicTitle={card.topicTitle}
+            totalCards={cards.length}
+          />
+        ))}
       </div>
     </div>
   );
@@ -839,8 +844,6 @@ interface CardModalProps {
 function CardModal({ cards, currentIndex, onClose, onPrev, onNext }: CardModalProps) {
   const card = cards[currentIndex];
   const topic = topics[card.topicNum];
-  const book = bookMeta.find(b => b.num === card.topicNum);
-  const categoryColor = categoryColors[book?.category || 'vision'];
 
   // Handle swipe
   const [touchStart, setTouchStart] = useState<number | null>(null);
@@ -920,7 +923,7 @@ function CardModal({ cards, currentIndex, onClose, onPrev, onNext }: CardModalPr
       >
         <h2
           className="text-2xl md:text-3xl font-bold mb-2"
-          style={{ color: categoryColor }}
+          style={{ color: PITCH_ACCENT_COLOR }}
         >
           {card.title}
         </h2>
