@@ -316,18 +316,14 @@ export default function Home() {
             </div>
           </section>
 
-          {/* New Content Section */}
-          <section>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl font-semibold" style={{ color: 'hsl(var(--scheme-title-text))' }}>New Content</h2>
-              <Link to="/public/lifelines" className="hover:underline text-sm" style={{ color: 'hsl(var(--scheme-actions-icon))' }}>
-                View All
-              </Link>
-            </div>
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {newContentItems.map(renderLegacyCard)}
-            </div>
-          </section>
+          {/* New Content Section - cards only, no header in legacy mode */}
+          {newContentItems.length > 0 && (
+            <section>
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {newContentItems.map(renderLegacyCard)}
+              </div>
+            </section>
+          )}
         </>
       )}
     </div>

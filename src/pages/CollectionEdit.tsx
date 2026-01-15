@@ -428,8 +428,8 @@ export default function CollectionEdit() {
                     <Input type="datetime-local" {...field} />
                   </FormControl>
                   <FormDescription>
-                    Collections created in the last 30 days appear as "New Collection" in feeds. 
-                    Adjust this date to control when the collection appears new.
+                    This date determines when the collection appears in feeds chronologically.
+                    Collections appear at this date regardless of age.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
