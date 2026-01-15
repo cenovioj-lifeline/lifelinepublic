@@ -89,71 +89,84 @@ export default function Collections() {
 
   const handleDeleteClick = async (collection: any, e: React.MouseEvent) => {
     e.stopPropagation();
+    setCollectionToDelete(collection);
     
-    // Fetch deletion stats
-    const { data: lifelines } = await supabase
-      .from('lifelines')
-      .select('id')
-      .eq('collection_id', collection.id);
-    
-    const lifelineIds = lifelines?.map(l => l.id) || [];
-    
-    let entriesCount = 0;
-    let imagesCount = 0;
-    let favoritesCount = 0;
-    
-    if (lifelineIds.length > 0) {
-      const { count: eCount } = await supabase
-        .from('entries')
-        .select('*', { count: 'exact', head: true })
-        .in('lifeline_id', lifelineIds);
-      entriesCount = eCount || 0;
-
-      const { data: entries } = await supabase
-        .from('entries')
+    try {
+      // Fetch deletion stats
+      const { data: lifelines } = await supabase
+        .from('lifelines')
         .select('id')
-        .in('lifeline_id', lifelineIds);
+        .eq('collection_id', collection.id);
       
-      const entryIds = entries?.map(e => e.id) || [];
+      const lifelineIds = lifelines?.map(l => l.id) || [];
       
-      if (entryIds.length > 0) {
-        const { count: iCount } = await supabase
-          .from('entry_images')
+      let entriesCount = 0;
+      let imagesCount = 0;
+      let favoritesCount = 0;
+      
+      if (lifelineIds.length > 0) {
+        const { count: eCount } = await supabase
+          .from('entries')
           .select('*', { count: 'exact', head: true })
-          .in('entry_id', entryIds);
-        imagesCount = iCount || 0;
+          .in('lifeline_id', lifelineIds);
+        entriesCount = eCount || 0;
+
+        const { data: entries } = await supabase
+          .from('entries')
+          .select('id')
+          .in('lifeline_id', lifelineIds);
+        
+        const entryIds = entries?.map(e => e.id) || [];
+        
+        if (entryIds.length > 0) {
+          const { count: iCount } = await supabase
+            .from('entry_images')
+            .select('*', { count: 'exact', head: true })
+            .in('entry_id', entryIds);
+          imagesCount = iCount || 0;
+        }
+
+        const { count: fCount } = await supabase
+          .from('user_favorites')
+          .select('*', { count: 'exact', head: true })
+          .eq('item_type', 'lifeline')
+          .in('item_id', lifelineIds);
+        favoritesCount = fCount || 0;
       }
 
-      const { count: fCount } = await supabase
+      const { count: cFavCount } = await supabase
         .from('user_favorites')
         .select('*', { count: 'exact', head: true })
-        .eq('item_type', 'lifeline')
-        .in('item_id', lifelineIds);
-      favoritesCount = fCount || 0;
+        .eq('item_type', 'collection')
+        .eq('item_id', collection.id);
+      
+      favoritesCount += cFavCount || 0;
+
+      const { count: electionsCount } = await supabase
+        .from('mock_elections')
+        .select('*', { count: 'exact', head: true })
+        .eq('collection_id', collection.id);
+
+      setDeletionStats({
+        lifelines: lifelineIds.length,
+        entries: entriesCount,
+        images: imagesCount,
+        favorites: favoritesCount,
+        elections: electionsCount || 0,
+        statsError: false,
+      });
+    } catch (error) {
+      console.error('Error fetching deletion stats:', error);
+      setDeletionStats({
+        lifelines: 0,
+        entries: 0,
+        images: 0,
+        favorites: 0,
+        elections: 0,
+        statsError: true,
+      });
     }
-
-    const { count: cFavCount } = await supabase
-      .from('user_favorites')
-      .select('*', { count: 'exact', head: true })
-      .eq('item_type', 'collection')
-      .eq('item_id', collection.id);
     
-    favoritesCount += cFavCount || 0;
-
-    const { count: electionsCount } = await supabase
-      .from('mock_elections')
-      .select('*', { count: 'exact', head: true })
-      .eq('collection_id', collection.id);
-
-    setDeletionStats({
-      lifelines: lifelineIds.length,
-      entries: entriesCount,
-      images: imagesCount,
-      favorites: favoritesCount,
-      elections: electionsCount || 0,
-    });
-    
-    setCollectionToDelete(collection);
     setDeleteDialogOpen(true);
   };
 
@@ -276,6 +289,12 @@ export default function Collections() {
                 <li>{deletionStats?.entries || 0} events/entries</li>
                 <li>{deletionStats?.images || 0} images from storage</li>
               </ul>
+              
+              {deletionStats?.statsError && (
+                <p className="text-amber-600 text-sm font-medium">
+                  ⚠️ Could not load exact counts. Deletion will still work.
+                </p>
+              )}
               
               {(deletionStats?.favorites > 0 || deletionStats?.elections > 0) && (
                 <>

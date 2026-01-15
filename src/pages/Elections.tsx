@@ -89,47 +89,60 @@ export default function Elections() {
 
   const handleDeleteClick = async (election: any, e: React.MouseEvent) => {
     e.stopPropagation();
-    
-    // Fetch deletion stats
-    const { data: ballotItems } = await supabase
-      .from('ballot_items')
-      .select('id')
-      .eq('election_id', election.id);
-    
-    const ballotItemIds = ballotItems?.map(item => item.id) || [];
-    
-    let ballotOptionsCount = 0;
-    let resultsCount = 0;
-    let favoritesCount = 0;
-    
-    if (ballotItemIds.length > 0) {
-      const { count: optionsCount } = await supabase
-        .from('ballot_options')
-        .select('*', { count: 'exact', head: true })
-        .in('ballot_item_id', ballotItemIds);
-      ballotOptionsCount = optionsCount || 0;
-    }
-
-    const { count: rCount } = await supabase
-      .from('election_results')
-      .select('*', { count: 'exact', head: true })
-      .eq('election_id', election.id);
-    resultsCount = rCount || 0;
-
-    const { count: fCount } = await supabase
-      .from('user_favorites')
-      .select('*', { count: 'exact', head: true })
-      .eq('item_id', election.id)
-      .eq('item_type', 'election');
-    favoritesCount = fCount || 0;
-
     setElectionToDelete(election);
-    setDeletionStats({
-      ballotItems: ballotItemIds.length,
-      ballotOptions: ballotOptionsCount,
-      results: resultsCount,
-      favorites: favoritesCount,
-    });
+    
+    try {
+      // Fetch deletion stats
+      const { data: ballotItems } = await supabase
+        .from('ballot_items')
+        .select('id')
+        .eq('election_id', election.id);
+      
+      const ballotItemIds = ballotItems?.map(item => item.id) || [];
+      
+      let ballotOptionsCount = 0;
+      let resultsCount = 0;
+      let favoritesCount = 0;
+      
+      if (ballotItemIds.length > 0) {
+        const { count: optionsCount } = await supabase
+          .from('ballot_options')
+          .select('*', { count: 'exact', head: true })
+          .in('ballot_item_id', ballotItemIds);
+        ballotOptionsCount = optionsCount || 0;
+      }
+
+      const { count: rCount } = await supabase
+        .from('election_results')
+        .select('*', { count: 'exact', head: true })
+        .eq('election_id', election.id);
+      resultsCount = rCount || 0;
+
+      const { count: fCount } = await supabase
+        .from('user_favorites')
+        .select('*', { count: 'exact', head: true })
+        .eq('item_id', election.id)
+        .eq('item_type', 'election');
+      favoritesCount = fCount || 0;
+
+      setDeletionStats({
+        ballotItems: ballotItemIds.length,
+        ballotOptions: ballotOptionsCount,
+        results: resultsCount,
+        favorites: favoritesCount,
+        statsError: false,
+      });
+    } catch (error) {
+      console.error('Error fetching deletion stats:', error);
+      setDeletionStats({
+        ballotItems: 0,
+        ballotOptions: 0,
+        results: 0,
+        favorites: 0,
+        statsError: true,
+      });
+    }
+    
     setDeleteDialogOpen(true);
   };
 
@@ -258,6 +271,11 @@ export default function Elections() {
                   </>
                 )}
               </ul>
+              {deletionStats?.statsError && (
+                <p className="text-amber-600 text-sm font-medium mt-2">
+                  ⚠️ Could not load exact counts. Deletion will still work.
+                </p>
+              )}
               <br />
               This action cannot be undone.
             </AlertDialogDescription>
