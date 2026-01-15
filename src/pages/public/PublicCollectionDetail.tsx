@@ -681,9 +681,15 @@ export default function PublicCollectionDetail() {
 
     // Custom link cards
     if (item_type === 'custom_link') {
-      const isExternal = content.link?.startsWith('http');
-      const posX = (item as any).custom_image_position_x ?? 50;
-      const posY = (item as any).custom_image_position_y ?? 50;
+      // Normalize link - ensure internal paths start with /
+      let linkPath = content.link || '#';
+      if (linkPath !== '#' && !linkPath.startsWith('http') && !linkPath.startsWith('/')) {
+        linkPath = '/' + linkPath;
+      }
+      
+      const isExternal = linkPath.startsWith('http');
+      const posX = content.image_position_x ?? 50;
+      const posY = content.image_position_y ?? 50;
       
       const cardElement = (
         <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
@@ -722,7 +728,7 @@ export default function PublicCollectionDetail() {
         return (
           <a
             key={item.id}
-            href={content.link || '#'}
+            href={linkPath}
             target="_blank"
             rel="noopener noreferrer"
             className="group"
@@ -733,7 +739,7 @@ export default function PublicCollectionDetail() {
       }
 
       return (
-        <Link key={item.id} to={content.link || '#'} className="group">
+        <Link key={item.id} to={linkPath} className="group">
           {cardElement}
         </Link>
       );

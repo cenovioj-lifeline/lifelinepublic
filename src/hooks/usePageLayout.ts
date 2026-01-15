@@ -159,6 +159,10 @@ export function useAddLayoutItem() {
       queryClient.invalidateQueries({
         queryKey: ["page-layout-items", data.layout_id],
       });
+      // Also invalidate content cache to ensure fresh data
+      queryClient.invalidateQueries({
+        queryKey: ["page-layout-content"],
+      });
     },
   });
 }
@@ -315,6 +319,8 @@ async function fetchItemContent(
         custom_subtitle: item.custom_subtitle,
         custom_link: item.custom_link,
         custom_image_url: item.custom_image_url,
+        custom_image_position_x: (item as any).custom_image_position_x ?? 50,
+        custom_image_position_y: (item as any).custom_image_position_y ?? 50,
       }),
     };
   }
