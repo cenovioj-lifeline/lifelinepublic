@@ -222,7 +222,7 @@ function normalizeContent(
         subtitle: data.description,
         image_url: data.card_image_url || data.hero_image_url,
         slug: data.slug,
-        link: `/collections/${data.slug}`,
+        link: `/public/collections/${data.slug}`,
       };
     case "profile":
       return {
@@ -230,7 +230,7 @@ function normalizeContent(
         subtitle: data.short_description,
         image_url: data.primary_image_url,
         slug: data.slug,
-        link: `/collections/${data.collections?.slug}/profiles/${data.slug}`,
+        link: `/public/collections/${data.collections?.slug}/profiles/${data.slug}`,
       };
     case "lifeline":
       return {
@@ -238,7 +238,7 @@ function normalizeContent(
         subtitle: data.subtitle || data.intro,
         image_url: data.cover_image_url,
         slug: data.slug,
-        link: `/collections/${data.collections?.slug}/lifelines/${data.slug}`,
+        link: `/public/collections/${data.collections?.slug}/lifelines/${data.slug}`,
       };
     case "election":
       return {
@@ -246,7 +246,7 @@ function normalizeContent(
         subtitle: data.description,
         image_url: data.hero_image_url,
         slug: data.slug,
-        link: `/collections/${data.collections?.slug}/awards/${data.slug}`,
+        link: `/public/collections/${data.collections?.slug}/elections/${data.slug}`,
       };
     case "book":
       return {
