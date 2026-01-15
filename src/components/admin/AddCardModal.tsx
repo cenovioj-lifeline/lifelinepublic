@@ -201,6 +201,12 @@ export function AddCardModal({
   const handleAddCustomLink = () => {
     if (!layoutId || !customTitle.trim() || !customLink.trim()) return;
 
+    // Normalize the link - ensure internal paths start with /
+    let normalizedLink = customLink.trim();
+    if (normalizedLink && !normalizedLink.startsWith('http') && !normalizedLink.startsWith('/')) {
+      normalizedLink = '/' + normalizedLink;
+    }
+
     addItem.mutate(
       {
         layoutId,
@@ -209,7 +215,7 @@ export function AddCardModal({
         displayOrder: nextOrder,
         customTitle: customTitle.trim(),
         customSubtitle: customSubtitle.trim() || undefined,
-        customLink: customLink.trim(),
+        customLink: normalizedLink,
         customImageUrl: customImageUrl || undefined,
         customImagePositionX: imagePositionX,
         customImagePositionY: imagePositionY,
@@ -350,12 +356,13 @@ export function AddCardModal({
                       <Label htmlFor="custom-link">Route/URL *</Label>
                       <Input
                         id="custom-link"
-                        placeholder="e.g., /public/collections/my-collection/pitch"
+                        placeholder="/public/collections/my-collection/pitch"
                         value={customLink}
                         onChange={(e) => setCustomLink(e.target.value)}
                       />
                       <p className="text-xs text-muted-foreground">
-                        Tip: Copy from the preview URL bar
+                        Internal paths: Start with / (e.g., /public/collections/slug/pitch)<br/>
+                        External links: Use full URL (e.g., https://example.com)
                       </p>
                     </div>
                     

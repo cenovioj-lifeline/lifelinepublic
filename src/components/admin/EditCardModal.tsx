@@ -85,10 +85,16 @@ export function EditCardModal({ open, onOpenChange, item }: EditCardModalProps) 
         return;
       }
 
+      // Normalize the link - ensure internal paths start with /
+      let normalizedLink = customLink.trim();
+      if (normalizedLink && !normalizedLink.startsWith('http') && !normalizedLink.startsWith('/')) {
+        normalizedLink = '/' + normalizedLink;
+      }
+
       updateMutation.mutate({
         custom_title: customTitle.trim(),
         custom_subtitle: customSubtitle.trim() || null,
-        custom_link: customLink.trim(),
+        custom_link: normalizedLink,
         custom_image_url: customImageUrl || null,
         custom_image_position_x: imagePositionX,
         custom_image_position_y: imagePositionY,
