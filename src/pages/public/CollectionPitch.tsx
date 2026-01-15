@@ -19,13 +19,57 @@ import {
   type Topic
 } from "@/data/pitchContent";
 
-// Category colors for book headers - professional, coordinated palette
+// Category colors for book headers - used by topic/filtered/modal views
 const categoryColors: Record<string, string> = {
   vision: '#0f766e',   // Teal - matches site theme
   product: '#1d4ed8',  // Blue - tech, product
   business: '#b45309', // Amber - business, value
   founder: '#6d28d9',  // Violet - personal, wisdom
 };
+
+// Category Icon Component - renders SVG icons for each category
+function CategoryIcon({ category, className = "" }: { category: string; className?: string }) {
+  const iconClass = `w-5 h-5 ${className}`;
+  
+  switch (category) {
+    case 'vision':
+      // Eye icon
+      return (
+        <svg className={iconClass} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+          <path d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+          <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+      );
+    case 'product':
+      // Monitor icon
+      return (
+        <svg className={iconClass} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+          <rect x="2" y="3" width="20" height="14" rx="2" />
+          <path d="M8 21h8" />
+          <path d="M12 17v4" />
+        </svg>
+      );
+    case 'business':
+      // Dollar circle icon
+      return (
+        <svg className={iconClass} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+          <circle cx="12" cy="12" r="10" />
+          <path d="M14.5 9a2.5 2.5 0 00-2.5-2.5h-1a2.5 2.5 0 000 5h2a2.5 2.5 0 010 5h-1a2.5 2.5 0 01-2.5-2.5" />
+          <path d="M12 4.5v2m0 11v2" />
+        </svg>
+      );
+    case 'founder':
+      // Person icon
+      return (
+        <svg className={iconClass} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+          <circle cx="12" cy="7" r="4" />
+          <path d="M5.5 21a6.5 6.5 0 0113 0" />
+        </svg>
+      );
+    default:
+      return null;
+  }
+}
 
 // Book cover gradient styles (kept for topic view sidebar)
 const bookGradients: Record<string, string> = {
@@ -236,115 +280,130 @@ export default function CollectionPitch() {
           </div>
         )}
 
-        {/* Filter Chips - only show on hub view */}
+        {/* Filter Chips - only show on hub view - monochrome with icons */}
         {currentView === 'hub' && (
           <div className="flex flex-wrap gap-2 justify-center">
-            <Badge
-              variant={currentFilter === 'all' ? 'default' : 'outline'}
-              className="cursor-pointer px-4 py-2 text-sm transition-all"
-              style={currentFilter === 'all' ? {
-                backgroundColor: 'hsl(var(--scheme-nav-bg))',
-                color: 'hsl(var(--scheme-nav-text))',
-                borderColor: 'hsl(var(--scheme-nav-bg))'
-              } : {
-                backgroundColor: 'white',
-                color: 'hsl(var(--scheme-nav-bg))',
-                borderColor: 'hsl(var(--scheme-nav-bg))'
-              }}
+            <button
+              className={`px-4 py-2 text-sm rounded-full border transition-all flex items-center gap-2 ${
+                currentFilter === 'all'
+                  ? 'bg-gray-700 text-white border-gray-700'
+                  : 'bg-white text-gray-600 border-gray-300 hover:border-gray-400'
+              }`}
               onClick={() => handleFilterClick('all')}
             >
               All ({getTotalCardCount()})
-            </Badge>
+            </button>
             {Object.entries(categories).map(([key, cat]) => (
-              <Badge
+              <button
                 key={key}
-                variant={currentFilter === key ? 'default' : 'outline'}
-                className="cursor-pointer px-4 py-2 text-sm transition-all"
-                style={currentFilter === key ? {
-                  backgroundColor: categoryColors[key],
-                  color: 'white',
-                  borderColor: categoryColors[key]
-                } : {
-                  backgroundColor: 'white',
-                  color: categoryColors[key],
-                  borderColor: categoryColors[key]
-                }}
+                className={`px-4 py-2 text-sm rounded-full border transition-all flex items-center gap-2 ${
+                  currentFilter === key
+                    ? 'bg-gray-700 text-white border-gray-700'
+                    : 'bg-white text-gray-600 border-gray-300 hover:border-gray-400'
+                }`}
                 onClick={() => handleFilterClick(key)}
               >
+                <CategoryIcon category={key} className="w-4 h-4" />
                 {cat.name} ({getCardCountByCategory(key)})
-              </Badge>
+              </button>
             ))}
           </div>
         )}
 
-        {/* Consolidated Banner - only show when filtered and on hub view */}
+        {/* Consolidated Banner - only show when filtered and on hub view - monochrome */}
         {currentFilter !== 'all' && currentView === 'hub' && (
-          <div
-            className="rounded-lg p-4 flex flex-col sm:flex-row items-center justify-between gap-4"
-            style={{
-              backgroundColor: 'hsl(var(--scheme-card-bg))',
-              borderLeft: `4px solid ${categoryColors[currentFilter]}`
-            }}
-          >
+          <div className="rounded-lg p-4 flex flex-col sm:flex-row items-center justify-between gap-4 bg-gray-50 border-l-4 border-gray-400">
             <div>
-              <p style={{ color: 'hsl(var(--scheme-cards-text))' }}>
+              <p className="text-gray-800">
                 <strong>{getMatchingTopicCount()} topics</strong> contain {categories[currentFilter as keyof typeof categories]?.name} content
               </p>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-gray-500">
                 {categories[currentFilter as keyof typeof categories]?.desc}
               </p>
             </div>
             <Button
               onClick={handleViewFiltered}
-              style={{
-                backgroundColor: categoryColors[currentFilter],
-                color: 'white'
-              }}
+              className="bg-gray-700 text-white hover:bg-gray-800"
             >
               View all combined →
             </Button>
           </div>
         )}
 
-        {/* Hub View - Books Grid - 6 columns on large screens */}
+        {/* Hub View - Books Grid - 3D stacked-pages effect */}
         {currentView === 'hub' && (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 lg:gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 lg:gap-8">
             {bookMeta.map((book) => {
               const isMatching = currentFilter === 'all' || book.category === currentFilter;
               const topic = topics[book.num];
-              const headerColor = categoryColors[book.category] || '#0f766e';
 
               return (
                 <div
                   key={book.num}
                   onClick={() => handleBookClick(book.num)}
                   className={`
-                    cursor-pointer rounded-lg overflow-hidden transition-all duration-300
-                    hover:shadow-xl hover:-translate-y-1 shadow-md flex flex-col
+                    cursor-pointer transition-all duration-300
+                    hover:-translate-y-2 relative ml-2 mt-2
                     ${!isMatching ? 'opacity-30' : ''}
                   `}
                 >
-                  {/* Header - colored section, wraps content naturally */}
+                  {/* Stacked pages effect - back layers */}
                   <div 
-                    className="px-3 py-2"
-                    style={{ backgroundColor: headerColor }}
-                  >
-                    <h3 className="text-white font-bold text-sm leading-tight">
-                      {book.title}
-                    </h3>
-                  </div>
+                    className="absolute inset-0 rounded-sm bg-[#d4d4d4]"
+                    style={{ 
+                      transform: 'translate(-8px, 8px)',
+                      zIndex: 0 
+                    }}
+                  />
+                  <div 
+                    className="absolute inset-0 rounded-sm bg-[#e5e5e5]"
+                    style={{ 
+                      transform: 'translate(-4px, 4px)',
+                      zIndex: 1 
+                    }}
+                  />
                   
-                  {/* Body - light section */}
+                  {/* Main card face - 2:3 aspect ratio book */}
                   <div 
-                    className="px-3 py-2 flex-1 flex flex-col justify-between border-x border-b border-gray-200 min-h-[80px]"
-                    style={{ backgroundColor: '#f8f9fa' }}
+                    className="relative rounded-sm shadow-lg flex flex-col p-4"
+                    style={{ 
+                      backgroundColor: '#fafaf9',
+                      aspectRatio: '2/3',
+                      zIndex: 2 
+                    }}
                   >
-                    <p className="text-gray-600 text-xs italic line-clamp-3 mb-2">
-                      {book.tagline}
-                    </p>
-                    <p className="text-gray-400 text-xs">
-                      {topic?.cards.length || 0} sections
-                    </p>
+                    {/* Category icon - top right */}
+                    <div className="absolute top-3 right-3 text-gray-300">
+                      <CategoryIcon category={book.category} className="w-5 h-5" />
+                    </div>
+                    
+                    {/* Large faded number */}
+                    <div 
+                      className="text-5xl md:text-6xl font-serif font-bold text-gray-200 leading-none"
+                      style={{ fontFamily: 'Georgia, serif' }}
+                    >
+                      {book.num.toString().padStart(2, '0')}
+                    </div>
+                    
+                    {/* Centered content */}
+                    <div className="flex-1 flex flex-col items-center justify-center text-center px-1">
+                      <h3 
+                        className="font-serif font-bold text-sm md:text-base leading-tight text-gray-800 mb-2"
+                        style={{ fontFamily: 'Georgia, serif' }}
+                      >
+                        {book.title}
+                      </h3>
+                      <p className="text-gray-400 text-xs italic line-clamp-2">
+                        {book.tagline}
+                      </p>
+                    </div>
+                    
+                    {/* Section count - bottom */}
+                    <div className="text-center">
+                      <p className="text-gray-400 text-xs">
+                        {topic?.cards.length || 0} sections
+                      </p>
+                    </div>
                   </div>
                 </div>
               );
