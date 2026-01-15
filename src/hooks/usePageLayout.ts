@@ -117,11 +117,19 @@ export function useAddLayoutItem() {
       itemType,
       itemId,
       displayOrder,
+      customTitle,
+      customSubtitle,
+      customLink,
+      customImageUrl,
     }: {
       layoutId: string;
       itemType: PageLayoutItemType;
       itemId: string;
       displayOrder: number;
+      customTitle?: string;
+      customSubtitle?: string;
+      customLink?: string;
+      customImageUrl?: string;
     }) => {
       const { data, error } = await supabase
         .from("page_layout_items")
@@ -130,6 +138,10 @@ export function useAddLayoutItem() {
           item_type: itemType,
           item_id: itemId,
           display_order: displayOrder,
+          custom_title: customTitle || null,
+          custom_subtitle: customSubtitle || null,
+          custom_link: customLink || null,
+          custom_image_url: customImageUrl || null,
         })
         .select()
         .single();
@@ -264,6 +276,13 @@ function normalizeContent(
         slug: data.slug,
         isActionCard: true,
       };
+    case "custom_link":
+      return {
+        title: data.custom_title || "Custom Link",
+        subtitle: data.custom_subtitle,
+        image_url: data.custom_image_url,
+        link: data.custom_link,
+      };
     default:
       return {
         title: data.title || data.name || "Unknown",
@@ -278,6 +297,19 @@ async function fetchItemContent(
   item: PageLayoutItem
 ): Promise<PageLayoutItemWithContent> {
   const { item_type, item_id } = item;
+
+  // Custom links don't need to fetch from another table
+  if (item_type === "custom_link") {
+    return {
+      ...item,
+      content: normalizeContent(item_type, {
+        custom_title: item.custom_title,
+        custom_subtitle: item.custom_subtitle,
+        custom_link: item.custom_link,
+        custom_image_url: item.custom_image_url,
+      }),
+    };
+  }
 
   let data: Record<string, any> | null = null;
 

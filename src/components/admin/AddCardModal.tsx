@@ -8,7 +8,9 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { Search, Plus } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Search, Plus, Link } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAddLayoutItem } from "@/hooks/usePageLayout";
@@ -35,6 +37,12 @@ export function AddCardModal({
 }: AddCardModalProps) {
   const [search, setSearch] = useState("");
   const [activeTab, setActiveTab] = useState<PageLayoutItemType>("collection");
+  
+  // Custom link form state
+  const [customTitle, setCustomTitle] = useState("");
+  const [customSubtitle, setCustomSubtitle] = useState("");
+  const [customLink, setCustomLink] = useState("");
+  const [customImageUrl, setCustomImageUrl] = useState("");
 
   const addItem = useAddLayoutItem();
 
@@ -177,6 +185,34 @@ export function AddCardModal({
     );
   };
 
+  // Handle adding a custom link
+  const handleAddCustomLink = () => {
+    if (!layoutId || !customTitle.trim() || !customLink.trim()) return;
+
+    addItem.mutate(
+      {
+        layoutId,
+        itemType: "custom_link",
+        itemId: crypto.randomUUID(), // Generate a unique ID
+        displayOrder: nextOrder,
+        customTitle: customTitle.trim(),
+        customSubtitle: customSubtitle.trim() || undefined,
+        customLink: customLink.trim(),
+        customImageUrl: customImageUrl.trim() || undefined,
+      },
+      {
+        onSuccess: () => {
+          onOpenChange(false);
+          // Reset form
+          setCustomTitle("");
+          setCustomSubtitle("");
+          setCustomLink("");
+          setCustomImageUrl("");
+        },
+      }
+    );
+  };
+
   // Determine which tabs to show based on context
   const availableTabs: { value: PageLayoutItemType; label: string }[] = [
     { value: "collection", label: "Collections" },
@@ -189,6 +225,7 @@ export function AddCardModal({
       : []),
     { value: "book", label: "Books" },
     { value: "action_card", label: "Actions" },
+    { value: "custom_link", label: "Custom Link" },
   ];
 
   const contentMap: Record<PageLayoutItemType, any[]> = {
@@ -198,6 +235,7 @@ export function AddCardModal({
     election: filterAvailable(elections, "election"),
     book: filterAvailable(books, "book"),
     action_card: filterAvailable(actionCards, "action_card"),
+    custom_link: [], // Not used - custom link has its own form
   };
 
   return (
@@ -207,16 +245,18 @@ export function AddCardModal({
           <DialogTitle>Add Card</DialogTitle>
         </DialogHeader>
 
-        {/* Search */}
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
-            placeholder="Search content..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-9"
-          />
-        </div>
+        {/* Search - hide for custom link tab */}
+        {activeTab !== "custom_link" && (
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="Search content..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-9"
+            />
+          </div>
+        )}
 
         {/* Content type tabs */}
         <Tabs
@@ -238,61 +278,125 @@ export function AddCardModal({
               value={tab.value}
               className="flex-1 overflow-auto"
             >
-              <div className="grid grid-cols-2 gap-3 p-1">
-                {contentMap[tab.value].length === 0 ? (
-                  <p className="col-span-2 text-center text-muted-foreground py-8">
-                    No available {tab.label.toLowerCase()}
-                  </p>
-                ) : (
-                  contentMap[tab.value].map((item) => (
-                    <Card
-                      key={item.id}
-                      className="cursor-pointer hover:border-primary transition-colors"
-                      onClick={() => handleAdd(tab.value, item.id)}
+              {/* Special form for custom link */}
+              {tab.value === "custom_link" ? (
+                <div className="space-y-4 p-1">
+                  <div className="flex items-center gap-2 text-muted-foreground text-sm">
+                    <Link className="w-4 h-4" />
+                    <span>Create a card that links to any route</span>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <div className="space-y-1.5">
+                      <Label htmlFor="custom-title">Title *</Label>
+                      <Input
+                        id="custom-title"
+                        placeholder="e.g., Our Story"
+                        value={customTitle}
+                        onChange={(e) => setCustomTitle(e.target.value)}
+                      />
+                    </div>
+                    
+                    <div className="space-y-1.5">
+                      <Label htmlFor="custom-subtitle">Subtitle (optional)</Label>
+                      <Input
+                        id="custom-subtitle"
+                        placeholder="e.g., Learn about our journey"
+                        value={customSubtitle}
+                        onChange={(e) => setCustomSubtitle(e.target.value)}
+                      />
+                    </div>
+                    
+                    <div className="space-y-1.5">
+                      <Label htmlFor="custom-link">Route/URL *</Label>
+                      <Input
+                        id="custom-link"
+                        placeholder="e.g., /public/collections/my-collection/pitch"
+                        value={customLink}
+                        onChange={(e) => setCustomLink(e.target.value)}
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Tip: Copy from the preview URL bar
+                      </p>
+                    </div>
+                    
+                    <div className="space-y-1.5">
+                      <Label htmlFor="custom-image">Image URL (optional)</Label>
+                      <Input
+                        id="custom-image"
+                        placeholder="https://..."
+                        value={customImageUrl}
+                        onChange={(e) => setCustomImageUrl(e.target.value)}
+                      />
+                    </div>
+                    
+                    <Button 
+                      onClick={handleAddCustomLink}
+                      disabled={!customTitle.trim() || !customLink.trim() || addItem.isPending}
+                      className="w-full"
                     >
-                      <CardContent className="p-3 flex items-center gap-3">
-                        {/* Thumbnail */}
-                        {item.card_image_url ||
-                        item.profile_image_url ||
-                        item.cover_image_url ||
-                        item.hero_image_url ? (
-                          <img
-                            src={
-                              item.card_image_url ||
-                              item.profile_image_url ||
-                              item.cover_image_url ||
-                              item.hero_image_url
-                            }
-                            alt=""
-                            className="w-12 h-12 object-cover rounded"
-                          />
-                        ) : (
-                          <div className="w-12 h-12 bg-muted rounded flex items-center justify-center">
-                            <Plus className="w-4 h-4 text-muted-foreground" />
-                          </div>
-                        )}
-
-                        <div className="flex-1 min-w-0">
-                          <p className="font-medium truncate">
-                            {item.name || item.title}
-                          </p>
-                          {(item.tagline ||
-                            item.description ||
-                            item.subtitle ||
-                            item.author_name) && (
-                            <p className="text-sm text-muted-foreground truncate">
-                              {item.tagline ||
-                                item.description ||
-                                item.subtitle ||
-                                item.author_name}
-                            </p>
+                      <Plus className="w-4 h-4 mr-2" />
+                      Add This Card
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-3 p-1">
+                  {contentMap[tab.value].length === 0 ? (
+                    <p className="col-span-2 text-center text-muted-foreground py-8">
+                      No available {tab.label.toLowerCase()}
+                    </p>
+                  ) : (
+                    contentMap[tab.value].map((item) => (
+                      <Card
+                        key={item.id}
+                        className="cursor-pointer hover:border-primary transition-colors"
+                        onClick={() => handleAdd(tab.value, item.id)}
+                      >
+                        <CardContent className="p-3 flex items-center gap-3">
+                          {/* Thumbnail */}
+                          {item.card_image_url ||
+                          item.profile_image_url ||
+                          item.cover_image_url ||
+                          item.hero_image_url ? (
+                            <img
+                              src={
+                                item.card_image_url ||
+                                item.profile_image_url ||
+                                item.cover_image_url ||
+                                item.hero_image_url
+                              }
+                              alt=""
+                              className="w-12 h-12 object-cover rounded"
+                            />
+                          ) : (
+                            <div className="w-12 h-12 bg-muted rounded flex items-center justify-center">
+                              <Plus className="w-4 h-4 text-muted-foreground" />
+                            </div>
                           )}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))
-                )}
-              </div>
+
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium truncate">
+                              {item.name || item.title}
+                            </p>
+                            {(item.tagline ||
+                              item.description ||
+                              item.subtitle ||
+                              item.author_name) && (
+                              <p className="text-sm text-muted-foreground truncate">
+                                {item.tagline ||
+                                  item.description ||
+                                  item.subtitle ||
+                                  item.author_name}
+                              </p>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))
+                  )}
+                </div>
+              )}
             </TabsContent>
           ))}
         </Tabs>
