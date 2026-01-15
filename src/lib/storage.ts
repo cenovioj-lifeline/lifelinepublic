@@ -19,8 +19,14 @@ export const uploadImage = async (
 
   const { data } = supabase.storage.from(bucket).getPublicUrl(filePath);
 
+  // Clean trailing ? from URL if present (Supabase sometimes adds empty query string)
+  let cleanUrl = data.publicUrl;
+  if (cleanUrl.endsWith('?')) {
+    cleanUrl = cleanUrl.slice(0, -1);
+  }
+
   return {
-    url: data.publicUrl,
+    url: cleanUrl,
     path: filePath,
   };
 };

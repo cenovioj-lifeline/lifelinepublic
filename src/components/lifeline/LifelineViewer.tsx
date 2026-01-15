@@ -975,6 +975,7 @@ export function LifelineViewer({
           initialQuery={selected.serpapi_query || `${selected.title} ${lifeline.title}`}
           onImportComplete={() => {
             queryClient.invalidateQueries({ queryKey: ["entries", lifelineId] });
+            queryClient.invalidateQueries({ queryKey: ["lifeline-entries-mobile", lifelineId] });
           }}
         />
       )}

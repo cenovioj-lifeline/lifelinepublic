@@ -332,7 +332,7 @@ export default function CollectionPitch() {
 
         {/* Hub View - Books Grid - 3D stacked-pages effect */}
         {currentView === 'hub' && (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 lg:gap-8">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 lg:gap-8">
             {bookMeta.map((book) => {
               const isMatching = currentFilter === 'all' || book.category === currentFilter;
               const topic = topics[book.num];
