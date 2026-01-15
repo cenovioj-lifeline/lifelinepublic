@@ -1,13 +1,16 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { CollectionLayout } from "@/components/CollectionLayout";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import { X, ChevronLeft, ChevronRight, ArrowLeft, ArrowRight } from "lucide-react";
+import { X, ChevronLeft, ChevronRight, ArrowLeft, ArrowRight, Upload } from "lucide-react";
+import { useAdminAccess } from "@/lib/useAdminAccess";
+import { uploadImage } from "@/lib/storage";
+import { toast } from "sonner";
 import {
   categories,
   bookMeta,
@@ -96,6 +99,10 @@ interface FilteredCard extends Card {
 
 export default function CollectionPitch() {
   const { slug } = useParams<{ slug: string }>();
+  const queryClient = useQueryClient();
+  const { hasAccess: isAdmin } = useAdminAccess();
+  const fileInputRefs = useRef<{ [key: number]: HTMLInputElement | null }>({});
+  const [uploadingBook, setUploadingBook] = useState<number | null>(null);
 
   // State
   const [currentView, setCurrentView] = useState<ViewType>('hub');
@@ -118,6 +125,51 @@ export default function CollectionPitch() {
       return data;
     },
   });
+
+  // Fetch book images
+  const { data: bookImages } = useQuery({
+    queryKey: ["pitch-book-images"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("pitch_book_images")
+        .select("book_num, image_url, image_path");
+
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  // Create a map of book_num -> image_url
+  const bookImageMap = (bookImages || []).reduce((acc, img) => {
+    acc[img.book_num] = img.image_url;
+    return acc;
+  }, {} as Record<number, string>);
+
+  // Handle image upload for a book
+  const handleImageUpload = async (bookNum: number, file: File) => {
+    try {
+      setUploadingBook(bookNum);
+      const { url, path } = await uploadImage(file, "media-uploads");
+      
+      // Upsert to pitch_book_images
+      const { error } = await supabase
+        .from("pitch_book_images")
+        .upsert(
+          { book_num: bookNum, image_url: url, image_path: path },
+          { onConflict: "book_num" }
+        );
+
+      if (error) throw error;
+
+      toast.success("Image uploaded successfully");
+      queryClient.invalidateQueries({ queryKey: ["pitch-book-images"] });
+    } catch (error) {
+      console.error("Upload error:", error);
+      toast.error("Failed to upload image");
+    } finally {
+      setUploadingBook(null);
+    }
+  };
 
   // Get current cards based on view
   const getCurrentCards = useCallback((): FilteredCard[] => {
@@ -336,6 +388,7 @@ export default function CollectionPitch() {
             {bookMeta.map((book) => {
               const isMatching = currentFilter === 'all' || book.category === currentFilter;
               const topic = topics[book.num];
+              const bookImage = bookImageMap[book.num];
 
               return (
                 <div
@@ -363,44 +416,96 @@ export default function CollectionPitch() {
                     }}
                   />
                   
-                  {/* Main card face - 2:3 aspect ratio book */}
+                  {/* Main card face - V4 Layout: Title → Image → Footer */}
                   <div 
-                    className="relative rounded-sm shadow-lg flex flex-col p-4"
+                    className="relative rounded-sm shadow-lg flex flex-col border border-gray-200"
                     style={{ 
                       backgroundColor: '#fafaf9',
                       aspectRatio: '2/3',
                       zIndex: 2 
                     }}
                   >
-                    {/* Category icon - top right */}
-                    <div className="absolute top-3 right-3 text-gray-300">
-                      <CategoryIcon category={book.category} className="w-5 h-5" />
-                    </div>
-                    
-                    {/* Large faded number */}
+                    {/* Title Area - flexible whitespace, title at bottom */}
                     <div 
-                      className="text-5xl md:text-6xl font-serif font-bold text-gray-200 leading-none"
-                      style={{ fontFamily: 'Georgia, serif' }}
+                      className="flex items-end justify-center text-center px-3 pt-3 pb-2"
+                      style={{ minHeight: '48px', flexShrink: 0 }}
                     >
-                      {book.num.toString().padStart(2, '0')}
-                    </div>
-                    
-                    {/* Centered content */}
-                    <div className="flex-1 flex flex-col items-center justify-center text-center px-1">
                       <h3 
-                        className="font-serif font-bold text-sm md:text-base leading-tight text-gray-800 mb-2"
+                        className="font-bold text-sm md:text-base leading-tight text-gray-800"
                         style={{ fontFamily: 'Georgia, serif' }}
                       >
                         {book.title}
                       </h3>
-                      <p className="text-gray-400 text-xs italic line-clamp-2">
-                        {book.tagline}
-                      </p>
                     </div>
                     
-                    {/* Section count - bottom */}
-                    <div className="text-center">
-                      <p className="text-gray-400 text-xs">
+                    {/* Image Area - FIXED 45% height */}
+                    <div 
+                      className="mx-3 rounded overflow-hidden relative group"
+                      style={{ 
+                        height: '45%', 
+                        flexShrink: 0, 
+                        flexGrow: 0 
+                      }}
+                    >
+                      {bookImage ? (
+                        <img 
+                          src={bookImage} 
+                          alt={book.title}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div 
+                          className="w-full h-full flex items-center justify-center"
+                          style={{ 
+                            background: 'linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%)' 
+                          }}
+                        >
+                          <span className="text-gray-400 text-xs">No image</span>
+                        </div>
+                      )}
+                      
+                      {/* Admin upload overlay */}
+                      {isAdmin && (
+                        <>
+                          <div 
+                            className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              fileInputRefs.current[book.num]?.click();
+                            }}
+                          >
+                            {uploadingBook === book.num ? (
+                              <span className="text-white text-xs">Uploading...</span>
+                            ) : (
+                              <div className="flex flex-col items-center text-white">
+                                <Upload className="w-5 h-5 mb-1" />
+                                <span className="text-xs">Upload</span>
+                              </div>
+                            )}
+                          </div>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            ref={(el) => { fileInputRefs.current[book.num] = el; }}
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                handleImageUpload(book.num, file);
+                              }
+                              e.target.value = '';
+                            }}
+                          />
+                        </>
+                      )}
+                    </div>
+                    
+                    {/* Footer Area - tagline + section count */}
+                    <div className="flex-1 flex flex-col justify-start items-center text-center px-3 py-2">
+                      <p className="text-gray-400 text-[10px] italic line-clamp-2">
+                        {book.tagline}
+                      </p>
+                      <p className="text-gray-300 text-[9px] mt-1">
                         {topic?.cards.length || 0} sections
                       </p>
                     </div>
