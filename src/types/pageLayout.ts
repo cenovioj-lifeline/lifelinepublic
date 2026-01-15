@@ -12,7 +12,8 @@ export type PageLayoutItemType =
   | 'lifeline'
   | 'election'
   | 'book'
-  | 'action_card';
+  | 'action_card'
+  | 'custom_link';
 
 // Page types that can have layouts
 export type PageType = 'home' | 'collection';
@@ -34,6 +35,11 @@ export interface PageLayoutItem {
   item_id: string;
   display_order: number;
   created_at: string;
+  // Custom link fields (only used when item_type is 'custom_link')
+  custom_title?: string | null;
+  custom_subtitle?: string | null;
+  custom_link?: string | null;
+  custom_image_url?: string | null;
 }
 
 // Normalized content for rendering cards
@@ -63,7 +69,7 @@ export interface PageLayoutItemInput {
 
 // Type guards
 export function isValidItemType(type: string): type is PageLayoutItemType {
-  return ['collection', 'profile', 'lifeline', 'election', 'book', 'action_card'].includes(type);
+  return ['collection', 'profile', 'lifeline', 'election', 'book', 'action_card', 'custom_link'].includes(type);
 }
 
 export function isValidPageType(type: string): type is PageType {
@@ -78,6 +84,7 @@ export const itemTypeBadgeColors: Record<PageLayoutItemType, string> = {
   election: 'bg-orange-100 text-orange-800',
   book: 'bg-amber-100 text-amber-800',
   action_card: 'bg-gray-100 text-gray-800',
+  custom_link: 'bg-teal-100 text-teal-800',
 };
 
 // Display labels for item types
@@ -88,4 +95,5 @@ export const itemTypeLabels: Record<PageLayoutItemType, string> = {
   election: 'Awards',
   book: 'Book',
   action_card: 'Action',
+  custom_link: 'Link',
 };

@@ -2106,6 +2106,10 @@ export type Database = {
       page_layout_items: {
         Row: {
           created_at: string
+          custom_image_url: string | null
+          custom_link: string | null
+          custom_subtitle: string | null
+          custom_title: string | null
           display_order: number
           id: string
           item_id: string
@@ -2114,6 +2118,10 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          custom_image_url?: string | null
+          custom_link?: string | null
+          custom_subtitle?: string | null
+          custom_title?: string | null
           display_order?: number
           id?: string
           item_id: string
@@ -2122,6 +2130,10 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          custom_image_url?: string | null
+          custom_link?: string | null
+          custom_subtitle?: string | null
+          custom_title?: string | null
           display_order?: number
           id?: string
           item_id?: string
