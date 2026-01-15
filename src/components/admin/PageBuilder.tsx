@@ -187,7 +187,6 @@ function SortableSection({
                 <SelectItem value="1">1</SelectItem>
                 <SelectItem value="2">2</SelectItem>
                 <SelectItem value="3">3</SelectItem>
-                <SelectItem value="4">4</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -574,7 +573,7 @@ export function PageBuilder({
           <p className="text-sm text-muted-foreground mb-4">
             These cards were added before sections. Add a section and they'll be assigned to it.
           </p>
-          <div className="grid grid-cols-4 gap-4">
+          <div className="grid grid-cols-3 gap-4">
             {unsectionedItems.map((item) => (
               <SortablePageLayoutCard
                 key={item.id}

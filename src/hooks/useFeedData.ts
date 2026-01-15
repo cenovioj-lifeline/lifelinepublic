@@ -142,14 +142,11 @@ export const useFeedData = (userId: string | undefined) => {
       
       if (entriesError) throw entriesError;
       
-      // Fetch recent collections (last 30 days) for "New Collection" entries
-      const thirtyDaysAgo = new Date();
-      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-      
+      // Fetch all published collections for "New Collection" entries
+      // They appear chronologically at their creation date
       const { data: collectionsData, error: collectionsError } = await supabase
         .from('collections')
         .select('id, title, slug, description, hero_image_url, card_image_url, created_at')
-        .gte('created_at', thirtyDaysAgo.toISOString())
         .eq('status', 'published')
         .order('created_at', { ascending: false });
       
