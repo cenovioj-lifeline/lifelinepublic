@@ -17,6 +17,8 @@ import {
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -24,7 +26,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
   usePageLayout,
@@ -35,8 +37,10 @@ import {
   useResolveLayoutContent,
 } from "@/hooks/usePageLayout";
 import { AddCardModal } from "./AddCardModal";
+import { EditCardModal } from "./EditCardModal";
 import { SortablePageLayoutCard } from "./SortablePageLayoutCard";
-import type { PageType } from "@/types/pageLayout";
+import type { PageType, PageLayoutItemWithContent } from "@/types/pageLayout";
+import { toast } from "@/hooks/use-toast";
 
 interface PageBuilderProps {
   initialPageType?: PageType;
@@ -51,6 +55,9 @@ export function PageBuilder({
   const [pageType, setPageType] = useState<PageType>(initialPageType);
   const [entityId, setEntityId] = useState<string | undefined>(initialEntityId);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<PageLayoutItemWithContent | null>(null);
+  const [sectionName, setSectionName] = useState("");
+  const queryClient = useQueryClient();
 
   // DnD sensors
   const sensors = useSensors(
@@ -90,6 +97,55 @@ export function PageBuilder({
       createLayout.mutate({ pageType, entityId });
     }
   }, [pageType, entityId, layout, layoutLoading]);
+
+  // Get current section name from collection
+  const { data: currentCollection } = useQuery({
+    queryKey: ["collection-section-name", entityId],
+    queryFn: async () => {
+      if (!entityId) return null;
+      const { data, error } = await supabase
+        .from("collections")
+        .select("custom_section_name")
+        .eq("id", entityId)
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!entityId && pageType === "collection",
+  });
+
+  // Update section name state when collection data loads
+  useEffect(() => {
+    if (currentCollection) {
+      setSectionName(currentCollection.custom_section_name || "");
+    } else {
+      setSectionName("");
+    }
+  }, [currentCollection]);
+
+  // Mutation to update section name
+  const updateSectionName = useMutation({
+    mutationFn: async (name: string) => {
+      if (!entityId) throw new Error("No collection selected");
+      const { error } = await supabase
+        .from("collections")
+        .update({ custom_section_name: name || null })
+        .eq("id", entityId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["collection-section-name", entityId] });
+      queryClient.invalidateQueries({ queryKey: ["public-collection"] });
+      toast({ title: "Section name updated" });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to update section name",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
 
   // Handle page context change
   const handleContextChange = (value: string) => {
@@ -156,6 +212,43 @@ export function PageBuilder({
         </Select>
       </div>
 
+      {/* Section Name Editor (for collection pages) */}
+      {pageType === "collection" && entityId && (
+        <div className="p-4 bg-muted rounded-lg space-y-2">
+          <Label htmlFor="section-name">Section Title</Label>
+          <div className="flex gap-2">
+            <Input
+              id="section-name"
+              value={sectionName}
+              onChange={(e) => setSectionName(e.target.value)}
+              placeholder="Explore"
+              className="max-w-xs"
+            />
+            <Button
+              variant="outline"
+              onClick={() => updateSectionName.mutate(sectionName)}
+              disabled={updateSectionName.isPending}
+            >
+              {updateSectionName.isPending ? "Saving..." : "Save"}
+            </Button>
+            {sectionName && (
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  setSectionName("");
+                  updateSectionName.mutate("");
+                }}
+              >
+                Clear
+              </Button>
+            )}
+          </div>
+          <p className="text-xs text-muted-foreground">
+            This is the heading that appears above your cards (e.g., "Featured" or "Explore")
+          </p>
+        </div>
+      )}
+
       {/* Toolbar */}
       <div className="flex items-center gap-4 p-4 bg-muted rounded-lg">
         <Button onClick={() => setIsAddModalOpen(true)}>
@@ -191,6 +284,7 @@ export function PageBuilder({
                   key={item.id}
                   item={item}
                   onRemove={() => handleRemove(item.id)}
+                  onEdit={() => setEditingItem(item)}
                 />
               ))
             )}
@@ -218,6 +312,13 @@ export function PageBuilder({
         entityId={entityId}
         existingItemIds={items.map((i) => i.item_id)}
         nextOrder={items.length}
+      />
+
+      {/* Edit Card Modal */}
+      <EditCardModal
+        open={!!editingItem}
+        onOpenChange={(open) => !open && setEditingItem(null)}
+        item={editingItem}
       />
     </div>
   );

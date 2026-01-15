@@ -1,5 +1,5 @@
 interface ContentTypeBannerProps {
-  type: "lifeline" | "profile" | "election" | "book" | "collection" | string;
+  type: "lifeline" | "profile" | "election" | "book" | "collection" | "link" | string;
   collectionSlug?: string;
 }
 
@@ -9,6 +9,7 @@ const labels: Record<string, string> = {
   election: "Awards",
   book: "Book",
   collection: "Collection",
+  link: "Link",
 };
 
 export function ContentTypeBanner({ type, collectionSlug }: ContentTypeBannerProps) {
