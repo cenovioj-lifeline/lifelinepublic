@@ -36,7 +36,7 @@ import { CollectionQuotesUpload } from "@/components/CollectionQuotesUpload";
 import { CollectionProfileManager } from "@/components/CollectionProfileManager";
 import { CollectionContentManager } from "@/components/CollectionContentManager";
 import { CollectionDuplicateCleanup } from "@/components/CollectionDuplicateCleanup";
-import { CollectionActionCards } from "@/components/CollectionActionCards";
+
 
 const collectionFormSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -66,7 +66,7 @@ export default function CollectionEdit() {
   const [isProfileSectionOpen, setIsProfileSectionOpen] = useState(false);
   const [isContentSectionOpen, setIsContentSectionOpen] = useState(false);
   const [isDuplicateCleanupOpen, setIsDuplicateCleanupOpen] = useState(false);
-  const [isActionCardsOpen, setIsActionCardsOpen] = useState(false);
+  
 
   const { data: colorSchemes } = useQuery({
     queryKey: ["color-schemes"],
@@ -568,23 +568,6 @@ export default function CollectionEdit() {
                 </CollapsibleContent>
               </Collapsible>
 
-              <Collapsible
-                open={isActionCardsOpen}
-                onOpenChange={setIsActionCardsOpen}
-                className="mt-8"
-              >
-                <CollapsibleTrigger className="flex items-center gap-2 w-full">
-                  <h3 className="text-lg font-medium">Action Cards</h3>
-                  <ChevronDown
-                    className={`h-4 w-4 transition-transform ${
-                      isActionCardsOpen ? "rotate-180" : ""
-                    }`}
-                  />
-                </CollapsibleTrigger>
-                <CollapsibleContent className="mt-4">
-                  <CollectionActionCards collectionId={id!} />
-                </CollapsibleContent>
-              </Collapsible>
 
               <Collapsible
                 open={isContentSectionOpen}
