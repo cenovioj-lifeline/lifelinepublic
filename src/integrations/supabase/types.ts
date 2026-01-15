@@ -2228,6 +2228,33 @@ export type Database = {
         }
         Relationships: []
       }
+      pitch_book_images: {
+        Row: {
+          book_num: number
+          created_at: string | null
+          id: string
+          image_path: string | null
+          image_url: string
+          updated_at: string | null
+        }
+        Insert: {
+          book_num: number
+          created_at?: string | null
+          id?: string
+          image_path?: string | null
+          image_url: string
+          updated_at?: string | null
+        }
+        Update: {
+          book_num?: number
+          created_at?: string | null
+          id?: string
+          image_path?: string | null
+          image_url?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       profile_books: {
         Row: {
           book_id: string
