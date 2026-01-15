@@ -1,7 +1,7 @@
 import React from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical, Trash2, ExternalLink } from "lucide-react";
+import { GripVertical, Trash2, ExternalLink, Pencil } from "lucide-react";
 import * as LucideIcons from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,11 +12,13 @@ import { itemTypeBadgeColors, itemTypeLabels } from "@/types/pageLayout";
 interface SortablePageLayoutCardProps {
   item: PageLayoutItemWithContent;
   onRemove: () => void;
+  onEdit?: () => void;
 }
 
 export function SortablePageLayoutCard({
   item,
   onRemove,
+  onEdit,
 }: SortablePageLayoutCardProps) {
   const {
     attributes,
@@ -62,15 +64,17 @@ export function SortablePageLayoutCard({
             <GripVertical className="w-4 h-4 text-muted-foreground" />
           </div>
 
-          {/* Remove button */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="absolute top-2 right-2 opacity-0 group-hover:opacity-100"
-            onClick={onRemove}
-          >
-            <Trash2 className="w-4 h-4 text-destructive" />
-          </Button>
+          {/* Edit and Remove buttons */}
+          <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100">
+            {onEdit && (
+              <Button variant="ghost" size="icon" onClick={onEdit}>
+                <Pencil className="w-4 h-4" />
+              </Button>
+            )}
+            <Button variant="ghost" size="icon" onClick={onRemove}>
+              <Trash2 className="w-4 h-4 text-destructive" />
+            </Button>
+          </div>
 
           <CardContent className="p-6 flex flex-col items-center justify-center h-32">
             {IconComponent && <IconComponent className="w-8 h-8 mb-2" />}
@@ -99,15 +103,17 @@ export function SortablePageLayoutCard({
           <GripVertical className="w-4 h-4 text-muted-foreground" />
         </div>
 
-        {/* Remove button */}
-        <Button
-          variant="ghost"
-          size="icon"
-          className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 bg-white/80"
-          onClick={onRemove}
-        >
-          <Trash2 className="w-4 h-4 text-destructive" />
-        </Button>
+        {/* Edit and Remove buttons */}
+        <div className="absolute top-2 right-2 z-10 flex gap-1 opacity-0 group-hover:opacity-100">
+          {onEdit && (
+            <Button variant="ghost" size="icon" className="bg-white/80" onClick={onEdit}>
+              <Pencil className="w-4 h-4" />
+            </Button>
+          )}
+          <Button variant="ghost" size="icon" className="bg-white/80" onClick={onRemove}>
+            <Trash2 className="w-4 h-4 text-destructive" />
+          </Button>
+        </div>
 
         {/* Card image */}
         {content.image_url ? (

@@ -40,6 +40,8 @@ export interface PageLayoutItem {
   custom_subtitle?: string | null;
   custom_link?: string | null;
   custom_image_url?: string | null;
+  custom_image_position_x?: number | null;
+  custom_image_position_y?: number | null;
 }
 
 // Normalized content for rendering cards
@@ -47,6 +49,8 @@ export interface CardContent {
   title: string;
   subtitle?: string;
   image_url?: string;
+  image_position_x?: number;
+  image_position_y?: number;
   slug?: string;
   link?: string;
   // Action card specific

@@ -679,6 +679,66 @@ export default function PublicCollectionDetail() {
       );
     }
 
+    // Custom link cards
+    if (item_type === 'custom_link') {
+      const isExternal = content.link?.startsWith('http');
+      const posX = (item as any).custom_image_position_x ?? 50;
+      const posY = (item as any).custom_image_position_y ?? 50;
+      
+      const cardElement = (
+        <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
+          <div className="aspect-video relative bg-white overflow-hidden">
+            {content.image_url ? (
+              <img
+                src={content.image_url}
+                alt={content.title}
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                style={{ objectPosition: `${posX}% ${posY}%` }}
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
+                <div className="text-center px-4">
+                  <div className="text-4xl mb-2">🔗</div>
+                  <div className="text-sm font-medium text-gray-600">{content.title}</div>
+                </div>
+              </div>
+            )}
+          </div>
+          <ContentTypeBanner type="link" />
+          <CardHeader className="bg-[hsl(var(--scheme-card-bg))]">
+            <CardTitle className="text-lg transition-colors text-[hsl(var(--scheme-card-text))]">
+              {content.title}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="bg-[hsl(var(--scheme-card-bg))]">
+            <p className="text-sm line-clamp-2 text-[hsl(var(--scheme-cards-text))]">
+              {content.subtitle || "View more"}
+            </p>
+          </CardContent>
+        </Card>
+      );
+
+      if (isExternal) {
+        return (
+          <a
+            key={item.id}
+            href={content.link || '#'}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group"
+          >
+            {cardElement}
+          </a>
+        );
+      }
+
+      return (
+        <Link key={item.id} to={content.link || '#'} className="group">
+          {cardElement}
+        </Link>
+      );
+    }
+
     return null;
   };
 

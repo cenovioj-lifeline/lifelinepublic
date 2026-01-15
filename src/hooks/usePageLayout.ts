@@ -121,6 +121,8 @@ export function useAddLayoutItem() {
       customSubtitle,
       customLink,
       customImageUrl,
+      customImagePositionX,
+      customImagePositionY,
     }: {
       layoutId: string;
       itemType: PageLayoutItemType;
@@ -130,6 +132,8 @@ export function useAddLayoutItem() {
       customSubtitle?: string;
       customLink?: string;
       customImageUrl?: string;
+      customImagePositionX?: number;
+      customImagePositionY?: number;
     }) => {
       const { data, error } = await supabase
         .from("page_layout_items")
@@ -142,6 +146,8 @@ export function useAddLayoutItem() {
           custom_subtitle: customSubtitle || null,
           custom_link: customLink || null,
           custom_image_url: customImageUrl || null,
+          custom_image_position_x: customImagePositionX ?? 50,
+          custom_image_position_y: customImagePositionY ?? 50,
         })
         .select()
         .single();
@@ -281,6 +287,8 @@ function normalizeContent(
         title: data.custom_title || "Custom Link",
         subtitle: data.custom_subtitle,
         image_url: data.custom_image_url,
+        image_position_x: data.custom_image_position_x ?? 50,
+        image_position_y: data.custom_image_position_y ?? 50,
         link: data.custom_link,
       };
     default:

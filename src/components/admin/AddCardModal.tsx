@@ -15,6 +15,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAddLayoutItem } from "@/hooks/usePageLayout";
 import { toast } from "@/hooks/use-toast";
+import { DirectImageUpload } from "@/components/DirectImageUpload";
 import type { PageType, PageLayoutItemType } from "@/types/pageLayout";
 
 interface AddCardModalProps {
@@ -44,6 +45,9 @@ export function AddCardModal({
   const [customSubtitle, setCustomSubtitle] = useState("");
   const [customLink, setCustomLink] = useState("");
   const [customImageUrl, setCustomImageUrl] = useState("");
+  const [customImagePath, setCustomImagePath] = useState("");
+  const [imagePositionX, setImagePositionX] = useState(50);
+  const [imagePositionY, setImagePositionY] = useState(50);
 
   const addItem = useAddLayoutItem();
 
@@ -206,7 +210,9 @@ export function AddCardModal({
         customTitle: customTitle.trim(),
         customSubtitle: customSubtitle.trim() || undefined,
         customLink: customLink.trim(),
-        customImageUrl: customImageUrl.trim() || undefined,
+        customImageUrl: customImageUrl || undefined,
+        customImagePositionX: imagePositionX,
+        customImagePositionY: imagePositionY,
       },
       {
         onSuccess: () => {
@@ -216,6 +222,9 @@ export function AddCardModal({
           setCustomSubtitle("");
           setCustomLink("");
           setCustomImageUrl("");
+          setCustomImagePath("");
+          setImagePositionX(50);
+          setImagePositionY(50);
         },
         onError: (error) => {
           toast({
@@ -226,6 +235,21 @@ export function AddCardModal({
         },
       }
     );
+  };
+
+  const handleImageUpload = (url: string, path: string) => {
+    setCustomImageUrl(url);
+    setCustomImagePath(path);
+  };
+
+  const handleImageRemove = () => {
+    setCustomImageUrl("");
+    setCustomImagePath("");
+  };
+
+  const handlePositionChange = (pos: { x: number; y: number }) => {
+    setImagePositionX(Math.round(pos.x));
+    setImagePositionY(Math.round(pos.y));
   };
 
   // Determine which tabs to show based on context
@@ -336,12 +360,16 @@ export function AddCardModal({
                     </div>
                     
                     <div className="space-y-1.5">
-                      <Label htmlFor="custom-image">Image URL (optional)</Label>
-                      <Input
-                        id="custom-image"
-                        placeholder="https://..."
-                        value={customImageUrl}
-                        onChange={(e) => setCustomImageUrl(e.target.value)}
+                      <Label>Image (optional)</Label>
+                      <DirectImageUpload
+                        currentImageUrl={customImageUrl}
+                        currentImagePath={customImagePath}
+                        onUploadComplete={handleImageUpload}
+                        onRemove={handleImageRemove}
+                        onPositionChange={handlePositionChange}
+                        initialPosition={{ x: imagePositionX, y: imagePositionY }}
+                        viewType="card"
+                        label="Upload card image"
                       />
                     </div>
                     
