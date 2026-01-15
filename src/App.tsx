@@ -66,6 +66,7 @@ import Feed from "./pages/public/Feed";
 import FeedSetup from "./pages/public/FeedSetup";
 import CollectionReport from "./pages/CollectionReport";
 import CollectionPitch from "./pages/public/CollectionPitch";
+import CollectionMedia from "./pages/public/CollectionMedia";
 import { PageBuilder } from "./components/admin/PageBuilder";
 
 const queryClient = new QueryClient();
@@ -110,6 +111,7 @@ function AppContent() {
           <Route path="/public/more" element={<PublicLayout><PublicMore /></PublicLayout>} />
           <Route path="/public/collections/:slug/more" element={<CollectionMore />} />
           <Route path="/public/collections/:slug/pitch" element={<CollectionPitch />} />
+          <Route path="/public/collections/:slug/media" element={<CollectionMedia />} />
           <Route path="/public/contributors" element={<PublicLayout><TopContributors /></PublicLayout>} />
             <Route path="/feed" element={<Feed />} />
             <Route path="/feed/setup" element={<PublicLayout><FeedSetup /></PublicLayout>} />
