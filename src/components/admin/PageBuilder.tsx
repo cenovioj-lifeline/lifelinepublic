@@ -245,6 +245,78 @@ function SortableSection({
   );
 }
 
+// Unsectioned cards component with drag-and-drop
+function UnsectionedCards({
+  items,
+  layoutId,
+  onRemove,
+  onEdit,
+}: {
+  items: PageLayoutItemWithContent[];
+  layoutId: string;
+  onRemove: (itemId: string) => void;
+  onEdit: (item: PageLayoutItemWithContent) => void;
+}) {
+  const reorderItems = useReorderLayoutItems();
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = items.findIndex((item) => item.id === active.id);
+    const newIndex = items.findIndex((item) => item.id === over.id);
+
+    if (oldIndex === -1 || newIndex === -1) return;
+
+    const reordered = arrayMove(items, oldIndex, newIndex);
+    const updates = reordered.map((item, index) => ({
+      id: item.id,
+      display_order: index,
+    }));
+
+    reorderItems.mutate({ layoutId, items: updates });
+  };
+
+  return (
+    <Card className="p-4 border-dashed">
+      <h3 className="font-medium mb-3 text-muted-foreground">
+        Unsectioned Cards ({items.length})
+      </h3>
+      <p className="text-sm text-muted-foreground mb-4">
+        These cards were added before sections. Add a section and they'll be assigned to it.
+      </p>
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
+      >
+        <SortableContext
+          items={items.map((item) => item.id)}
+          strategy={rectSortingStrategy}
+        >
+          <div className="grid grid-cols-3 gap-4">
+            {items.map((item) => (
+              <SortablePageLayoutCard
+                key={item.id}
+                item={item}
+                onRemove={() => onRemove(item.id)}
+                onEdit={() => onEdit(item)}
+              />
+            ))}
+          </div>
+        </SortableContext>
+      </DndContext>
+    </Card>
+  );
+}
+
 export function PageBuilder({
   initialPageType = "home",
   initialEntityId,
@@ -566,24 +638,12 @@ export function PageBuilder({
 
       {/* Unsectioned items (legacy support) */}
       {unsectionedItems.length > 0 && (
-        <Card className="p-4 border-dashed">
-          <h3 className="font-medium mb-3 text-muted-foreground">
-            Unsectioned Cards ({unsectionedItems.length})
-          </h3>
-          <p className="text-sm text-muted-foreground mb-4">
-            These cards were added before sections. Add a section and they'll be assigned to it.
-          </p>
-          <div className="grid grid-cols-3 gap-4">
-            {unsectionedItems.map((item) => (
-              <SortablePageLayoutCard
-                key={item.id}
-                item={item}
-                onRemove={() => handleRemove(item.id)}
-                onEdit={() => setEditingItem(item)}
-              />
-            ))}
-          </div>
-        </Card>
+        <UnsectionedCards
+          items={unsectionedItems}
+          layoutId={layout?.id || ""}
+          onRemove={handleRemove}
+          onEdit={setEditingItem}
+        />
       )}
 
       {/* Add Card Modal */}
