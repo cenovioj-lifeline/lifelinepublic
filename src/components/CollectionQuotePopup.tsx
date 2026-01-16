@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { X } from "lucide-react";
+import { X, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -8,9 +8,18 @@ interface CollectionQuotePopupProps {
   author?: string | null;
   context?: string | null;
   onDismiss: () => void;
+  onNext?: () => void;
+  hasMultipleQuotes?: boolean;
 }
 
-export function CollectionQuotePopup({ quote, author, context, onDismiss }: CollectionQuotePopupProps) {
+export function CollectionQuotePopup({ 
+  quote, 
+  author, 
+  context, 
+  onDismiss, 
+  onNext, 
+  hasMultipleQuotes 
+}: CollectionQuotePopupProps) {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
@@ -41,7 +50,7 @@ export function CollectionQuotePopup({ quote, author, context, onDismiss }: Coll
             <X className="h-4 w-4" />
           </Button>
           
-          <div className="pr-6">
+          <div className={hasMultipleQuotes ? "pr-8" : "pr-6"}>
             <p className="text-sm italic mb-2 text-[hsl(var(--scheme-title-text))]">"{quote}"</p>
             {author && (
               <p className="text-xs font-semibold text-[hsl(var(--scheme-title-text))]">
@@ -54,6 +63,16 @@ export function CollectionQuotePopup({ quote, author, context, onDismiss }: Coll
               </p>
             )}
           </div>
+
+          {hasMultipleQuotes && onNext && (
+            <button
+              onClick={onNext}
+              className="absolute right-2 top-1/2 -translate-y-1/2 p-1 hover:bg-gray-100 rounded transition-colors"
+              aria-label="Next quote"
+            >
+              <ChevronRight className="h-4 w-4 text-gray-400" />
+            </button>
+          )}
         </CardContent>
       </Card>
     </div>
