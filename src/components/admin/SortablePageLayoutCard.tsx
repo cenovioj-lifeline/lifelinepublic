@@ -59,7 +59,7 @@ export function SortablePageLayoutCard({
           {/* Drag handle */}
           <div
             {...listeners}
-            className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 cursor-grab"
+            className="absolute top-2 left-2 opacity-60 hover:opacity-100 cursor-grab bg-muted/50 hover:bg-muted rounded p-0.5"
           >
             <GripVertical className="w-4 h-4 text-muted-foreground" />
           </div>
@@ -98,7 +98,7 @@ export function SortablePageLayoutCard({
         {/* Drag handle */}
         <div
           {...listeners}
-          className="absolute top-2 left-2 z-10 opacity-0 group-hover:opacity-100 cursor-grab bg-white/80 rounded p-1"
+          className="absolute top-2 left-2 z-10 opacity-60 hover:opacity-100 cursor-grab bg-white/80 hover:bg-white rounded p-1"
         >
           <GripVertical className="w-4 h-4 text-muted-foreground" />
         </div>
