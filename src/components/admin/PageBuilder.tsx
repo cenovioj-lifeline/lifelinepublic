@@ -449,6 +449,28 @@ export function PageBuilder({
     });
   };
 
+  // Handle quick add card (creates section if needed)
+  const handleQuickAddCard = () => {
+    if (!layout) return;
+
+    if (sections.length === 0) {
+      // Create a default section first, then open modal
+      createSection.mutate(
+        { layoutId: layout.id, displayOrder: 0 },
+        {
+          onSuccess: (newSection) => {
+            setAddToSectionId(newSection.id);
+            setIsAddModalOpen(true);
+          },
+        }
+      );
+    } else {
+      // Add to first section
+      setAddToSectionId(sections[0].id);
+      setIsAddModalOpen(true);
+    }
+  };
+
   // Handle section reorder via drag
   const handleSectionDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
@@ -567,6 +589,14 @@ export function PageBuilder({
         <Button onClick={handleAddSection} disabled={!layout}>
           <Plus className="w-4 h-4 mr-2" />
           Add Section
+        </Button>
+        <Button 
+          onClick={handleQuickAddCard} 
+          disabled={!layout}
+          className="bg-primary"
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          Add Card
         </Button>
         <span className="text-sm text-muted-foreground">
           {sections.length} sections • {itemsWithContent.length} total cards
