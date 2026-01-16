@@ -58,12 +58,16 @@ export default function BookEdit() {
   const isNew = id === "new";
   const initialTab = searchParams.get("tab") || "metadata";
 
+  // Get collection from URL params for new books
+  const collectionFromUrl = searchParams.get("collection");
+
   // Form state
   const [title, setTitle] = useState("");
   const [slug, setSlug] = useState("");
   const [subtitle, setSubtitle] = useState("");
   const [authorName, setAuthorName] = useState("");
   const [authorProfileId, setAuthorProfileId] = useState<string | null>(null);
+  const [collectionId, setCollectionId] = useState<string | null>(collectionFromUrl);
   const [publicationYear, setPublicationYear] = useState("");
   const [pageCount, setPageCount] = useState("");
   const [isbn, setIsbn] = useState("");
@@ -94,6 +98,19 @@ export default function BookEdit() {
         .from("profiles")
         .select("id, name, slug")
         .order("name");
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Fetch collections for dropdown
+  const { data: collections } = useQuery({
+    queryKey: ["collections-dropdown"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("collections")
+        .select("id, title")
+        .order("title");
       if (error) throw error;
       return data;
     },
@@ -139,6 +156,7 @@ export default function BookEdit() {
       setSubtitle(book.subtitle || "");
       setAuthorName(book.author_name || "");
       setAuthorProfileId(book.author_profile_id || null);
+      setCollectionId(book.collection_id || null);
       setPublicationYear(book.publication_year?.toString() || "");
       setPageCount(book.page_count?.toString() || "");
       setIsbn(book.isbn || "");
@@ -169,6 +187,7 @@ export default function BookEdit() {
         subtitle: subtitle.trim() || null,
         author_name: authorName.trim(),
         author_profile_id: authorProfileId || null,
+        collection_id: collectionId || null,
         publication_year: publicationYear ? parseInt(publicationYear) : null,
         page_count: pageCount ? parseInt(pageCount) : null,
         isbn: isbn.trim() || null,
@@ -439,6 +458,37 @@ export default function BookEdit() {
                           {profile.name}
                         </SelectItem>
                       ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <Label htmlFor="collection">Collection</Label>
+                  <Select value={collectionId || "none"} onValueChange={(v) => setCollectionId(v === "none" ? null : v)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select collection (optional)" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">No collection</SelectItem>
+                      {collections?.map((collection) => (
+                        <SelectItem key={collection.id} value={collection.id}>
+                          {collection.title}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="status">Status</Label>
+                  <Select value={status} onValueChange={(v) => setStatus(v as "draft" | "published")}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="draft">Draft</SelectItem>
+                      <SelectItem value="published">Published</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

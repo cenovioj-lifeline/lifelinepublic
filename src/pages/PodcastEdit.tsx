@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,9 +27,13 @@ function generateSlug(title: string): string {
 export default function PodcastEdit() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const isNew = id === "new";
+
+  // Get collection from URL params for new podcasts
+  const collectionFromUrl = searchParams.get("collection");
 
   const [title, setTitle] = useState("");
   const [slug, setSlug] = useState("");
@@ -37,7 +41,7 @@ export default function PodcastEdit() {
   const [podcastUrl, setPodcastUrl] = useState("");
   const [description, setDescription] = useState("");
   const [thumbnailUrl, setThumbnailUrl] = useState("");
-  const [collectionId, setCollectionId] = useState<string | null>(null);
+  const [collectionId, setCollectionId] = useState<string | null>(collectionFromUrl);
   const [profileId, setProfileId] = useState<string | null>(null);
   const [status, setStatus] = useState("draft");
 

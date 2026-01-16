@@ -3,10 +3,17 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Trash2, Plus, BookOpen, Play, Mic } from "lucide-react";
+import { Search, Trash2, BookOpen, Play, Mic } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -35,6 +42,7 @@ interface MediaItem {
   slug: string;
   status: string | null;
   updated_at: string;
+  collection_id?: string | null;
   // Type-specific fields
   author_name?: string;
   publication_year?: number | null;
@@ -53,11 +61,25 @@ export default function Media() {
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
   const [filter, setFilter] = useState<FilterType>("all");
+  const [selectedCollectionId, setSelectedCollectionId] = useState<string | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<MediaItem | null>(null);
 
+  // Fetch collections for dropdown
+  const { data: collections } = useQuery({
+    queryKey: ["collections-dropdown"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("collections")
+        .select("id, title")
+        .order("title");
+      if (error) throw error;
+      return data;
+    },
+  });
+
   const { data: mediaItems, isLoading } = useQuery({
-    queryKey: ["admin-media", searchTerm, filter],
+    queryKey: ["admin-media", searchTerm, filter, selectedCollectionId],
     queryFn: async () => {
       const items: MediaItem[] = [];
 
@@ -66,6 +88,9 @@ export default function Media() {
         let query = supabase.from("books").select("*").order("updated_at", { ascending: false });
         if (searchTerm) {
           query = query.or(`title.ilike.%${searchTerm}%,author_name.ilike.%${searchTerm}%`);
+        }
+        if (selectedCollectionId) {
+          query = query.eq("collection_id", selectedCollectionId);
         }
         const { data: books, error } = await query;
         if (error) throw error;
@@ -93,6 +118,9 @@ export default function Media() {
         if (searchTerm) {
           query = query.ilike("title", `%${searchTerm}%`);
         }
+        if (selectedCollectionId) {
+          query = query.eq("collection_id", selectedCollectionId);
+        }
         const { data: videos, error } = await query;
         if (!error && videos) {
           items.push(...videos.map(v => ({ ...v, type: 'video' as MediaType })));
@@ -104,6 +132,9 @@ export default function Media() {
         let query = supabase.from("podcasts").select("*").order("updated_at", { ascending: false });
         if (searchTerm) {
           query = query.ilike("title", `%${searchTerm}%`);
+        }
+        if (selectedCollectionId) {
+          query = query.eq("collection_id", selectedCollectionId);
         }
         const { data: podcasts, error } = await query;
         if (!error && podcasts) {
@@ -189,6 +220,15 @@ export default function Media() {
     );
   };
 
+  // Build URLs with collection parameter if selected
+  const getNewMediaUrl = (type: 'books' | 'videos' | 'podcasts') => {
+    const base = `/media/${type}/new`;
+    return selectedCollectionId ? `${base}?collection=${selectedCollectionId}` : base;
+  };
+
+  // Get the selected collection title for display
+  const selectedCollection = collections?.find(c => c.id === selectedCollectionId);
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -196,18 +236,23 @@ export default function Media() {
           <h1 className="text-3xl font-bold tracking-tight">Media</h1>
           <p className="text-muted-foreground">
             Manage books, videos, and podcasts
+            {selectedCollection && (
+              <span className="ml-1">
+                for <span className="font-medium">{selectedCollection.title}</span>
+              </span>
+            )}
           </p>
         </div>
         <div className="flex gap-2">
-          <Button onClick={() => navigate("/media/books/new")} variant="default">
+          <Button onClick={() => navigate(getNewMediaUrl('books'))} variant="default">
             <BookOpen className="h-4 w-4 mr-2" />
             Add Book
           </Button>
-          <Button onClick={() => navigate("/media/videos/new")} variant="secondary">
+          <Button onClick={() => navigate(getNewMediaUrl('videos'))} variant="secondary">
             <Play className="h-4 w-4 mr-2" />
             Add Video
           </Button>
-          <Button onClick={() => navigate("/media/podcasts/new")} variant="outline">
+          <Button onClick={() => navigate(getNewMediaUrl('podcasts'))} variant="outline">
             <Mic className="h-4 w-4 mr-2" />
             Add Podcast
           </Button>
@@ -215,6 +260,24 @@ export default function Media() {
       </div>
 
       <div className="flex items-center gap-4">
+        {/* Collection Selector */}
+        <Select
+          value={selectedCollectionId || "all"}
+          onValueChange={(v) => setSelectedCollectionId(v === "all" ? null : v)}
+        >
+          <SelectTrigger className="w-[220px]">
+            <SelectValue placeholder="All Collections" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Collections</SelectItem>
+            {collections?.map((c) => (
+              <SelectItem key={c.id} value={c.id}>
+                {c.title}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -257,6 +320,7 @@ export default function Media() {
               <TableRow>
                 <TableCell colSpan={6} className="text-center">
                   No media found
+                  {selectedCollection && ` in ${selectedCollection.title}`}
                 </TableCell>
               </TableRow>
             ) : (

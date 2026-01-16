@@ -236,6 +236,7 @@ export type Database = {
         Row: {
           author_name: string
           author_profile_id: string | null
+          collection_id: string | null
           core_thesis: string | null
           cover_image_id: string | null
           cover_image_path: string | null
@@ -259,6 +260,7 @@ export type Database = {
         Insert: {
           author_name: string
           author_profile_id?: string | null
+          collection_id?: string | null
           core_thesis?: string | null
           cover_image_id?: string | null
           cover_image_path?: string | null
@@ -282,6 +284,7 @@ export type Database = {
         Update: {
           author_name?: string
           author_profile_id?: string | null
+          collection_id?: string | null
           core_thesis?: string | null
           cover_image_id?: string | null
           cover_image_path?: string | null
@@ -308,6 +311,13 @@ export type Database = {
             columns: ["author_profile_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "books_collection_id_fkey"
+            columns: ["collection_id"]
+            isOneToOne: false
+            referencedRelation: "collections"
             referencedColumns: ["id"]
           },
           {
