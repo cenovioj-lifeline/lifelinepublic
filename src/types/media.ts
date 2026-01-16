@@ -31,7 +31,22 @@ export interface Podcast {
   updated_at?: string;
 }
 
-export type MediaType = 'book' | 'video' | 'podcast';
+export type MediaType = 'book' | 'video' | 'podcast' | 'app';
+
+export interface App {
+  id: string;
+  title: string;
+  slug: string;
+  description?: string | null;
+  app_url?: string | null;
+  thumbnail_url?: string | null;
+  thumbnail_path?: string | null;
+  collection_id?: string | null;
+  profile_id?: string | null;
+  status?: string | null;
+  created_at?: string;
+  updated_at?: string;
+}
 
 export interface MediaItem {
   id: string;

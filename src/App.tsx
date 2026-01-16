@@ -18,6 +18,7 @@ import Media from "./pages/Media";
 import BookEdit from "./pages/BookEdit";
 import VideoEdit from "./pages/VideoEdit";
 import PodcastEdit from "./pages/PodcastEdit";
+import AppEdit from "./pages/AppEdit";
 import Elections from "./pages/Elections";
 import Tags from "./pages/Tags";
 import LifelineEdit from "./pages/LifelineEdit";
@@ -240,7 +241,16 @@ function AppContent() {
                 </ProtectedRoute>
               }
             />
-            {/* Legacy route redirects */}
+            <Route
+              path="/media/apps/:id"
+              element={
+                <ProtectedRoute>
+                  <AdminLayout>
+                    <AppEdit />
+                  </AdminLayout>
+                </ProtectedRoute>
+              }
+            />
             <Route path="/books" element={<Navigate to="/media" replace />} />
             <Route path="/books/:id" element={<Navigate to="/media" replace />} />
             <Route

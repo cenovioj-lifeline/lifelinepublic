@@ -4,9 +4,11 @@ import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { CollectionLayout } from "@/components/CollectionLayout";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Play, BookOpen, Mic } from "lucide-react";
+import { Play, BookOpen, Mic, Globe } from "lucide-react";
 import { MediaCoverCard } from "@/components/media/MediaCoverCard";
 import { VideoCard } from "@/components/media/VideoCard";
+import { AppCard } from "@/components/media/AppCard";
+import { MediaSection } from "@/components/media/MediaSection";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { MediaType } from "@/types/media";
 
@@ -39,6 +41,15 @@ interface Podcast {
   description?: string;
   thumbnail_url?: string;
   podcast_url?: string;
+}
+
+interface App {
+  id: string;
+  title: string;
+  slug: string;
+  description?: string;
+  thumbnail_url?: string;
+  app_url?: string;
 }
 
 type MediaFilter = 'all' | MediaType;
@@ -177,7 +188,26 @@ export default function CollectionMedia() {
     enabled: !!collection?.id,
   });
 
-  const isLoading = collectionLoading || booksLoading || videosLoading || podcastsLoading;
+  // Fetch apps for this collection
+  const { data: apps, isLoading: appsLoading } = useQuery({
+    queryKey: ["collection-media-apps", collection?.id],
+    queryFn: async () => {
+      if (!collection?.id) return [];
+
+      const { data, error } = await supabase
+        .from("apps")
+        .select("id, title, slug, description, thumbnail_url, app_url")
+        .eq("collection_id", collection.id)
+        .eq("status", "published")
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      return (data || []) as App[];
+    },
+    enabled: !!collection?.id,
+  });
+
+  const isLoading = collectionLoading || booksLoading || videosLoading || podcastsLoading || appsLoading;
 
   const handleBookClick = (book: Book) => {
     if (book.profileSlug) {
@@ -187,21 +217,37 @@ export default function CollectionMedia() {
     }
   };
 
-  // Video click is now handled by VideoCard component with modal
-
   const handlePodcastClick = (podcast: Podcast) => {
     if (podcast.podcast_url) {
       window.open(podcast.podcast_url, '_blank');
     }
   };
 
-  // Filter media based on selection
-  const filteredBooks = filter === 'all' || filter === 'book' ? books || [] : [];
-  const filteredVideos = filter === 'all' || filter === 'video' ? videos || [] : [];
-  const filteredPodcasts = filter === 'all' || filter === 'podcast' ? podcasts || [] : [];
+  // Count items for each type
+  const videoCount = videos?.length || 0;
+  const bookCount = books?.length || 0;
+  const podcastCount = podcasts?.length || 0;
+  const appCount = apps?.length || 0;
+  const totalCount = videoCount + bookCount + podcastCount + appCount;
 
-  const totalCount = (books?.length || 0) + (videos?.length || 0) + (podcasts?.length || 0);
+  // Determine which types exist
+  const hasVideos = videoCount > 0;
+  const hasBooks = bookCount > 0;
+  const hasPodcasts = podcastCount > 0;
+  const hasApps = appCount > 0;
   const hasAnyMedia = totalCount > 0;
+
+  // Count how many different types we have
+  const typeCount = [hasVideos, hasBooks, hasPodcasts, hasApps].filter(Boolean).length;
+
+  // Determine if we should show section headers (when "all" is selected and multiple types)
+  const showSectionHeaders = filter === 'all' && typeCount > 1;
+
+  // Filter media based on selection
+  const filteredVideos = filter === 'all' || filter === 'video' ? videos || [] : [];
+  const filteredBooks = filter === 'all' || filter === 'book' ? books || [] : [];
+  const filteredPodcasts = filter === 'all' || filter === 'podcast' ? podcasts || [] : [];
+  const filteredApps = filter === 'all' || filter === 'app' ? apps || [] : [];
 
   if (isLoading || !collection) {
     return (
@@ -224,6 +270,130 @@ export default function CollectionMedia() {
     );
   }
 
+  // Render a flat grid (when filtered to a single type or only one type exists)
+  const renderFlatGrid = () => (
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+      {/* Videos */}
+      {filteredVideos.map((video) => (
+        <VideoCard
+          key={`video-${video.id}`}
+          title={video.title}
+          description={video.description}
+          youtubeUrl={video.youtube_url || ""}
+          thumbnailUrl={video.thumbnail_url}
+        />
+      ))}
+      
+      {/* Books */}
+      {filteredBooks.map((book) => (
+        <MediaCoverCard
+          key={`book-${book.id}`}
+          type="book"
+          title={book.title}
+          subtitle={book.subtitle}
+          description={book.one_sentence_summary}
+          imageUrl={book.cover_image_url}
+          themeColor={book.theme_color}
+          onClick={() => handleBookClick(book)}
+        />
+      ))}
+      
+      {/* Podcasts */}
+      {filteredPodcasts.map((podcast) => (
+        <MediaCoverCard
+          key={`podcast-${podcast.id}`}
+          type="podcast"
+          title={podcast.title}
+          subtitle={podcast.season ? `Season ${podcast.season}` : undefined}
+          description={podcast.description}
+          imageUrl={podcast.thumbnail_url}
+          onClick={() => handlePodcastClick(podcast)}
+        />
+      ))}
+
+      {/* Apps */}
+      {filteredApps.map((app) => (
+        <AppCard
+          key={`app-${app.id}`}
+          title={app.title}
+          description={app.description}
+          appUrl={app.app_url || ""}
+          thumbnailUrl={app.thumbnail_url}
+        />
+      ))}
+    </div>
+  );
+
+  // Render sectioned layout (when "all" is selected and multiple types exist)
+  const renderSectionedLayout = () => (
+    <div className="space-y-10">
+      {/* Videos Section */}
+      {hasVideos && (
+        <MediaSection type="video" count={videoCount}>
+          {(videos || []).map((video) => (
+            <VideoCard
+              key={`video-${video.id}`}
+              title={video.title}
+              description={video.description}
+              youtubeUrl={video.youtube_url || ""}
+              thumbnailUrl={video.thumbnail_url}
+            />
+          ))}
+        </MediaSection>
+      )}
+
+      {/* Books Section */}
+      {hasBooks && (
+        <MediaSection type="book" count={bookCount}>
+          {(books || []).map((book) => (
+            <MediaCoverCard
+              key={`book-${book.id}`}
+              type="book"
+              title={book.title}
+              subtitle={book.subtitle}
+              description={book.one_sentence_summary}
+              imageUrl={book.cover_image_url}
+              themeColor={book.theme_color}
+              onClick={() => handleBookClick(book)}
+            />
+          ))}
+        </MediaSection>
+      )}
+
+      {/* Podcasts Section */}
+      {hasPodcasts && (
+        <MediaSection type="podcast" count={podcastCount}>
+          {(podcasts || []).map((podcast) => (
+            <MediaCoverCard
+              key={`podcast-${podcast.id}`}
+              type="podcast"
+              title={podcast.title}
+              subtitle={podcast.season ? `Season ${podcast.season}` : undefined}
+              description={podcast.description}
+              imageUrl={podcast.thumbnail_url}
+              onClick={() => handlePodcastClick(podcast)}
+            />
+          ))}
+        </MediaSection>
+      )}
+
+      {/* Apps Section */}
+      {hasApps && (
+        <MediaSection type="app" count={appCount}>
+          {(apps || []).map((app) => (
+            <AppCard
+              key={`app-${app.id}`}
+              title={app.title}
+              description={app.description}
+              appUrl={app.app_url || ""}
+              thumbnailUrl={app.thumbnail_url}
+            />
+          ))}
+        </MediaSection>
+      )}
+    </div>
+  );
+
   return (
     <CollectionLayout
       collectionTitle={collection.title}
@@ -237,33 +407,39 @@ export default function CollectionMedia() {
             <h1 className="text-4xl font-bold text-[hsl(var(--scheme-title-text))]">Media</h1>
           </div>
           <p className="text-lg text-[hsl(var(--scheme-cards-text))]">
-            Books, videos, and podcasts from this collection
+            Books, videos, podcasts, and apps from this collection
           </p>
         </div>
 
         {/* Filter tabs - only show if we have multiple types */}
-        {((books?.length || 0) > 0 && ((videos?.length || 0) > 0 || (podcasts?.length || 0) > 0)) && (
+        {typeCount > 1 && (
           <Tabs value={filter} onValueChange={(v) => setFilter(v as MediaFilter)}>
             <TabsList>
               <TabsTrigger value="all" className="flex items-center gap-1">
                 All ({totalCount})
               </TabsTrigger>
-              {(books?.length || 0) > 0 && (
-                <TabsTrigger value="book" className="flex items-center gap-1">
-                  <BookOpen className="h-3 w-3" />
-                  Books ({books?.length})
-                </TabsTrigger>
-              )}
-              {(videos?.length || 0) > 0 && (
+              {hasVideos && (
                 <TabsTrigger value="video" className="flex items-center gap-1">
                   <Play className="h-3 w-3" />
-                  Videos ({videos?.length})
+                  Videos ({videoCount})
                 </TabsTrigger>
               )}
-              {(podcasts?.length || 0) > 0 && (
+              {hasBooks && (
+                <TabsTrigger value="book" className="flex items-center gap-1">
+                  <BookOpen className="h-3 w-3" />
+                  Books ({bookCount})
+                </TabsTrigger>
+              )}
+              {hasPodcasts && (
                 <TabsTrigger value="podcast" className="flex items-center gap-1">
                   <Mic className="h-3 w-3" />
-                  Podcasts ({podcasts?.length})
+                  Podcasts ({podcastCount})
+                </TabsTrigger>
+              )}
+              {hasApps && (
+                <TabsTrigger value="app" className="flex items-center gap-1">
+                  <Globe className="h-3 w-3" />
+                  Apps ({appCount})
                 </TabsTrigger>
               )}
             </TabsList>
@@ -271,45 +447,7 @@ export default function CollectionMedia() {
         )}
 
         {hasAnyMedia ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-            {/* Books */}
-            {filteredBooks.map((book) => (
-              <MediaCoverCard
-                key={`book-${book.id}`}
-                type="book"
-                title={book.title}
-                subtitle={book.subtitle}
-                description={book.one_sentence_summary}
-                imageUrl={book.cover_image_url}
-                themeColor={book.theme_color}
-                onClick={() => handleBookClick(book)}
-              />
-            ))}
-            
-            {/* Videos */}
-            {filteredVideos.map((video) => (
-              <VideoCard
-                key={`video-${video.id}`}
-                title={video.title}
-                description={video.description}
-                youtubeUrl={video.youtube_url || ""}
-                thumbnailUrl={video.thumbnail_url}
-              />
-            ))}
-            
-            {/* Podcasts */}
-            {filteredPodcasts.map((podcast) => (
-              <MediaCoverCard
-                key={`podcast-${podcast.id}`}
-                type="podcast"
-                title={podcast.title}
-                subtitle={podcast.season ? `Season ${podcast.season}` : undefined}
-                description={podcast.description}
-                imageUrl={podcast.thumbnail_url}
-                onClick={() => handlePodcastClick(podcast)}
-              />
-            ))}
-          </div>
+          showSectionHeaders ? renderSectionedLayout() : renderFlatGrid()
         ) : (
           <div className="text-center py-12">
             <p className="text-[hsl(var(--scheme-cards-text))]">No media content available yet.</p>

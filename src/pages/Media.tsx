@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Trash2, BookOpen, Play, Mic } from "lucide-react";
+import { Search, Trash2, BookOpen, Play, Mic, Globe } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -51,6 +51,7 @@ interface MediaItem {
   season?: string | null;
   youtube_url?: string | null;
   podcast_url?: string | null;
+  app_url?: string | null;
 }
 
 type FilterType = 'all' | MediaType;
@@ -127,7 +128,6 @@ export default function Media() {
         }
       }
 
-      // Fetch podcasts
       if (filter === "all" || filter === "podcast") {
         let query = supabase.from("podcasts").select("*").order("updated_at", { ascending: false });
         if (searchTerm) {
@@ -139,6 +139,21 @@ export default function Media() {
         const { data: podcasts, error } = await query;
         if (!error && podcasts) {
           items.push(...podcasts.map(p => ({ ...p, type: 'podcast' as MediaType })));
+        }
+      }
+
+      // Fetch apps
+      if (filter === "all" || filter === "app") {
+        let query = supabase.from("apps").select("*").order("updated_at", { ascending: false });
+        if (searchTerm) {
+          query = query.ilike("title", `%${searchTerm}%`);
+        }
+        if (selectedCollectionId) {
+          query = query.eq("collection_id", selectedCollectionId);
+        }
+        const { data: apps, error } = await query;
+        if (!error && apps) {
+          items.push(...apps.map(a => ({ ...a, type: 'app' as MediaType })));
         }
       }
 
@@ -162,6 +177,9 @@ export default function Media() {
         if (error) throw error;
       } else if (item.type === 'podcast') {
         const { error } = await supabase.from("podcasts").delete().eq("id", item.id);
+        if (error) throw error;
+      } else if (item.type === 'app') {
+        const { error } = await supabase.from("apps").delete().eq("id", item.id);
         if (error) throw error;
       }
     },
@@ -202,6 +220,8 @@ export default function Media() {
       navigate(`/media/videos/${item.id}`);
     } else if (item.type === 'podcast') {
       navigate(`/media/podcasts/${item.id}`);
+    } else if (item.type === 'app') {
+      navigate(`/media/apps/${item.id}`);
     }
   };
 
@@ -210,6 +230,7 @@ export default function Media() {
       book: { icon: BookOpen, label: "Book", variant: "default" as const },
       video: { icon: Play, label: "Video", variant: "secondary" as const },
       podcast: { icon: Mic, label: "Podcast", variant: "outline" as const },
+      app: { icon: Globe, label: "App", variant: "outline" as const },
     };
     const { icon: Icon, label, variant } = config[type];
     return (
@@ -221,7 +242,7 @@ export default function Media() {
   };
 
   // Build URLs with collection parameter if selected
-  const getNewMediaUrl = (type: 'books' | 'videos' | 'podcasts') => {
+  const getNewMediaUrl = (type: 'books' | 'videos' | 'podcasts' | 'apps') => {
     const base = `/media/${type}/new`;
     return selectedCollectionId ? `${base}?collection=${selectedCollectionId}` : base;
   };
@@ -235,7 +256,7 @@ export default function Media() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Media</h1>
           <p className="text-muted-foreground">
-            Manage books, videos, and podcasts
+            Manage books, videos, podcasts, and apps
             {selectedCollection && (
               <span className="ml-1">
                 for <span className="font-medium">{selectedCollection.title}</span>
@@ -243,7 +264,7 @@ export default function Media() {
             )}
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           <Button onClick={() => navigate(getNewMediaUrl('books'))} variant="default">
             <BookOpen className="h-4 w-4 mr-2" />
             Add Book
@@ -255,6 +276,10 @@ export default function Media() {
           <Button onClick={() => navigate(getNewMediaUrl('podcasts'))} variant="outline">
             <Mic className="h-4 w-4 mr-2" />
             Add Podcast
+          </Button>
+          <Button onClick={() => navigate(getNewMediaUrl('apps'))} variant="outline">
+            <Globe className="h-4 w-4 mr-2" />
+            Add App
           </Button>
         </div>
       </div>
@@ -293,6 +318,7 @@ export default function Media() {
             <TabsTrigger value="book">Books</TabsTrigger>
             <TabsTrigger value="video">Videos</TabsTrigger>
             <TabsTrigger value="podcast">Podcasts</TabsTrigger>
+            <TabsTrigger value="app">Apps</TabsTrigger>
           </TabsList>
         </Tabs>
       </div>
@@ -358,6 +384,11 @@ export default function Media() {
                           </span>
                         )}
                       </>
+                    )}
+                    {item.type === 'app' && item.app_url && (
+                      <span className="text-xs truncate max-w-[200px] inline-block">
+                        {item.app_url}
+                      </span>
                     )}
                   </TableCell>
                   <TableCell>
