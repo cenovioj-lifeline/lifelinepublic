@@ -2255,6 +2255,69 @@ export type Database = {
         }
         Relationships: []
       }
+      podcasts: {
+        Row: {
+          collection_id: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          podcast_url: string | null
+          profile_id: string | null
+          season: string | null
+          slug: string
+          status: string | null
+          thumbnail_path: string | null
+          thumbnail_url: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          collection_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          podcast_url?: string | null
+          profile_id?: string | null
+          season?: string | null
+          slug: string
+          status?: string | null
+          thumbnail_path?: string | null
+          thumbnail_url?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          collection_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          podcast_url?: string | null
+          profile_id?: string | null
+          season?: string | null
+          slug?: string
+          status?: string | null
+          thumbnail_path?: string | null
+          thumbnail_url?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "podcasts_collection_id_fkey"
+            columns: ["collection_id"]
+            isOneToOne: false
+            referencedRelation: "collections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "podcasts_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profile_books: {
         Row: {
           book_id: string
@@ -2814,6 +2877,66 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      videos: {
+        Row: {
+          collection_id: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          profile_id: string | null
+          slug: string
+          status: string | null
+          thumbnail_path: string | null
+          thumbnail_url: string | null
+          title: string
+          updated_at: string | null
+          youtube_url: string | null
+        }
+        Insert: {
+          collection_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          profile_id?: string | null
+          slug: string
+          status?: string | null
+          thumbnail_path?: string | null
+          thumbnail_url?: string | null
+          title: string
+          updated_at?: string | null
+          youtube_url?: string | null
+        }
+        Update: {
+          collection_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          profile_id?: string | null
+          slug?: string
+          status?: string | null
+          thumbnail_path?: string | null
+          thumbnail_url?: string | null
+          title?: string
+          updated_at?: string | null
+          youtube_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "videos_collection_id_fkey"
+            columns: ["collection_id"]
+            isOneToOne: false
+            referencedRelation: "collections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "videos_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

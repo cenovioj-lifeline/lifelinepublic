@@ -205,7 +205,7 @@ export default function BookEdit() {
       queryClient.invalidateQueries({ queryKey: ["admin-books"] });
       queryClient.invalidateQueries({ queryKey: ["admin-book", id] });
       if (isNew) {
-        navigate(`/books/${data.id}`);
+        navigate(`/media/books/${data.id}`);
       }
     },
     onError: (error: Error) => {
@@ -345,7 +345,7 @@ export default function BookEdit() {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => navigate("/books")}>
+        <Button variant="ghost" size="icon" onClick={() => navigate("/media")}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <div className="flex-1">

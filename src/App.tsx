@@ -14,8 +14,10 @@ import Collections from "./pages/Collections";
 import CollectionEdit from "./pages/CollectionEdit";
 import Lifelines from "./pages/Lifelines";
 import Profiles from "./pages/Profiles";
-import Books from "./pages/Books";
+import Media from "./pages/Media";
 import BookEdit from "./pages/BookEdit";
+import VideoEdit from "./pages/VideoEdit";
+import PodcastEdit from "./pages/PodcastEdit";
 import Elections from "./pages/Elections";
 import Tags from "./pages/Tags";
 import LifelineEdit from "./pages/LifelineEdit";
@@ -199,17 +201,17 @@ function AppContent() {
               }
             />
             <Route
-              path="/books"
+              path="/media"
               element={
                 <ProtectedRoute>
                   <AdminLayout>
-                    <Books />
+                    <Media />
                   </AdminLayout>
                 </ProtectedRoute>
               }
             />
             <Route
-              path="/books/:id"
+              path="/media/books/:id"
               element={
                 <ProtectedRoute>
                   <AdminLayout>
@@ -218,6 +220,29 @@ function AppContent() {
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/media/videos/:id"
+              element={
+                <ProtectedRoute>
+                  <AdminLayout>
+                    <VideoEdit />
+                  </AdminLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/media/podcasts/:id"
+              element={
+                <ProtectedRoute>
+                  <AdminLayout>
+                    <PodcastEdit />
+                  </AdminLayout>
+                </ProtectedRoute>
+              }
+            />
+            {/* Legacy route redirects */}
+            <Route path="/books" element={<Navigate to="/media" replace />} />
+            <Route path="/books/:id" element={<Navigate to="/media" replace />} />
             <Route
               path="/elections"
               element={
