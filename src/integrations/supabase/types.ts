@@ -71,6 +71,66 @@ export type Database = {
         }
         Relationships: []
       }
+      apps: {
+        Row: {
+          app_url: string | null
+          collection_id: string | null
+          created_at: string
+          description: string | null
+          id: string
+          profile_id: string | null
+          slug: string
+          status: string | null
+          thumbnail_path: string | null
+          thumbnail_url: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          app_url?: string | null
+          collection_id?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          profile_id?: string | null
+          slug: string
+          status?: string | null
+          thumbnail_path?: string | null
+          thumbnail_url?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          app_url?: string | null
+          collection_id?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          profile_id?: string | null
+          slug?: string
+          status?: string | null
+          thumbnail_path?: string | null
+          thumbnail_url?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "apps_collection_id_fkey"
+            columns: ["collection_id"]
+            isOneToOne: false
+            referencedRelation: "collections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "apps_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ballot_items: {
         Row: {
           created_at: string

@@ -1,4 +1,4 @@
-import { Book, Play, Mic } from "lucide-react";
+import { Book, Play, Mic, Globe } from "lucide-react";
 import type { MediaType } from "@/types/media";
 
 // Theme color mapping for covers
@@ -28,6 +28,7 @@ const defaultTypeColors: Record<MediaType, string> = {
   book: 'slate',
   video: 'red',
   podcast: 'purple',
+  app: 'blue',
 };
 
 interface MediaCoverCardProps {
@@ -44,6 +45,7 @@ const typeIcons: Record<MediaType, typeof Book> = {
   book: Book,
   video: Play,
   podcast: Mic,
+  app: Globe,
 };
 
 export function MediaCoverCard({
