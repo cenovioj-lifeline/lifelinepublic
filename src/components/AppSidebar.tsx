@@ -30,7 +30,7 @@ const items = [
   { title: "Lifelines", url: "/lifelines", icon: Activity },
   { title: "Image Manager", url: "/lifeline-image-manager", icon: ImagePlus },
   { title: "Profiles", url: "/profiles", icon: Users },
-  { title: "Books", url: "/books", icon: BookOpen },
+  { title: "Media", url: "/media", icon: BookOpen },
   { title: "MER", fullTitle: "Mock Election Results", url: "/elections", icon: Award },
   { title: "Tags", url: "/tags", icon: Tag },
   { title: "Fan Contributions", url: "/fan-contributions", icon: Heart },
