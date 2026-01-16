@@ -71,7 +71,7 @@ export function CollectionLayout({
   const homeHidden = (collectionSettings as any)?.home_hidden ?? false;
 
   // Use the quote hook
-  const { currentQuote, dismissQuote } = useCollectionQuote(
+  const { currentQuote, dismissQuote, nextQuote, hasMultipleQuotes } = useCollectionQuote(
     collectionSettings?.id || "",
     collectionSettings?.quotes_enabled ?? true,
     collectionSettings?.quote_frequency || 1
@@ -345,6 +345,8 @@ export function CollectionLayout({
             author={currentQuote.author}
             context={currentQuote.context}
             onDismiss={dismissQuote}
+            onNext={nextQuote}
+            hasMultipleQuotes={hasMultipleQuotes}
           />
         )}
       </main>

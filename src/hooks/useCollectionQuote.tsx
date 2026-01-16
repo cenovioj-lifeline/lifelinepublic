@@ -9,13 +9,14 @@ interface Quote {
 }
 
 export function useCollectionQuote(collectionId: string, quotesEnabled: boolean, quoteFrequency: number) {
-  const [currentQuote, setCurrentQuote] = useState<Quote | null>(null);
+  const [allQuotes, setAllQuotes] = useState<Quote[]>([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
   const [dismissedQuote, setDismissedQuote] = useState(false);
 
   useEffect(() => {
     if (!quotesEnabled || dismissedQuote || !collectionId) return;
 
-    const fetchRandomQuote = async () => {
+    const fetchQuotes = async () => {
       try {
         const { data, error } = await supabase
           .from("collection_quotes")
@@ -25,21 +26,33 @@ export function useCollectionQuote(collectionId: string, quotesEnabled: boolean,
         if (error) throw error;
         if (!data || data.length === 0) return;
 
-        // Get a random quote
-        const randomQuote = data[Math.floor(Math.random() * data.length)];
-        setCurrentQuote(randomQuote);
+        setAllQuotes(data);
+        // Start at a random quote
+        setCurrentIndex(Math.floor(Math.random() * data.length));
       } catch (error) {
         console.error("Error fetching quote:", error);
       }
     };
 
-    fetchRandomQuote();
+    fetchQuotes();
   }, [collectionId, quotesEnabled, dismissedQuote]);
+
+  const currentQuote = allQuotes.length > 0 ? allQuotes[currentIndex] : null;
+
+  const nextQuote = () => {
+    if (allQuotes.length > 1) {
+      setCurrentIndex((prev) => (prev + 1) % allQuotes.length);
+    }
+  };
 
   const dismissQuote = () => {
     setDismissedQuote(true);
-    setCurrentQuote(null);
   };
 
-  return { currentQuote, dismissQuote };
+  return { 
+    currentQuote, 
+    dismissQuote, 
+    nextQuote, 
+    hasMultipleQuotes: allQuotes.length > 1 
+  };
 }
