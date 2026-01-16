@@ -6,6 +6,7 @@ import { CollectionLayout } from "@/components/CollectionLayout";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Play, BookOpen, Mic } from "lucide-react";
 import { MediaCoverCard } from "@/components/media/MediaCoverCard";
+import { VideoCard } from "@/components/media/VideoCard";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { MediaType } from "@/types/media";
 
@@ -186,11 +187,7 @@ export default function CollectionMedia() {
     }
   };
 
-  const handleVideoClick = (video: Video) => {
-    if (video.youtube_url) {
-      window.open(video.youtube_url, '_blank');
-    }
-  };
+  // Video click is now handled by VideoCard component with modal
 
   const handlePodcastClick = (podcast: Podcast) => {
     if (podcast.podcast_url) {
@@ -291,13 +288,12 @@ export default function CollectionMedia() {
             
             {/* Videos */}
             {filteredVideos.map((video) => (
-              <MediaCoverCard
+              <VideoCard
                 key={`video-${video.id}`}
-                type="video"
                 title={video.title}
                 description={video.description}
-                imageUrl={video.thumbnail_url}
-                onClick={() => handleVideoClick(video)}
+                youtubeUrl={video.youtube_url || ""}
+                thumbnailUrl={video.thumbnail_url}
               />
             ))}
             
