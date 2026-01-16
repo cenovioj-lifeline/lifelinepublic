@@ -27,7 +27,7 @@ export function ElectionDetailView({ election, groupedResults, collectionContext
 
     const handleBack = () => {
         if (collectionContext) {
-            navigate(`/c/${collectionContext.slug}/elections`);
+            navigate(`/public/collections/${collectionContext.slug}/elections`);
         } else {
             navigate("/public/elections");
         }
@@ -35,9 +35,9 @@ export function ElectionDetailView({ election, groupedResults, collectionContext
 
     const handleProfileClick = (profileSlug: string) => {
         if (collectionContext) {
-            navigate(`/c/${collectionContext.slug}/profile/${profileSlug}`);
+            navigate(`/public/collections/${collectionContext.slug}/profiles/${profileSlug}`);
         } else {
-            navigate(`/public/profile/${profileSlug}`);
+            navigate(`/public/profiles/${profileSlug}`);
         }
     };
 
