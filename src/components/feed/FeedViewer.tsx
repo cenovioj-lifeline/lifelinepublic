@@ -606,7 +606,7 @@ export const FeedViewer = ({
                     </button>
                   </div>
 
-                  <div className="text-[hsl(var(--scheme-cards-text))] mb-6 whitespace-pre-wrap">
+                  <div className="text-[hsl(var(--scheme-dark-text))] mb-6 whitespace-pre-wrap">
                     {selectedEntry.entryDescription || selectedEntry.entryTitle}
                   </div>
 
