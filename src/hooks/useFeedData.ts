@@ -1,8 +1,8 @@
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
-// The standalone News lifeline for anonymous users
-const NEWS_LIFELINE_ID = '1e08cdd8-8b93-4f31-a89f-8e208bcd212e';
+// The default collection to show for anonymous users / users without subscriptions
+const DEFAULT_FEED_COLLECTION_ID = '357ef542-1127-45e2-9174-841f85be6499'; // Prof G Media
 
 export interface FeedEntry {
   id: string;
@@ -80,15 +80,27 @@ export const useFeedData = (userId: string | undefined) => {
           .select('lifeline_id')
           .eq('user_id', userId);
         
-        if (!subscriptions || subscriptions.length === 0) {
-          // If authenticated but no subscriptions, show News lifeline
-          lifelineIds = [NEWS_LIFELINE_ID];
-        } else {
+        if (subscriptions && subscriptions.length > 0) {
           lifelineIds = subscriptions.map(s => s.lifeline_id);
+        } else {
+          // If authenticated but no subscriptions, show Prof G Media lifelines
+          const { data: defaultLifelines } = await supabase
+            .from('lifelines')
+            .select('id')
+            .eq('collection_id', DEFAULT_FEED_COLLECTION_ID)
+            .eq('status', 'published');
+          
+          lifelineIds = defaultLifelines?.map(l => l.id) || [];
         }
       } else {
-        // Anonymous user: show only News lifeline
-        lifelineIds = [NEWS_LIFELINE_ID];
+        // Anonymous user: show Prof G Media lifelines
+        const { data: defaultLifelines } = await supabase
+          .from('lifelines')
+          .select('id')
+          .eq('collection_id', DEFAULT_FEED_COLLECTION_ID)
+          .eq('status', 'published');
+        
+        lifelineIds = defaultLifelines?.map(l => l.id) || [];
       }
       
       // Fetch entries with dates from lifelines
