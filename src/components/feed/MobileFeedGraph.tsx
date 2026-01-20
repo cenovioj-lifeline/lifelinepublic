@@ -225,7 +225,7 @@ export const MobileFeedGraph = forwardRef<MobileFeedGraphRef, MobileFeedGraphPro
                       <div className="font-bold text-xs mb-0.5 text-[hsl(var(--scheme-ll-entry-title))] line-clamp-2">
                         {isNewCollection ? entry.collectionTitle : (entry.lifelineTitle || 'Unknown')}
                       </div>
-                      <div className="text-[10px] text-[hsl(var(--scheme-cards-text))] line-clamp-3">
+                      <div className="text-[10px] text-[hsl(var(--scheme-dark-text))] line-clamp-3">
                         {isNewCollection ? entry.collectionDescription || 'New collection added!' : entry.entryTitle}
                       </div>
                       </div>
@@ -246,7 +246,7 @@ export const MobileFeedGraph = forwardRef<MobileFeedGraphRef, MobileFeedGraphPro
                       <div className="font-bold text-xs mb-0.5 text-[hsl(var(--scheme-ll-entry-title))] line-clamp-2">
                         {entry.lifelineTitle || 'Unknown'}
                       </div>
-                        <div className="text-[10px] text-[hsl(var(--scheme-cards-text))] line-clamp-3">
+                        <div className="text-[10px] text-[hsl(var(--scheme-dark-text))] line-clamp-3">
                           {entry.entryTitle}
                         </div>
                       </div>
