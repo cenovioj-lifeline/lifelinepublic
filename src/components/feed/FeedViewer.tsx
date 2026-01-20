@@ -419,7 +419,7 @@ export const FeedViewer = ({
                               <div className="font-bold text-sm mb-1 text-[hsl(var(--scheme-ll-entry-title))] line-clamp-2">
                                 {isNewCollection ? `🎉 ${entry.collectionTitle}` : (entry.lifelineTitle || 'Unknown')}
                               </div>
-                              <div className="text-xs text-[hsl(var(--scheme-cards-text))] line-clamp-3">
+                              <div className="text-xs text-[hsl(var(--scheme-dark-text))] line-clamp-3">
                                 {isNewCollection ? entry.collectionDescription || 'New collection added!' : entry.entryTitle}
                               </div>
                             </div>
@@ -439,7 +439,7 @@ export const FeedViewer = ({
                               <div className="font-bold text-sm mb-1 text-[hsl(var(--scheme-ll-entry-title))] line-clamp-2">
                                 {entry.lifelineTitle || 'Unknown'}
                               </div>
-                              <div className="text-xs text-[hsl(var(--scheme-cards-text))] line-clamp-3">
+                              <div className="text-xs text-[hsl(var(--scheme-dark-text))] line-clamp-3">
                                 {entry.entryTitle}
                               </div>
                             </div>
