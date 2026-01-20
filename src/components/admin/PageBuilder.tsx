@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   DndContext,
   closestCenter,
@@ -88,6 +88,37 @@ function SortableSection({
   isLast: boolean;
   layoutId: string;
 }) {
+  // Local state for section title with debounced save
+  const [localTitle, setLocalTitle] = useState(section.section_title || "");
+  const debounceRef = React.useRef<NodeJS.Timeout | null>(null);
+
+  // Sync local state when section prop changes (e.g., after server update)
+  useEffect(() => {
+    setLocalTitle(section.section_title || "");
+  }, [section.section_title]);
+
+  const handleTitleChange = (value: string) => {
+    setLocalTitle(value);
+    // Clear previous debounce timer
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+    // Set new debounce timer
+    debounceRef.current = setTimeout(() => {
+      onUpdateTitle(value);
+    }, 500);
+  };
+
+  const handleTitleBlur = () => {
+    // Save immediately on blur
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+    if (localTitle !== (section.section_title || "")) {
+      onUpdateTitle(localTitle);
+    }
+  };
+
   const {
     attributes,
     listeners,
@@ -167,8 +198,9 @@ function SortableSection({
           <div className="flex-1">
             <Input
               placeholder="Section title (optional)"
-              value={section.section_title || ""}
-              onChange={(e) => onUpdateTitle(e.target.value)}
+              value={localTitle}
+              onChange={(e) => handleTitleChange(e.target.value)}
+              onBlur={handleTitleBlur}
               className="max-w-xs h-8"
             />
           </div>

@@ -416,10 +416,10 @@ export const FeedViewer = ({
                               style={isSelected ? { borderColor: barColor } : {}}
                             >
                               <div className="absolute left-[-10px] top-[30px] w-0 h-0 border-t-[15px] border-b-0 border-r-[15px] border-transparent" style={{ borderRightColor: 'white' }} />
-                              <div className="font-bold text-sm mb-1 text-[hsl(var(--scheme-ll-entry-title))]">
+                              <div className="font-bold text-sm mb-1 text-[hsl(var(--scheme-ll-entry-title))] line-clamp-2">
                                 {isNewCollection ? `🎉 ${entry.collectionTitle}` : (entry.lifelineTitle || 'Unknown')}
                               </div>
-                              <div className="text-xs text-[hsl(var(--scheme-cards-text))] line-clamp-2">
+                              <div className="text-xs text-[hsl(var(--scheme-cards-text))] line-clamp-3">
                                 {isNewCollection ? entry.collectionDescription || 'New collection added!' : entry.entryTitle}
                               </div>
                             </div>
@@ -436,10 +436,10 @@ export const FeedViewer = ({
                               style={isSelected ? { borderColor: barColor } : {}}
                             >
                               <div className="absolute right-[-10px] top-[30px] w-0 h-0 border-t-[15px] border-b-0 border-l-[15px] border-transparent" style={{ borderLeftColor: 'white' }} />
-                              <div className="font-bold text-sm mb-1 text-[hsl(var(--scheme-ll-entry-title))]">
+                              <div className="font-bold text-sm mb-1 text-[hsl(var(--scheme-ll-entry-title))] line-clamp-2">
                                 {entry.lifelineTitle || 'Unknown'}
                               </div>
-                              <div className="text-xs text-[hsl(var(--scheme-cards-text))] line-clamp-2">
+                              <div className="text-xs text-[hsl(var(--scheme-cards-text))] line-clamp-3">
                                 {entry.entryTitle}
                               </div>
                             </div>
