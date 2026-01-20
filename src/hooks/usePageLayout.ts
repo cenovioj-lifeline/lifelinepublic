@@ -4,10 +4,13 @@ import type {
   PageLayout,
   PageLayoutItem,
   PageLayoutItemWithContent,
+  PageLayoutSection,
+  PageLayoutSectionWithItems,
   PageType,
   PageLayoutItemType,
   CardContent,
 } from "@/types/pageLayout";
+import { usePageLayoutSections } from "./usePageLayoutSections";
 
 /**
  * Fetch layout for a specific page (home or collection)
@@ -413,17 +416,33 @@ export function useResolveLayoutContent(items: PageLayoutItem[]) {
 
 /**
  * Combined hook for fetching layout with resolved content
- * Convenience hook that combines layout, items, and content resolution
+ * Convenience hook that combines layout, items, sections, and content resolution
  */
 export function usePageLayoutWithContent(pageType: PageType, entityId?: string) {
   const { data: layout, isLoading: layoutLoading } = usePageLayout(pageType, entityId);
+  const { data: sections = [], isLoading: sectionsLoading } = usePageLayoutSections(layout?.id);
   const { data: items = [], isLoading: itemsLoading } = usePageLayoutItems(layout?.id);
   const { data: itemsWithContent = [], isLoading: contentLoading } = useResolveLayoutContent(items);
 
+  // Group items by section
+  const sectionsWithItems: PageLayoutSectionWithItems[] = sections.map(section => ({
+    ...section,
+    items: itemsWithContent
+      .filter(item => item.section_id === section.id)
+      .sort((a, b) => a.display_order - b.display_order)
+  }));
+  
+  // Items not assigned to any section
+  const unsectionedItems = itemsWithContent
+    .filter(item => !item.section_id)
+    .sort((a, b) => a.display_order - b.display_order);
+
   return {
     layout,
-    items: itemsWithContent,
-    isLoading: layoutLoading || itemsLoading || contentLoading,
+    sections: sectionsWithItems,
+    unsectionedItems,
+    items: itemsWithContent, // Keep for backward compatibility
+    isLoading: layoutLoading || sectionsLoading || itemsLoading || contentLoading,
     isEmpty: !layoutLoading && !itemsLoading && items.length === 0,
   };
 }

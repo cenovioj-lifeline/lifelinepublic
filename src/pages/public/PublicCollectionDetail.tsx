@@ -88,7 +88,9 @@ export default function PublicCollectionDetail() {
   // Try new page layout system
   const { 
     layout: pageLayout, 
-    items: layoutItems, 
+    items: layoutItems,
+    sections: layoutSections,
+    unsectionedItems,
     isLoading: layoutLoading, 
     isEmpty: layoutEmpty 
   } = usePageLayoutWithContent('collection', collection?.id);
@@ -1017,17 +1019,43 @@ export default function PublicCollectionDetail() {
 
         {/* Content Section - New unified layout OR Legacy two-section layout */}
         {useNewLayout ? (
-          // New unified layout from page_layout_items
-          <section>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl font-bold text-[hsl(var(--scheme-title-text))]">
-                {collection.custom_section_name || "Explore"}
-              </h2>
-            </div>
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {layoutItems.filter(item => item.content).map(renderLayoutCard)}
-            </div>
-          </section>
+          // New unified layout from page_layout_items with sections
+          <>
+            {/* Render each section with its title */}
+            {layoutSections.map(section => (
+              section.items.length > 0 && (
+                <section key={section.id} className="space-y-4">
+                  {section.section_title && (
+                    <h2 className="text-2xl font-bold text-[hsl(var(--scheme-title-text))]">
+                      {section.section_title}
+                    </h2>
+                  )}
+                  <div 
+                    className="grid gap-6" 
+                    style={{ 
+                      gridTemplateColumns: `repeat(${Math.min(section.columns_count || 3, 4)}, minmax(0, 1fr))` 
+                    }}
+                  >
+                    {section.items.filter(item => item.content).map(renderLayoutCard)}
+                  </div>
+                </section>
+              )
+            ))}
+            
+            {/* Unsectioned items fallback */}
+            {unsectionedItems.length > 0 && (
+              <section className="space-y-4">
+                {layoutSections.length === 0 && (
+                  <h2 className="text-2xl font-bold text-[hsl(var(--scheme-title-text))]">
+                    {collection.custom_section_name || "Explore"}
+                  </h2>
+                )}
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                  {unsectionedItems.filter(item => item.content).map(renderLayoutCard)}
+                </div>
+              </section>
+            )}
+          </>
         ) : (
           // Legacy system with Featured + Custom Section
           <>
