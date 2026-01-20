@@ -5,7 +5,7 @@ import { Rss, Share2, Settings } from "lucide-react";
 import { GrowIcon } from "@/components/icons/GrowIcon";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Link, useNavigate } from "react-router-dom";
-import { RequestLifelineDialog } from "@/components/RequestLifelineDialog";
+import { GrowComingSoonDialog } from "@/components/GrowComingSoonDialog";
 import { CollectionShareModal } from "@/components/CollectionShareModal";
 import { useState } from "react";
 import {
@@ -23,7 +23,7 @@ import type { PageLayoutItemWithContent } from "@/types/pageLayout";
 
 export default function Home() {
   const navigate = useNavigate();
-  const [requestDialogOpen, setRequestDialogOpen] = useState(false);
+  const [growDialogOpen, setGrowDialogOpen] = useState(false);
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [constructionAlertOpen, setConstructionAlertOpen] = useState(false);
   
@@ -39,7 +39,7 @@ export default function Home() {
 
   const quickActionCards = [
     { icon: Rss, label: "Feed", onClick: () => navigate('/feed'), isCustomIcon: false },
-    { icon: GrowIcon, label: "Grow", onClick: () => setRequestDialogOpen(true), isCustomIcon: true },
+    { icon: GrowIcon, label: "Grow", onClick: () => setGrowDialogOpen(true), isCustomIcon: true },
     { icon: Share2, label: "Share", onClick: () => setShareModalOpen(true), isCustomIcon: false },
     { icon: Settings, label: "Settings", onClick: () => setConstructionAlertOpen(true), isCustomIcon: false },
   ];
@@ -253,13 +253,9 @@ export default function Home() {
         })}
       </div>
       
-      <RequestLifelineDialog
-        open={requestDialogOpen}
-        onOpenChange={setRequestDialogOpen}
-        onSignInRequired={() => {
-          setRequestDialogOpen(false);
-          navigate("/auth");
-        }}
+      <GrowComingSoonDialog
+        open={growDialogOpen}
+        onOpenChange={setGrowDialogOpen}
       />
 
       <CollectionShareModal

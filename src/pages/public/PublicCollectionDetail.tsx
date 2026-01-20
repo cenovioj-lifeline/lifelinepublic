@@ -9,6 +9,7 @@ import { ArrowRight, Share2, Rss, Users, Settings } from "lucide-react";
 import * as LucideIcons from "lucide-react";
 import { CollectionShareModal } from "@/components/CollectionShareModal";
 import { JoinCommunityDialog } from "@/components/JoinCommunityDialog";
+import { GrowComingSoonDialog } from "@/components/GrowComingSoonDialog";
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { PublicAuthModal } from "@/components/PublicAuthModal";
@@ -58,6 +59,7 @@ export default function PublicCollectionDetail() {
   const [joinDialogOpen, setJoinDialogOpen] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [constructionAlertOpen, setConstructionAlertOpen] = useState(false);
+  const [growDialogOpen, setGrowDialogOpen] = useState(false);
   const [voteFlipped, setVoteFlipped] = useState(false);
   const [followFlipped, setFollowFlipped] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
@@ -427,6 +429,9 @@ export default function PublicCollectionDetail() {
         break;
       case "settings":
         navigate(`/public/collections/${collection?.slug}/settings`);
+        break;
+      case "grow":
+        setGrowDialogOpen(true);
         break;
       default:
         // For unimplemented cards, show construction alert
@@ -1242,6 +1247,11 @@ export default function PublicCollectionDetail() {
           setJoinDialogOpen(false);
           setAuthModalOpen(true);
         }}
+      />
+
+      <GrowComingSoonDialog
+        open={growDialogOpen}
+        onOpenChange={setGrowDialogOpen}
       />
 
       <PublicAuthModal
