@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate, useLocation, useParams } from "react-router-dom";
-import { Home, Users, ArrowLeft, Award, Menu, MoreHorizontal, Play, Loader2, BookOpen } from "lucide-react";
+import { Home, Users, ArrowLeft, Award, Menu, MoreHorizontal, Play, Loader2, BookOpen, Rss } from "lucide-react";
 import { LifelineBookIcon } from "@/components/icons/LifelineBookIcon";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
@@ -127,6 +127,8 @@ export function CollectionLayout({
       ? [{ label: "Home", icon: Home, to: `/public/collections/${collectionSlug}` }]
       : []
     ),
+    // Feed nav item (timeline of all collection events)
+    { label: "Feed", icon: Rss, to: `/public/collections/${collectionSlug}/feed` },
     // Pitch nav item (when enabled)
     ...(pitchEnabled
       ? [{ label: "Pitch", icon: BookOpen, to: `/public/collections/${collectionSlug}/pitch` }]
