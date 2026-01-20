@@ -69,22 +69,70 @@ export function AddCardModal({
   });
 
   // Fetch profiles (scoped to collection if editing collection)
+  // Query via profile_collections junction table OR primary_collection_id
   const { data: profiles = [] } = useQuery({
     queryKey: ["available-profiles", entityId],
     queryFn: async () => {
-      const query = supabase
-        .from("profiles")
-        .select("id, name, slug, tagline, profile_image_url, primary_collection_id")
-        .eq("status", "published")
-        .order("name");
-
-      if (entityId) {
-        query.eq("primary_collection_id", entityId);
+      if (!entityId) {
+        // For home page, get all published profiles
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("id, name, slug, short_description, primary_image_url, primary_collection_id")
+          .eq("status", "published")
+          .order("name");
+        if (error) throw error;
+        // Map to expected shape
+        return (data ?? []).map(p => ({
+          ...p,
+          tagline: p.short_description,
+          profile_image_url: p.primary_image_url
+        }));
       }
-
-      const { data, error } = await query;
-      if (error) throw error;
-      return data ?? [];
+      
+      // For collection page: get profiles linked via profile_collections OR primary_collection_id
+      // First get profiles with primary_collection_id match
+      const { data: primaryProfiles, error: primaryError } = await supabase
+        .from("profiles")
+        .select("id, name, slug, short_description, primary_image_url, primary_collection_id")
+        .eq("status", "published")
+        .eq("primary_collection_id", entityId)
+        .order("name");
+      
+      if (primaryError) throw primaryError;
+      
+      // Then get profiles linked via profile_collections junction table
+      const { data: linkedProfiles, error: linkedError } = await supabase
+        .from("profile_collections")
+        .select(`
+          profile_id,
+          profiles!inner(id, name, slug, short_description, primary_image_url, primary_collection_id)
+        `)
+        .eq("collection_id", entityId)
+        .eq("profiles.status", "published");
+      
+      if (linkedError) throw linkedError;
+      
+      // Combine and dedupe
+      const profileMap = new Map();
+      primaryProfiles?.forEach(p => profileMap.set(p.id, {
+        ...p,
+        tagline: p.short_description,
+        profile_image_url: p.primary_image_url
+      }));
+      linkedProfiles?.forEach(item => {
+        const p = item.profiles as any;
+        if (p && !profileMap.has(p.id)) {
+          profileMap.set(p.id, {
+            ...p,
+            tagline: p.short_description,
+            profile_image_url: p.primary_image_url
+          });
+        }
+      });
+      
+      return Array.from(profileMap.values()).sort((a, b) => 
+        (a.name || '').localeCompare(b.name || '')
+      );
     },
     enabled: open && pageType === "collection",
   });
