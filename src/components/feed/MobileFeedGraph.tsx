@@ -222,12 +222,12 @@ export const MobileFeedGraph = forwardRef<MobileFeedGraphRef, MobileFeedGraphPro
                         style={isSelected ? { borderColor: barColor } : {}}
                       >
                         <div className="absolute left-[-8px] top-[20px] w-0 h-0 border-t-[10px] border-b-0 border-r-[10px] border-transparent" style={{ borderRightColor: 'white' }} />
-                        <div className="font-bold text-xs mb-0.5 text-[hsl(var(--scheme-ll-entry-title))]">
-                          {isNewCollection ? entry.collectionTitle : (entry.collectionTitle || entry.lifelineTitle || 'News')}
-                        </div>
-                        <div className="text-[10px] text-[hsl(var(--scheme-cards-text))] line-clamp-2">
-                          {isNewCollection ? entry.collectionDescription || 'New collection added!' : entry.entryTitle}
-                        </div>
+                      <div className="font-bold text-xs mb-0.5 text-[hsl(var(--scheme-ll-entry-title))]">
+                        {isNewCollection ? entry.collectionTitle : (entry.lifelineTitle || 'Unknown')}
+                      </div>
+                      <div className="text-[10px] text-[hsl(var(--scheme-cards-text))] line-clamp-2">
+                        {isNewCollection ? entry.collectionDescription || 'New collection added!' : entry.entryTitle}
+                      </div>
                       </div>
                     </div>
                   </>
@@ -243,9 +243,9 @@ export const MobileFeedGraph = forwardRef<MobileFeedGraphRef, MobileFeedGraphPro
                         style={isSelected ? { borderColor: barColor } : {}}
                       >
                         <div className="absolute right-[-8px] top-[20px] w-0 h-0 border-t-[10px] border-b-0 border-l-[10px] border-transparent" style={{ borderLeftColor: 'white' }} />
-                        <div className="font-bold text-xs mb-0.5 text-[hsl(var(--scheme-ll-entry-title))]">
-                          {entry.collectionTitle || entry.lifelineTitle || 'News'}
-                        </div>
+                      <div className="font-bold text-xs mb-0.5 text-[hsl(var(--scheme-ll-entry-title))]">
+                        {entry.lifelineTitle || 'Unknown'}
+                      </div>
                         <div className="text-[10px] text-[hsl(var(--scheme-cards-text))] line-clamp-2">
                           {entry.entryTitle}
                         </div>
