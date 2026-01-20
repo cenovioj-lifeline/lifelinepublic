@@ -417,7 +417,7 @@ export default function PublicCollectionDetail() {
   const handleActionCardClick = (card: ActionCardData) => {
     switch (card.slug) {
       case "feed":
-        setConstructionAlertOpen(true);
+        navigate(`/public/collections/${collection?.slug}/feed`);
         break;
       case "share":
         setShareModalOpen(true);
