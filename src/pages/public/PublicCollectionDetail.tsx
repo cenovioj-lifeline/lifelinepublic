@@ -1,4 +1,5 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { InlineSvgIcon } from "@/components/InlineSvgIcon";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { CollectionLayout } from "@/components/CollectionLayout";
@@ -445,6 +446,10 @@ export default function PublicCollectionDetail() {
   // Render dynamic icon for action card
   const renderActionCardIcon = (card: ActionCardData, className: string) => {
     if (card.icon_url) {
+      // Use inline SVG for SVG files to inherit theme color
+      if (card.icon_url.endsWith('.svg')) {
+        return <InlineSvgIcon url={card.icon_url} className={className} />;
+      }
       return <img src={card.icon_url} alt="" className={className} />;
     }
     if (card.icon_name) {
