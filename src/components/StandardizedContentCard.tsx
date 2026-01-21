@@ -60,7 +60,7 @@ export function StandardizedContentCard({
 
   return (
     <Link to={linkPath} className="group" onMouseEnter={handleMouseEnter}>
-      <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
+      <Card className="overflow-hidden hover:shadow-lg transition-shadow bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
         {/* Standardized 16:9 aspect ratio image */}
         <div className="aspect-video relative overflow-hidden bg-white">
           {imageUrl ? (

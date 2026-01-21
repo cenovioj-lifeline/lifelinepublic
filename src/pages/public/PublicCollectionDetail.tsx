@@ -21,6 +21,7 @@ import { fetchColorScheme } from "@/hooks/useColorScheme";
 import { ContentCardImageUpload } from "@/components/ContentCardImageUpload";
 import { usePageLayoutWithContent } from "@/hooks/usePageLayout";
 import type { PageLayoutItemWithContent } from "@/types/pageLayout";
+import { useIsMobile } from "@/hooks/use-mobile";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -56,6 +57,7 @@ export default function PublicCollectionDetail() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const isMobile = useIsMobile();
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [joinDialogOpen, setJoinDialogOpen] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
@@ -996,7 +998,7 @@ export default function PublicCollectionDetail() {
         {collection.show_action_cards !== false && actionCards && actionCards.length > 0 && (
           <div 
             className="grid gap-2 md:gap-4 items-start"
-            style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(80px, 1fr))' }}
+            style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(80px, 1fr))', gridAutoRows: 'min-content' }}
           >
             {actionCards.map((card, index) => (
               <Card
@@ -1030,8 +1032,9 @@ export default function PublicCollectionDetail() {
           // New unified layout from page_layout_items with sections
           <>
             {/* Render each section with its title */}
-            {layoutSections.map(section => (
-              section.items.length > 0 && (
+            {layoutSections.map(section => {
+              const cols = isMobile ? Math.min(section.columns_count ?? 3, 2) : Math.min(section.columns_count ?? 3, 4);
+              return section.items.length > 0 && (
                 <section key={section.id} className="space-y-4">
                   {section.section_title && (
                     <h2 className="text-2xl font-bold text-[hsl(var(--scheme-title-text))]">
@@ -1039,16 +1042,16 @@ export default function PublicCollectionDetail() {
                     </h2>
                   )}
                   <div 
-                    className="grid gap-6" 
+                    className="grid gap-6 items-start" 
                     style={{ 
-                      gridTemplateColumns: `repeat(${Math.min(section.columns_count || 3, 4)}, minmax(0, 1fr))` 
+                      gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` 
                     }}
                   >
                     {section.items.filter(item => item.content).map(renderLayoutCard)}
                   </div>
                 </section>
-              )
-            ))}
+              );
+            })}
             
             {/* Unsectioned items fallback */}
             {unsectionedItems.length > 0 && (
@@ -1058,7 +1061,7 @@ export default function PublicCollectionDetail() {
                     {collection.custom_section_name || "Explore"}
                   </h2>
                 )}
-                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                <div className="grid gap-6 items-start grid-cols-2 lg:grid-cols-3">
                   {unsectionedItems.filter(item => item.content).map(renderLayoutCard)}
                 </div>
               </section>
@@ -1074,7 +1077,7 @@ export default function PublicCollectionDetail() {
                   <h2 className="text-2xl font-bold text-[hsl(var(--scheme-title-text))]">Featured</h2>
                 </div>
                 {featuredItems.length <= 3 ? (
-                  <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                  <div className="grid gap-6 items-start grid-cols-2 lg:grid-cols-3">
                     {featuredItems.map((item: any) => renderContentCard(item, collection.slug))}
                   </div>
                 ) : (
@@ -1108,7 +1111,7 @@ export default function PublicCollectionDetail() {
                   </h2>
                 </div>
                 {customSectionItems.length <= 3 ? (
-                  <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                  <div className="grid gap-6 items-start grid-cols-2 lg:grid-cols-3">
                     {customSectionItems.map((item: any) => renderContentCard(item, collection.slug))}
                   </div>
                 ) : (
@@ -1147,7 +1150,7 @@ export default function PublicCollectionDetail() {
                         </button>
                       </Link>
                     </div>
-                    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                    <div className="grid gap-6 items-start grid-cols-2 lg:grid-cols-3">
                       {recentLifelines.map((lifeline: any) => {
                         // Use lifelineLink helper with collection referrer
                         const lifelinePath = lifelineLink(lifeline.slug, {
@@ -1160,7 +1163,7 @@ export default function PublicCollectionDetail() {
                             to={lifelinePath}
                             className="group"
                           >
-                            <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
+                            <Card className="overflow-hidden hover:shadow-lg transition-shadow bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
                               <div className="aspect-video relative bg-white overflow-hidden">
                                 <div className="absolute top-2 right-2 z-10">
                                   <FavoriteButton itemId={lifeline.id} itemType="lifeline" />
@@ -1210,7 +1213,7 @@ export default function PublicCollectionDetail() {
                         </button>
                       </Link>
                     </div>
-                    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                    <div className="grid gap-6 items-start grid-cols-2 lg:grid-cols-3">
                       {recentProfiles.map((profile: any) => {
                         const cardPosX = profile.avatar_image?.card_position_x ?? 50;
                         const cardPosY = profile.avatar_image?.card_position_y ?? 50;
@@ -1223,7 +1226,7 @@ export default function PublicCollectionDetail() {
                             to={`/public/collections/${collection.slug}/profiles/${profile.slug}`}
                             className="group"
                           >
-                            <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
+                            <Card className="overflow-hidden hover:shadow-lg transition-shadow bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
                               <div className="aspect-video relative bg-white overflow-hidden">
                                 {imageUrl ? (
                                   <img
