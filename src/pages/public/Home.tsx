@@ -236,7 +236,7 @@ export default function Home() {
               className="hover:shadow-md transition-shadow cursor-pointer h-full bg-[hsl(var(--scheme-actions-bg))] border-[hsl(var(--scheme-actions-border))]"
               onClick={() => handleActionCardClick(card)}
             >
-              <CardContent className="flex flex-col items-center justify-center p-3 md:p-6 gap-1 md:gap-2">
+              <CardContent className="flex flex-col items-center justify-center p-3 md:p-6 gap-1 md:gap-2 h-full">
                 {renderActionCardIcon(card, "h-5 w-5 md:h-8 md:w-8 text-[hsl(var(--scheme-actions-icon))]")}
                 <span className="text-[10px] md:text-sm font-medium text-[hsl(var(--scheme-actions-text))]">
                   {card.label_override || card.name}
