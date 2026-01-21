@@ -9,6 +9,7 @@ import { ProfileWorks } from "./profile/ProfileWorks";
 import { ProfileBooksSection } from "./profile/ProfileBooksSection";
 import { ProfileLegacyImpact } from "./profile/ProfileLegacyImpact";
 import { ProfilePhysicalCharacteristics } from "./profile/ProfilePhysicalCharacteristics";
+import { ProfileAwardsDesktop } from "./profile/desktop/ProfileAwardsDesktop";
 import { LifelineBookIcon } from "./icons/LifelineBookIcon";
 import { Trophy, Quote, ChevronDown, ChevronRight } from "lucide-react";
 import { Card, CardContent } from "./ui/card";
@@ -272,7 +273,7 @@ export function ProfileDetailView({
 
       {awards && awards.length > 0 && (
         isMobile ? (
-          // Mobile: Collapsible awards with detail sheet
+          // Mobile: Collapsible awards with detail sheet (unchanged)
           <section className="space-y-2">
             <Collapsible open={awardsExpanded} onOpenChange={setAwardsExpanded}>
               <CollapsibleTrigger
@@ -344,60 +345,12 @@ export function ProfileDetailView({
             />
           </section>
         ) : (
-          // Desktop: Original card layout
-          <section className="space-y-4">
-            <h2 className="text-2xl font-bold flex items-center gap-2" style={textStyle}>
-              <Trophy className="h-6 w-6 text-yellow-500" />
-              Mock Election Awards
-            </h2>
-            <div className="space-y-4">
-              {awards.map((award: any) => (
-                <Link
-                  key={award.id}
-                  to={collectionContext
-                    ? `/public/collections/${collectionContext.slug}/elections/${award.election.slug}`
-                    : `/public/elections/${award.election.slug}`
-                  }
-                  className="group block"
-                >
-                  <Card className={`border hover:shadow-lg hover:border-primary/50 hover:brightness-110 transition-all ${
-                    collectionContext 
-                      ? 'bg-[hsl(var(--scheme-cards-bg))] border-[hsl(var(--scheme-cards-border))]' 
-                      : 'bg-card'
-                  }`}>
-                    <CardContent className="p-6">
-                      <div className="flex items-start gap-4">
-                        <Trophy className="h-8 w-8 text-yellow-500 flex-shrink-0 mt-1" />
-                        <div className="flex-1">
-                          <h3 className="text-xl font-bold group-hover:text-primary transition-colors" style={labelStyle}>
-                            {award.category}
-                          </h3>
-                          <p className={`text-sm mt-1 ${collectionContext ? '' : 'text-muted-foreground'}`} style={labelMutedStyle}>
-                            {award.election.title}
-                          </p>
-                          {award.winner_name && (
-                            <p className="text-sm mt-2" style={labelStyle}>
-                              Winner: {award.winner_name}
-                            </p>
-                          )}
-                          {award.notes && (
-                            <p className={`mt-3 text-base italic ${collectionContext ? '' : 'text-muted-foreground'}`} style={labelMutedStyle}>
-                              {award.notes}
-                            </p>
-                          )}
-                          {award.percentage && (
-                            <p className={`text-xs mt-2 ${collectionContext ? '' : 'text-muted-foreground'}`} style={labelMutedStyle}>
-                              {award.percentage}% of votes
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </Link>
-              ))}
-            </div>
-          </section>
+          // Desktop: New collapsible grid with dialog popup
+          <ProfileAwardsDesktop
+            awards={typedAwards}
+            collectionSlug={collectionContext?.slug}
+            profile={profile}
+          />
         )
       )}
 
