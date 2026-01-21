@@ -1,4 +1,5 @@
 import { ContentTypeBanner } from "@/components/ContentTypeBanner";
+import { InlineSvgIcon } from "@/components/InlineSvgIcon";
 import { StandardizedContentCard } from "@/components/StandardizedContentCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -98,6 +99,10 @@ export default function Home() {
 
   const renderActionCardIcon = (card: ActionCardData, className: string) => {
     if (card.icon_url) {
+      // Use inline SVG for SVG files to inherit theme color
+      if (card.icon_url.endsWith('.svg')) {
+        return <InlineSvgIcon url={card.icon_url} className={className} />;
+      }
       return <img src={card.icon_url} alt={card.name} className={className} />;
     }
     return <DynamicIcon name={card.icon_name} className={className} />;
