@@ -15,6 +15,7 @@ import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { PublicAuthModal } from "@/components/PublicAuthModal";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
+import { MobileSectionCarousel } from "@/components/MobileSectionCarousel";
 import { FavoriteButton } from "@/components/FavoriteButton";
 import { lifelineLink } from "@/lib/navigationLinks";
 import { fetchColorScheme } from "@/hooks/useColorScheme";
@@ -1033,8 +1034,21 @@ export default function PublicCollectionDetail() {
           <>
             {/* Render each section with its title */}
             {layoutSections.map(section => {
-              const cols = isMobile ? Math.min(section.columns_count ?? 3, 2) : Math.min(section.columns_count ?? 3, 4);
-              return section.items.length > 0 && (
+              const sectionItems = section.items.filter(item => item.content);
+              if (sectionItems.length === 0) return null;
+              
+              // Mobile: use carousel for sections with items
+              if (isMobile) {
+                return (
+                  <MobileSectionCarousel key={section.id} title={section.section_title}>
+                    {sectionItems.map(item => renderLayoutCard(item))}
+                  </MobileSectionCarousel>
+                );
+              }
+              
+              // Desktop: use grid
+              const cols = Math.min(section.columns_count ?? 3, 4);
+              return (
                 <section key={section.id} className="space-y-4">
                   {section.section_title && (
                     <h2 className="text-2xl font-bold text-[hsl(var(--scheme-title-text))]">
@@ -1047,7 +1061,7 @@ export default function PublicCollectionDetail() {
                       gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` 
                     }}
                   >
-                    {section.items.filter(item => item.content).map(renderLayoutCard)}
+                    {sectionItems.map(renderLayoutCard)}
                   </div>
                 </section>
               );
@@ -1061,9 +1075,15 @@ export default function PublicCollectionDetail() {
                     {collection.custom_section_name || "Explore"}
                   </h2>
                 )}
-                <div className="grid gap-6 items-start grid-cols-2 lg:grid-cols-3">
-                  {unsectionedItems.filter(item => item.content).map(renderLayoutCard)}
-                </div>
+                {isMobile ? (
+                  <MobileSectionCarousel title={null}>
+                    {unsectionedItems.filter(item => item.content).map(item => renderLayoutCard(item))}
+                  </MobileSectionCarousel>
+                ) : (
+                  <div className="grid gap-6 items-start grid-cols-2 lg:grid-cols-3">
+                    {unsectionedItems.filter(item => item.content).map(renderLayoutCard)}
+                  </div>
+                )}
               </section>
             )}
           </>
