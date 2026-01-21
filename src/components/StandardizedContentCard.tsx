@@ -104,7 +104,7 @@ export function StandardizedContentCard({
         </CardHeader>
         {description && (
           <CardContent className="bg-[hsl(var(--scheme-card-bg))]">
-            <p className="text-sm line-clamp-2 text-[hsl(var(--scheme-cards-text))]">{description}</p>
+            <p className="text-sm line-clamp-3 text-[hsl(var(--scheme-cards-text))]">{description}</p>
           </CardContent>
         )}
       </Card>
