@@ -116,9 +116,12 @@ export default function Home() {
         <Skeleton className="w-full aspect-[4/1] rounded-lg" />
         
         {/* Quick actions skeleton */}
-        <div className="grid grid-cols-4 gap-2 md:gap-4">
+        <div 
+          className="grid gap-2 md:gap-4 items-start"
+          style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(80px, 1fr))' }}
+        >
           {[...Array(4)].map((_, i) => (
-            <Skeleton key={i} className="h-20 md:h-28" />
+            <Skeleton key={i} className="h-16 md:h-24" />
           ))}
         </div>
         
@@ -229,14 +232,17 @@ export default function Home() {
 
       {/* Quick Action Cards */}
       {actionCards && actionCards.length > 0 && (
-        <div className="grid grid-cols-4 gap-2 md:gap-4">
+        <div 
+          className="grid gap-2 md:gap-4 items-start"
+          style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(80px, 1fr))' }}
+        >
           {actionCards.map((card) => (
             <Card 
               key={card.id}
-              className="hover:shadow-md transition-shadow cursor-pointer bg-[hsl(var(--scheme-actions-bg))] border-[hsl(var(--scheme-actions-border))]"
+              className="hover:shadow-md transition-shadow cursor-pointer bg-[hsl(var(--scheme-actions-bg))] border-[hsl(var(--scheme-actions-border))] self-start"
               onClick={() => handleActionCardClick(card)}
             >
-              <CardContent className="flex flex-col items-center justify-center p-3 md:p-6 gap-1 md:gap-2">
+              <CardContent className="flex flex-col items-center justify-center p-2 md:p-6 gap-1 md:gap-2">
                 {renderActionCardIcon(card, "h-5 w-5 md:h-8 md:w-8 text-[hsl(var(--scheme-actions-icon))]")}
                 <span className="text-[10px] md:text-sm font-medium text-[hsl(var(--scheme-actions-text))]">
                   {card.label_override || card.name}

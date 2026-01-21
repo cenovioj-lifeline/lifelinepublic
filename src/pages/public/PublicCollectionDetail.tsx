@@ -994,18 +994,21 @@ export default function PublicCollectionDetail() {
 
         {/* Dynamic Action Cards - Only show if show_action_cards !== false */}
         {collection.show_action_cards !== false && actionCards && actionCards.length > 0 && (
-          <div className={`grid gap-2 md:gap-4`} style={{ gridTemplateColumns: `repeat(${actionCards.length}, minmax(0, 1fr))` }}>
+          <div 
+            className="grid gap-2 md:gap-4 items-start"
+            style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(80px, 1fr))' }}
+          >
             {actionCards.map((card, index) => (
               <Card
                 key={card.id}
-                className="cursor-pointer hover:shadow-lg transition-shadow"
+                className="cursor-pointer hover:shadow-lg transition-shadow self-start"
                 style={{
                   backgroundColor: index === 0 ? 'hsl(var(--scheme-actions-bg))' : 'hsl(var(--scheme-ch-actions-bg))',
                   borderColor: index === 0 ? 'hsl(var(--scheme-actions-border))' : 'hsl(var(--scheme-ch-actions-border))'
                 }}
                 onClick={() => handleActionCardClick(card)}
               >
-                <CardContent className="flex flex-col items-center justify-center p-3 md:p-6 gap-1 md:gap-2">
+                <CardContent className="flex flex-col items-center justify-center p-2 md:p-6 gap-1 md:gap-2">
                   {renderActionCardIcon(
                     card,
                     `h-5 w-5 md:h-8 md:w-8`
