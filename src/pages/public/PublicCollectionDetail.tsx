@@ -259,7 +259,7 @@ export default function PublicCollectionDetail() {
 
       return items.filter(Boolean);
     },
-    enabled: !!collection?.id && !useNewLayout,
+    enabled: !!collection?.id && !useNewLayout && !layoutLoading,
   });
 
   // Legacy: Fetch custom section items (only if not using new layout)
@@ -322,13 +322,13 @@ export default function PublicCollectionDetail() {
 
       return items.filter(Boolean);
     },
-    enabled: !!collection?.id && !useNewLayout,
+    enabled: !!collection?.id && !useNewLayout && !layoutLoading,
   });
 
   // Fetch lifelines when no featured items exist (legacy fallback)
   const { data: recentLifelines } = useQuery({
     queryKey: ["collection-recent-lifelines", collection?.id],
-    enabled: !!collection?.id && !useNewLayout && (!featuredItems || featuredItems.length === 0),
+    enabled: !!collection?.id && !useNewLayout && !layoutLoading && (!featuredItems || featuredItems.length === 0),
     queryFn: async () => {
       const { data, error } = await supabase
         .from("lifelines")
@@ -359,7 +359,7 @@ export default function PublicCollectionDetail() {
   // Fetch profiles when no featured items exist (legacy fallback)
   const { data: recentProfiles } = useQuery({
     queryKey: ["collection-recent-profiles", collection?.id],
-    enabled: !!collection?.id && !useNewLayout && (!featuredItems || featuredItems.length === 0),
+    enabled: !!collection?.id && !useNewLayout && !layoutLoading && (!featuredItems || featuredItems.length === 0),
     queryFn: async () => {
       const { data, error } = await supabase
         .from("profiles")

@@ -28,14 +28,20 @@ export default function Home() {
   const [constructionAlertOpen, setConstructionAlertOpen] = useState(false);
   
   // Try new page layout system first
-  const { layout, items: layoutItems, isLoading: layoutLoading, isEmpty: layoutEmpty } = usePageLayoutWithContent('home');
+  const { 
+    layout, 
+    items: layoutItems, 
+    sections: layoutSections,
+    unsectionedItems,
+    isLoading: layoutLoading, 
+    isEmpty: layoutEmpty 
+  } = usePageLayoutWithContent('home');
   
-  // Fallback to old system if no layout exists
-  const { settings: homeSettings, featuredItems, newContentItems, isLoading: oldLoading } = useHomePageData();
+  // Only fetch old data if we need it for settings (hero image) - not for content
+  const { settings: homeSettings, isLoading: settingsLoading } = useHomePageData();
   
-  // Determine which system to use
-  const useNewLayout = !layoutEmpty && layoutItems.length > 0;
-  const isLoading = useNewLayout ? layoutLoading : oldLoading;
+  // Page layout is the only source of content - no legacy fallback
+  const isLoading = layoutLoading || settingsLoading;
 
   const quickActionCards = [
     { icon: Rss, label: "Feed", onClick: () => navigate('/feed'), isCustomIcon: false },
@@ -136,73 +142,6 @@ export default function Home() {
     );
   };
 
-  // Render legacy card (from old system)
-  const renderLegacyCard = (item: any) => {
-    if (item.type === "lifeline") {
-      return (
-        <Link
-          key={item.id}
-          to={`/public/lifelines/${item.slug}`}
-          className="group relative"
-        >
-          <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
-            <div className="aspect-video relative overflow-hidden bg-white">
-              {item.cover_image?.url || item.cover_image_url ? (
-                <img
-                  src={item.cover_image?.url || item.cover_image_url}
-                  alt={item.cover_image?.alt_text || item.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  style={{
-                    objectPosition: `${item.cover_image_position_x ?? 50}% ${item.cover_image_position_y ?? 50}%`,
-                  }}
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-gray-400">
-                  No image
-                </div>
-              )}
-            </div>
-            <ContentTypeBanner type="lifeline" />
-            <CardHeader className="bg-[hsl(var(--scheme-card-bg))]">
-              <CardTitle className="text-lg transition-colors text-[hsl(var(--scheme-card-text))]">
-                {item.title}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="bg-[hsl(var(--scheme-card-bg))]">
-              <p className="text-sm line-clamp-2 text-[hsl(var(--scheme-cards-text))]">
-                {item.intro || "Explore this lifeline"}
-              </p>
-            </CardContent>
-          </Card>
-        </Link>
-      );
-    }
-
-    return (
-      <StandardizedContentCard
-        key={item.id}
-        id={item.id}
-        title={item.title}
-        description={item.description}
-        imageUrl={
-          item.type === "collection" 
-            ? (item.card_image_url || item.hero_image?.url || item.hero_image_url)
-            : item.type === "election"
-            ? item.hero_image_url
-            : null
-        }
-        imageAlt={item.type === "collection" ? item.hero_image?.alt_text : item.title}
-        linkPath={
-          item.type === "collection"
-            ? `/public/collections/${item.slug}`
-            : `/public/elections/${item.slug}`
-        }
-        type={item.type}
-        collectionSlug={item.type === "collection" ? item.slug : undefined}
-      />
-    );
-  };
-
   return (
     <div className="space-y-8">
       {/* Hero Section */}
@@ -280,47 +219,39 @@ export default function Home() {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Content Section - Uses new Page Layout system with fallback to old */}
-      {useNewLayout ? (
-        // New unified layout system
-        <section>
-          <div className="flex items-center justify-between mb-4">
+      {/* Content Section - Uses Page Layout sections only */}
+      {layoutSections.map(section => (
+        section.items.length > 0 && (
+          <section key={section.id} className="space-y-4">
+            {section.section_title && (
+              <h2 className="text-2xl font-semibold" style={{ color: 'hsl(var(--scheme-title-text))' }}>
+                {section.section_title}
+              </h2>
+            )}
+            <div 
+              className="grid gap-6" 
+              style={{ 
+                gridTemplateColumns: `repeat(${Math.min(section.columns_count || 3, 4)}, minmax(0, 1fr))` 
+              }}
+            >
+              {section.items.filter(item => item.content).map(renderLayoutCard)}
+            </div>
+          </section>
+        )
+      ))}
+      
+      {/* Unsectioned items */}
+      {unsectionedItems.length > 0 && (
+        <section className="space-y-4">
+          {layoutSections.length === 0 && (
             <h2 className="text-2xl font-semibold" style={{ color: 'hsl(var(--scheme-title-text))' }}>
               {homeSettings?.custom_section_name || 'Explore'}
             </h2>
-            <Link to="/public/collections" className="hover:underline text-sm" style={{ color: 'hsl(var(--scheme-actions-icon))' }}>
-              View All
-            </Link>
-          </div>
+          )}
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {layoutItems.filter(item => item.content).map(renderLayoutCard)}
+            {unsectionedItems.filter(item => item.content).map(renderLayoutCard)}
           </div>
         </section>
-      ) : (
-        // Legacy two-section layout
-        <>
-          {/* Featured Section */}
-          <section>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl font-semibold" style={{ color: 'hsl(var(--scheme-title-text))' }}>Featured</h2>
-              <Link to="/public/collections" className="hover:underline text-sm" style={{ color: 'hsl(var(--scheme-actions-icon))' }}>
-                View All
-              </Link>
-            </div>
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {featuredItems.map(renderLegacyCard)}
-            </div>
-          </section>
-
-          {/* New Content Section - cards only, no header in legacy mode */}
-          {newContentItems.length > 0 && (
-            <section>
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {newContentItems.map(renderLegacyCard)}
-              </div>
-            </section>
-          )}
-        </>
       )}
     </div>
   );
