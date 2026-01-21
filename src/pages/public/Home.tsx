@@ -22,6 +22,7 @@ import type { PageLayoutItemWithContent } from "@/types/pageLayout";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import * as LucideIcons from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface ActionCardData {
   id: string;
@@ -42,6 +43,7 @@ const DynamicIcon = ({ name, className }: { name: string | null; className?: str
 
 export default function Home() {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const [growDialogOpen, setGrowDialogOpen] = useState(false);
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [constructionAlertOpen, setConstructionAlertOpen] = useState(false);
@@ -157,7 +159,7 @@ export default function Home() {
           to={content.link || `/public/lifelines/${content.slug}`}
           className="group relative"
         >
-          <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
+          <Card className="overflow-hidden hover:shadow-lg transition-shadow bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
             <div className="aspect-video relative overflow-hidden bg-white">
               {content.image_url ? (
                 <img
@@ -234,7 +236,7 @@ export default function Home() {
       {actionCards && actionCards.length > 0 && (
         <div 
           className="grid gap-2 md:gap-4 items-start"
-          style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(80px, 1fr))' }}
+          style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(80px, 1fr))', gridAutoRows: 'min-content' }}
         >
           {actionCards.map((card) => (
             <Card 
@@ -281,8 +283,9 @@ export default function Home() {
       </AlertDialog>
 
       {/* Content Section - Uses Page Layout sections only */}
-      {layoutSections.map(section => (
-        section.items.length > 0 && (
+      {layoutSections.map(section => {
+        const cols = isMobile ? Math.min(section.columns_count ?? 3, 2) : Math.min(section.columns_count ?? 3, 4);
+        return section.items.length > 0 && (
           <section key={section.id} className="space-y-4">
             {section.section_title && (
               <h2 className="text-2xl font-semibold" style={{ color: 'hsl(var(--scheme-title-text))' }}>
@@ -290,16 +293,16 @@ export default function Home() {
               </h2>
             )}
             <div 
-              className="grid gap-6" 
+              className="grid gap-6 items-start" 
               style={{ 
-                gridTemplateColumns: `repeat(${Math.min(section.columns_count || 3, 4)}, minmax(0, 1fr))` 
+                gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` 
               }}
             >
               {section.items.filter(item => item.content).map(renderLayoutCard)}
             </div>
           </section>
-        )
-      ))}
+        );
+      })}
       
       {/* Unsectioned items */}
       {unsectionedItems.length > 0 && (
@@ -309,7 +312,7 @@ export default function Home() {
               {homeSettings?.custom_section_name || 'Explore'}
             </h2>
           )}
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-6 items-start grid-cols-2 lg:grid-cols-3">
             {unsectionedItems.filter(item => item.content).map(renderLayoutCard)}
           </div>
         </section>
