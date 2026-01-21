@@ -999,7 +999,7 @@ export default function PublicCollectionDetail() {
         {collection.show_action_cards !== false && actionCards && actionCards.length > 0 && (
           <div 
             className="grid gap-2 md:gap-4 items-start"
-            style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(80px, 1fr))', gridAutoRows: 'min-content' }}
+            style={{ gridTemplateColumns: `repeat(${actionCards.length}, minmax(0, 1fr))`, gridAutoRows: 'min-content' }}
           >
             {actionCards.map((card, index) => (
               <Card
