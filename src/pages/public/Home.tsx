@@ -1,6 +1,7 @@
 import { ContentTypeBanner } from "@/components/ContentTypeBanner";
 import { InlineSvgIcon } from "@/components/InlineSvgIcon";
 import { StandardizedContentCard } from "@/components/StandardizedContentCard";
+import { MobileSectionCarousel } from "@/components/MobileSectionCarousel";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Link, useNavigate } from "react-router-dom";
@@ -284,8 +285,21 @@ export default function Home() {
 
       {/* Content Section - Uses Page Layout sections only */}
       {layoutSections.map(section => {
-        const cols = isMobile ? Math.min(section.columns_count ?? 3, 2) : Math.min(section.columns_count ?? 3, 4);
-        return section.items.length > 0 && (
+        const sectionItems = section.items.filter(item => item.content);
+        if (sectionItems.length === 0) return null;
+        
+        // Mobile: use carousel for sections with items
+        if (isMobile) {
+          return (
+            <MobileSectionCarousel key={section.id} title={section.section_title}>
+              {sectionItems.map(item => renderLayoutCard(item))}
+            </MobileSectionCarousel>
+          );
+        }
+        
+        // Desktop: use grid
+        const cols = Math.min(section.columns_count ?? 3, 4);
+        return (
           <section key={section.id} className="space-y-4">
             {section.section_title && (
               <h2 className="text-2xl font-semibold" style={{ color: 'hsl(var(--scheme-title-text))' }}>
@@ -298,7 +312,7 @@ export default function Home() {
                 gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` 
               }}
             >
-              {section.items.filter(item => item.content).map(renderLayoutCard)}
+              {sectionItems.map(renderLayoutCard)}
             </div>
           </section>
         );
@@ -312,9 +326,15 @@ export default function Home() {
               {homeSettings?.custom_section_name || 'Explore'}
             </h2>
           )}
-          <div className="grid gap-6 items-start grid-cols-2 lg:grid-cols-3">
-            {unsectionedItems.filter(item => item.content).map(renderLayoutCard)}
-          </div>
+          {isMobile ? (
+            <MobileSectionCarousel title={null}>
+              {unsectionedItems.filter(item => item.content).map(item => renderLayoutCard(item))}
+            </MobileSectionCarousel>
+          ) : (
+            <div className="grid gap-6 items-start grid-cols-2 lg:grid-cols-3">
+              {unsectionedItems.filter(item => item.content).map(renderLayoutCard)}
+            </div>
+          )}
         </section>
       )}
     </div>
