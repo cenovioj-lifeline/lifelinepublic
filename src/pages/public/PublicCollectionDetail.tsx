@@ -1005,7 +1005,7 @@ export default function PublicCollectionDetail() {
                 }}
                 onClick={() => handleActionCardClick(card)}
               >
-                <CardContent className="flex flex-col items-center justify-center p-3 md:p-6 gap-1 md:gap-2 h-full">
+                <CardContent className="flex flex-col items-center justify-center p-3 md:p-6 gap-1 md:gap-2">
                   {renderActionCardIcon(
                     card,
                     `h-5 w-5 md:h-8 md:w-8`
