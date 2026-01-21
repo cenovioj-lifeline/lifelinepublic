@@ -207,7 +207,7 @@ export default function Home() {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-4">
       {/* Hero Section */}
       <div className="relative w-full rounded-lg overflow-hidden aspect-[4/1]">
         {(homeSettings?.hero_image_url || homeSettings?.hero_image?.url) ? (
