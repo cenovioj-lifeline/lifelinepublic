@@ -31,6 +31,12 @@ export function InlineSvgIcon({ url, className }: InlineSvgIconProps) {
           .replace(/stroke="(?!none)[^"]*"/gi, 'stroke="currentColor"')
           .replace(/stroke:\s*#[0-9a-fA-F]+/gi, "stroke:currentColor");
 
+        // Normalize SVG dimensions to fill the container
+        modified = modified
+          .replace(/(<svg[^>]*)\s+width="[^"]*"/gi, '$1')
+          .replace(/(<svg[^>]*)\s+height="[^"]*"/gi, '$1')
+          .replace(/<svg/i, '<svg width="100%" height="100%"');
+
         setSvgContent(modified);
       })
       .catch((err) => {
