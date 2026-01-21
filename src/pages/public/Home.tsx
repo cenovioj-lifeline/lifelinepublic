@@ -1,8 +1,6 @@
 import { ContentTypeBanner } from "@/components/ContentTypeBanner";
 import { StandardizedContentCard } from "@/components/StandardizedContentCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Rss, Share2, Settings } from "lucide-react";
-import { GrowIcon } from "@/components/icons/GrowIcon";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Link, useNavigate } from "react-router-dom";
 import { GrowComingSoonDialog } from "@/components/GrowComingSoonDialog";
@@ -20,12 +18,47 @@ import {
 import { useHomePageData } from "@/hooks/useHomePageData";
 import { usePageLayoutWithContent } from "@/hooks/usePageLayout";
 import type { PageLayoutItemWithContent } from "@/types/pageLayout";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import * as LucideIcons from "lucide-react";
+
+interface ActionCardData {
+  id: string;
+  slug: string;
+  name: string;
+  icon_name: string | null;
+  icon_url: string | null;
+  label_override?: string | null;
+}
+
+const DynamicIcon = ({ name, className }: { name: string | null; className?: string }) => {
+  if (!name) return null;
+  const icons = LucideIcons as unknown as Record<string, React.ComponentType<{ className?: string }>>;
+  const IconComponent = icons[name];
+  if (!IconComponent) return null;
+  return <IconComponent className={className} />;
+};
 
 export default function Home() {
   const navigate = useNavigate();
   const [growDialogOpen, setGrowDialogOpen] = useState(false);
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [constructionAlertOpen, setConstructionAlertOpen] = useState(false);
+  
+  // Fetch action cards from database
+  const { data: actionCards, isLoading: actionCardsLoading } = useQuery({
+    queryKey: ["home-action-cards"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("action_cards")
+        .select("id, slug, name, icon_name, icon_url")
+        .eq("is_default", true)
+        .eq("status", "active")
+        .order("default_order");
+      if (error) throw error;
+      return data as ActionCardData[];
+    },
+  });
   
   // Try new page layout system first
   const { 
@@ -41,14 +74,34 @@ export default function Home() {
   const { settings: homeSettings, isLoading: settingsLoading } = useHomePageData();
   
   // Page layout is the only source of content - no legacy fallback
-  const isLoading = layoutLoading || settingsLoading;
+  const isLoading = layoutLoading || settingsLoading || actionCardsLoading;
 
-  const quickActionCards = [
-    { icon: Rss, label: "Feed", onClick: () => navigate('/feed'), isCustomIcon: false },
-    { icon: GrowIcon, label: "Grow", onClick: () => setGrowDialogOpen(true), isCustomIcon: true },
-    { icon: Share2, label: "Share", onClick: () => setShareModalOpen(true), isCustomIcon: false },
-    { icon: Settings, label: "Settings", onClick: () => setConstructionAlertOpen(true), isCustomIcon: false },
-  ];
+  const handleActionCardClick = (card: ActionCardData) => {
+    switch (card.slug) {
+      case 'feed':
+        navigate('/feed');
+        break;
+      case 'share':
+        setShareModalOpen(true);
+        break;
+      case 'grow':
+        setGrowDialogOpen(true);
+        break;
+      case 'settings':
+        setConstructionAlertOpen(true);
+        break;
+      default:
+        // For other action cards, show under construction
+        setConstructionAlertOpen(true);
+    }
+  };
+
+  const renderActionCardIcon = (card: ActionCardData, className: string) => {
+    if (card.icon_url) {
+      return <img src={card.icon_url} alt={card.name} className={className} />;
+    }
+    return <DynamicIcon name={card.icon_name} className={className} />;
+  };
 
   // Unified loading state - show skeleton for entire page
   if (isLoading) {
@@ -170,27 +223,24 @@ export default function Home() {
       </div>
 
       {/* Quick Action Cards */}
-      <div className="grid grid-cols-4 gap-2 md:gap-4">
-        {quickActionCards.map((action) => {
-          const Icon = action.icon;
-          return (
+      {actionCards && actionCards.length > 0 && (
+        <div className="grid grid-cols-4 gap-2 md:gap-4">
+          {actionCards.map((card) => (
             <Card 
-              key={action.label}
+              key={card.id}
               className="hover:shadow-md transition-shadow cursor-pointer h-full bg-[hsl(var(--scheme-actions-bg))] border-[hsl(var(--scheme-actions-border))]"
-              onClick={action.onClick}
+              onClick={() => handleActionCardClick(card)}
             >
               <CardContent className="flex flex-col items-center justify-center p-3 md:p-6 gap-1 md:gap-2">
-                {action.isCustomIcon ? (
-                  <Icon className="h-5 w-5 md:h-8 md:w-8 text-[hsl(var(--scheme-actions-icon))]" />
-                ) : (
-                  <Icon className="h-5 w-5 md:h-8 md:w-8 text-[hsl(var(--scheme-actions-icon))]" />
-                )}
-                <span className="text-[10px] md:text-sm font-medium text-[hsl(var(--scheme-actions-text))]">{action.label}</span>
+                {renderActionCardIcon(card, "h-5 w-5 md:h-8 md:w-8 text-[hsl(var(--scheme-actions-icon))]")}
+                <span className="text-[10px] md:text-sm font-medium text-[hsl(var(--scheme-actions-text))]">
+                  {card.label_override || card.name}
+                </span>
               </CardContent>
             </Card>
-          );
-        })}
-      </div>
+          ))}
+        </div>
+      )}
       
       <GrowComingSoonDialog
         open={growDialogOpen}
