@@ -62,6 +62,7 @@ import ColorSchemes from "./pages/ColorSchemes";
 import ColorSchemeEdit from "./pages/ColorSchemeEdit";
 import ActionCards from "./pages/ActionCards";
 import ActionCardEdit from "./pages/ActionCardEdit";
+import StartButtonAdmin from "./pages/admin/StartButtonAdmin";
 import TestImageImport from "./pages/TestImageImport";
 import ImportNewsImages from "./pages/ImportNewsImages";
 import LifelineImageManager from "./pages/LifelineImageManager";
@@ -402,6 +403,14 @@ function AppContent() {
               element={
                 <ProtectedRoute>
                   <ActionCardEdit />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/start-button"
+              element={
+                <ProtectedRoute>
+                  <StartButtonAdmin />
                 </ProtectedRoute>
               }
             />
