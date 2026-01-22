@@ -127,12 +127,12 @@ export function MobileSectionCarousel({ title, children, className }: MobileSect
           ))}
         </div>
         
-        {/* Counter */}
+        {/* Counter with section name */}
         <span 
           className="text-sm"
           style={{ color: 'hsl(var(--scheme-title-text)/0.7)' }}
         >
-          {current + 1} of {count}
+          {current + 1} of {count}{title ? ` ${title}` : ''}
         </span>
       </div>
     </section>
