@@ -9,7 +9,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, Send, Loader2 } from "lucide-react";
+import { ArrowLeft, Send, Loader2, Check, Save } from "lucide-react";
+import { toast } from "sonner";
 
 interface Message {
   role: "user" | "assistant";
@@ -35,6 +36,7 @@ interface ToolCall {
 }
 
 interface SavedEntry {
+  id?: string;
   title: string;
   description: string;
   score: number;
@@ -65,7 +67,10 @@ export default function Build() {
   });
   
   const [savedEntries, setSavedEntries] = useState<SavedEntry[]>([]);
+  const [lifelineId, setLifelineId] = useState<string | null>(null);
   const [lifelineSaved, setLifelineSaved] = useState(false);
+  const [savingLifeline, setSavingLifeline] = useState(false);
+  const [savingEntry, setSavingEntry] = useState(false);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -84,11 +89,158 @@ export default function Build() {
     enabled: !!collectionId
   });
 
+  // Check for existing lifeline in this collection
+  useEffect(() => {
+    const checkExistingLifeline = async () => {
+      if (!collectionId) return;
+      
+      const { data, error } = await supabase
+        .from("lifelines")
+        .select("id, title, lifeline_type, purpose")
+        .eq("collection_id", collectionId)
+        .limit(1)
+        .maybeSingle();
+      
+      if (data && !error) {
+        setLifelineId(data.id);
+        setLifelineSaved(true);
+        setLifelineForm({
+          title: data.title || "",
+          lifeline_type: data.lifeline_type || "",
+          purpose: data.purpose || ""
+        });
+        
+        // Also load existing entries
+        const { data: entries } = await supabase
+          .from("entries")
+          .select("id, title, description, score, year")
+          .eq("lifeline_id", data.id)
+          .order("year", { ascending: true });
+        
+        if (entries) {
+          setSavedEntries(entries.map(e => ({
+            id: e.id,
+            title: e.title || "",
+            description: e.description || "",
+            score: e.score || 0,
+            year: e.year?.toString() || ""
+          })));
+        }
+      }
+    };
+    
+    checkExistingLifeline();
+  }, [collectionId]);
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const processToolCalls = (toolCalls: ToolCall[]) => {
+  // Generate a slug from title
+  const generateSlug = (title: string): string => {
+    return title
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '')
+      .substring(0, 50) + '-' + Date.now().toString(36);
+  };
+
+  // Save lifeline to database
+  const saveLifelineToDb = async (): Promise<string | null> => {
+    if (!collectionId || !lifelineForm.title) {
+      toast.error("Please provide a lifeline title");
+      return null;
+    }
+    
+    setSavingLifeline(true);
+    try {
+      const slug = generateSlug(lifelineForm.title);
+      
+      const { data, error } = await supabase
+        .from("lifelines")
+        .insert({
+          collection_id: collectionId,
+          title: lifelineForm.title,
+          slug: slug,
+          lifeline_type: lifelineForm.lifeline_type || "person",
+          purpose: lifelineForm.purpose,
+          status: "draft"
+        })
+        .select()
+        .single();
+      
+      if (error) throw error;
+      
+      setLifelineId(data.id);
+      setLifelineSaved(true);
+      toast.success("Lifeline created!");
+      return data.id;
+    } catch (err) {
+      console.error("Failed to save lifeline:", err);
+      toast.error("Failed to save lifeline");
+      return null;
+    } finally {
+      setSavingLifeline(false);
+    }
+  };
+
+  // Save entry to database
+  const saveEntryToDb = async (): Promise<boolean> => {
+    if (!lifelineId) {
+      toast.error("Please create the lifeline first");
+      return false;
+    }
+    
+    if (!entryForm.title) {
+      toast.error("Please provide an entry title");
+      return false;
+    }
+    
+    setSavingEntry(true);
+    try {
+      const slug = generateSlug(entryForm.title);
+      const orderIndex = savedEntries.length;
+      
+      const { data, error } = await supabase
+        .from("entries")
+        .insert({
+          lifeline_id: lifelineId,
+          title: entryForm.title,
+          slug: slug,
+          description: entryForm.description,
+          score: entryForm.score,
+          year: entryForm.year ? parseInt(entryForm.year) : null,
+          order_index: orderIndex
+        })
+        .select()
+        .single();
+      
+      if (error) throw error;
+      
+      // Add to saved entries list
+      setSavedEntries(prev => [...prev, {
+        id: data.id,
+        title: entryForm.title,
+        description: entryForm.description,
+        score: entryForm.score,
+        year: entryForm.year
+      }]);
+      
+      // Clear entry form
+      setEntryForm({ title: "", description: "", score: 0, year: "" });
+      
+      toast.success("Entry saved!");
+      return true;
+    } catch (err) {
+      console.error("Failed to save entry:", err);
+      toast.error("Failed to save entry");
+      return false;
+    } finally {
+      setSavingEntry(false);
+    }
+  };
+
+  const processToolCalls = async (toolCalls: ToolCall[]) => {
     for (const call of toolCalls) {
       if (call.name === "update_form_field") {
         const { field, value } = call.input as { field: string; value: string };
@@ -107,13 +259,14 @@ export default function Build() {
         } else if (field === "entry_year") {
           setEntryForm(prev => ({ ...prev, year: value }));
         }
-      } else if (call.name === "save_entry" && (call.input as { confirm: boolean }).confirm) {
-        // Save current entry to list
-        if (entryForm.title) {
-          setSavedEntries(prev => [...prev, { ...entryForm }]);
-          // Clear entry form
-          setEntryForm({ title: "", description: "", score: 0, year: "" });
+      } else if (call.name === "save_lifeline" && (call.input as { confirm: boolean }).confirm) {
+        // Save lifeline to database
+        if (!lifelineSaved) {
+          await saveLifelineToDb();
         }
+      } else if (call.name === "save_entry" && (call.input as { confirm: boolean }).confirm) {
+        // Save entry to database
+        await saveEntryToDb();
       }
     }
   };
@@ -132,17 +285,19 @@ export default function Build() {
           messages: [...messages, { role: "user", content: userMessage }],
           formState: {
             lifeline: lifelineForm,
+            lifelineSaved: lifelineSaved,
+            lifelineId: lifelineId,
             entry: entryForm,
-            savedEntries: savedEntries.length
+            savedEntriesCount: savedEntries.length
           }
         }
       });
 
       if (error) throw error;
 
-      // Process tool calls first
+      // Process tool calls first (this may save to DB)
       if (data.toolCalls && data.toolCalls.length > 0) {
-        processToolCalls(data.toolCalls);
+        await processToolCalls(data.toolCalls);
       }
 
       // Add assistant message
@@ -168,6 +323,17 @@ export default function Build() {
     }
   };
 
+  // Manual save handlers
+  const handleManualSaveLifeline = async () => {
+    if (!lifelineSaved) {
+      await saveLifelineToDb();
+    }
+  };
+
+  const handleManualSaveEntry = async () => {
+    await saveEntryToDb();
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -177,10 +343,16 @@ export default function Build() {
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Profile
           </Button>
-          <div>
+          <div className="flex-1">
             <h1 className="font-semibold">{collection?.title || "Building Your Collection"}</h1>
             <p className="text-sm text-muted-foreground">AI-Assisted Creation</p>
           </div>
+          {lifelineSaved && (
+            <div className="flex items-center gap-1 text-sm text-green-600">
+              <Check className="h-4 w-4" />
+              Lifeline saved
+            </div>
+          )}
         </div>
       </div>
 
@@ -235,7 +407,7 @@ export default function Build() {
                 </Button>
               </div>
               <p className="text-xs text-muted-foreground mt-2">
-                Tip: You can also edit the form directly on the right.
+                Tip: You can also edit the form directly and use the Save buttons.
               </p>
             </CardContent>
           </Card>
@@ -253,6 +425,7 @@ export default function Build() {
                   value={lifelineForm.title} 
                   onChange={(e) => setLifelineForm(prev => ({ ...prev, title: e.target.value }))}
                   placeholder="e.g., My Career Journey"
+                  disabled={lifelineSaved}
                 />
               </div>
               
@@ -261,6 +434,7 @@ export default function Build() {
                 <Select 
                   value={lifelineForm.lifeline_type} 
                   onValueChange={(v) => setLifelineForm(prev => ({ ...prev, lifeline_type: v }))}
+                  disabled={lifelineSaved}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select type" />
@@ -279,12 +453,33 @@ export default function Build() {
                   onChange={(e) => setLifelineForm(prev => ({ ...prev, purpose: e.target.value }))}
                   placeholder="What is this lifeline about?"
                   rows={2}
+                  disabled={lifelineSaved}
                 />
               </div>
+
+              {/* Save Lifeline Button */}
+              {!lifelineSaved && (
+                <Button 
+                  onClick={handleManualSaveLifeline}
+                  disabled={savingLifeline || !lifelineForm.title}
+                  className="w-full"
+                >
+                  {savingLifeline ? (
+                    <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Saving...</>
+                  ) : (
+                    <><Save className="h-4 w-4 mr-2" /> Save Lifeline</>
+                  )}
+                </Button>
+              )}
 
               {/* Divider */}
               <div className="border-t pt-4 mt-4">
                 <h3 className="font-semibold mb-3">Add an Entry</h3>
+                {!lifelineSaved && (
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Save the lifeline first before adding entries.
+                  </p>
+                )}
               </div>
               
               <div>
@@ -293,6 +488,7 @@ export default function Build() {
                   value={entryForm.title}
                   onChange={(e) => setEntryForm(prev => ({ ...prev, title: e.target.value }))}
                   placeholder="Entry title"
+                  disabled={!lifelineSaved}
                 />
               </div>
               
@@ -303,6 +499,7 @@ export default function Build() {
                   onChange={(e) => setEntryForm(prev => ({ ...prev, description: e.target.value }))}
                   placeholder="What made this moment meaningful?"
                   rows={3}
+                  disabled={!lifelineSaved}
                 />
               </div>
               
@@ -315,6 +512,7 @@ export default function Build() {
                   max={10}
                   step={1}
                   className="mt-2"
+                  disabled={!lifelineSaved}
                 />
                 <div className="flex justify-between text-xs text-muted-foreground mt-1">
                   <span>-10 (terrible)</span>
@@ -329,8 +527,25 @@ export default function Build() {
                   value={entryForm.year}
                   onChange={(e) => setEntryForm(prev => ({ ...prev, year: e.target.value }))}
                   placeholder="e.g., 2020 or June 2020"
+                  disabled={!lifelineSaved}
                 />
               </div>
+
+              {/* Save Entry Button */}
+              {lifelineSaved && (
+                <Button 
+                  onClick={handleManualSaveEntry}
+                  disabled={savingEntry || !entryForm.title}
+                  className="w-full"
+                  variant="secondary"
+                >
+                  {savingEntry ? (
+                    <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Saving...</>
+                  ) : (
+                    <><Save className="h-4 w-4 mr-2" /> Save Entry</>
+                  )}
+                </Button>
+              )}
 
               {/* Saved entries preview */}
               {savedEntries.length > 0 && (
@@ -338,10 +553,13 @@ export default function Build() {
                   <h3 className="font-semibold mb-2">Saved Entries ({savedEntries.length})</h3>
                   <div className="space-y-2">
                     {savedEntries.map((entry, i) => (
-                      <div key={i} className="bg-green-50 border border-green-100 p-2 rounded text-sm">
-                        <strong>{entry.title}</strong>
-                        {entry.year && <span className="text-muted-foreground"> ({entry.year})</span>}
-                        <span className="ml-2 text-xs">Score: {entry.score}</span>
+                      <div key={entry.id || i} className="bg-green-50 border border-green-100 p-2 rounded text-sm">
+                        <div className="flex items-center gap-2">
+                          <Check className="h-3 w-3 text-green-600" />
+                          <strong>{entry.title}</strong>
+                          {entry.year && <span className="text-muted-foreground">({entry.year})</span>}
+                          <span className="ml-auto text-xs">Score: {entry.score}</span>
+                        </div>
                       </div>
                     ))}
                   </div>

@@ -27,8 +27,22 @@ const tools = [
     }
   },
   {
+    name: "save_lifeline",
+    description: "Save the lifeline to the database. Use this once the user has confirmed the lifeline title, type, and purpose. This creates the lifeline so entries can be added to it.",
+    input_schema: {
+      type: "object",
+      properties: {
+        confirm: {
+          type: "boolean",
+          description: "Confirm saving the lifeline"
+        }
+      },
+      required: ["confirm"]
+    }
+  },
+  {
     name: "save_entry",
-    description: "Save the current entry to the lifeline. Use this when the user has provided enough information for a complete entry.",
+    description: "Save the current entry to the lifeline. Use this when the user has provided enough information for a complete entry (title, description, score, and year).",
     input_schema: {
       type: "object",
       properties: {
@@ -44,23 +58,31 @@ const tools = [
 
 const systemPrompt = `You are a friendly AI assistant helping users create their personal lifeline - a visual timeline of meaningful moments in their life.
 
-Your job is to:
-1. Have a natural conversation to understand what moments they want to capture
-2. Use the update_form_field tool to populate the form as they share information
-3. Use save_entry when they've described a complete moment
+Your workflow:
+1. First, help them set up their lifeline (title, type, purpose)
+2. Once those are filled in, use save_lifeline to create it in the database
+3. Then help them add entries (moments/events) one at a time
+4. For each entry, gather: title, description, score (-10 to +10), and year
+5. Use save_entry when an entry is complete
 
 Form fields you can update:
-- title: The lifeline's title (e.g., "My Career Journey", "Adventures in Cooking")
+- title: The lifeline's title (e.g., "My Life Story", "Career Journey")
 - lifeline_type: Either "person" (about themselves) or "list" (a collection of things)
 - purpose: A brief description of what this lifeline is about
 - entry_title: Title for a specific moment/event
-- entry_description: The story behind that moment
-- entry_score: How positive/negative (-10 to +10)
-- entry_year: When it happened
+- entry_description: The story behind that moment (can be a few sentences)
+- entry_score: How positive/negative the experience was (-10 = terrible, 0 = neutral, +10 = amazing)
+- entry_year: When it happened (e.g., "1981" or "2020")
 
-Be conversational and encouraging. Draw out details about their experiences. When they share a moment, extract the key information and update the form fields.
+Important:
+- Use update_form_field to fill in fields as the user shares information
+- Use save_lifeline ONCE after title, type, and purpose are set
+- Use save_entry after EACH entry is complete (has title, description, score, year)
+- Be conversational and encouraging
+- Draw out details and emotions about their experiences
+- After saving an entry, ask about the next moment in their journey
 
-Current form state will be provided in the user message.`;
+Current form state and saved status will be provided in the user message.`;
 
 serve(async (req) => {
   // Handle CORS preflight
