@@ -12,7 +12,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Save, Upload, Info, X } from "lucide-react";
+import { ArrowLeft, Save, Upload, Info, X, FileText } from "lucide-react";
 import * as LucideIcons from "lucide-react";
 import { uploadImage } from "@/lib/storage";
 
@@ -545,10 +545,23 @@ export default function ActionCardEdit() {
             {/* Implementation Documentation - Full width */}
             <Card className="md:col-span-2">
               <CardHeader>
-                <CardTitle>Implementation Documentation</CardTitle>
-                <CardDescription>
-                  Document how this card is implemented so the behavior isn't lost in code
-                </CardDescription>
+                <div className="flex items-start justify-between">
+                  <div>
+                    <CardTitle>Implementation Documentation</CardTitle>
+                    <CardDescription>
+                      Document how this card is implemented so the behavior isn't lost in code
+                    </CardDescription>
+                  </div>
+                  <a
+                    href="/docs/action-card-implementation-guide.md"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 text-sm text-primary hover:underline"
+                  >
+                    <FileText className="h-4 w-4" />
+                    View Implementation Guide
+                  </a>
+                </div>
               </CardHeader>
               <CardContent className="space-y-6">
                 {/* Implementation Status Toggle */}
