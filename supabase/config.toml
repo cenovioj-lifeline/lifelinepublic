@@ -41,3 +41,6 @@ verify_jwt = false
 
 [functions.generate-ai-image]
 verify_jwt = true
+
+[functions.ai-wizard]
+verify_jwt = false
