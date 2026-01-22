@@ -212,7 +212,7 @@ export function StartButtonModal({ open, onOpenChange }: StartButtonModalProps) 
   // Desktop: Dialog with split panels
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl h-[500px] p-0 gap-0 overflow-hidden">
+      <DialogContent className="max-w-3xl h-[600px] p-0 gap-0 overflow-hidden">
         <div className="flex h-full">
           {/* Left panel - navigation */}
           <div className="w-72 border-r bg-muted/30 flex flex-col">
