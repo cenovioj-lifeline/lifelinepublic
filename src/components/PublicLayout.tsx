@@ -25,7 +25,7 @@ export function PublicLayout({ children }: { children: React.ReactNode }) {
     { path: "/", label: "Home", icon: Home },
     { path: "/public/collections", label: "Collections", icon: FolderOpen },
     { path: "/stories", label: "Stories", icon: LifelineBookIcon },
-    { path: "/public/profiles", label: "Profiles", icon: Users },
+    { path: "/profiles", label: "Profiles", icon: Users },
     { path: "/public/elections", label: "Awards", icon: Award },
     { path: "/public/more", label: "More", icon: MoreHorizontal },
   ];
