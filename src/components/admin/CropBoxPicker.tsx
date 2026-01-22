@@ -1,19 +1,23 @@
 /**
  * CropBoxPicker Component
- * 
+ *
  * Intuitive image cropping with a draggable/resizable crop box.
  * The user moves and resizes a box OVER the image to select the crop area.
- * 
+ *
  * - Smaller box = tighter crop (that portion fills the display frame)
  * - Larger box = wider view (more context visible)
  * - Drag box = select which part of the image to show
  * - Box maintains specified aspect ratio
- * 
+ *
  * Supported aspect ratios:
  * - 16/9 (card view)
  * - 1/1 (avatar - circular)
  * - 3/1 (banner)
  * - 2/3 (cover)
+ *
+ * When at max size, shows which dimension is constraining:
+ * - Height-limited: "circle touches top and bottom edges"
+ * - Width-limited: "circle touches left and right edges"
  */
 
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
@@ -65,6 +69,24 @@ const getViewTypeDescription = (ratio: number): string => {
   return 'display';
 };
 
+// Get user-friendly message explaining the constraint
+const getConstraintMessage = (
+  limitingDimension: 'width' | 'height' | 'both',
+  isAvatar: boolean
+): string => {
+  if (limitingDimension === 'both') {
+    return 'Box fills the entire image.';
+  }
+
+  const cropType = isAvatar ? 'circle' : 'box';
+
+  if (limitingDimension === 'height') {
+    return `At max size — ${cropType} touches top and bottom edges. Image is wider than needed for this crop shape.`;
+  } else {
+    return `At max size — ${cropType} touches left and right edges. Image is taller than needed for this crop shape.`;
+  }
+};
+
 // ========================================
 // COMPONENT
 // ========================================
@@ -80,16 +102,16 @@ export const CropBoxPicker = ({
   // Container and image refs
   const containerRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
-  
+
   // Image dimensions (natural size)
   const [imageDimensions, setImageDimensions] = useState({ width: 0, height: 0 });
-  
+
   // Displayed dimensions (scaled to fit container)
   const [displayDimensions, setDisplayDimensions] = useState({ width: 0, height: 0 });
-  
+
   // Crop box state (in pixels relative to displayed image)
   const [cropBox, setCropBox] = useState({ x: 0, y: 0, width: 0, height: 0 });
-  
+
   // Drag state
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
@@ -102,27 +124,44 @@ export const CropBoxPicker = ({
   const aspectLabel = getAspectRatioLabel(aspectRatio);
   const viewTypeDesc = getViewTypeDescription(aspectRatio);
 
-  // Calculate maximum possible crop box dimensions
-  const maxCropBox = useMemo(() => {
+  // Calculate maximum possible crop box dimensions AND which dimension is limiting
+  const { maxCropBox, limitingDimension } = useMemo(() => {
     if (displayDimensions.width === 0 || displayDimensions.height === 0) {
-      return { width: 0, height: 0 };
+      return { maxCropBox: { width: 0, height: 0 }, limitingDimension: 'both' as const };
     }
-    
+
     // Max width is constrained by image width
     // Max height is constrained by image height
     // We need to find the largest box that fits within both constraints while maintaining aspect ratio
-    
+
     const maxWidthByWidth = displayDimensions.width;
     const maxHeightByWidth = maxWidthByWidth / aspectRatio;
-    
+
     const maxHeightByHeight = displayDimensions.height;
     const maxWidthByHeight = maxHeightByHeight * aspectRatio;
-    
-    // Use the smaller constraint
+
+    // Check if both dimensions would give the same result (within tolerance)
+    const tolerance = 2;
+    if (Math.abs(maxHeightByWidth - displayDimensions.height) < tolerance) {
+      return {
+        maxCropBox: { width: maxWidthByWidth, height: maxHeightByWidth },
+        limitingDimension: 'both' as const
+      };
+    }
+
+    // Use the smaller constraint and track which dimension is limiting
     if (maxHeightByWidth <= displayDimensions.height) {
-      return { width: maxWidthByWidth, height: maxHeightByWidth };
+      // Width is the constraint (box fills width, doesn't reach top/bottom)
+      return {
+        maxCropBox: { width: maxWidthByWidth, height: maxHeightByWidth },
+        limitingDimension: 'width' as const
+      };
     } else {
-      return { width: maxWidthByHeight, height: maxHeightByHeight };
+      // Height is the constraint (box fills height, doesn't reach left/right)
+      return {
+        maxCropBox: { width: maxWidthByHeight, height: maxHeightByHeight },
+        limitingDimension: 'height' as const
+      };
     }
   }, [displayDimensions.width, displayDimensions.height, aspectRatio]);
 
@@ -139,35 +178,35 @@ export const CropBoxPicker = ({
   // Initialize crop box when image loads
   const handleImageLoad = useCallback(() => {
     if (!imageRef.current || !containerRef.current) return;
-    
+
     const img = imageRef.current;
     const container = containerRef.current;
-    
+
     // Get natural image dimensions
     const naturalWidth = img.naturalWidth;
     const naturalHeight = img.naturalHeight;
     setImageDimensions({ width: naturalWidth, height: naturalHeight });
-    
+
     // Calculate displayed dimensions (fit within container)
     const containerWidth = container.clientWidth;
     const maxHeight = 500; // Max height for the editing area
-    
+
     let displayWidth = containerWidth;
     let displayHeight = (containerWidth / naturalWidth) * naturalHeight;
-    
+
     if (displayHeight > maxHeight) {
       displayHeight = maxHeight;
       displayWidth = (maxHeight / naturalHeight) * naturalWidth;
     }
-    
+
     setDisplayDimensions({ width: displayWidth, height: displayHeight });
-    
+
     // Initialize crop box to center, covering 60% of the image width
     const initialWidth = displayWidth * 0.6;
     const initialHeight = initialWidth / aspectRatio;
     const initialX = (displayWidth - initialWidth) / 2;
     const initialY = (displayHeight - initialHeight) / 2;
-    
+
     setCropBox({
       x: initialX,
       y: initialY,
@@ -187,34 +226,34 @@ export const CropBoxPicker = ({
   const handleMouseMove = useCallback((e: MouseEvent) => {
     if (!isDragging && !isResizing) return;
     if (!containerRef.current) return;
-    
+
     const rect = containerRef.current.getBoundingClientRect();
     const mouseX = e.clientX - rect.left;
     const mouseY = e.clientY - rect.top;
-    
+
     if (isDragging) {
       // Move the crop box
       const deltaX = mouseX - dragStart.x;
       const deltaY = mouseY - dragStart.y;
-      
+
       let newX = boxStart.x + deltaX;
       let newY = boxStart.y + deltaY;
-      
+
       // Constrain to image bounds
       newX = Math.max(0, Math.min(newX, displayDimensions.width - cropBox.width));
       newY = Math.max(0, Math.min(newY, displayDimensions.height - cropBox.height));
-      
+
       setCropBox(prev => ({ ...prev, x: newX, y: newY }));
     } else if (isResizing && resizeHandle) {
       // Resize the crop box (maintaining aspect ratio)
       const deltaX = mouseX - dragStart.x;
       const deltaY = mouseY - dragStart.y;
-      
+
       let newWidth = boxStart.width;
       let newHeight = boxStart.height;
       let newX = boxStart.x;
       let newY = boxStart.y;
-      
+
       // Calculate new size based on which handle is being dragged
       if (resizeHandle.includes('e')) {
         newWidth = Math.max(50, boxStart.width + deltaX);
@@ -230,7 +269,7 @@ export const CropBoxPicker = ({
         newHeight = Math.max(50, boxStart.height - deltaY);
         newY = boxStart.y + (boxStart.height - newHeight);
       }
-      
+
       // Maintain aspect ratio - use width as primary
       if (resizeHandle.includes('e') || resizeHandle.includes('w')) {
         newHeight = newWidth / aspectRatio;
@@ -243,7 +282,7 @@ export const CropBoxPicker = ({
           newX = boxStart.x + boxStart.width - newWidth;
         }
       }
-      
+
       // Corner handles: use the larger delta
       if (resizeHandle.length === 2) {
         const widthFromHeight = newHeight * aspectRatio;
@@ -259,20 +298,20 @@ export const CropBoxPicker = ({
           }
         }
       }
-      
+
       // Constrain to image bounds
       newX = Math.max(0, newX);
       newY = Math.max(0, newY);
       newWidth = Math.min(newWidth, displayDimensions.width - newX);
       newHeight = Math.min(newHeight, displayDimensions.height - newY);
-      
+
       // Re-enforce aspect ratio after constraints
       if (newWidth / newHeight > aspectRatio) {
         newWidth = newHeight * aspectRatio;
       } else {
         newHeight = newWidth / aspectRatio;
       }
-      
+
       setCropBox({ x: newX, y: newY, width: newWidth, height: newHeight });
     }
   }, [isDragging, isResizing, resizeHandle, dragStart, boxStart, displayDimensions, cropBox.width, cropBox.height, aspectRatio]);
@@ -300,9 +339,9 @@ export const CropBoxPicker = ({
   const handleBoxMouseDown = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     if (!containerRef.current) return;
-    
+
     const rect = containerRef.current.getBoundingClientRect();
     setDragStart({ x: e.clientX - rect.left, y: e.clientY - rect.top });
     setBoxStart({ ...cropBox });
@@ -313,9 +352,9 @@ export const CropBoxPicker = ({
   const handleResizeMouseDown = (e: React.MouseEvent, handle: string) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     if (!containerRef.current) return;
-    
+
     const rect = containerRef.current.getBoundingClientRect();
     setDragStart({ x: e.clientX - rect.left, y: e.clientY - rect.top });
     setBoxStart({ ...cropBox });
@@ -329,7 +368,7 @@ export const CropBoxPicker = ({
     const initialHeight = initialWidth / aspectRatio;
     const initialX = (displayDimensions.width - initialWidth) / 2;
     const initialY = (displayDimensions.height - initialHeight) / 2;
-    
+
     setCropBox({
       x: initialX,
       y: initialY,
@@ -343,7 +382,7 @@ export const CropBoxPicker = ({
     // Center the max-size box
     const newX = (displayDimensions.width - maxCropBox.width) / 2;
     const newY = (displayDimensions.height - maxCropBox.height) / 2;
-    
+
     setCropBox({
       x: newX,
       y: newY,
@@ -361,7 +400,7 @@ export const CropBoxPicker = ({
       width: (cropBox.width / displayDimensions.width) * 100,
       height: (cropBox.height / displayDimensions.height) * 100
     };
-    
+
     onCropComplete(crop);
     onOpenChange(false);
   };
@@ -373,11 +412,11 @@ export const CropBoxPicker = ({
   // Calculate preview crop style
   const getPreviewStyle = () => {
     if (cropBox.width === 0) return {};
-    
+
     // For preview, we show what the cropped image will look like
     const scaleX = previewWidth / cropBox.width;
     const scaleY = previewHeight / cropBox.height;
-    
+
     return {
       width: displayDimensions.width * scaleX,
       height: displayDimensions.height * scaleY,
@@ -397,21 +436,22 @@ export const CropBoxPicker = ({
           <p className="text-sm text-muted-foreground">
             Drag the box to position. Drag corners to resize. Smaller box = tighter crop.
           </p>
-          
+
+          {/* Message explaining WHY it's at max */}
           {isAtMaxSize && (
             <div className="flex items-center gap-2 text-sm text-amber-600 bg-amber-50 border border-amber-200 rounded-md p-2">
               <AlertCircle className="w-4 h-4 flex-shrink-0" />
-              <span>Box is at maximum size for this image's dimensions and aspect ratio.</span>
+              <span>{getConstraintMessage(limitingDimension, isAvatar)}</span>
             </div>
           )}
 
           <div className="flex gap-6">
             {/* Main editing area */}
             <div className="flex-1">
-              <div 
+              <div
                 ref={containerRef}
                 className="relative bg-gray-900 rounded-lg overflow-hidden"
-                style={{ 
+                style={{
                   width: '100%',
                   height: displayDimensions.height || 'auto'
                 }}
@@ -431,18 +471,18 @@ export const CropBoxPicker = ({
                 />
 
                 {/* Darkened overlay outside crop box */}
-                <div 
+                <div
                   className="absolute inset-0 pointer-events-none"
                   style={{
-                    background: `linear-gradient(to right, 
-                      rgba(0,0,0,0.6) ${cropBox.x}px, 
-                      transparent ${cropBox.x}px, 
-                      transparent ${cropBox.x + cropBox.width}px, 
+                    background: `linear-gradient(to right,
+                      rgba(0,0,0,0.6) ${cropBox.x}px,
+                      transparent ${cropBox.x}px,
+                      transparent ${cropBox.x + cropBox.width}px,
                       rgba(0,0,0,0.6) ${cropBox.x + cropBox.width}px
                     )`,
                   }}
                 />
-                <div 
+                <div
                   className="absolute pointer-events-none"
                   style={{
                     left: cropBox.x,
@@ -452,7 +492,7 @@ export const CropBoxPicker = ({
                     background: 'rgba(0,0,0,0.6)'
                   }}
                 />
-                <div 
+                <div
                   className="absolute pointer-events-none"
                   style={{
                     left: cropBox.x,
@@ -462,6 +502,65 @@ export const CropBoxPicker = ({
                     background: 'rgba(0,0,0,0.6)'
                   }}
                 />
+
+                {/* Visual indicator for constraint edges when at max */}
+                {isAtMaxSize && limitingDimension === 'height' && (
+                  <>
+                    {/* Top edge indicator */}
+                    <div
+                      className="absolute pointer-events-none"
+                      style={{
+                        left: cropBox.x,
+                        top: cropBox.y - 2,
+                        width: cropBox.width,
+                        height: 4,
+                        background: 'linear-gradient(to right, transparent, rgba(251, 191, 36, 0.8), transparent)',
+                        borderRadius: 2
+                      }}
+                    />
+                    {/* Bottom edge indicator */}
+                    <div
+                      className="absolute pointer-events-none"
+                      style={{
+                        left: cropBox.x,
+                        top: cropBox.y + cropBox.height - 2,
+                        width: cropBox.width,
+                        height: 4,
+                        background: 'linear-gradient(to right, transparent, rgba(251, 191, 36, 0.8), transparent)',
+                        borderRadius: 2
+                      }}
+                    />
+                  </>
+                )}
+
+                {isAtMaxSize && limitingDimension === 'width' && (
+                  <>
+                    {/* Left edge indicator */}
+                    <div
+                      className="absolute pointer-events-none"
+                      style={{
+                        left: cropBox.x - 2,
+                        top: cropBox.y,
+                        width: 4,
+                        height: cropBox.height,
+                        background: 'linear-gradient(to bottom, transparent, rgba(251, 191, 36, 0.8), transparent)',
+                        borderRadius: 2
+                      }}
+                    />
+                    {/* Right edge indicator */}
+                    <div
+                      className="absolute pointer-events-none"
+                      style={{
+                        left: cropBox.x + cropBox.width - 2,
+                        top: cropBox.y,
+                        width: 4,
+                        height: cropBox.height,
+                        background: 'linear-gradient(to bottom, transparent, rgba(251, 191, 36, 0.8), transparent)',
+                        borderRadius: 2
+                      }}
+                    />
+                  </>
+                )}
 
                 {/* Crop box */}
                 {cropBox.width > 0 && (
@@ -488,37 +587,37 @@ export const CropBoxPicker = ({
 
                     {/* Resize handles */}
                     {/* Corners */}
-                    <div 
+                    <div
                       className="absolute -left-2 -top-2 w-4 h-4 bg-white border border-gray-400 cursor-nw-resize"
                       onMouseDown={(e) => handleResizeMouseDown(e, 'nw')}
                     />
-                    <div 
+                    <div
                       className="absolute -right-2 -top-2 w-4 h-4 bg-white border border-gray-400 cursor-ne-resize"
                       onMouseDown={(e) => handleResizeMouseDown(e, 'ne')}
                     />
-                    <div 
+                    <div
                       className="absolute -left-2 -bottom-2 w-4 h-4 bg-white border border-gray-400 cursor-sw-resize"
                       onMouseDown={(e) => handleResizeMouseDown(e, 'sw')}
                     />
-                    <div 
+                    <div
                       className="absolute -right-2 -bottom-2 w-4 h-4 bg-white border border-gray-400 cursor-se-resize"
                       onMouseDown={(e) => handleResizeMouseDown(e, 'se')}
                     />
-                    
+
                     {/* Edge handles */}
-                    <div 
+                    <div
                       className="absolute left-1/2 -translate-x-1/2 -top-2 w-8 h-4 bg-white border border-gray-400 cursor-n-resize"
                       onMouseDown={(e) => handleResizeMouseDown(e, 'n')}
                     />
-                    <div 
+                    <div
                       className="absolute left-1/2 -translate-x-1/2 -bottom-2 w-8 h-4 bg-white border border-gray-400 cursor-s-resize"
                       onMouseDown={(e) => handleResizeMouseDown(e, 's')}
                     />
-                    <div 
+                    <div
                       className="absolute top-1/2 -translate-y-1/2 -left-2 w-4 h-8 bg-white border border-gray-400 cursor-w-resize"
                       onMouseDown={(e) => handleResizeMouseDown(e, 'w')}
                     />
-                    <div 
+                    <div
                       className="absolute top-1/2 -translate-y-1/2 -right-2 w-4 h-8 bg-white border border-gray-400 cursor-e-resize"
                       onMouseDown={(e) => handleResizeMouseDown(e, 'e')}
                     />
@@ -530,10 +629,10 @@ export const CropBoxPicker = ({
             {/* Preview */}
             <div className="w-72 flex-shrink-0">
               <p className="text-sm font-medium mb-2">Preview ({aspectLabel})</p>
-              <div 
+              <div
                 className={`bg-gray-100 overflow-hidden ${isAvatar ? 'rounded-full' : 'rounded-lg'}`}
-                style={{ 
-                  width: previewWidth, 
+                style={{
+                  width: previewWidth,
                   height: previewHeight,
                 }}
               >
@@ -559,11 +658,14 @@ export const CropBoxPicker = ({
                 <RotateCcw className="w-4 h-4 mr-2" />
                 Reset
               </Button>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={handleFitToMax}
                 disabled={isAtMaxSize}
-                title="Expand crop box to maximum possible size"
+                title={isAtMaxSize
+                  ? getConstraintMessage(limitingDimension, isAvatar)
+                  : "Expand crop box to maximum possible size"
+                }
               >
                 <Maximize2 className="w-4 h-4 mr-2" />
                 Fit to Max
