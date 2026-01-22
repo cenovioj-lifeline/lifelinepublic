@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -51,6 +51,7 @@ export function StartButtonModal({ open, onOpenChange }: StartButtonModalProps) 
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [expandedAccordion, setExpandedAccordion] = useState<string | undefined>(undefined);
 
   const { data: categories, isLoading } = useQuery({
     queryKey: ["start-button-categories"],
@@ -81,6 +82,20 @@ export function StartButtonModal({ open, onOpenChange }: StartButtonModalProps) 
       navigate(link.url);
     }
   };
+
+  // Handle accordion expansion with scroll-into-view
+  const handleAccordionChange = useCallback((value: string | undefined) => {
+    setExpandedAccordion(value);
+    if (value) {
+      // Small delay to let the accordion animate open, then scroll into view
+      setTimeout(() => {
+        const element = document.getElementById(`start-accordion-${value}`);
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        }
+      }, 150);
+    }
+  }, []);
 
   const renderCategoryNav = (category: StartCategory, isSelected: boolean) => (
     <button
@@ -160,9 +175,19 @@ export function StartButtonModal({ open, onOpenChange }: StartButtonModalProps) 
             {isLoading ? (
               renderLoading()
             ) : (
-              <Accordion type="single" collapsible className="w-full">
+              <Accordion
+                type="single"
+                collapsible
+                className="w-full"
+                value={expandedAccordion}
+                onValueChange={handleAccordionChange}
+              >
                 {categories?.map((category) => (
-                  <AccordionItem key={category.id} value={category.id}>
+                  <AccordionItem
+                    key={category.id}
+                    value={category.id}
+                    id={`start-accordion-${category.id}`}
+                  >
                     <AccordionTrigger className="hover:no-underline">
                       <div className="flex items-center gap-3 text-left">
                         <span className="text-xl">{category.icon || "📌"}</span>
@@ -209,14 +234,14 @@ export function StartButtonModal({ open, onOpenChange }: StartButtonModalProps) 
     );
   }
 
-  // Desktop: Dialog with split panels
+  // Desktop: Dialog with split panels - responsive height
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl h-[600px] p-0 gap-0 overflow-hidden">
-        <div className="flex h-full">
+      <DialogContent className="max-w-3xl max-h-[85vh] min-h-[500px] h-auto p-0 gap-0 overflow-hidden flex flex-col">
+        <div className="flex flex-1 min-h-0">
           {/* Left panel - navigation */}
-          <div className="w-72 border-r bg-muted/30 flex flex-col">
-            <DialogHeader className="p-4 border-b">
+          <div className="w-72 border-r bg-muted/30 flex flex-col min-h-0">
+            <DialogHeader className="p-4 border-b shrink-0">
               <DialogTitle>Get Started</DialogTitle>
             </DialogHeader>
             <ScrollArea className="flex-1">
