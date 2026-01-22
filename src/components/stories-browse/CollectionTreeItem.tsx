@@ -11,13 +11,12 @@ import { cn } from "@/lib/utils";
 import { LifelineRow } from "./LifelineRow";
 import type { CollectionWithLifelines, LifelineItem, CollectionFilters, LifelineType, LifelineSort } from "@/hooks/useStoriesBrowse";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useCollectionLifelines } from "@/hooks/useCollectionLifelines";
 
 interface CollectionTreeItemProps {
   collection: CollectionWithLifelines;
   isExpanded: boolean;
   onToggle: () => void;
-  lifelines?: LifelineItem[];
-  lifelinesLoading?: boolean;
   filters: CollectionFilters;
   onFilterChange: (filters: Partial<CollectionFilters>) => void;
   filterLifelines: (lifelines: LifelineItem[], filters: CollectionFilters) => LifelineItem[];
@@ -32,8 +31,6 @@ export function CollectionTreeItem({
   collection,
   isExpanded,
   onToggle,
-  lifelines,
-  lifelinesLoading,
   filters,
   onFilterChange,
   filterLifelines,
@@ -43,6 +40,12 @@ export function CollectionTreeItem({
 }: CollectionTreeItemProps) {
   const [showAll, setShowAll] = useState(false);
   const isMobile = useIsMobile();
+  
+  // Fetch lifelines inside the component (avoids hooks-in-loop violation)
+  const { data: lifelines, isLoading: lifelinesLoading } = useCollectionLifelines(
+    collection.id,
+    isExpanded
+  );
   
   const hasMatch = hasSearchQuery && (matchCount ?? 0) > 0;
   const isGrayedOut = hasSearchQuery && !hasMatch;
