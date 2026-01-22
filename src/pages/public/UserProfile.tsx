@@ -10,7 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Pencil, Save, X, Trash2 } from "lucide-react";
+import { Pencil, Save, X, Trash2, MapPin, Mail, Plus, TrendingUp, Heart } from "lucide-react";
 import { ImageUpload } from "@/components/ImageUpload";
 import { PasswordInput } from "@/components/ui/password-input";
 import { ContributionStatusBadge } from "@/components/ContributionStatusBadge";
@@ -238,6 +238,20 @@ export default function UserProfile() {
               </div>
             </div>
 
+            {/* Location and Contact Info placeholders */}
+            <div className="space-y-2 border-t pt-4">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <MapPin className="h-4 w-4" />
+                <span>Location:</span>
+                <span className="italic">Not yet implemented</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Mail className="h-4 w-4" />
+                <span>Contact:</span>
+                <span className="italic">Not yet implemented</span>
+              </div>
+            </div>
+
             {isEditing && (
               <div className="space-y-4 border-t pt-4">
                 <div className="grid grid-cols-2 gap-4">
@@ -280,6 +294,69 @@ export default function UserProfile() {
                 </div>
               </div>
             )}
+          </CardContent>
+        </Card>
+
+        {/* My Collection Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle>My Collection</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Button disabled className="w-full sm:w-auto">
+              <Plus className="h-4 w-4 mr-2" />
+              Create a Collection
+            </Button>
+            <p className="text-sm text-muted-foreground italic">
+              Collection creation coming soon. Learn about building your personal, professional, and social media presence.
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* Grow Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <TrendingUp className="h-5 w-5" />
+              Grow
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Stats placeholder */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="text-center p-4 bg-muted rounded-lg">
+                <div className="text-2xl font-bold">0</div>
+                <div className="text-sm text-muted-foreground">Items Marked</div>
+              </div>
+              <div className="text-center p-4 bg-muted rounded-lg">
+                <div className="text-2xl font-bold">0</div>
+                <div className="text-sm text-muted-foreground">Active Plans</div>
+              </div>
+            </div>
+
+            {/* Enter Grow button */}
+            <Button disabled className="w-full">
+              Enter Grow
+            </Button>
+
+            <p className="text-sm text-muted-foreground italic text-center">
+              Personal and professional development tools coming soon.
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* Favorites/Follows Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Heart className="h-5 w-5" />
+              Favorites & Follows
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground italic">
+              Your favorited collections, lifelines, and followed profiles will appear here once this feature is implemented.
+            </p>
           </CardContent>
         </Card>
 
