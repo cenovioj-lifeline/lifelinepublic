@@ -103,49 +103,6 @@ export function useStoriesBrowse() {
     },
   });
 
-  // Fetch lifelines for expanded collection (lazy load)
-  const useCollectionLifelines = (collectionId: string) => {
-    return useQuery({
-      queryKey: ["collection-lifelines", collectionId],
-      queryFn: async () => {
-        const { data, error } = await supabase
-          .from("lifelines")
-          .select(`
-            id,
-            title,
-            slug,
-            lifeline_type,
-            cover_image_url,
-            profile_id,
-            collection_id
-          `)
-          .eq("collection_id", collectionId)
-          .eq("status", "published")
-          .order("title");
-
-        if (error) throw error;
-
-        // Get entry counts
-        const lifelinesWithCounts = await Promise.all(
-          (data || []).map(async (lifeline) => {
-            const { count } = await supabase
-              .from("entries")
-              .select("*", { count: "exact", head: true })
-              .eq("lifeline_id", lifeline.id);
-
-            return {
-              ...lifeline,
-              entry_count: count || 0,
-            } as LifelineItem;
-          })
-        );
-
-        return lifelinesWithCounts;
-      },
-      enabled: expandedCollections.has(collectionId),
-    });
-  };
-
   // Search across all lifelines
   const { data: searchResults } = useQuery({
     queryKey: ["stories-search", searchQuery],
@@ -273,7 +230,6 @@ export function useStoriesBrowse() {
     toggleExpanded,
     
     // Per-collection
-    useCollectionLifelines,
     getCollectionFilters,
     setCollectionFilter,
     filterLifelines,

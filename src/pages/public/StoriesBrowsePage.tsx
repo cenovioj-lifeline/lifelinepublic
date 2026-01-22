@@ -21,7 +21,6 @@ export default function StoriesBrowsePage() {
     setDensity,
     expandedCollections,
     toggleExpanded,
-    useCollectionLifelines,
     getCollectionFilters,
     setCollectionFilter,
     filterLifelines,
@@ -119,11 +118,8 @@ export default function StoriesBrowsePage() {
               ))}
             </div>
           ) : collections.length > 0 ? (
-            collections.map((collection) => {
+          collections.map((collection) => {
               const isExpanded = expandedCollections.has(collection.slug);
-              // eslint-disable-next-line react-hooks/rules-of-hooks
-              const { data: lifelines, isLoading: lifelinesLoading } =
-                useCollectionLifelines(collection.id);
 
               return (
                 <CollectionTreeItem
@@ -131,8 +127,6 @@ export default function StoriesBrowsePage() {
                   collection={collection}
                   isExpanded={isExpanded}
                   onToggle={() => toggleExpanded(collection.slug)}
-                  lifelines={lifelines}
-                  lifelinesLoading={lifelinesLoading}
                   filters={getCollectionFilters(collection.id)}
                   onFilterChange={(f) => setCollectionFilter(collection.id, f)}
                   filterLifelines={filterLifelines}
