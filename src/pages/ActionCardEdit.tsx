@@ -45,6 +45,8 @@ interface ActionCardFormData {
   behavior_type: "static_url" | "context_aware" | "custom";
   static_url: string;
   behavior_description: string;
+  is_implemented: boolean;
+  implementation_notes: string;
 }
 
 const generateSlug = (name: string) => {
@@ -74,6 +76,8 @@ export default function ActionCardEdit() {
     behavior_type: "context_aware",
     static_url: "",
     behavior_description: "",
+    is_implemented: false,
+    implementation_notes: "",
   });
   const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -109,6 +113,8 @@ export default function ActionCardEdit() {
         behavior_type: (existingCard.behavior_type as ActionCardFormData["behavior_type"]) || "context_aware",
         static_url: existingCard.static_url || "",
         behavior_description: existingCard.behavior_description || "",
+        is_implemented: existingCard.is_implemented || false,
+        implementation_notes: existingCard.implementation_notes || "",
       });
       setSlugManuallyEdited(true); // Don't auto-generate slug for existing cards
     }
@@ -171,13 +177,12 @@ export default function ActionCardEdit() {
         behavior_type: data.behavior_type,
         static_url: data.behavior_type === "static_url" ? data.static_url : null,
         behavior_description: data.behavior_description || null,
+        is_implemented: data.is_implemented,
+        implementation_notes: data.implementation_notes || null,
       };
 
       if (isNew) {
-        const { error } = await supabase.from("action_cards").insert({
-          ...payload,
-          is_implemented: data.behavior_type === "static_url", // Static URL cards are auto-implemented
-        });
+        const { error } = await supabase.from("action_cards").insert(payload);
         if (error) throw error;
       } else {
         const { error } = await supabase
@@ -448,12 +453,12 @@ export default function ActionCardEdit() {
                   </div>
                 </RadioGroup>
 
-                {/* Conditional fields based on behavior type */}
+                {/* Static URL field */}
                 {formData.behavior_type === "static_url" && (
                   <div className="space-y-2 pt-4 border-t">
-                    <Label htmlFor="static_url">Target URL *</Label>
+                    <Label htmlFor="static_url_input">Target URL *</Label>
                     <Input
-                      id="static_url"
+                      id="static_url_input"
                       value={formData.static_url}
                       onChange={(e) => setFormData({ ...formData, static_url: e.target.value })}
                       placeholder="/settings, /help, https://external.com"
@@ -464,6 +469,7 @@ export default function ActionCardEdit() {
                   </div>
                 )}
 
+                {/* Info boxes for context_aware and custom */}
                 {formData.behavior_type === "context_aware" && (
                   <div className="pt-4 border-t">
                     <div className="flex gap-2 p-3 bg-muted rounded-lg">
@@ -481,22 +487,9 @@ export default function ActionCardEdit() {
                     <div className="flex gap-2 p-3 bg-muted rounded-lg">
                       <Info className="h-4 w-4 mt-0.5 text-muted-foreground flex-shrink-0" />
                       <div className="text-sm text-muted-foreground">
-                        This card requires custom code implementation. Work with Lovable outside
-                        this editor to define the behavior, then return here to configure other settings.
+                        This card requires custom code implementation. The slug "{formData.slug}" 
+                        will be used to identify this card in code.
                       </div>
-                    </div>
-                    <div className="space-y-2 mt-4">
-                      <Label htmlFor="behavior_description">Behavior Notes</Label>
-                      <Textarea
-                        id="behavior_description"
-                        value={formData.behavior_description}
-                        onChange={(e) => setFormData({ ...formData, behavior_description: e.target.value })}
-                        placeholder="Describe what this card should do..."
-                        rows={3}
-                      />
-                      <p className="text-xs text-muted-foreground">
-                        Notes for reference when implementing or maintaining this card
-                      </p>
                     </div>
                   </div>
                 )}
@@ -549,45 +542,77 @@ export default function ActionCardEdit() {
               </CardContent>
             </Card>
 
-            {/* Implementation Info */}
-            {!isNew && existingCard && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Implementation Status</CardTitle>
-                  <CardDescription>
-                    Status of the card's functionality
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center gap-2">
-                    <div
-                      className={`h-3 w-3 rounded-full ${
-                        existingCard.is_implemented ? "bg-green-500" : "bg-amber-500"
-                      }`}
+            {/* Implementation Documentation - Full width */}
+            <Card className="md:col-span-2">
+              <CardHeader>
+                <CardTitle>Implementation Documentation</CardTitle>
+                <CardDescription>
+                  Document how this card is implemented so the behavior isn't lost in code
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Implementation Status Toggle */}
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="is_implemented">Implementation Status</Label>
+                    <p className="text-xs text-muted-foreground">
+                      Mark as implemented once the code is deployed and working
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2">
+                      <div
+                        className={`h-3 w-3 rounded-full ${
+                          formData.is_implemented ? "bg-green-500" : "bg-amber-500"
+                        }`}
+                      />
+                      <span className="text-sm text-muted-foreground">
+                        {formData.is_implemented ? "Implemented" : "Pending"}
+                      </span>
+                    </div>
+                    <Switch
+                      id="is_implemented"
+                      checked={formData.is_implemented}
+                      onCheckedChange={(checked) =>
+                        setFormData({ ...formData, is_implemented: checked })
+                      }
                     />
-                    <span>
-                      {existingCard.is_implemented ? "Implemented" : "Pending Implementation"}
-                    </span>
+                  </div>
+                </div>
+
+                <div className="grid gap-6 md:grid-cols-2">
+                  {/* Implementation Details */}
+                  <div className="space-y-2">
+                    <Label htmlFor="behavior_description">Implementation Details</Label>
+                    <Textarea
+                      id="behavior_description"
+                      value={formData.behavior_description}
+                      onChange={(e) => setFormData({ ...formData, behavior_description: e.target.value })}
+                      placeholder="What does this card do? What component handles it? What pages support it?"
+                      rows={5}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Describe the user-facing behavior. Example: "Opens StartButtonModal showing 9 categories. Desktop: split-panel. Mobile: bottom sheet accordion."
+                    </p>
                   </div>
 
-                  {!existingCard.is_implemented && formData.behavior_type !== "static_url" && (
-                    <p className="text-sm text-muted-foreground italic">
-                      Work with Lovable to implement this action card's behavior.
-                      The slug "{formData.slug}" will be used to identify this card in code.
+                  {/* Technical Notes */}
+                  <div className="space-y-2">
+                    <Label htmlFor="implementation_notes">Technical Notes (for developers)</Label>
+                    <Textarea
+                      id="implementation_notes"
+                      value={formData.implementation_notes}
+                      onChange={(e) => setFormData({ ...formData, implementation_notes: e.target.value })}
+                      placeholder="Component paths, data sources, related files..."
+                      rows={5}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Technical details. Example: "Component: src/components/StartButtonModal.tsx. Data: start_button_categories table."
                     </p>
-                  )}
-
-                  {existingCard.implementation_notes && (
-                    <div className="space-y-2">
-                      <Label>Implementation Notes</Label>
-                      <p className="text-sm text-muted-foreground bg-muted p-3 rounded">
-                        {existingCard.implementation_notes}
-                      </p>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
 
           <div className="flex justify-end gap-4 mt-6">
