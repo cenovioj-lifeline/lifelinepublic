@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
@@ -10,7 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Pencil, Save, X, Trash2, MapPin, Mail, Plus, TrendingUp, Heart } from "lucide-react";
+import { Pencil, Save, X, Trash2, MapPin, Mail, Plus, TrendingUp, Heart, Loader2 } from "lucide-react";
 import { ImageUpload } from "@/components/ImageUpload";
 import { PasswordInput } from "@/components/ui/password-input";
 import { ContributionStatusBadge } from "@/components/ContributionStatusBadge";
@@ -22,6 +23,7 @@ import { PendingCollectionInvites } from "@/components/collection/PendingCollect
 
 export default function UserProfile() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { hideButton, updatePreference } = useContributionPreference();
   const [isEditing, setIsEditing] = useState(false);
@@ -33,6 +35,7 @@ export default function UserProfile() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [editingContribution, setEditingContribution] = useState<any>(null);
   const [editingQuote, setEditingQuote] = useState<any>(null);
+  const [isCreatingCollection, setIsCreatingCollection] = useState(false);
 
   const { data: profile, isLoading: profileLoading } = useQuery({
     queryKey: ["user-profile", user?.id],
@@ -74,12 +77,79 @@ export default function UserProfile() {
     enabled: !!user?.id,
   });
 
+  // Check if user already has a collection
+  const { data: existingCollection } = useQuery({
+    queryKey: ["user-collection", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      const { data, error } = await supabase
+        .from("collections")
+        .select("id, title, slug, status")
+        .eq("created_by", user.id)
+        .eq("category", "social")
+        .maybeSingle();
+      
+      if (error && error.code !== 'PGRST116') throw error;
+      return data;
+    },
+    enabled: !!user?.id,
+  });
+
   const handleAvatarUploadComplete = (mediaAssetId: string, url: string) => {
     setAvatarUrl(url);
   };
 
   const handleAvatarRemove = () => {
     setAvatarUrl("");
+  };
+
+  const createCollectionMutation = useMutation({
+    mutationFn: async () => {
+      if (!user?.id) throw new Error("Not authenticated");
+      
+      const displayName = profile?.first_name 
+        ? `${profile.first_name}'s Collection`
+        : "My Collection";
+      
+      const slug = `social-${user.id.slice(0, 8)}-${Date.now()}`;
+      
+      const { data, error } = await supabase
+        .from("collections")
+        .insert({
+          title: displayName,
+          slug: slug,
+          description: "My personal lifeline collection",
+          category: "social",
+          status: "draft",
+          created_by: user.id,
+          visibility: "public"
+        })
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["user-collection"] });
+      navigate(`/social/${data.id}/build`);
+    },
+    onError: (error) => {
+      console.error("Failed to create collection:", error);
+      toast.error("Failed to create collection. Please try again.");
+      setIsCreatingCollection(false);
+    }
+  });
+
+  const handleCreateCollection = () => {
+    if (existingCollection) {
+      // Resume existing collection
+      navigate(`/social/${existingCollection.id}/build`);
+    } else {
+      // Create new collection
+      setIsCreatingCollection(true);
+      createCollectionMutation.mutate();
+    }
   };
 
   const saveMutation = useMutation({
@@ -303,13 +373,37 @@ export default function UserProfile() {
             <CardTitle>My Collection</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Button disabled className="w-full sm:w-auto">
-              <Plus className="h-4 w-4 mr-2" />
-              Create a Collection
+            <Button 
+              onClick={handleCreateCollection}
+              disabled={isCreatingCollection}
+              className="w-full sm:w-auto"
+            >
+              {isCreatingCollection ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Creating...
+                </>
+              ) : existingCollection ? (
+                <>
+                  <Pencil className="h-4 w-4 mr-2" />
+                  Continue Building
+                </>
+              ) : (
+                <>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create a Collection
+                </>
+              )}
             </Button>
-            <p className="text-sm text-muted-foreground italic">
-              Collection creation coming soon. Learn about building your personal, professional, and social media presence.
-            </p>
+            {existingCollection ? (
+              <p className="text-sm text-muted-foreground">
+                You have a collection in progress: <strong>{existingCollection.title}</strong>
+              </p>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                Build your personal lifeline collection with AI assistance.
+              </p>
+            )}
           </CardContent>
         </Card>
 

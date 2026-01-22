@@ -75,6 +75,7 @@ import CollectionPitch from "./pages/public/CollectionPitch";
 import CollectionMedia from "./pages/public/CollectionMedia";
 import { PageBuilder } from "./components/admin/PageBuilder";
 import Spike from "./pages/Spike";
+import Build from "./pages/social/Build";
 
 const queryClient = new QueryClient();
 
@@ -128,6 +129,9 @@ function AppContent() {
           
           {/* Spike - AI Wizard Test Page */}
           <Route path="/spike" element={<Spike />} />
+          
+          {/* Social Collection Builder */}
+          <Route path="/social/:collectionId/build" element={<Build />} />
             
             {/* Admin Routes */}
             <Route
