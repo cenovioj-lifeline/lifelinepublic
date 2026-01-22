@@ -1,8 +1,13 @@
 import { ReactNode } from "react";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "./AppSidebar";
+import { useColorScheme } from "@/hooks/useColorScheme";
 
 export function AdminLayout({ children }: { children: ReactNode }) {
+  // Always use the default color scheme for admin pages
+  // This prevents collection colors from persisting when navigating to admin
+  useColorScheme();
+
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-background">
