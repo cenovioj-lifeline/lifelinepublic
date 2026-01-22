@@ -103,7 +103,7 @@ export function CollectionTreeItem({
               {matchCount} match{matchCount !== 1 ? "es" : ""}
             </Badge>
           )}
-          <Badge variant="secondary" className="bg-purple-100 text-purple-800">
+          <Badge variant="secondary" className="bg-green-600 text-white">
             {collection.profile_count} profiles
           </Badge>
         </div>
@@ -167,7 +167,7 @@ export function CollectionTreeItem({
                 {hasMore && !showAll && (
                   <button
                     onClick={() => setShowAll(true)}
-                    className="w-full text-center py-2 text-sm text-purple-600 hover:text-purple-800 hover:underline"
+                    className="w-full text-center py-2 text-sm text-green-600 hover:text-green-800 hover:underline"
                   >
                     Show all {filteredProfiles.length} profiles →
                   </button>

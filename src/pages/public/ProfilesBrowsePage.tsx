@@ -42,12 +42,6 @@ export default function ProfilesBrowsePage() {
               Browse all people and organizations • Grouped by collection
             </p>
           </div>
-          {!isMobile && (
-            <div className="text-sm text-muted-foreground bg-purple-50 border border-purple-200 rounded-lg p-3 max-w-xs">
-              <strong>Click behavior:</strong> Opens profile detail page with
-              their lifeline, collections, and more.
-            </div>
-          )}
         </div>
 
         {/* Page-Level Controls */}
@@ -91,7 +85,7 @@ export default function ProfilesBrowsePage() {
               </Select>
             ) : (
               // Desktop: Pills
-              <div className="flex bg-purple-50 rounded-lg p-0.5">
+              <div className="flex bg-green-50 rounded-lg p-0.5">
                 {([
                   { value: "all", label: "All" },
                   { value: "person_real", label: "Real People" },
@@ -103,8 +97,8 @@ export default function ProfilesBrowsePage() {
                     variant={typeFilter === type.value ? "default" : "ghost"}
                     size="sm"
                     className={typeFilter === type.value 
-                      ? "h-8 text-sm bg-purple-600 hover:bg-purple-700" 
-                      : "h-8 text-sm text-purple-700 hover:bg-purple-100"
+                      ? "h-8 text-sm bg-green-600 hover:bg-green-700" 
+                      : "h-8 text-sm text-green-700 hover:bg-green-100"
                     }
                     onClick={() => setTypeFilter(type.value)}
                   >

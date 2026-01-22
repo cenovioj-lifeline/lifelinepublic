@@ -40,12 +40,6 @@ export default function StoriesBrowsePage() {
               Browse all stories • Click opens in collection context
             </p>
           </div>
-          {!isMobile && (
-            <div className="text-sm text-muted-foreground bg-green-50 border border-green-200 rounded-lg p-3 max-w-xs">
-              <strong>Click behavior:</strong> Opens story with collection theme,
-              breadcrumbs, and related content.
-            </div>
-          )}
         </div>
 
         {/* Page-Level Controls */}
