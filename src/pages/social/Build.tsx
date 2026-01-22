@@ -96,7 +96,7 @@ export default function Build() {
       
       const { data, error } = await supabase
         .from("lifelines")
-        .select("id, title, lifeline_type, purpose")
+        .select("id, title, lifeline_type, intro")
         .eq("collection_id", collectionId)
         .limit(1)
         .maybeSingle();
@@ -107,23 +107,23 @@ export default function Build() {
         setLifelineForm({
           title: data.title || "",
           lifeline_type: data.lifeline_type || "",
-          purpose: data.purpose || ""
+          purpose: data.intro || ""
         });
         
         // Also load existing entries
         const { data: entries } = await supabase
           .from("entries")
-          .select("id, title, description, score, year")
+          .select("id, title, summary, score, occurred_on")
           .eq("lifeline_id", data.id)
-          .order("year", { ascending: true });
+          .order("occurred_on", { ascending: true });
         
         if (entries) {
           setSavedEntries(entries.map(e => ({
             id: e.id,
             title: e.title || "",
-            description: e.description || "",
+            description: e.summary || "",
             score: e.score || 0,
-            year: e.year?.toString() || ""
+            year: e.occurred_on ? e.occurred_on.substring(0, 4) : ""
           })));
         }
       }
@@ -162,8 +162,8 @@ export default function Build() {
           collection_id: collectionId,
           title: lifelineForm.title,
           slug: slug,
-          lifeline_type: lifelineForm.lifeline_type || "person",
-          purpose: lifelineForm.purpose,
+          lifeline_type: (lifelineForm.lifeline_type || "person") as "person" | "list",
+          intro: lifelineForm.purpose,
           status: "draft"
         })
         .select()
@@ -207,9 +207,9 @@ export default function Build() {
           lifeline_id: lifelineId,
           title: entryForm.title,
           slug: slug,
-          description: entryForm.description,
+          summary: entryForm.description,
           score: entryForm.score,
-          year: entryForm.year ? parseInt(entryForm.year) : null,
+          occurred_on: entryForm.year ? `${entryForm.year}-01-01` : null,
           order_index: orderIndex
         })
         .select()
