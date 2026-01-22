@@ -79,9 +79,9 @@ export function CollectionTreeItem({
         <div
           className="w-12 h-12 rounded-lg flex-shrink-0 bg-gradient-to-br from-slate-700 to-slate-500"
           style={
-            collection.cover_image_url
+            collection.card_image_url
               ? {
-                  backgroundImage: `url(${collection.cover_image_url})`,
+                  backgroundImage: `url(${collection.card_image_url})`,
                   backgroundSize: "cover",
                   backgroundPosition: "center",
                 }
@@ -139,7 +139,7 @@ export function CollectionTreeItem({
                         <SelectItem key={profile.id} value={profile.id}>
                           <div className="flex items-center gap-2">
                             <Avatar className="w-5 h-5">
-                              <AvatarImage src={profile.profile_image_url || undefined} />
+                              <AvatarImage src={profile.primary_image_url || undefined} />
                               <AvatarFallback className="text-xs">
                                 {profile.name.charAt(0)}
                               </AvatarFallback>
@@ -176,7 +176,7 @@ export function CollectionTreeItem({
                                 )}
                               >
                                 <Avatar className="w-8 h-8 hover:scale-110 transition-transform">
-                                  <AvatarImage src={profile.profile_image_url || undefined} />
+                                  <AvatarImage src={profile.primary_image_url || undefined} />
                                   <AvatarFallback className="text-xs bg-green-100 text-green-700">
                                     {profile.name.charAt(0)}
                                   </AvatarFallback>

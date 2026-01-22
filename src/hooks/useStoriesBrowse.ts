@@ -7,14 +7,14 @@ export interface CollectionWithLifelines {
   id: string;
   title: string;
   slug: string;
-  cover_image_url: string | null;
+  card_image_url: string | null;
   updated_at: string;
   lifeline_count: number;
   profiles: {
     id: string;
     name: string;
     slug: string;
-    profile_image_url: string | null;
+    primary_image_url: string | null;
   }[];
 }
 
@@ -69,13 +69,13 @@ export function useStoriesBrowse() {
           id,
           title,
           slug,
-          cover_image_url,
+          card_image_url,
           updated_at,
           profiles:profiles(
             id,
             name,
             slug,
-            profile_image_url
+            primary_image_url
           )
         `)
         .eq("status", "published")

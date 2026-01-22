@@ -171,10 +171,6 @@ export function StartButtonModal({ open, onOpenChange }: StartButtonModalProps) 
         <DrawerContent 
           className="flex flex-col"
           style={{ 
-            // Use dvh (dynamic viewport height) with vh fallback
-            // dvh accounts for mobile browser chrome (address bar)
-            maxHeight: '85dvh',
-            // Fallback for browsers that don't support dvh
             maxHeight: 'min(85dvh, 85vh)',
           }}
         >
