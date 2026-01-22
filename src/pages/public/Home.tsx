@@ -7,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Link, useNavigate } from "react-router-dom";
 import { GrowComingSoonDialog } from "@/components/GrowComingSoonDialog";
 import { CollectionShareModal } from "@/components/CollectionShareModal";
+import { StartButtonModal } from "@/components/StartButtonModal";
 import { useState } from "react";
 import {
   AlertDialog,
@@ -47,6 +48,7 @@ export default function Home() {
   const isMobile = useIsMobile();
   const [growDialogOpen, setGrowDialogOpen] = useState(false);
   const [shareModalOpen, setShareModalOpen] = useState(false);
+  const [startModalOpen, setStartModalOpen] = useState(false);
   const [constructionAlertOpen, setConstructionAlertOpen] = useState(false);
   
   // Fetch action cards from database
@@ -90,6 +92,9 @@ export default function Home() {
         break;
       case 'grow':
         setGrowDialogOpen(true);
+        break;
+      case 'start':
+        setStartModalOpen(true);
         break;
       case 'settings':
         setConstructionAlertOpen(true);
@@ -259,6 +264,11 @@ export default function Home() {
       <GrowComingSoonDialog
         open={growDialogOpen}
         onOpenChange={setGrowDialogOpen}
+      />
+
+      <StartButtonModal
+        open={startModalOpen}
+        onOpenChange={setStartModalOpen}
       />
 
       <CollectionShareModal
