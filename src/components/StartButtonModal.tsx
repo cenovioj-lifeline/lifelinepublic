@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
+import { X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsMobile } from "@/hooks/use-mobile";
 import {
@@ -177,8 +178,16 @@ export function StartButtonModal({ open, onOpenChange }: StartButtonModalProps) 
             maxHeight: 'min(85dvh, 85vh)',
           }}
         >
-          <DrawerHeader className="shrink-0 border-b">
+          <DrawerHeader className="shrink-0 border-b relative">
             <DrawerTitle>Get Started</DrawerTitle>
+            {/* Subtle close button */}
+            <button
+              onClick={() => onOpenChange(false)}
+              className="absolute right-4 top-1/2 -translate-y-1/2 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+              aria-label="Close"
+            >
+              <X className="h-5 w-5 text-muted-foreground" />
+            </button>
           </DrawerHeader>
           
           {/* Native scroll container - more reliable on mobile than ScrollArea */}
