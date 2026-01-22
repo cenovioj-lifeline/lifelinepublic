@@ -11,6 +11,7 @@ import * as LucideIcons from "lucide-react";
 import { CollectionShareModal } from "@/components/CollectionShareModal";
 import { JoinCommunityDialog } from "@/components/JoinCommunityDialog";
 import { GrowComingSoonDialog } from "@/components/GrowComingSoonDialog";
+import { StartButtonModal } from "@/components/StartButtonModal";
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { PublicAuthModal } from "@/components/PublicAuthModal";
@@ -64,6 +65,7 @@ export default function PublicCollectionDetail() {
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [constructionAlertOpen, setConstructionAlertOpen] = useState(false);
   const [growDialogOpen, setGrowDialogOpen] = useState(false);
+  const [startModalOpen, setStartModalOpen] = useState(false);
   const [voteFlipped, setVoteFlipped] = useState(false);
   const [followFlipped, setFollowFlipped] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
@@ -438,6 +440,9 @@ export default function PublicCollectionDetail() {
         break;
       case "grow":
         setGrowDialogOpen(true);
+        break;
+      case "start":
+        setStartModalOpen(true);
         break;
       default:
         // For unimplemented cards, show construction alert
@@ -1311,6 +1316,11 @@ export default function PublicCollectionDetail() {
       <GrowComingSoonDialog
         open={growDialogOpen}
         onOpenChange={setGrowDialogOpen}
+      />
+
+      <StartButtonModal
+        open={startModalOpen}
+        onOpenChange={setStartModalOpen}
       />
 
       <PublicAuthModal
