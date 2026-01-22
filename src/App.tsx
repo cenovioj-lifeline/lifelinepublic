@@ -57,6 +57,7 @@ import CollectionMembers from "./pages/public/CollectionMembers";
 import HomeManager from "./pages/HomeManager";
 import PublicLifelinesGrid from "./pages/public/PublicLifelinesGrid";
 import PublicCollectionsGrid from "./pages/public/PublicCollectionsGrid";
+import StoriesBrowsePage from "./pages/public/StoriesBrowsePage";
 import UserRequests from "./pages/UserRequests";
 import ColorSchemes from "./pages/ColorSchemes";
 import ColorSchemeEdit from "./pages/ColorSchemeEdit";
@@ -87,6 +88,7 @@ function AppContent() {
             {/* Public Routes */}
           <Route path="/" element={<PublicLayout><Home /></PublicLayout>} />
           <Route path="/home" element={<Navigate to="/" replace />} />
+          <Route path="/stories" element={<PublicLayout><StoriesBrowsePage /></PublicLayout>} />
           <Route path="/public/lifelines" element={<PublicLayout><PublicLifelinesGrid /></PublicLayout>} />
           <Route path="/public/lifelines/:slug" element={<PublicLifelineDetail />} />
           <Route path="/public/collections" element={<PublicLayout><PublicCollections /></PublicLayout>} />
