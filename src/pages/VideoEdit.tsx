@@ -39,7 +39,6 @@ export default function VideoEdit() {
   const [slug, setSlug] = useState("");
   const [youtubeUrl, setYoutubeUrl] = useState("");
   const [description, setDescription] = useState("");
-  const [thumbnailUrl, setThumbnailUrl] = useState("");
   const [collectionId, setCollectionId] = useState<string | null>(collectionFromUrl);
   const [profileId, setProfileId] = useState<string | null>(null);
   const [status, setStatus] = useState("draft");
@@ -93,7 +92,6 @@ export default function VideoEdit() {
       setSlug(video.slug);
       setYoutubeUrl(video.youtube_url || "");
       setDescription(video.description || "");
-      setThumbnailUrl(video.thumbnail_url || "");
       setCollectionId(video.collection_id);
       setProfileId(video.profile_id);
       setStatus(video.status || "draft");
@@ -114,7 +112,7 @@ export default function VideoEdit() {
         slug,
         youtube_url: youtubeUrl || null,
         description: description || null,
-        thumbnail_url: thumbnailUrl || null,
+        thumbnail_url: null, // Always use auto-generated YouTube thumbnail
         collection_id: collectionId,
         profile_id: profileId,
         status,
@@ -197,6 +195,9 @@ export default function VideoEdit() {
               onChange={(e) => setYoutubeUrl(e.target.value)}
               placeholder="https://youtube.com/watch?v=..."
             />
+            <p className="text-xs text-muted-foreground">
+              Thumbnail will be automatically fetched from YouTube
+            </p>
           </div>
 
           <div className="space-y-2">
@@ -207,16 +208,6 @@ export default function VideoEdit() {
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Video description"
               rows={3}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="thumbnail_url">Thumbnail URL</Label>
-            <Input
-              id="thumbnail_url"
-              value={thumbnailUrl}
-              onChange={(e) => setThumbnailUrl(e.target.value)}
-              placeholder="https://..."
             />
           </div>
 
