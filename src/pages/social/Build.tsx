@@ -489,32 +489,35 @@ export default function Build() {
           />
         </div>
         
-        <div>
-          <Label>How did it feel? ({entryForm.score})</Label>
-          <Slider
-            value={[entryForm.score]}
-            onValueChange={([v]) => setEntryForm(prev => ({ ...prev, score: v }))}
-            min={-10}
-            max={10}
-            step={1}
-            className="mt-2"
-            disabled={!lifelineSaved}
-          />
-          <div className="flex justify-between text-xs text-muted-foreground mt-1">
-            <span>-10 (terrible)</span>
-            <span>0 (neutral)</span>
-            <span>+10 (amazing)</span>
+        {/* Two-column row for score and year (matches mockup) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <Label>How did it feel? ({entryForm.score})</Label>
+            <Slider
+              value={[entryForm.score]}
+              onValueChange={([v]) => setEntryForm(prev => ({ ...prev, score: v }))}
+              min={-10}
+              max={10}
+              step={1}
+              className="mt-2"
+              disabled={!lifelineSaved}
+            />
+            <div className="flex justify-between text-xs text-muted-foreground mt-1">
+              <span>-10</span>
+              <span>0</span>
+              <span>+10</span>
+            </div>
           </div>
-        </div>
-        
-        <div>
-          <Label>When did it happen?</Label>
-          <Input 
-            value={entryForm.year}
-            onChange={(e) => setEntryForm(prev => ({ ...prev, year: e.target.value }))}
-            placeholder="e.g., 2020 or June 2020"
-            disabled={!lifelineSaved}
-          />
+          
+          <div>
+            <Label>When?</Label>
+            <Input 
+              value={entryForm.year}
+              onChange={(e) => setEntryForm(prev => ({ ...prev, year: e.target.value }))}
+              placeholder="e.g., 2020"
+              disabled={!lifelineSaved}
+            />
+          </div>
         </div>
 
         {/* Save Entry Button */}
@@ -528,7 +531,7 @@ export default function Build() {
             {savingEntry ? (
               <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Saving...</>
             ) : (
-              <><Save className="h-4 w-4 mr-2" /> Save Entry</>
+              <><Save className="h-4 w-4 mr-2" /> Add Entry</>
             )}
           </Button>
         )}
@@ -541,10 +544,10 @@ export default function Build() {
               {savedEntries.map((entry, i) => (
                 <div key={entry.id || i} className="bg-green-50 border border-green-100 p-2 rounded text-sm">
                   <div className="flex items-center gap-2">
-                    <Check className="h-3 w-3 text-green-600" />
-                    <strong>{entry.title}</strong>
-                    {entry.year && <span className="text-muted-foreground">({entry.year})</span>}
-                    <span className="ml-auto text-xs">Score: {entry.score}</span>
+                    <Check className="h-3 w-3 text-green-600 flex-shrink-0" />
+                    <strong className="truncate">{entry.title}</strong>
+                    {entry.year && <span className="text-muted-foreground text-xs">({entry.year})</span>}
+                    <span className="ml-auto text-xs whitespace-nowrap">Score: {entry.score}</span>
                   </div>
                 </div>
               ))}
@@ -766,8 +769,8 @@ export default function Build() {
           </div>
         </div>
       ) : (
-        // Direct Edit Mode: Single-column layout
-        <div className="max-w-3xl mx-auto p-4">
+        // Direct Edit Mode: Single-column layout (720px max-width matching mockup)
+        <div className="mx-auto p-4" style={{ maxWidth: '720px' }}>
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-lg">
