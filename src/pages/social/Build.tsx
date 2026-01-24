@@ -8,8 +8,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
+import { Separator } from "@/components/ui/separator";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, Send, Loader2, Check, Save } from "lucide-react";
+import { ArrowLeft, Send, Loader2, Check, Save, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 
 interface Message {
@@ -43,9 +50,24 @@ interface SavedEntry {
   year: string;
 }
 
+type ContentType = "lifelines" | "quotes" | "awards" | "media" | "books";
+type Mode = "ai" | "direct";
+
+const contentTypeConfig: Record<ContentType, { label: string; icon: string }> = {
+  lifelines: { label: "Lifelines", icon: "📈" },
+  quotes: { label: "Quotes", icon: "💬" },
+  awards: { label: "Awards", icon: "🏆" },
+  media: { label: "Media", icon: "🖼️" },
+  books: { label: "Books", icon: "📚" },
+};
+
 export default function Build() {
   const { collectionId } = useParams();
   const navigate = useNavigate();
+  
+  // UI State
+  const [mode, setMode] = useState<Mode>("ai");
+  const [contentType, setContentType] = useState<ContentType>("lifelines");
   
   const [messages, setMessages] = useState<Message[]>([
     { role: "assistant", content: "Hey! Let's build your collection. I'll help you create lifelines - visual timelines of meaningful moments.\n\nWant to start with your personal lifeline? Just tell me what kind of journey you'd like to document - your career, relationships, hobbies, or anything else that matters to you." }
@@ -85,6 +107,20 @@ export default function Build() {
         .single();
       if (error) throw error;
       return data;
+    },
+    enabled: !!collectionId
+  });
+
+  // Fetch lifeline count for this collection
+  const { data: lifelineCount } = useQuery({
+    queryKey: ["lifelineCount", collectionId],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from("lifelines")
+        .select("*", { count: "exact", head: true })
+        .eq("collection_id", collectionId);
+      if (error) throw error;
+      return count || 0;
     },
     enabled: !!collectionId
   });
@@ -334,19 +370,90 @@ export default function Build() {
     await saveEntryToDb();
   };
 
+  // Content counts (placeholder for now - only lifelines is real)
+  const contentCounts: Record<ContentType, number> = {
+    lifelines: lifelineCount || 0,
+    quotes: 0,
+    awards: 0,
+    media: 0,
+    books: 0,
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white border-b px-4 py-3">
-        <div className="max-w-6xl mx-auto flex items-center gap-4">
+        <div className="max-w-6xl mx-auto flex items-center gap-3">
+          {/* Back button */}
           <Button variant="ghost" size="sm" onClick={() => navigate("/profile")}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Profile
           </Button>
-          <div className="flex-1">
-            <h1 className="font-semibold">{collection?.title || "Building Your Collection"}</h1>
-            <p className="text-sm text-muted-foreground">AI-Assisted Creation</p>
+          
+          <Separator orientation="vertical" className="h-6" />
+          
+          {/* Content type dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="min-w-[160px] justify-between">
+                <span className="flex items-center gap-2">
+                  <span>{contentTypeConfig[contentType].icon}</span>
+                  <span>{contentTypeConfig[contentType].label}</span>
+                </span>
+                <span className="flex items-center gap-2">
+                  <span className="text-xs bg-muted px-1.5 py-0.5 rounded">
+                    {contentCounts[contentType]}
+                  </span>
+                  <ChevronDown className="h-4 w-4" />
+                </span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-[200px]">
+              {(Object.keys(contentTypeConfig) as ContentType[]).map((type) => (
+                <DropdownMenuItem
+                  key={type}
+                  onClick={() => setContentType(type)}
+                  className="flex items-center justify-between"
+                >
+                  <span className="flex items-center gap-2">
+                    <span>{contentTypeConfig[type].icon}</span>
+                    <span>{contentTypeConfig[type].label}</span>
+                  </span>
+                  <span className={`text-xs ${contentCounts[type] > 0 ? "text-green-600 font-medium" : "text-muted-foreground"}`}>
+                    {contentCounts[type]}
+                  </span>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+          
+          {/* Mode toggle */}
+          <div className="flex bg-muted rounded-md p-0.5">
+            <Button
+              variant={mode === "ai" ? "secondary" : "ghost"}
+              size="sm"
+              className="text-xs px-3"
+              onClick={() => setMode("ai")}
+            >
+              AI Assist
+            </Button>
+            <Button
+              variant={mode === "direct" ? "secondary" : "ghost"}
+              size="sm"
+              className="text-xs px-3"
+              onClick={() => setMode("direct")}
+            >
+              Direct Edit
+            </Button>
           </div>
+          
+          {/* Title - pushed right */}
+          <div className="ml-auto text-right">
+            <h1 className="font-semibold">{collection?.title || "Building Your Collection"}</h1>
+            <p className="text-sm text-muted-foreground">Building your story</p>
+          </div>
+          
+          {/* Status */}
           {lifelineSaved && (
             <div className="flex items-center gap-1 text-sm text-green-600">
               <Check className="h-4 w-4" />
@@ -415,154 +522,175 @@ export default function Build() {
           {/* Form Panel */}
           <Card className="h-[calc(100vh-140px)] overflow-y-auto">
             <CardHeader className="pb-3">
-              <CardTitle className="text-lg">Lifeline Details</CardTitle>
+              <CardTitle className="text-lg">
+                {contentType === "lifelines" ? "Lifeline Details" : `${contentTypeConfig[contentType].label} (Coming Soon)`}
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {/* Lifeline fields */}
-              <div>
-                <Label>Title</Label>
-                <Input 
-                  value={lifelineForm.title} 
-                  onChange={(e) => setLifelineForm(prev => ({ ...prev, title: e.target.value }))}
-                  placeholder="e.g., My Career Journey"
-                  disabled={lifelineSaved}
-                />
-              </div>
-              
-              <div>
-                <Label>Type</Label>
-                <Select 
-                  value={lifelineForm.lifeline_type} 
-                  onValueChange={(v) => setLifelineForm(prev => ({ ...prev, lifeline_type: v }))}
-                  disabled={lifelineSaved}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="person">Person (about me)</SelectItem>
-                    <SelectItem value="list">List (collection of things)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div>
-                <Label>Purpose</Label>
-                <Textarea 
-                  value={lifelineForm.purpose}
-                  onChange={(e) => setLifelineForm(prev => ({ ...prev, purpose: e.target.value }))}
-                  placeholder="What is this lifeline about?"
-                  rows={2}
-                  disabled={lifelineSaved}
-                />
-              </div>
-
-              {/* Save Lifeline Button */}
-              {!lifelineSaved && (
-                <Button 
-                  onClick={handleManualSaveLifeline}
-                  disabled={savingLifeline || !lifelineForm.title}
-                  className="w-full"
-                >
-                  {savingLifeline ? (
-                    <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Saving...</>
-                  ) : (
-                    <><Save className="h-4 w-4 mr-2" /> Save Lifeline</>
-                  )}
-                </Button>
-              )}
-
-              {/* Divider */}
-              <div className="border-t pt-4 mt-4">
-                <h3 className="font-semibold mb-3">Add an Entry</h3>
-                {!lifelineSaved && (
-                  <p className="text-sm text-muted-foreground mb-3">
-                    Save the lifeline first before adding entries.
-                  </p>
-                )}
-              </div>
-              
-              <div>
-                <Label>What happened?</Label>
-                <Input 
-                  value={entryForm.title}
-                  onChange={(e) => setEntryForm(prev => ({ ...prev, title: e.target.value }))}
-                  placeholder="Entry title"
-                  disabled={!lifelineSaved}
-                />
-              </div>
-              
-              <div>
-                <Label>Tell the story</Label>
-                <Textarea 
-                  value={entryForm.description}
-                  onChange={(e) => setEntryForm(prev => ({ ...prev, description: e.target.value }))}
-                  placeholder="What made this moment meaningful?"
-                  rows={3}
-                  disabled={!lifelineSaved}
-                />
-              </div>
-              
-              <div>
-                <Label>How did it feel? ({entryForm.score})</Label>
-                <Slider
-                  value={[entryForm.score]}
-                  onValueChange={([v]) => setEntryForm(prev => ({ ...prev, score: v }))}
-                  min={-10}
-                  max={10}
-                  step={1}
-                  className="mt-2"
-                  disabled={!lifelineSaved}
-                />
-                <div className="flex justify-between text-xs text-muted-foreground mt-1">
-                  <span>-10 (terrible)</span>
-                  <span>0 (neutral)</span>
-                  <span>+10 (amazing)</span>
-                </div>
-              </div>
-              
-              <div>
-                <Label>When did it happen?</Label>
-                <Input 
-                  value={entryForm.year}
-                  onChange={(e) => setEntryForm(prev => ({ ...prev, year: e.target.value }))}
-                  placeholder="e.g., 2020 or June 2020"
-                  disabled={!lifelineSaved}
-                />
-              </div>
-
-              {/* Save Entry Button */}
-              {lifelineSaved && (
-                <Button 
-                  onClick={handleManualSaveEntry}
-                  disabled={savingEntry || !entryForm.title}
-                  className="w-full"
-                  variant="secondary"
-                >
-                  {savingEntry ? (
-                    <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Saving...</>
-                  ) : (
-                    <><Save className="h-4 w-4 mr-2" /> Save Entry</>
-                  )}
-                </Button>
-              )}
-
-              {/* Saved entries preview */}
-              {savedEntries.length > 0 && (
-                <div className="border-t pt-4 mt-4">
-                  <h3 className="font-semibold mb-2">Saved Entries ({savedEntries.length})</h3>
-                  <div className="space-y-2">
-                    {savedEntries.map((entry, i) => (
-                      <div key={entry.id || i} className="bg-green-50 border border-green-100 p-2 rounded text-sm">
-                        <div className="flex items-center gap-2">
-                          <Check className="h-3 w-3 text-green-600" />
-                          <strong>{entry.title}</strong>
-                          {entry.year && <span className="text-muted-foreground">({entry.year})</span>}
-                          <span className="ml-auto text-xs">Score: {entry.score}</span>
-                        </div>
-                      </div>
-                    ))}
+              {contentType === "lifelines" ? (
+                <>
+                  {/* Lifeline fields */}
+                  <div>
+                    <Label>Title</Label>
+                    <Input 
+                      value={lifelineForm.title} 
+                      onChange={(e) => setLifelineForm(prev => ({ ...prev, title: e.target.value }))}
+                      placeholder="e.g., My Career Journey"
+                      disabled={lifelineSaved}
+                    />
                   </div>
+                  
+                  <div>
+                    <Label>Type</Label>
+                    <Select 
+                      value={lifelineForm.lifeline_type} 
+                      onValueChange={(v) => setLifelineForm(prev => ({ ...prev, lifeline_type: v }))}
+                      disabled={lifelineSaved}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="person">Person (about me)</SelectItem>
+                        <SelectItem value="list">List (collection of things)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div>
+                    <Label>Purpose</Label>
+                    <Textarea 
+                      value={lifelineForm.purpose}
+                      onChange={(e) => setLifelineForm(prev => ({ ...prev, purpose: e.target.value }))}
+                      placeholder="What is this lifeline about?"
+                      rows={2}
+                      disabled={lifelineSaved}
+                    />
+                  </div>
+
+                  {/* Save Lifeline Button */}
+                  {!lifelineSaved && (
+                    <Button 
+                      onClick={handleManualSaveLifeline}
+                      disabled={savingLifeline || !lifelineForm.title}
+                      className="w-full"
+                    >
+                      {savingLifeline ? (
+                        <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Saving...</>
+                      ) : (
+                        <><Save className="h-4 w-4 mr-2" /> Save Lifeline</>
+                      )}
+                    </Button>
+                  )}
+
+                  {/* Divider */}
+                  <div className="border-t pt-4 mt-4">
+                    <h3 className="font-semibold mb-3">Add an Entry</h3>
+                    {!lifelineSaved && (
+                      <p className="text-sm text-muted-foreground mb-3">
+                        Save the lifeline first before adding entries.
+                      </p>
+                    )}
+                  </div>
+                  
+                  <div>
+                    <Label>What happened?</Label>
+                    <Input 
+                      value={entryForm.title}
+                      onChange={(e) => setEntryForm(prev => ({ ...prev, title: e.target.value }))}
+                      placeholder="Entry title"
+                      disabled={!lifelineSaved}
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label>Tell the story</Label>
+                    <Textarea 
+                      value={entryForm.description}
+                      onChange={(e) => setEntryForm(prev => ({ ...prev, description: e.target.value }))}
+                      placeholder="What made this moment meaningful?"
+                      rows={3}
+                      disabled={!lifelineSaved}
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label>How did it feel? ({entryForm.score})</Label>
+                    <Slider
+                      value={[entryForm.score]}
+                      onValueChange={([v]) => setEntryForm(prev => ({ ...prev, score: v }))}
+                      min={-10}
+                      max={10}
+                      step={1}
+                      className="mt-2"
+                      disabled={!lifelineSaved}
+                    />
+                    <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                      <span>-10 (terrible)</span>
+                      <span>0 (neutral)</span>
+                      <span>+10 (amazing)</span>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <Label>When did it happen?</Label>
+                    <Input 
+                      value={entryForm.year}
+                      onChange={(e) => setEntryForm(prev => ({ ...prev, year: e.target.value }))}
+                      placeholder="e.g., 2020 or June 2020"
+                      disabled={!lifelineSaved}
+                    />
+                  </div>
+
+                  {/* Save Entry Button */}
+                  {lifelineSaved && (
+                    <Button 
+                      onClick={handleManualSaveEntry}
+                      disabled={savingEntry || !entryForm.title}
+                      className="w-full"
+                      variant="secondary"
+                    >
+                      {savingEntry ? (
+                        <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Saving...</>
+                      ) : (
+                        <><Save className="h-4 w-4 mr-2" /> Save Entry</>
+                      )}
+                    </Button>
+                  )}
+
+                  {/* Saved entries preview */}
+                  {savedEntries.length > 0 && (
+                    <div className="border-t pt-4 mt-4">
+                      <h3 className="font-semibold mb-2">Saved Entries ({savedEntries.length})</h3>
+                      <div className="space-y-2">
+                        {savedEntries.map((entry, i) => (
+                          <div key={entry.id || i} className="bg-green-50 border border-green-100 p-2 rounded text-sm">
+                            <div className="flex items-center gap-2">
+                              <Check className="h-3 w-3 text-green-600" />
+                              <strong>{entry.title}</strong>
+                              {entry.year && <span className="text-muted-foreground">({entry.year})</span>}
+                              <span className="ml-auto text-xs">Score: {entry.score}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-12 text-center">
+                  <span className="text-4xl mb-4">{contentTypeConfig[contentType].icon}</span>
+                  <h3 className="font-semibold text-lg mb-2">{contentTypeConfig[contentType].label}</h3>
+                  <p className="text-muted-foreground text-sm">
+                    This content type is coming soon. For now, you can create lifelines.
+                  </p>
+                  <Button 
+                    variant="outline" 
+                    className="mt-4"
+                    onClick={() => setContentType("lifelines")}
+                  >
+                    Switch to Lifelines
+                  </Button>
                 </div>
               )}
             </CardContent>
