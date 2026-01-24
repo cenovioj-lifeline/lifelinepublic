@@ -52,6 +52,7 @@ interface SavedEntry {
 
 type ContentType = "lifelines" | "quotes" | "awards" | "media" | "books";
 type Mode = "ai" | "direct";
+type MobilePanel = "chat" | "form";
 
 const contentTypeConfig: Record<ContentType, { label: string; icon: string }> = {
   lifelines: { label: "Lifelines", icon: "📈" },
@@ -68,6 +69,7 @@ export default function Build() {
   // UI State
   const [mode, setMode] = useState<Mode>("ai");
   const [contentType, setContentType] = useState<ContentType>("lifelines");
+  const [mobilePanel, setMobilePanel] = useState<MobilePanel>("chat");
   
   const [messages, setMessages] = useState<Message[]>([
     { role: "assistant", content: "Hey! Let's build your collection. I'll help you create lifelines - visual timelines of meaningful moments.\n\nWant to start with your personal lifeline? Just tell me what kind of journey you'd like to document - your career, relationships, hobbies, or anything else that matters to you." }
@@ -553,158 +555,214 @@ export default function Build() {
     );
   };
 
+  // Render chat panel
+  const renderChatPanel = () => (
+    <Card className="h-[calc(100vh-200px)] lg:h-[calc(100vh-140px)] flex flex-col">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-lg">Chat with AI</CardTitle>
+      </CardHeader>
+      <CardContent className="flex-1 flex flex-col">
+        {/* Messages */}
+        <div className="flex-1 overflow-y-auto space-y-3 mb-4 pr-2">
+          {messages.map((msg, i) => (
+            <div
+              key={i}
+              className={`p-3 rounded-lg ${
+                msg.role === "user" 
+                  ? "bg-blue-50 border border-blue-100 ml-8" 
+                  : "bg-white border mr-8"
+              }`}
+            >
+              <p className="text-xs font-medium text-muted-foreground mb-1">
+                {msg.role === "user" ? "You" : "AI Assistant"}
+              </p>
+              <p className="whitespace-pre-wrap text-sm">{msg.content}</p>
+            </div>
+          ))}
+          {loading && (
+            <div className="bg-white border mr-8 p-3 rounded-lg flex items-center gap-2">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <span className="text-sm text-muted-foreground">Thinking...</span>
+            </div>
+          )}
+          <div ref={messagesEndRef} />
+        </div>
+        
+        {/* Input */}
+        <div className="flex gap-2">
+          <Input
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="Type a message..."
+            disabled={loading}
+            className="flex-1"
+          />
+          <Button onClick={sendMessage} disabled={loading || !input.trim()}>
+            <Send className="h-4 w-4" />
+          </Button>
+        </div>
+        <p className="text-xs text-muted-foreground mt-2 hidden lg:block">
+          Tip: You can also edit the form directly and use the Save buttons.
+        </p>
+      </CardContent>
+    </Card>
+  );
+
+  // Render form panel
+  const renderFormPanel = () => (
+    <Card className="h-[calc(100vh-200px)] lg:h-[calc(100vh-140px)] overflow-y-auto">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-lg">
+          {contentType === "lifelines" ? "Lifeline Details" : `${contentTypeConfig[contentType].label} (Coming Soon)`}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {renderFormContent()}
+      </CardContent>
+    </Card>
+  );
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white border-b px-4 py-3">
-        <div className="max-w-6xl mx-auto flex items-center gap-3">
-          {/* Back button */}
-          <Button variant="ghost" size="sm" onClick={() => navigate("/profile")}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Profile
-          </Button>
-          
-          <Separator orientation="vertical" className="h-6" />
-          
-          {/* Content type dropdown */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="min-w-[160px] justify-between">
-                <span className="flex items-center gap-2">
-                  <span>{contentTypeConfig[contentType].icon}</span>
-                  <span>{contentTypeConfig[contentType].label}</span>
-                </span>
-                <span className="flex items-center gap-2">
-                  <span className="text-xs bg-muted px-1.5 py-0.5 rounded">
-                    {contentCounts[contentType]}
-                  </span>
-                  <ChevronDown className="h-4 w-4" />
-                </span>
+        <div className="max-w-6xl mx-auto">
+          {/* Desktop: Single row | Mobile: Stacked rows */}
+          <div className="flex flex-col lg:flex-row lg:items-center gap-3">
+            {/* Top row (mobile) / Left side (desktop) */}
+            <div className="flex items-center gap-3">
+              {/* Back button */}
+              <Button variant="ghost" size="sm" onClick={() => navigate("/profile")}>
+                <ArrowLeft className="h-4 w-4 lg:mr-2" />
+                <span className="hidden lg:inline">Back to Profile</span>
               </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-[200px]">
-              {(Object.keys(contentTypeConfig) as ContentType[]).map((type) => (
-                <DropdownMenuItem
-                  key={type}
-                  onClick={() => setContentType(type)}
-                  className="flex items-center justify-between"
-                >
-                  <span className="flex items-center gap-2">
-                    <span>{contentTypeConfig[type].icon}</span>
-                    <span>{contentTypeConfig[type].label}</span>
-                  </span>
-                  <span className={`text-xs ${contentCounts[type] > 0 ? "text-green-600 font-medium" : "text-muted-foreground"}`}>
-                    {contentCounts[type]}
-                  </span>
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-          
-          {/* Mode toggle */}
-          <div className="flex bg-muted rounded-md p-0.5">
-            <Button
-              variant={mode === "ai" ? "secondary" : "ghost"}
-              size="sm"
-              className="text-xs px-3"
-              onClick={() => setMode("ai")}
-            >
-              AI Assist
-            </Button>
-            <Button
-              variant={mode === "direct" ? "secondary" : "ghost"}
-              size="sm"
-              className="text-xs px-3"
-              onClick={() => setMode("direct")}
-            >
-              Direct Edit
-            </Button>
-          </div>
-          
-          {/* Title - pushed right */}
-          <div className="ml-auto text-right">
-            <h1 className="font-semibold">{collection?.title || "Building Your Collection"}</h1>
-            <p className="text-sm text-muted-foreground">Building your story</p>
-          </div>
-          
-          {/* Status */}
-          {lifelineSaved && (
-            <div className="flex items-center gap-1 text-sm text-green-600">
-              <Check className="h-4 w-4" />
-              Lifeline saved
+              
+              {/* Title - shown in top row on mobile */}
+              <div className="lg:hidden flex-1">
+                <h1 className="font-semibold text-sm truncate">{collection?.title || "Building Your Collection"}</h1>
+                <p className="text-xs text-muted-foreground">Building your story</p>
+              </div>
             </div>
-          )}
+            
+            {/* Controls row (mobile) / continues inline (desktop) */}
+            <div className="flex items-center gap-2 lg:gap-3">
+              <Separator orientation="vertical" className="h-6 hidden lg:block" />
+              
+              {/* Content type dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="flex-1 lg:flex-none lg:min-w-[160px] justify-between">
+                    <span className="flex items-center gap-2">
+                      <span>{contentTypeConfig[contentType].icon}</span>
+                      <span>{contentTypeConfig[contentType].label}</span>
+                    </span>
+                    <span className="flex items-center gap-2">
+                      <span className="text-xs bg-muted px-1.5 py-0.5 rounded">
+                        {contentCounts[contentType]}
+                      </span>
+                      <ChevronDown className="h-4 w-4" />
+                    </span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-[200px]">
+                  {(Object.keys(contentTypeConfig) as ContentType[]).map((type) => (
+                    <DropdownMenuItem
+                      key={type}
+                      onClick={() => setContentType(type)}
+                      className="flex items-center justify-between"
+                    >
+                      <span className="flex items-center gap-2">
+                        <span>{contentTypeConfig[type].icon}</span>
+                        <span>{contentTypeConfig[type].label}</span>
+                      </span>
+                      <span className={`text-xs ${contentCounts[type] > 0 ? "text-green-600 font-medium" : "text-muted-foreground"}`}>
+                        {contentCounts[type]}
+                      </span>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+              
+              {/* Mode toggle - short labels on mobile, full on desktop */}
+              <div className="flex bg-muted rounded-md p-0.5">
+                <Button
+                  variant={mode === "ai" ? "secondary" : "ghost"}
+                  size="sm"
+                  className="text-xs px-2 lg:px-3"
+                  onClick={() => setMode("ai")}
+                >
+                  <span className="lg:hidden">AI</span>
+                  <span className="hidden lg:inline">AI Assist</span>
+                </Button>
+                <Button
+                  variant={mode === "direct" ? "secondary" : "ghost"}
+                  size="sm"
+                  className="text-xs px-2 lg:px-3"
+                  onClick={() => setMode("direct")}
+                >
+                  <span className="lg:hidden">Edit</span>
+                  <span className="hidden lg:inline">Direct Edit</span>
+                </Button>
+              </div>
+            </div>
+            
+            {/* Title - pushed right (desktop only) */}
+            <div className="hidden lg:block ml-auto text-right">
+              <h1 className="font-semibold">{collection?.title || "Building Your Collection"}</h1>
+              <p className="text-sm text-muted-foreground">Building your story</p>
+            </div>
+            
+            {/* Status */}
+            {lifelineSaved && (
+              <div className="hidden lg:flex items-center gap-1 text-sm text-green-600">
+                <Check className="h-4 w-4" />
+                Lifeline saved
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
+      {/* Panel Tabs - Mobile only, AI mode only */}
+      {mode === "ai" && (
+        <div className="lg:hidden bg-white border-b flex">
+          <button
+            className={`flex-1 py-3 text-sm font-medium border-b-2 transition-colors ${
+              mobilePanel === "chat" 
+                ? "text-foreground border-foreground" 
+                : "text-muted-foreground border-transparent"
+            }`}
+            onClick={() => setMobilePanel("chat")}
+          >
+            Chat
+          </button>
+          <button
+            className={`flex-1 py-3 text-sm font-medium border-b-2 transition-colors ${
+              mobilePanel === "form" 
+                ? "text-foreground border-foreground" 
+                : "text-muted-foreground border-transparent"
+            }`}
+            onClick={() => setMobilePanel("form")}
+          >
+            Form
+          </button>
+        </div>
+      )}
+
       {/* Main Content */}
       {mode === "ai" ? (
-        // AI Assist Mode: Two-panel layout
+        // AI Assist Mode: Two-panel on desktop, tabs on mobile
         <div className="max-w-6xl mx-auto p-4">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {/* Chat Panel */}
-            <Card className="h-[calc(100vh-140px)] flex flex-col">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg">Chat with AI</CardTitle>
-              </CardHeader>
-              <CardContent className="flex-1 flex flex-col">
-                {/* Messages */}
-                <div className="flex-1 overflow-y-auto space-y-3 mb-4 pr-2">
-                  {messages.map((msg, i) => (
-                    <div
-                      key={i}
-                      className={`p-3 rounded-lg ${
-                        msg.role === "user" 
-                          ? "bg-blue-50 border border-blue-100 ml-8" 
-                          : "bg-white border mr-8"
-                      }`}
-                    >
-                      <p className="text-xs font-medium text-muted-foreground mb-1">
-                        {msg.role === "user" ? "You" : "AI Assistant"}
-                      </p>
-                      <p className="whitespace-pre-wrap text-sm">{msg.content}</p>
-                    </div>
-                  ))}
-                  {loading && (
-                    <div className="bg-white border mr-8 p-3 rounded-lg flex items-center gap-2">
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      <span className="text-sm text-muted-foreground">Thinking...</span>
-                    </div>
-                  )}
-                  <div ref={messagesEndRef} />
-                </div>
-                
-                {/* Input */}
-                <div className="flex gap-2">
-                  <Input
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    onKeyDown={handleKeyDown}
-                    placeholder="Type a message..."
-                    disabled={loading}
-                    className="flex-1"
-                  />
-                  <Button onClick={sendMessage} disabled={loading || !input.trim()}>
-                    <Send className="h-4 w-4" />
-                  </Button>
-                </div>
-                <p className="text-xs text-muted-foreground mt-2">
-                  Tip: You can also edit the form directly and use the Save buttons.
-                </p>
-              </CardContent>
-            </Card>
-
-            {/* Form Panel */}
-            <Card className="h-[calc(100vh-140px)] overflow-y-auto">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg">
-                  {contentType === "lifelines" ? "Lifeline Details" : `${contentTypeConfig[contentType].label} (Coming Soon)`}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {renderFormContent()}
-              </CardContent>
-            </Card>
+          {/* Desktop: Side by side */}
+          <div className="hidden lg:grid lg:grid-cols-2 gap-4">
+            {renderChatPanel()}
+            {renderFormPanel()}
+          </div>
+          
+          {/* Mobile: One panel at a time based on tab */}
+          <div className="lg:hidden">
+            {mobilePanel === "chat" ? renderChatPanel() : renderFormPanel()}
           </div>
         </div>
       ) : (
@@ -718,7 +776,7 @@ export default function Build() {
             </CardHeader>
             <CardContent className="space-y-4">
               {/* AI Hint Banner */}
-              <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 flex items-center gap-3">
+              <div className="bg-blue-50 border border-blue-100 rounded-lg p-3 lg:p-4 flex flex-col sm:flex-row items-start sm:items-center gap-3">
                 <Lightbulb className="h-5 w-5 text-blue-600 flex-shrink-0" />
                 <p className="text-sm text-blue-800 flex-1">
                   Want help filling this out? AI can guide you through the process.
@@ -726,7 +784,7 @@ export default function Build() {
                 <Button 
                   variant="outline" 
                   size="sm"
-                  className="text-blue-600 border-blue-200 hover:bg-blue-100"
+                  className="text-blue-600 border-blue-200 hover:bg-blue-100 w-full sm:w-auto"
                   onClick={() => setMode("ai")}
                 >
                   Switch to AI Assist
