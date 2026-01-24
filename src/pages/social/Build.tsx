@@ -16,7 +16,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, Send, Loader2, Check, Save, ChevronDown } from "lucide-react";
+import { ArrowLeft, Send, Loader2, Check, Save, ChevronDown, Lightbulb } from "lucide-react";
 import { toast } from "sonner";
 
 interface Message {
@@ -379,6 +379,180 @@ export default function Build() {
     books: 0,
   };
 
+  // Render the form content (shared between AI and Direct modes)
+  const renderFormContent = () => {
+    if (contentType !== "lifelines") {
+      return (
+        <div className="flex flex-col items-center justify-center py-12 text-center">
+          <span className="text-4xl mb-4">{contentTypeConfig[contentType].icon}</span>
+          <h3 className="font-semibold text-lg mb-2">{contentTypeConfig[contentType].label}</h3>
+          <p className="text-muted-foreground text-sm">
+            This content type is coming soon. For now, you can create lifelines.
+          </p>
+          <Button 
+            variant="outline" 
+            className="mt-4"
+            onClick={() => setContentType("lifelines")}
+          >
+            Switch to Lifelines
+          </Button>
+        </div>
+      );
+    }
+
+    return (
+      <>
+        {/* Lifeline fields */}
+        <div>
+          <Label>Title</Label>
+          <Input 
+            value={lifelineForm.title} 
+            onChange={(e) => setLifelineForm(prev => ({ ...prev, title: e.target.value }))}
+            placeholder="e.g., My Career Journey"
+            disabled={lifelineSaved}
+          />
+        </div>
+        
+        <div>
+          <Label>Type</Label>
+          <Select 
+            value={lifelineForm.lifeline_type} 
+            onValueChange={(v) => setLifelineForm(prev => ({ ...prev, lifeline_type: v }))}
+            disabled={lifelineSaved}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="person">Person (about me)</SelectItem>
+              <SelectItem value="list">List (collection of things)</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        
+        <div>
+          <Label>Purpose</Label>
+          <Textarea 
+            value={lifelineForm.purpose}
+            onChange={(e) => setLifelineForm(prev => ({ ...prev, purpose: e.target.value }))}
+            placeholder="What is this lifeline about?"
+            rows={2}
+            disabled={lifelineSaved}
+          />
+        </div>
+
+        {/* Save Lifeline Button */}
+        {!lifelineSaved && (
+          <Button 
+            onClick={handleManualSaveLifeline}
+            disabled={savingLifeline || !lifelineForm.title}
+            className="w-full"
+          >
+            {savingLifeline ? (
+              <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Saving...</>
+            ) : (
+              <><Save className="h-4 w-4 mr-2" /> Save Lifeline</>
+            )}
+          </Button>
+        )}
+
+        {/* Divider */}
+        <div className="border-t pt-4 mt-4">
+          <h3 className="font-semibold mb-3">Add an Entry</h3>
+          {!lifelineSaved && (
+            <p className="text-sm text-muted-foreground mb-3">
+              Save the lifeline first before adding entries.
+            </p>
+          )}
+        </div>
+        
+        <div>
+          <Label>What happened?</Label>
+          <Input 
+            value={entryForm.title}
+            onChange={(e) => setEntryForm(prev => ({ ...prev, title: e.target.value }))}
+            placeholder="Entry title"
+            disabled={!lifelineSaved}
+          />
+        </div>
+        
+        <div>
+          <Label>Tell the story</Label>
+          <Textarea 
+            value={entryForm.description}
+            onChange={(e) => setEntryForm(prev => ({ ...prev, description: e.target.value }))}
+            placeholder="What made this moment meaningful?"
+            rows={3}
+            disabled={!lifelineSaved}
+          />
+        </div>
+        
+        <div>
+          <Label>How did it feel? ({entryForm.score})</Label>
+          <Slider
+            value={[entryForm.score]}
+            onValueChange={([v]) => setEntryForm(prev => ({ ...prev, score: v }))}
+            min={-10}
+            max={10}
+            step={1}
+            className="mt-2"
+            disabled={!lifelineSaved}
+          />
+          <div className="flex justify-between text-xs text-muted-foreground mt-1">
+            <span>-10 (terrible)</span>
+            <span>0 (neutral)</span>
+            <span>+10 (amazing)</span>
+          </div>
+        </div>
+        
+        <div>
+          <Label>When did it happen?</Label>
+          <Input 
+            value={entryForm.year}
+            onChange={(e) => setEntryForm(prev => ({ ...prev, year: e.target.value }))}
+            placeholder="e.g., 2020 or June 2020"
+            disabled={!lifelineSaved}
+          />
+        </div>
+
+        {/* Save Entry Button */}
+        {lifelineSaved && (
+          <Button 
+            onClick={handleManualSaveEntry}
+            disabled={savingEntry || !entryForm.title}
+            className="w-full"
+            variant="secondary"
+          >
+            {savingEntry ? (
+              <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Saving...</>
+            ) : (
+              <><Save className="h-4 w-4 mr-2" /> Save Entry</>
+            )}
+          </Button>
+        )}
+
+        {/* Saved entries preview */}
+        {savedEntries.length > 0 && (
+          <div className="border-t pt-4 mt-4">
+            <h3 className="font-semibold mb-2">Saved Entries ({savedEntries.length})</h3>
+            <div className="space-y-2">
+              {savedEntries.map((entry, i) => (
+                <div key={entry.id || i} className="bg-green-50 border border-green-100 p-2 rounded text-sm">
+                  <div className="flex items-center gap-2">
+                    <Check className="h-3 w-3 text-green-600" />
+                    <strong>{entry.title}</strong>
+                    {entry.year && <span className="text-muted-foreground">({entry.year})</span>}
+                    <span className="ml-auto text-xs">Score: {entry.score}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -464,239 +638,106 @@ export default function Build() {
       </div>
 
       {/* Main Content */}
-      <div className="max-w-6xl mx-auto p-4">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          
-          {/* Chat Panel */}
-          <Card className="h-[calc(100vh-140px)] flex flex-col">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg">Chat with AI</CardTitle>
-            </CardHeader>
-            <CardContent className="flex-1 flex flex-col">
-              {/* Messages */}
-              <div className="flex-1 overflow-y-auto space-y-3 mb-4 pr-2">
-                {messages.map((msg, i) => (
-                  <div
-                    key={i}
-                    className={`p-3 rounded-lg ${
-                      msg.role === "user" 
-                        ? "bg-blue-50 border border-blue-100 ml-8" 
-                        : "bg-white border mr-8"
-                    }`}
-                  >
-                    <p className="text-xs font-medium text-muted-foreground mb-1">
-                      {msg.role === "user" ? "You" : "AI Assistant"}
-                    </p>
-                    <p className="whitespace-pre-wrap text-sm">{msg.content}</p>
-                  </div>
-                ))}
-                {loading && (
-                  <div className="bg-white border mr-8 p-3 rounded-lg flex items-center gap-2">
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    <span className="text-sm text-muted-foreground">Thinking...</span>
-                  </div>
-                )}
-                <div ref={messagesEndRef} />
-              </div>
-              
-              {/* Input */}
-              <div className="flex gap-2">
-                <Input
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  placeholder="Type a message..."
-                  disabled={loading}
-                  className="flex-1"
-                />
-                <Button onClick={sendMessage} disabled={loading || !input.trim()}>
-                  <Send className="h-4 w-4" />
-                </Button>
-              </div>
-              <p className="text-xs text-muted-foreground mt-2">
-                Tip: You can also edit the form directly and use the Save buttons.
-              </p>
-            </CardContent>
-          </Card>
+      {mode === "ai" ? (
+        // AI Assist Mode: Two-panel layout
+        <div className="max-w-6xl mx-auto p-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Chat Panel */}
+            <Card className="h-[calc(100vh-140px)] flex flex-col">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg">Chat with AI</CardTitle>
+              </CardHeader>
+              <CardContent className="flex-1 flex flex-col">
+                {/* Messages */}
+                <div className="flex-1 overflow-y-auto space-y-3 mb-4 pr-2">
+                  {messages.map((msg, i) => (
+                    <div
+                      key={i}
+                      className={`p-3 rounded-lg ${
+                        msg.role === "user" 
+                          ? "bg-blue-50 border border-blue-100 ml-8" 
+                          : "bg-white border mr-8"
+                      }`}
+                    >
+                      <p className="text-xs font-medium text-muted-foreground mb-1">
+                        {msg.role === "user" ? "You" : "AI Assistant"}
+                      </p>
+                      <p className="whitespace-pre-wrap text-sm">{msg.content}</p>
+                    </div>
+                  ))}
+                  {loading && (
+                    <div className="bg-white border mr-8 p-3 rounded-lg flex items-center gap-2">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <span className="text-sm text-muted-foreground">Thinking...</span>
+                    </div>
+                  )}
+                  <div ref={messagesEndRef} />
+                </div>
+                
+                {/* Input */}
+                <div className="flex gap-2">
+                  <Input
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    placeholder="Type a message..."
+                    disabled={loading}
+                    className="flex-1"
+                  />
+                  <Button onClick={sendMessage} disabled={loading || !input.trim()}>
+                    <Send className="h-4 w-4" />
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground mt-2">
+                  Tip: You can also edit the form directly and use the Save buttons.
+                </p>
+              </CardContent>
+            </Card>
 
-          {/* Form Panel */}
-          <Card className="h-[calc(100vh-140px)] overflow-y-auto">
+            {/* Form Panel */}
+            <Card className="h-[calc(100vh-140px)] overflow-y-auto">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg">
+                  {contentType === "lifelines" ? "Lifeline Details" : `${contentTypeConfig[contentType].label} (Coming Soon)`}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {renderFormContent()}
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      ) : (
+        // Direct Edit Mode: Single-column layout
+        <div className="max-w-3xl mx-auto p-4">
+          <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-lg">
-                {contentType === "lifelines" ? "Lifeline Details" : `${contentTypeConfig[contentType].label} (Coming Soon)`}
+                {contentType === "lifelines" ? "New Lifeline" : `${contentTypeConfig[contentType].label} (Coming Soon)`}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {contentType === "lifelines" ? (
-                <>
-                  {/* Lifeline fields */}
-                  <div>
-                    <Label>Title</Label>
-                    <Input 
-                      value={lifelineForm.title} 
-                      onChange={(e) => setLifelineForm(prev => ({ ...prev, title: e.target.value }))}
-                      placeholder="e.g., My Career Journey"
-                      disabled={lifelineSaved}
-                    />
-                  </div>
-                  
-                  <div>
-                    <Label>Type</Label>
-                    <Select 
-                      value={lifelineForm.lifeline_type} 
-                      onValueChange={(v) => setLifelineForm(prev => ({ ...prev, lifeline_type: v }))}
-                      disabled={lifelineSaved}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="person">Person (about me)</SelectItem>
-                        <SelectItem value="list">List (collection of things)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div>
-                    <Label>Purpose</Label>
-                    <Textarea 
-                      value={lifelineForm.purpose}
-                      onChange={(e) => setLifelineForm(prev => ({ ...prev, purpose: e.target.value }))}
-                      placeholder="What is this lifeline about?"
-                      rows={2}
-                      disabled={lifelineSaved}
-                    />
-                  </div>
+              {/* AI Hint Banner */}
+              <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 flex items-center gap-3">
+                <Lightbulb className="h-5 w-5 text-blue-600 flex-shrink-0" />
+                <p className="text-sm text-blue-800 flex-1">
+                  Want help filling this out? AI can guide you through the process.
+                </p>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  className="text-blue-600 border-blue-200 hover:bg-blue-100"
+                  onClick={() => setMode("ai")}
+                >
+                  Switch to AI Assist
+                </Button>
+              </div>
 
-                  {/* Save Lifeline Button */}
-                  {!lifelineSaved && (
-                    <Button 
-                      onClick={handleManualSaveLifeline}
-                      disabled={savingLifeline || !lifelineForm.title}
-                      className="w-full"
-                    >
-                      {savingLifeline ? (
-                        <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Saving...</>
-                      ) : (
-                        <><Save className="h-4 w-4 mr-2" /> Save Lifeline</>
-                      )}
-                    </Button>
-                  )}
-
-                  {/* Divider */}
-                  <div className="border-t pt-4 mt-4">
-                    <h3 className="font-semibold mb-3">Add an Entry</h3>
-                    {!lifelineSaved && (
-                      <p className="text-sm text-muted-foreground mb-3">
-                        Save the lifeline first before adding entries.
-                      </p>
-                    )}
-                  </div>
-                  
-                  <div>
-                    <Label>What happened?</Label>
-                    <Input 
-                      value={entryForm.title}
-                      onChange={(e) => setEntryForm(prev => ({ ...prev, title: e.target.value }))}
-                      placeholder="Entry title"
-                      disabled={!lifelineSaved}
-                    />
-                  </div>
-                  
-                  <div>
-                    <Label>Tell the story</Label>
-                    <Textarea 
-                      value={entryForm.description}
-                      onChange={(e) => setEntryForm(prev => ({ ...prev, description: e.target.value }))}
-                      placeholder="What made this moment meaningful?"
-                      rows={3}
-                      disabled={!lifelineSaved}
-                    />
-                  </div>
-                  
-                  <div>
-                    <Label>How did it feel? ({entryForm.score})</Label>
-                    <Slider
-                      value={[entryForm.score]}
-                      onValueChange={([v]) => setEntryForm(prev => ({ ...prev, score: v }))}
-                      min={-10}
-                      max={10}
-                      step={1}
-                      className="mt-2"
-                      disabled={!lifelineSaved}
-                    />
-                    <div className="flex justify-between text-xs text-muted-foreground mt-1">
-                      <span>-10 (terrible)</span>
-                      <span>0 (neutral)</span>
-                      <span>+10 (amazing)</span>
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <Label>When did it happen?</Label>
-                    <Input 
-                      value={entryForm.year}
-                      onChange={(e) => setEntryForm(prev => ({ ...prev, year: e.target.value }))}
-                      placeholder="e.g., 2020 or June 2020"
-                      disabled={!lifelineSaved}
-                    />
-                  </div>
-
-                  {/* Save Entry Button */}
-                  {lifelineSaved && (
-                    <Button 
-                      onClick={handleManualSaveEntry}
-                      disabled={savingEntry || !entryForm.title}
-                      className="w-full"
-                      variant="secondary"
-                    >
-                      {savingEntry ? (
-                        <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Saving...</>
-                      ) : (
-                        <><Save className="h-4 w-4 mr-2" /> Save Entry</>
-                      )}
-                    </Button>
-                  )}
-
-                  {/* Saved entries preview */}
-                  {savedEntries.length > 0 && (
-                    <div className="border-t pt-4 mt-4">
-                      <h3 className="font-semibold mb-2">Saved Entries ({savedEntries.length})</h3>
-                      <div className="space-y-2">
-                        {savedEntries.map((entry, i) => (
-                          <div key={entry.id || i} className="bg-green-50 border border-green-100 p-2 rounded text-sm">
-                            <div className="flex items-center gap-2">
-                              <Check className="h-3 w-3 text-green-600" />
-                              <strong>{entry.title}</strong>
-                              {entry.year && <span className="text-muted-foreground">({entry.year})</span>}
-                              <span className="ml-auto text-xs">Score: {entry.score}</span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </>
-              ) : (
-                <div className="flex flex-col items-center justify-center py-12 text-center">
-                  <span className="text-4xl mb-4">{contentTypeConfig[contentType].icon}</span>
-                  <h3 className="font-semibold text-lg mb-2">{contentTypeConfig[contentType].label}</h3>
-                  <p className="text-muted-foreground text-sm">
-                    This content type is coming soon. For now, you can create lifelines.
-                  </p>
-                  <Button 
-                    variant="outline" 
-                    className="mt-4"
-                    onClick={() => setContentType("lifelines")}
-                  >
-                    Switch to Lifelines
-                  </Button>
-                </div>
-              )}
+              {renderFormContent()}
             </CardContent>
           </Card>
         </div>
-      </div>
+      )}
     </div>
   );
 }
