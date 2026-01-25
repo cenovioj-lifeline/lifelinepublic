@@ -36,7 +36,7 @@ export function useCreateSection() {
       layoutId,
       sectionTitle,
       displayOrder,
-      columnsCount = 4,
+      columnsCount = 3,
     }: {
       layoutId: string;
       sectionTitle?: string;
@@ -235,7 +235,7 @@ export function useEnsureDefaultSection() {
           layout_id: layoutId,
           section_title: null,
           display_order: 0,
-          columns_count: 4,
+          columns_count: 3,
         })
         .select()
         .single();
