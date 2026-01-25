@@ -242,24 +242,27 @@ export function ProfileImageEditor({ profile, onImageUpdate }: ProfileImageEdito
 
   // Calculate correct display styles accounting for aspect ratio
   // For 1:1 avatar crop from non-square images, we need different scales for width vs height
-  const getAvatarImageStyle = () => {
+  const getAvatarImageStyle = (): React.CSSProperties => {
     // For landscape images: ratio > 1, so scaleY < scale (less zoom on height)
     // For portrait images: ratio < 1, so scaleY > scale (more zoom on height)
     // For square images: ratio = 1, so scaleY = scale (unchanged)
     const scaleY = avatarPosition.scale / imageAspectRatio;
 
     return {
+      position: 'absolute',
+      top: 0,
+      left: 0,
       width: `${avatarPosition.scale * 100}%`,
       height: `${scaleY * 100}%`,
       marginLeft: `${-avatarPosition.x * avatarPosition.scale + 50}%`,
       marginTop: `${-avatarPosition.y * scaleY + 50}%`,
-      objectFit: 'none' as const,
+      objectFit: 'none',
     };
   };
 
   // Calculate correct display styles for 16:9 card crop
   // Note: 16:9 crop from non-square images has similar aspect ratio mismatch issues
-  const getCardImageStyle = () => {
+  const getCardImageStyle = (): React.CSSProperties => {
     // For 16:9 crop, the target aspect ratio is 16/9 ≈ 1.78
     // We need to compare this to the image's natural aspect ratio
     const targetRatio = 16 / 9;
@@ -270,11 +273,14 @@ export function ProfileImageEditor({ profile, onImageUpdate }: ProfileImageEdito
     const scaleY = cardPosition.scale * imageAspectRatio / targetRatio;
 
     return {
+      position: 'absolute',
+      top: 0,
+      left: 0,
       width: `${cardPosition.scale * 100}%`,
       height: `${scaleY * 100}%`,
       marginLeft: `${-cardPosition.x * cardPosition.scale + 50}%`,
       marginTop: `${-cardPosition.y * scaleY + 50}%`,
-      objectFit: 'none' as const,
+      objectFit: 'none',
     };
   };
 
@@ -313,6 +319,7 @@ export function ProfileImageEditor({ profile, onImageUpdate }: ProfileImageEdito
                   <AvatarImage
                     src={imageUrl}
                     alt={profile.name}
+                    disableDefaults
                     style={getAvatarImageStyle()}
                   />
                   <AvatarFallback className="text-4xl">
@@ -345,7 +352,6 @@ export function ProfileImageEditor({ profile, onImageUpdate }: ProfileImageEdito
                     <img
                       src={imageUrl}
                       alt={profile.name}
-                      className="absolute top-0 left-0"
                       style={getCardImageStyle()}
                     />
                   ) : (
