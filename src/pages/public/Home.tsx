@@ -206,7 +206,8 @@ export default function Home() {
         imageAlt={content.title}
         linkPath={content.link || '#'}
         type={item_type as 'collection' | 'profile' | 'election' | 'book'}
-        collectionSlug={item_type === 'collection' ? content.slug : undefined}
+        cardLabel={item_type === 'collection' ? content.card_label : undefined}
+        collectionId={item_type === 'collection' ? item.item_id : undefined}
       />
     );
   };

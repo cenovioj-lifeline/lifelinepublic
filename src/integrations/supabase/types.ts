@@ -788,6 +788,7 @@ export type Database = {
           card_image_position_x: number | null
           card_image_position_y: number | null
           card_image_url: string | null
+          card_label: string | null
           card_text_color: string | null
           category: string | null
           collection_accent_color: string | null
@@ -870,6 +871,7 @@ export type Database = {
           card_image_position_x?: number | null
           card_image_position_y?: number | null
           card_image_url?: string | null
+          card_label?: string | null
           card_text_color?: string | null
           category?: string | null
           collection_accent_color?: string | null
@@ -952,6 +954,7 @@ export type Database = {
           card_image_position_x?: number | null
           card_image_position_y?: number | null
           card_image_url?: string | null
+          card_label?: string | null
           card_text_color?: string | null
           category?: string | null
           collection_accent_color?: string | null

@@ -69,6 +69,8 @@ export interface CardContent {
   image_position_y?: number;
   slug?: string;
   link?: string;
+  // Collection specific
+  card_label?: string;
   // Action card specific
   icon_name?: string;
   icon_url?: string;
