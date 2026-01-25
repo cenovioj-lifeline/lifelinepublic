@@ -1,6 +1,6 @@
 interface ContentTypeBannerProps {
   type: "lifeline" | "profile" | "election" | "book" | "collection" | "link" | string;
-  collectionSlug?: string;
+  cardLabel?: string | null;
 }
 
 const labels: Record<string, string> = {
@@ -12,11 +12,11 @@ const labels: Record<string, string> = {
   link: "Link",
 };
 
-export function ContentTypeBanner({ type, collectionSlug }: ContentTypeBannerProps) {
-  // Custom banner text for specific collections
+export function ContentTypeBanner({ type, cardLabel }: ContentTypeBannerProps) {
+  // Use custom card label if provided, otherwise fall back to type label
   const getBannerText = () => {
-    if (type === "collection" && collectionSlug === "the-lifeline-story") {
-      return "Investor Tour / Sales Pitch";
+    if (cardLabel) {
+      return cardLabel;
     }
     return labels[type] || type;
   };

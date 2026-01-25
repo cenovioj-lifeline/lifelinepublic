@@ -19,7 +19,7 @@ interface StandardizedContentCardProps {
   type: 'lifeline' | 'collection' | 'election' | 'profile' | 'book';
   lifelineType?: string; // 'person' or 'list' - only for lifeline type cards
   collectionId?: string; // For prefetching color schemes on hover
-  collectionSlug?: string; // For custom banner text (e.g., lifeline-inc)
+  cardLabel?: string | null; // Custom label for card banner (e.g., "Investor Tour / Sales Pitch")
 }
 
 export function StandardizedContentCard({
@@ -35,7 +35,7 @@ export function StandardizedContentCard({
   type,
   lifelineType,
   collectionId,
-  collectionSlug,
+  cardLabel,
 }: StandardizedContentCardProps) {
   const queryClient = useQueryClient();
   
@@ -82,7 +82,7 @@ export function StandardizedContentCard({
         </div>
         
         {/* Banner - separate section below image */}
-        <ContentTypeBanner type={badge || type} collectionSlug={collectionSlug} />
+        <ContentTypeBanner type={badge || type} cardLabel={cardLabel} />
         
         <CardHeader className="bg-[hsl(var(--scheme-card-bg))]">
           <div className="flex items-start justify-between gap-2">

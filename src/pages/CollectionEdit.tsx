@@ -43,6 +43,7 @@ const collectionFormSchema = z.object({
   slug: z.string().min(1, "Slug is required"),
   description: z.string().optional(),
   category: z.string().optional(),
+  card_label: z.string().optional(),
   status: z.enum(["draft", "published"]),
   is_featured: z.boolean(),
   media_enabled: z.boolean(),
@@ -91,6 +92,7 @@ export default function CollectionEdit() {
       slug: "",
       description: "",
       category: "",
+      card_label: "",
       status: "draft",
       is_featured: false,
       media_enabled: false,
@@ -132,6 +134,7 @@ export default function CollectionEdit() {
         slug: collection.slug || "",
         description: collection.description || "",
         category: collection.category || "",
+        card_label: (collection as any).card_label || "",
         status: collection.status || "draft",
         is_featured: collection.is_featured || false,
         media_enabled: (collection as any).media_enabled || false,
@@ -157,6 +160,7 @@ export default function CollectionEdit() {
         slug: data.slug,
         description: data.description || null,
         category: data.category || null,
+        card_label: data.card_label || null,
         status: data.status,
         is_featured: data.is_featured,
         media_enabled: data.media_enabled,
@@ -334,6 +338,23 @@ export default function CollectionEdit() {
                   <FormControl>
                     <Input {...field} placeholder="e.g., TV Shows, History" />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="card_label"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Card Label</FormLabel>
+                  <FormControl>
+                    <Input {...field} placeholder="e.g., Investor Tour / Sales Pitch" />
+                  </FormControl>
+                  <FormDescription>
+                    Text shown on card banner. Leave blank to show "Collection"
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}

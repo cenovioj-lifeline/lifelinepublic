@@ -218,7 +218,7 @@ export default function HomePrototype() {
                     : `/public/elections/${item.slug}`
                 }
                 type={item.type}
-                collectionSlug={item.type === "collection" ? item.slug : undefined}
+                cardLabel={item.type === "collection" ? (item as any).card_label : undefined}
               />
             )
           ))}
@@ -290,7 +290,7 @@ export default function HomePrototype() {
                     : `/public/elections/${item.slug}`
                 }
                 type={item.type}
-                collectionSlug={item.type === "collection" ? item.slug : undefined}
+                cardLabel={item.type === "collection" ? (item as any).card_label : undefined}
               />
             )
           ))}

@@ -249,6 +249,7 @@ function normalizeContent(
         title: data.title,
         subtitle: data.description,
         image_url: data.card_image_url || data.hero_image_url,
+        card_label: data.card_label,
         slug: data.slug,
         link: `/public/collections/${data.slug}`,
       };
@@ -337,7 +338,7 @@ async function fetchItemContent(
     case "collection": {
       const { data: collection } = await supabase
         .from("collections")
-        .select("id, title, slug, description, card_image_url, hero_image_url")
+        .select("id, title, slug, description, card_image_url, hero_image_url, card_label")
         .eq("id", item_id)
         .single();
       data = collection;
