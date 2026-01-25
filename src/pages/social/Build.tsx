@@ -62,6 +62,42 @@ const contentTypeConfig: Record<ContentType, { label: string; icon: string }> = 
   books: { label: "Books", icon: "📚" },
 };
 
+// Parse various date input formats into YYYY-MM-DD for database
+const parseDateInput = (input: string): string | null => {
+  if (!input || !input.trim()) return null;
+  
+  const trimmed = input.trim();
+  
+  // Year only: "2020" or "2024"
+  if (/^\d{4}$/.test(trimmed)) {
+    return `${trimmed}-01-01`;
+  }
+  
+  // MM/DD/YYYY format: "12/15/2024"
+  const slashMatch = trimmed.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (slashMatch) {
+    const [, month, day, year] = slashMatch;
+    return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+  }
+  
+  // YYYY-MM-DD format: already valid
+  if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+    return trimmed;
+  }
+  
+  // Try parsing with JavaScript Date as fallback
+  const parsed = new Date(trimmed);
+  if (!isNaN(parsed.getTime())) {
+    const year = parsed.getFullYear();
+    const month = String(parsed.getMonth() + 1).padStart(2, '0');
+    const day = String(parsed.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+  
+  // If nothing works, return null (will be stored as null in DB)
+  return null;
+};
+
 export default function Build() {
   const { collectionId } = useParams();
   const navigate = useNavigate();
@@ -239,6 +275,9 @@ export default function Build() {
       const slug = generateSlug(entryForm.title);
       const orderIndex = savedEntries.length;
       
+      // Parse the date input into proper YYYY-MM-DD format
+      const occurredOn = parseDateInput(entryForm.year);
+      
       const { data, error } = await supabase
         .from("entries")
         .insert({
@@ -247,7 +286,7 @@ export default function Build() {
           slug: slug,
           summary: entryForm.description,
           score: entryForm.score,
-          occurred_on: entryForm.year ? `${entryForm.year}-01-01` : null,
+          occurred_on: occurredOn,
           order_index: orderIndex
         })
         .select()
@@ -514,7 +553,7 @@ export default function Build() {
             <Input 
               value={entryForm.year}
               onChange={(e) => setEntryForm(prev => ({ ...prev, year: e.target.value }))}
-              placeholder="e.g., 2020"
+              placeholder="e.g., 2020 or 12/15/2024"
               disabled={!lifelineSaved}
             />
           </div>
