@@ -1017,10 +1017,10 @@ export default function PublicCollectionDetail() {
                 onClick={() => handleActionCardClick(card)}
               >
                 <CardContent className="flex flex-col items-center justify-center p-2 md:p-6 gap-1 md:gap-2">
-                  {renderActionCardIcon(
-                    card,
-                    `h-5 w-5 md:h-8 md:w-8`
-                  )}
+                            {renderActionCardIcon(
+                              card,
+                              `h-5 w-5 md:h-8 md:w-8 text-[hsl(var(--scheme-actions-icon))]`
+                            )}
                   <span
                     className="text-[10px] md:text-sm font-medium"
                     style={{ color: index === 0 ? 'hsl(var(--scheme-actions-text))' : 'hsl(var(--scheme-ch-actions-text))' }}
