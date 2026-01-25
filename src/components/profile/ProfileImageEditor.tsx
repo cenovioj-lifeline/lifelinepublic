@@ -261,10 +261,11 @@ export function ProfileImageEditor({ profile, onImageUpdate }: ProfileImageEdito
                     src={imageUrl} 
                     alt={profile.name}
                     style={{
-                      objectFit: 'none',
-                      objectPosition: `${avatarPosition.x}% ${avatarPosition.y}%`,
                       width: `${avatarPosition.scale * 100}%`,
                       height: `${avatarPosition.scale * 100}%`,
+                      marginLeft: `${-avatarPosition.x * avatarPosition.scale + 50}%`,
+                      marginTop: `${-avatarPosition.y * avatarPosition.scale + 50}%`,
+                      objectFit: 'cover',
                     }}
                   />
                   <AvatarFallback className="text-4xl">
@@ -297,12 +298,13 @@ export function ProfileImageEditor({ profile, onImageUpdate }: ProfileImageEdito
                     <img
                       src={imageUrl}
                       alt={profile.name}
-                      className="w-full h-full"
+                      className="absolute top-0 left-0"
                       style={{
-                        objectFit: 'none',
-                        objectPosition: `${cardPosition.x}% ${cardPosition.y}%`,
                         width: `${cardPosition.scale * 100}%`,
                         height: `${cardPosition.scale * 100}%`,
+                        marginLeft: `${-cardPosition.x * cardPosition.scale + 50}%`,
+                        marginTop: `${-cardPosition.y * cardPosition.scale + 50}%`,
+                        objectFit: 'cover',
                       }}
                     />
                   ) : (

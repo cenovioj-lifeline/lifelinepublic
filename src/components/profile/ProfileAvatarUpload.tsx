@@ -195,10 +195,11 @@ export function ProfileAvatarUpload({ profile, onImageUpdate }: ProfileAvatarUpl
             src={profile.avatar_image?.url || profile.primary_image_url || undefined} 
             alt={profile.avatar_image?.alt_text || profile.name}
             style={{
-              objectFit: 'none',
-              objectPosition: `${positionX}% ${positionY}%`,
               width: `${scale * 100}%`,
               height: `${scale * 100}%`,
+              marginLeft: `${-positionX * scale + 50}%`,
+              marginTop: `${-positionY * scale + 50}%`,
+              objectFit: 'cover',
             }}
           />
           <AvatarFallback className="text-2xl text-gray-700">
