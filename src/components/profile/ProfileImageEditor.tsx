@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
@@ -43,9 +43,24 @@ export function ProfileImageEditor({ profile, onImageUpdate }: ProfileImageEdito
     profile.avatar_image?.id
   );
 
+  // Track image aspect ratio for correct display
+  const [imageAspectRatio, setImageAspectRatio] = useState<number>(1);
+
   const imageUrl = profile.avatar_image?.url || profile.primary_image_url;
   const isLegacyImage = profile.primary_image_url && !profile.avatar_image?.id;
-  
+
+  // Load image and measure its aspect ratio
+  useEffect(() => {
+    if (imageUrl) {
+      const img = new Image();
+      img.onload = () => {
+        const ratio = img.naturalWidth / img.naturalHeight;
+        setImageAspectRatio(ratio);
+      };
+      img.src = imageUrl;
+    }
+  }, [imageUrl]);
+
   // Helper to invalidate all relevant caches after image updates
   const invalidateProfileCaches = () => {
     // Admin/editor pages
@@ -110,13 +125,13 @@ export function ProfileImageEditor({ profile, onImageUpdate }: ProfileImageEdito
 
   const handleRepositionClick = async (mode: CropMode) => {
     setCropMode(mode);
-    
+
     if (isLegacyImage) {
       // Create media_assets record for legacy image
       setIsProcessing(true);
       try {
-        const filename = profile.primary_image_path || 
-          profile.primary_image_url!.split('/').pop() || 
+        const filename = profile.primary_image_path ||
+          profile.primary_image_url!.split('/').pop() ||
           'avatar.jpg';
 
         const { data: mediaAsset, error: insertError } = await supabase
@@ -172,7 +187,7 @@ export function ProfileImageEditor({ profile, onImageUpdate }: ProfileImageEdito
       const scale = 100 / crop.width;
 
       // Save to the appropriate columns based on crop mode
-      const updateData = cropMode === 'avatar' 
+      const updateData = cropMode === 'avatar'
         ? {
             position_x: Math.round(centerX),
             position_y: Math.round(centerY),
@@ -225,6 +240,44 @@ export function ProfileImageEditor({ profile, onImageUpdate }: ProfileImageEdito
     scale: profile.avatar_image?.card_scale ?? 1
   };
 
+  // Calculate correct display styles accounting for aspect ratio
+  // For 1:1 avatar crop from non-square images, we need different scales for width vs height
+  const getAvatarImageStyle = () => {
+    // For landscape images: ratio > 1, so scaleY < scale (less zoom on height)
+    // For portrait images: ratio < 1, so scaleY > scale (more zoom on height)
+    // For square images: ratio = 1, so scaleY = scale (unchanged)
+    const scaleY = avatarPosition.scale / imageAspectRatio;
+
+    return {
+      width: `${avatarPosition.scale * 100}%`,
+      height: `${scaleY * 100}%`,
+      marginLeft: `${-avatarPosition.x * avatarPosition.scale + 50}%`,
+      marginTop: `${-avatarPosition.y * scaleY + 50}%`,
+      objectFit: 'none' as const,
+    };
+  };
+
+  // Calculate correct display styles for 16:9 card crop
+  // Note: 16:9 crop from non-square images has similar aspect ratio mismatch issues
+  const getCardImageStyle = () => {
+    // For 16:9 crop, the target aspect ratio is 16/9 ≈ 1.78
+    // We need to compare this to the image's natural aspect ratio
+    const targetRatio = 16 / 9;
+
+    // The scale was calculated from width%, so for height we need to adjust
+    // crop.height% = crop.width% * (imageWidth/imageHeight) / (targetWidth/targetHeight)
+    // scaleY = scale * imageAspectRatio / targetRatio
+    const scaleY = cardPosition.scale * imageAspectRatio / targetRatio;
+
+    return {
+      width: `${cardPosition.scale * 100}%`,
+      height: `${scaleY * 100}%`,
+      marginLeft: `${-cardPosition.x * cardPosition.scale + 50}%`,
+      marginTop: `${-cardPosition.y * scaleY + 50}%`,
+      objectFit: 'none' as const,
+    };
+  };
+
   return (
     <>
       <Button
@@ -257,16 +310,10 @@ export function ProfileImageEditor({ profile, onImageUpdate }: ProfileImageEdito
             <TabsContent value="avatar" className="space-y-4">
               <div className="flex flex-col items-center gap-4 py-4">
                 <Avatar className="h-32 w-32">
-                <AvatarImage 
-                    src={imageUrl} 
+                  <AvatarImage
+                    src={imageUrl}
                     alt={profile.name}
-                    style={{
-                      width: `${avatarPosition.scale * 100}%`,
-                      height: `${avatarPosition.scale * 100}%`,
-                      marginLeft: `${-avatarPosition.x * avatarPosition.scale + 50}%`,
-                      marginTop: `${-avatarPosition.y * avatarPosition.scale + 50}%`,
-                      objectFit: 'cover',
-                    }}
+                    style={getAvatarImageStyle()}
                   />
                   <AvatarFallback className="text-4xl">
                     {getInitials(profile.name)}
@@ -293,19 +340,13 @@ export function ProfileImageEditor({ profile, onImageUpdate }: ProfileImageEdito
             <TabsContent value="card" className="space-y-4">
               <div className="flex flex-col items-center gap-4 py-4">
                 {/* 16:9 preview */}
-                <div className="w-full aspect-video bg-muted rounded-lg overflow-hidden">
+                <div className="w-full aspect-video bg-muted rounded-lg overflow-hidden relative">
                   {imageUrl ? (
                     <img
                       src={imageUrl}
                       alt={profile.name}
                       className="absolute top-0 left-0"
-                      style={{
-                        width: `${cardPosition.scale * 100}%`,
-                        height: `${cardPosition.scale * 100}%`,
-                        marginLeft: `${-cardPosition.x * cardPosition.scale + 50}%`,
-                        marginTop: `${-cardPosition.y * cardPosition.scale + 50}%`,
-                        objectFit: 'cover',
-                      }}
+                      style={getCardImageStyle()}
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-muted-foreground">

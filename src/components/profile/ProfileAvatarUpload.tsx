@@ -1,4 +1,4 @@
-import { useState, DragEvent } from "react";
+import { useState, DragEvent, useEffect } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Profile, getInitials } from "@/types/profile";
 import { useAdminAccess } from "@/lib/useAdminAccess";
@@ -9,9 +9,9 @@ import { CropBoxPicker, CropData } from "@/components/admin/CropBoxPicker";
 import { Upload } from "lucide-react";
 
 interface ProfileAvatarUploadProps {
-  profile: Profile & { 
-    avatar_image?: { 
-      url: string; 
+  profile: Profile & {
+    avatar_image?: {
+      url: string;
       alt_text?: string;
       id?: string;
       position_x?: number;
@@ -31,11 +31,27 @@ export function ProfileAvatarUpload({ profile, onImageUpdate }: ProfileAvatarUpl
   const [uploadedImageUrl, setUploadedImageUrl] = useState<string>("");
   const [uploadedImageId, setUploadedImageId] = useState<string>("");
 
+  // Track the image's natural aspect ratio for correct display
+  const [imageAspectRatio, setImageAspectRatio] = useState<number>(1);
+
   const positionX = profile.avatar_image?.position_x ?? 50;
   const positionY = profile.avatar_image?.position_y ?? 50;
   const scale = profile.avatar_image?.scale ?? 1;
 
   const hasImage = Boolean(profile.avatar_image?.url || profile.primary_image_url);
+  const imageUrl = profile.avatar_image?.url || profile.primary_image_url;
+
+  // Load image and measure its aspect ratio
+  useEffect(() => {
+    if (imageUrl) {
+      const img = new Image();
+      img.onload = () => {
+        const ratio = img.naturalWidth / img.naturalHeight;
+        setImageAspectRatio(ratio);
+      };
+      img.src = imageUrl;
+    }
+  }, [imageUrl]);
 
   const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
     if (!hasAccess || hasImage || isUploading) return;
@@ -180,6 +196,41 @@ export function ProfileAvatarUpload({ profile, onImageUpdate }: ProfileAvatarUpl
     }
   };
 
+  // Calculate correct display styles accounting for aspect ratio
+  //
+  // The stored scale is based on crop.width (% of image width).
+  // For non-square images, the crop.height is DIFFERENT (% of image height).
+  // Relationship: crop.height = crop.width * (imageWidth / imageHeight) = crop.width * aspectRatio
+  // So: scaleForHeight = 100 / crop.height = scale / aspectRatio
+  //
+  // Example: Landscape image (1000x600, ratio=1.67), square 200x200 crop
+  // - crop.width = 20%, crop.height = 33.33%
+  // - scale = 100/20 = 5
+  // - scaleY = 5 / 1.67 = 3
+  // - Width displayed: 5 * 100% = 500% (20% × 5 = 100% of crop shown)
+  // - Height displayed: 3 * 100% = 300% (33.33% × 3 = 100% of crop shown) ✓
+  //
+  const getAvatarImageStyle = () => {
+    // For landscape images: ratio > 1, so scaleY < scale (less zoom on height)
+    // For portrait images: ratio < 1, so scaleY > scale (more zoom on height)
+    // For square images: ratio = 1, so scaleY = scale (unchanged)
+    const scaleY = scale / imageAspectRatio;
+
+    return {
+      // Scale the image to fill the container based on the crop selection
+      width: `${scale * 100}%`,
+      height: `${scaleY * 100}%`,
+      // Position so the crop center appears at the avatar center
+      // Formula: -(position% * scale) + 50%
+      // This shifts the image so that position% of the scaled image is at 50% of container
+      marginLeft: `${-positionX * scale + 50}%`,
+      marginTop: `${-positionY * scaleY + 50}%`,
+      // CRITICAL: Remove object-fit to prevent browser from adding its own scaling
+      // The avatar container's overflow:hidden will clip the excess
+      objectFit: 'none' as const,
+    };
+  };
+
   return (
     <>
       <div
@@ -191,16 +242,10 @@ export function ProfileAvatarUpload({ profile, onImageUpdate }: ProfileAvatarUpl
         <Avatar className={`h-32 w-32 md:h-48 md:w-48 flex-shrink-0 transition-all ${
           isDragging ? 'ring-4 ring-primary scale-105' : ''
         } ${hasAccess && !hasImage ? 'ring-2 ring-dashed ring-muted-foreground/30' : ''}`}>
-          <AvatarImage 
-            src={profile.avatar_image?.url || profile.primary_image_url || undefined} 
+          <AvatarImage
+            src={imageUrl || undefined}
             alt={profile.avatar_image?.alt_text || profile.name}
-            style={{
-              width: `${scale * 100}%`,
-              height: `${scale * 100}%`,
-              marginLeft: `${-positionX * scale + 50}%`,
-              marginTop: `${-positionY * scale + 50}%`,
-              objectFit: 'cover',
-            }}
+            style={getAvatarImageStyle()}
           />
           <AvatarFallback className="text-2xl text-gray-700">
             {getInitials(profile.name)}
