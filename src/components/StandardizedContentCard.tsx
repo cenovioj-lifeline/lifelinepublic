@@ -59,8 +59,8 @@ export function StandardizedContentCard({
   };
 
   return (
-    <Link to={linkPath} className="group" onMouseEnter={handleMouseEnter}>
-      <Card className="overflow-hidden hover:shadow-lg transition-shadow bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
+    <Link to={linkPath} className="group h-full" onMouseEnter={handleMouseEnter}>
+      <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full flex flex-col bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
         {/* Standardized 16:9 aspect ratio image */}
         <div className="aspect-video relative overflow-hidden bg-white">
           {imageUrl ? (
@@ -84,7 +84,7 @@ export function StandardizedContentCard({
         {/* Banner - separate section below image */}
         <ContentTypeBanner type={badge || type} cardLabel={cardLabel} />
         
-        <CardHeader className="bg-[hsl(var(--scheme-card-bg))]">
+        <CardHeader className="bg-[hsl(var(--scheme-card-bg))] flex-1">
           <div className="flex items-start justify-between gap-2">
             {parsed?.isPersonType ? (
               <div className="space-y-0.5 flex-1">
@@ -102,11 +102,11 @@ export function StandardizedContentCard({
             )}
           </div>
         </CardHeader>
-        {description && (
-          <CardContent className="bg-[hsl(var(--scheme-card-bg))]">
-            <p className="text-sm line-clamp-3 text-[hsl(var(--scheme-cards-text))]">{description}</p>
-          </CardContent>
-        )}
+        <CardContent className="bg-[hsl(var(--scheme-card-bg))]">
+          <p className="text-sm line-clamp-3 text-[hsl(var(--scheme-cards-text))] min-h-[3.75rem]">
+            {description || '\u00A0'}
+          </p>
+        </CardContent>
       </Card>
     </Link>
   );

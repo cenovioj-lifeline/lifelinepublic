@@ -163,9 +163,9 @@ export default function Home() {
         <Link
           key={item.id}
           to={content.link || `/public/lifelines/${content.slug}`}
-          className="group relative"
+          className="group relative h-full"
         >
-          <Card className="overflow-hidden hover:shadow-lg transition-shadow bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
+          <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full flex flex-col bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
             <div className="aspect-video relative overflow-hidden bg-white">
               {content.image_url ? (
                 <img
@@ -180,14 +180,14 @@ export default function Home() {
               )}
             </div>
             <ContentTypeBanner type="lifeline" />
-            <CardHeader className="bg-[hsl(var(--scheme-card-bg))]">
+            <CardHeader className="bg-[hsl(var(--scheme-card-bg))] flex-1">
               <CardTitle className="text-lg transition-colors text-[hsl(var(--scheme-card-text))]">
                 {content.title}
               </CardTitle>
             </CardHeader>
             <CardContent className="bg-[hsl(var(--scheme-card-bg))]">
-              <p className="text-sm line-clamp-2 text-[hsl(var(--scheme-cards-text))]">
-                {content.subtitle || "Explore this lifeline"}
+              <p className="text-sm line-clamp-3 text-[hsl(var(--scheme-cards-text))] min-h-[3.75rem]">
+                {content.subtitle || '\u00A0'}
               </p>
             </CardContent>
           </Card>
@@ -318,7 +318,7 @@ export default function Home() {
               </h2>
             )}
             <div 
-              className="grid gap-6 items-start" 
+              className="grid gap-6" 
               style={{ 
                 gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` 
               }}
@@ -342,7 +342,7 @@ export default function Home() {
               {unsectionedItems.filter(item => item.content).map(item => renderLayoutCard(item))}
             </MobileSectionCarousel>
           ) : (
-            <div className="grid gap-6 items-start grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-6 grid-cols-2 lg:grid-cols-3">
               {unsectionedItems.filter(item => item.content).map(renderLayoutCard)}
             </div>
           )}
