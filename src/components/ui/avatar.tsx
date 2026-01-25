@@ -15,11 +15,26 @@ const Avatar = React.forwardRef<
 ));
 Avatar.displayName = AvatarPrimitive.Root.displayName;
 
+interface AvatarImageProps extends React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Image> {
+  /**
+   * When true, disables the default aspect-square, h-full, w-full, and object-cover classes.
+   * Use this when you need custom positioning/scaling of the image (e.g., for cropped avatars).
+   */
+  disableDefaults?: boolean;
+}
+
 const AvatarImage = React.forwardRef<
   React.ElementRef<typeof AvatarPrimitive.Image>,
-  React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Image>
->(({ className, ...props }, ref) => (
-  <AvatarPrimitive.Image ref={ref} className={cn("aspect-square h-full w-full object-cover", className)} {...props} />
+  AvatarImageProps
+>(({ className, disableDefaults, ...props }, ref) => (
+  <AvatarPrimitive.Image
+    ref={ref}
+    className={cn(
+      !disableDefaults && "aspect-square h-full w-full object-cover",
+      className
+    )}
+    {...props}
+  />
 ));
 AvatarImage.displayName = AvatarPrimitive.Image.displayName;
 
