@@ -1061,7 +1061,7 @@ export default function PublicCollectionDetail() {
                     </h2>
                   )}
                   <div 
-                    className="grid gap-6 items-start" 
+                    className="grid gap-6" 
                     style={{ 
                       gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` 
                     }}
