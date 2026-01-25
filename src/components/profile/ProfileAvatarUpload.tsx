@@ -210,13 +210,17 @@ export function ProfileAvatarUpload({ profile, onImageUpdate }: ProfileAvatarUpl
   // - Width displayed: 5 * 100% = 500% (20% × 5 = 100% of crop shown)
   // - Height displayed: 3 * 100% = 300% (33.33% × 3 = 100% of crop shown) ✓
   //
-  const getAvatarImageStyle = () => {
+  const getAvatarImageStyle = (): React.CSSProperties => {
     // For landscape images: ratio > 1, so scaleY < scale (less zoom on height)
     // For portrait images: ratio < 1, so scaleY > scale (more zoom on height)
     // For square images: ratio = 1, so scaleY = scale (unchanged)
     const scaleY = scale / imageAspectRatio;
 
     return {
+      // Position absolutely within the Avatar container
+      position: 'absolute',
+      top: 0,
+      left: 0,
       // Scale the image to fill the container based on the crop selection
       width: `${scale * 100}%`,
       height: `${scaleY * 100}%`,
@@ -225,9 +229,8 @@ export function ProfileAvatarUpload({ profile, onImageUpdate }: ProfileAvatarUpl
       // This shifts the image so that position% of the scaled image is at 50% of container
       marginLeft: `${-positionX * scale + 50}%`,
       marginTop: `${-positionY * scaleY + 50}%`,
-      // CRITICAL: Remove object-fit to prevent browser from adding its own scaling
-      // The avatar container's overflow:hidden will clip the excess
-      objectFit: 'none' as const,
+      // Ensure no object-fit interference
+      objectFit: 'none',
     };
   };
 
@@ -245,6 +248,7 @@ export function ProfileAvatarUpload({ profile, onImageUpdate }: ProfileAvatarUpl
           <AvatarImage
             src={imageUrl || undefined}
             alt={profile.avatar_image?.alt_text || profile.name}
+            disableDefaults
             style={getAvatarImageStyle()}
           />
           <AvatarFallback className="text-2xl text-gray-700">
