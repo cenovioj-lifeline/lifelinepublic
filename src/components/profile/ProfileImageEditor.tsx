@@ -257,13 +257,14 @@ export function ProfileImageEditor({ profile, onImageUpdate }: ProfileImageEdito
             <TabsContent value="avatar" className="space-y-4">
               <div className="flex flex-col items-center gap-4 py-4">
                 <Avatar className="h-32 w-32">
-                  <AvatarImage 
+                <AvatarImage 
                     src={imageUrl} 
                     alt={profile.name}
                     style={{
+                      objectFit: 'none',
                       objectPosition: `${avatarPosition.x}% ${avatarPosition.y}%`,
-                      transform: `scale(${avatarPosition.scale})`,
-                      transformOrigin: `${avatarPosition.x}% ${avatarPosition.y}%`
+                      width: `${avatarPosition.scale * 100}%`,
+                      height: `${avatarPosition.scale * 100}%`,
                     }}
                   />
                   <AvatarFallback className="text-4xl">
@@ -296,11 +297,12 @@ export function ProfileImageEditor({ profile, onImageUpdate }: ProfileImageEdito
                     <img
                       src={imageUrl}
                       alt={profile.name}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full"
                       style={{
+                        objectFit: 'none',
                         objectPosition: `${cardPosition.x}% ${cardPosition.y}%`,
-                        transform: `scale(${cardPosition.scale})`,
-                        transformOrigin: `${cardPosition.x}% ${cardPosition.y}%`
+                        width: `${cardPosition.scale * 100}%`,
+                        height: `${cardPosition.scale * 100}%`,
                       }}
                     />
                   ) : (
