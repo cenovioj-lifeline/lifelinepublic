@@ -121,7 +121,7 @@ export default function Home() {
     return (
       <div className="space-y-8">
         {/* Hero skeleton */}
-        <Skeleton className="w-full aspect-[4/1] rounded-lg" />
+        <Skeleton className="w-full aspect-[6/1] rounded-lg" />
         
         {/* Quick actions skeleton */}
         <div 
@@ -215,7 +215,7 @@ export default function Home() {
   return (
     <div className="space-y-4">
       {/* Hero Section */}
-      <div className="relative w-full rounded-lg overflow-hidden aspect-[4/1]">
+      <div className="relative w-full rounded-lg overflow-hidden aspect-[6/1]">
         {(homeSettings?.hero_image_url || homeSettings?.hero_image?.url) ? (
           <img
             src={homeSettings.hero_image_url || homeSettings.hero_image?.url}

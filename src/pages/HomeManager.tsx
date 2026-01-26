@@ -115,14 +115,14 @@ export default function HomeManager() {
             />
           </div>
           <div className="space-y-4">
-            <Label>Hero Image (4:1)</Label>
+            <Label>Hero Image (6:1)</Label>
             <p className="text-xs text-muted-foreground">
-              Used on the home page header. Upload at 3840×960 or similar 4:1 ratio for best results.
+              Used on the home page header. Upload at 3840×640 or similar 6:1 ratio for best results.
             </p>
             
             {heroImageUrl ? (
               <div className="space-y-2">
-                <div className="relative w-full rounded-lg overflow-hidden border aspect-[4/1]">
+                <div className="relative w-full rounded-lg overflow-hidden border aspect-[6/1]">
                   <img
                     src={heroImageUrl}
                     alt="Hero preview"
@@ -211,7 +211,7 @@ export default function HomeManager() {
               open={showCropPicker}
               onOpenChange={setShowCropPicker}
               onCropComplete={handleCropComplete}
-              aspectRatio={4}
+              aspectRatio={6}
               title="Adjust Hero Image Position"
             />
           )}
