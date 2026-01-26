@@ -272,7 +272,6 @@ export default function Build() {
     
     setSavingEntry(true);
     try {
-      const slug = generateSlug(entryForm.title);
       const orderIndex = savedEntries.length;
       
       // Parse the date input into proper YYYY-MM-DD format
@@ -283,7 +282,6 @@ export default function Build() {
         .insert({
           lifeline_id: lifelineId,
           title: entryForm.title,
-          slug: slug,
           summary: entryForm.description,
           score: entryForm.score,
           occurred_on: occurredOn,
