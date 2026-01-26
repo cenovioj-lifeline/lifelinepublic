@@ -16,7 +16,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, Send, Loader2, Check, Save, ChevronDown, Lightbulb } from "lucide-react";
+import { ArrowLeft, Send, Loader2, Check, Save, ChevronDown, Lightbulb, Pencil, Trash2, ChevronUp } from "lucide-react";
 import { toast } from "sonner";
 
 interface Message {
@@ -52,7 +52,7 @@ interface SavedEntry {
 
 type ContentType = "lifelines" | "quotes" | "awards" | "media" | "books";
 type Mode = "ai" | "direct";
-type MobilePanel = "chat" | "form";
+type AiContext = "New Entry" | "New Lifeline" | "Edit Entry" | "Lifeline Details";
 
 const contentTypeConfig: Record<ContentType, { label: string; icon: string }> = {
   lifelines: { label: "Lifelines", icon: "📈" },
@@ -65,26 +65,26 @@ const contentTypeConfig: Record<ContentType, { label: string; icon: string }> = 
 // Parse various date input formats into YYYY-MM-DD for database
 const parseDateInput = (input: string): string | null => {
   if (!input || !input.trim()) return null;
-  
+
   const trimmed = input.trim();
-  
+
   // Year only: "2020" or "2024"
   if (/^\d{4}$/.test(trimmed)) {
     return `${trimmed}-01-01`;
   }
-  
+
   // MM/DD/YYYY format: "12/15/2024"
   const slashMatch = trimmed.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
   if (slashMatch) {
     const [, month, day, year] = slashMatch;
     return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
   }
-  
+
   // YYYY-MM-DD format: already valid
   if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
     return trimmed;
   }
-  
+
   // Try parsing with JavaScript Date as fallback
   const parsed = new Date(trimmed);
   if (!isNaN(parsed.getTime())) {
@@ -93,45 +93,59 @@ const parseDateInput = (input: string): string | null => {
     const day = String(parsed.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
   }
-  
+
   // If nothing works, return null (will be stored as null in DB)
   return null;
+};
+
+// Format date for display
+const formatDateForDisplay = (dateStr: string | null): string => {
+  if (!dateStr) return "";
+  const date = new Date(dateStr);
+  if (isNaN(date.getTime())) return dateStr;
+  return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
 };
 
 export default function Build() {
   const { collectionId } = useParams();
   const navigate = useNavigate();
-  
+
   // UI State
   const [mode, setMode] = useState<Mode>("ai");
   const [contentType, setContentType] = useState<ContentType>("lifelines");
-  const [mobilePanel, setMobilePanel] = useState<MobilePanel>("chat");
-  
+
+  // NEW: AI Form UI State
+  const [formCollapsed, setFormCollapsed] = useState(false);
+  const [isAiFilling, setIsAiFilling] = useState(false);
+  const [aiContext, setAiContext] = useState<AiContext>("New Entry");
+  const [editingEntryId, setEditingEntryId] = useState<string | null>(null);
+  const [aiFilledFields, setAiFilledFields] = useState<Set<string>>(new Set());
+
   const [messages, setMessages] = useState<Message[]>([
     { role: "assistant", content: "Hey! Let's build your collection. I'll help you create lifelines - visual timelines of meaningful moments.\n\nWant to start with your personal lifeline? Just tell me what kind of journey you'd like to document - your career, relationships, hobbies, or anything else that matters to you." }
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-  
+
   const [lifelineForm, setLifelineForm] = useState<LifelineFormState>({
     title: "",
     lifeline_type: "",
     purpose: ""
   });
-  
+
   const [entryForm, setEntryForm] = useState<EntryFormState>({
     title: "",
     description: "",
     score: 0,
     year: ""
   });
-  
+
   const [savedEntries, setSavedEntries] = useState<SavedEntry[]>([]);
   const [lifelineId, setLifelineId] = useState<string | null>(null);
   const [lifelineSaved, setLifelineSaved] = useState(false);
   const [savingLifeline, setSavingLifeline] = useState(false);
   const [savingEntry, setSavingEntry] = useState(false);
-  
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Fetch collection info
@@ -167,14 +181,14 @@ export default function Build() {
   useEffect(() => {
     const checkExistingLifeline = async () => {
       if (!collectionId) return;
-      
+
       const { data, error } = await supabase
         .from("lifelines")
         .select("id, title, lifeline_type, intro")
         .eq("collection_id", collectionId)
         .limit(1)
         .maybeSingle();
-      
+
       if (data && !error) {
         setLifelineId(data.id);
         setLifelineSaved(true);
@@ -183,14 +197,16 @@ export default function Build() {
           lifeline_type: data.lifeline_type || "",
           purpose: data.intro || ""
         });
-        
+        // Update AI context since lifeline exists
+        setAiContext("New Entry");
+
         // Also load existing entries
         const { data: entries } = await supabase
           .from("entries")
           .select("id, title, summary, score, occurred_on")
           .eq("lifeline_id", data.id)
           .order("occurred_on", { ascending: true });
-        
+
         if (entries) {
           setSavedEntries(entries.map(e => ({
             id: e.id,
@@ -200,9 +216,12 @@ export default function Build() {
             year: e.occurred_on ? e.occurred_on.substring(0, 4) : ""
           })));
         }
+      } else {
+        // No lifeline yet, context is New Lifeline
+        setAiContext("New Lifeline");
       }
     };
-    
+
     checkExistingLifeline();
   }, [collectionId]);
 
@@ -225,11 +244,11 @@ export default function Build() {
       toast.error("Please provide a lifeline title");
       return null;
     }
-    
+
     setSavingLifeline(true);
     try {
       const slug = generateSlug(lifelineForm.title);
-      
+
       const { data, error } = await supabase
         .from("lifelines")
         .insert({
@@ -242,11 +261,12 @@ export default function Build() {
         })
         .select()
         .single();
-      
+
       if (error) throw error;
-      
+
       setLifelineId(data.id);
       setLifelineSaved(true);
+      setAiContext("New Entry"); // After saving lifeline, context becomes entry
       toast.success("Lifeline created!");
       return data.id;
     } catch (err) {
@@ -258,53 +278,79 @@ export default function Build() {
     }
   };
 
-  // Save entry to database
+  // Save entry to database (handles both create and edit)
   const saveEntryToDb = async (): Promise<boolean> => {
     if (!lifelineId) {
       toast.error("Please create the lifeline first");
       return false;
     }
-    
+
     if (!entryForm.title) {
       toast.error("Please provide an entry title");
       return false;
     }
-    
+
     setSavingEntry(true);
     try {
-      const orderIndex = savedEntries.length;
-      
-      // Parse the date input into proper YYYY-MM-DD format
       const occurredOn = parseDateInput(entryForm.year);
-      
-      const { data, error } = await supabase
-        .from("entries")
-        .insert({
-          lifeline_id: lifelineId,
+
+      if (editingEntryId) {
+        // UPDATE existing entry
+        const { error } = await supabase
+          .from("entries")
+          .update({
+            title: entryForm.title,
+            summary: entryForm.description,
+            score: entryForm.score,
+            occurred_on: occurredOn
+          })
+          .eq("id", editingEntryId);
+
+        if (error) throw error;
+
+        // Update in local state
+        setSavedEntries(prev => prev.map(e =>
+          e.id === editingEntryId
+            ? { ...e, title: entryForm.title, description: entryForm.description, score: entryForm.score, year: entryForm.year }
+            : e
+        ));
+
+        setEditingEntryId(null);
+        setAiContext("New Entry");
+        toast.success("Entry updated!");
+      } else {
+        // CREATE new entry
+        const orderIndex = savedEntries.length;
+
+        const { data, error } = await supabase
+          .from("entries")
+          .insert({
+            lifeline_id: lifelineId,
+            title: entryForm.title,
+            summary: entryForm.description,
+            score: entryForm.score,
+            occurred_on: occurredOn,
+            order_index: orderIndex
+          })
+          .select()
+          .single();
+
+        if (error) throw error;
+
+        setSavedEntries(prev => [...prev, {
+          id: data.id,
           title: entryForm.title,
-          summary: entryForm.description,
+          description: entryForm.description,
           score: entryForm.score,
-          occurred_on: occurredOn,
-          order_index: orderIndex
-        })
-        .select()
-        .single();
-      
-      if (error) throw error;
-      
-      // Add to saved entries list
-      setSavedEntries(prev => [...prev, {
-        id: data.id,
-        title: entryForm.title,
-        description: entryForm.description,
-        score: entryForm.score,
-        year: entryForm.year
-      }]);
-      
-      // Clear entry form
+          year: entryForm.year
+        }]);
+
+        toast.success("Entry saved!");
+      }
+
+      // Clear form and AI filled state
       setEntryForm({ title: "", description: "", score: 0, year: "" });
-      
-      toast.success("Entry saved!");
+      setAiFilledFields(new Set());
       return true;
     } catch (err) {
       console.error("Failed to save entry:", err);
@@ -315,11 +361,63 @@ export default function Build() {
     }
   };
 
+  // Handle editing an entry
+  const handleEditEntry = (entry: SavedEntry) => {
+    if (!entry.id) return;
+
+    setEntryForm({
+      title: entry.title,
+      description: entry.description,
+      score: entry.score,
+      year: entry.year
+    });
+    setEditingEntryId(entry.id);
+    setAiContext("Edit Entry");
+    setFormCollapsed(false); // Expand form when editing
+  };
+
+  // Handle deleting an entry
+  const handleDeleteEntry = async (entryId: string) => {
+    try {
+      const { error } = await supabase
+        .from("entries")
+        .delete()
+        .eq("id", entryId);
+
+      if (error) throw error;
+
+      setSavedEntries(prev => prev.filter(e => e.id !== entryId));
+
+      // If we were editing this entry, clear the form
+      if (editingEntryId === entryId) {
+        setEntryForm({ title: "", description: "", score: 0, year: "" });
+        setEditingEntryId(null);
+        setAiContext("New Entry");
+      }
+
+      toast.success("Entry deleted");
+    } catch (err) {
+      console.error("Failed to delete entry:", err);
+      toast.error("Failed to delete entry");
+    }
+  };
+
+  // Clear entry form
+  const handleClearForm = () => {
+    setEntryForm({ title: "", description: "", score: 0, year: "" });
+    setEditingEntryId(null);
+    setAiContext(lifelineSaved ? "New Entry" : "New Lifeline");
+    setAiFilledFields(new Set());
+  };
+
   const processToolCalls = async (toolCalls: ToolCall[]) => {
     for (const call of toolCalls) {
       if (call.name === "update_form_field") {
         const { field, value } = call.input as { field: string; value: string };
-        
+
+        // Track which fields AI has filled
+        setAiFilledFields(prev => new Set(prev).add(field));
+
         // Lifeline fields
         if (["title", "lifeline_type", "purpose"].includes(field)) {
           setLifelineForm(prev => ({ ...prev, [field]: value }));
@@ -353,6 +451,7 @@ export default function Build() {
     setInput("");
     setMessages(prev => [...prev, { role: "user", content: userMessage }]);
     setLoading(true);
+    setIsAiFilling(true); // Start filling indicator
 
     try {
       const { data, error } = await supabase.functions.invoke("ai-wizard", {
@@ -382,12 +481,13 @@ export default function Build() {
 
     } catch (err) {
       console.error("Error:", err);
-      setMessages(prev => [...prev, { 
-        role: "assistant", 
-        content: `Sorry, I encountered an error. Please try again.` 
+      setMessages(prev => [...prev, {
+        role: "assistant",
+        content: `Sorry, I encountered an error. Please try again.`
       }]);
     } finally {
       setLoading(false);
+      setIsAiFilling(false); // Stop filling indicator
     }
   };
 
@@ -418,198 +518,214 @@ export default function Build() {
     books: 0,
   };
 
-  // Render the form content (shared between AI and Direct modes)
-  const renderFormContent = () => {
-    if (contentType !== "lifelines") {
-      return (
-        <div className="flex flex-col items-center justify-center py-12 text-center">
-          <span className="text-4xl mb-4">{contentTypeConfig[contentType].icon}</span>
-          <h3 className="font-semibold text-lg mb-2">{contentTypeConfig[contentType].label}</h3>
-          <p className="text-muted-foreground text-sm">
-            This content type is coming soon. For now, you can create lifelines.
-          </p>
-          <Button 
-            variant="outline" 
-            className="mt-4"
-            onClick={() => setContentType("lifelines")}
-          >
-            Switch to Lifelines
-          </Button>
-        </div>
-      );
-    }
+  // Get score color class
+  const getScoreColorClass = (score: number): string => {
+    if (score > 0) return "bg-green-500";
+    if (score < 0) return "bg-red-500";
+    return "bg-gray-400";
+  };
 
-    return (
-      <>
-        {/* Lifeline fields */}
-        <div>
-          <Label>Title</Label>
-          <Input 
-            value={lifelineForm.title} 
-            onChange={(e) => setLifelineForm(prev => ({ ...prev, title: e.target.value }))}
-            placeholder="e.g., My Career Journey"
-            disabled={lifelineSaved}
-          />
-        </div>
-        
-        <div>
-          <Label>Type</Label>
-          <Select 
-            value={lifelineForm.lifeline_type} 
-            onValueChange={(v) => setLifelineForm(prev => ({ ...prev, lifeline_type: v }))}
-            disabled={lifelineSaved}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="person">Person (about me)</SelectItem>
-              <SelectItem value="list">List (collection of things)</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        
-        <div>
-          <Label>Purpose</Label>
-          <Textarea 
-            value={lifelineForm.purpose}
-            onChange={(e) => setLifelineForm(prev => ({ ...prev, purpose: e.target.value }))}
-            placeholder="What is this lifeline about?"
-            rows={2}
-            disabled={lifelineSaved}
-          />
-        </div>
+  // Format score for display
+  const formatScore = (score: number): string => {
+    if (score > 0) return `+${score}`;
+    return String(score);
+  };
 
-        {/* Save Lifeline Button */}
-        {!lifelineSaved && (
-          <Button 
-            onClick={handleManualSaveLifeline}
-            disabled={savingLifeline || !lifelineForm.title}
-            className="w-full"
-          >
-            {savingLifeline ? (
-              <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Saving...</>
-            ) : (
-              <><Save className="h-4 w-4 mr-2" /> Save Lifeline</>
-            )}
-          </Button>
-        )}
-
-        {/* Divider */}
-        <div className="border-t pt-4 mt-4">
-          <h3 className="font-semibold mb-3">Add an Entry</h3>
-          {!lifelineSaved && (
-            <p className="text-sm text-muted-foreground mb-3">
-              Save the lifeline first before adding entries.
-            </p>
-          )}
-        </div>
-        
+  // Render the entry form fields (shared between lifeline and entry sections)
+  const renderEntryFormFields = () => (
+    <>
+      <div className="grid grid-cols-1 sm:grid-cols-[1fr_120px] gap-3">
         <div>
-          <Label>What happened?</Label>
-          <Input 
+          <Label className={mode === "ai" ? "text-sky-700 text-xs" : "text-xs"}>What happened?</Label>
+          <Input
             value={entryForm.title}
             onChange={(e) => setEntryForm(prev => ({ ...prev, title: e.target.value }))}
             placeholder="Entry title"
             disabled={!lifelineSaved}
+            className={`${mode === "ai" ? "border-sky-300 focus:border-sky-500" : ""} ${aiFilledFields.has("entry_title") ? "bg-sky-50 border-sky-400" : ""}`}
           />
         </div>
-        
         <div>
-          <Label>Tell the story</Label>
-          <Textarea 
-            value={entryForm.description}
-            onChange={(e) => setEntryForm(prev => ({ ...prev, description: e.target.value }))}
-            placeholder="What made this moment meaningful?"
-            rows={3}
+          <Label className={mode === "ai" ? "text-sky-700 text-xs" : "text-xs"}>When?</Label>
+          <Input
+            value={entryForm.year}
+            onChange={(e) => setEntryForm(prev => ({ ...prev, year: e.target.value }))}
+            placeholder="Date or year"
+            disabled={!lifelineSaved}
+            className={`${mode === "ai" ? "border-sky-300 focus:border-sky-500" : ""} ${aiFilledFields.has("entry_year") ? "bg-sky-50 border-sky-400" : ""}`}
+          />
+        </div>
+      </div>
+
+      <div>
+        <Label className={mode === "ai" ? "text-sky-700 text-xs" : "text-xs"}>Tell the story</Label>
+        <Textarea
+          value={entryForm.description}
+          onChange={(e) => setEntryForm(prev => ({ ...prev, description: e.target.value }))}
+          placeholder="What made this moment meaningful?"
+          rows={3}
+          disabled={!lifelineSaved}
+          className={`${mode === "ai" ? "border-sky-300 focus:border-sky-500" : ""} ${aiFilledFields.has("entry_description") ? "bg-sky-50 border-sky-400" : ""}`}
+        />
+      </div>
+
+      <div>
+        <div className="flex items-center gap-3">
+          <Label className={`${mode === "ai" ? "text-sky-700" : ""} text-xs whitespace-nowrap`}>How did it feel?</Label>
+          <Slider
+            value={[entryForm.score]}
+            onValueChange={([v]) => setEntryForm(prev => ({ ...prev, score: v }))}
+            min={-10}
+            max={10}
+            step={1}
+            className="flex-1"
             disabled={!lifelineSaved}
           />
+          <span className={`text-sm font-semibold min-w-[36px] text-right ${entryForm.score > 0 ? "text-green-600" : entryForm.score < 0 ? "text-red-600" : "text-gray-500"}`}>
+            {formatScore(entryForm.score)}
+          </span>
         </div>
-        
-        {/* Two-column row for score and year (matches mockup) */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <Label>How did it feel? ({entryForm.score})</Label>
-            <Slider
-              value={[entryForm.score]}
-              onValueChange={([v]) => setEntryForm(prev => ({ ...prev, score: v }))}
-              min={-10}
-              max={10}
-              step={1}
-              className="mt-2"
-              disabled={!lifelineSaved}
-            />
-            <div className="flex justify-between text-xs text-muted-foreground mt-1">
-              <span>-10</span>
-              <span>0</span>
-              <span>+10</span>
-            </div>
-          </div>
-          
-          <div>
-            <Label>When?</Label>
-            <Input 
-              value={entryForm.year}
-              onChange={(e) => setEntryForm(prev => ({ ...prev, year: e.target.value }))}
-              placeholder="e.g., 2020 or 12/15/2024"
-              disabled={!lifelineSaved}
-            />
-          </div>
-        </div>
+      </div>
+    </>
+  );
 
-        {/* Save Entry Button */}
-        {lifelineSaved && (
-          <Button 
-            onClick={handleManualSaveEntry}
-            disabled={savingEntry || !entryForm.title}
-            className="w-full"
-            variant="secondary"
+  // Render the lifeline form fields
+  const renderLifelineFormFields = () => (
+    <>
+      <div>
+        <Label className={mode === "ai" ? "text-sky-700 text-xs" : "text-xs"}>Title</Label>
+        <Input
+          value={lifelineForm.title}
+          onChange={(e) => setLifelineForm(prev => ({ ...prev, title: e.target.value }))}
+          placeholder="e.g., My Career Journey"
+          disabled={lifelineSaved}
+          className={`${mode === "ai" ? "border-sky-300 focus:border-sky-500" : ""} ${aiFilledFields.has("title") ? "bg-sky-50 border-sky-400" : ""}`}
+        />
+      </div>
+
+      <div>
+        <Label className={mode === "ai" ? "text-sky-700 text-xs" : "text-xs"}>Type</Label>
+        <Select
+          value={lifelineForm.lifeline_type}
+          onValueChange={(v) => setLifelineForm(prev => ({ ...prev, lifeline_type: v }))}
+          disabled={lifelineSaved}
+        >
+          <SelectTrigger className={mode === "ai" ? "border-sky-300" : ""}>
+            <SelectValue placeholder="Select type" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="person">Person (about me)</SelectItem>
+            <SelectItem value="list">List (collection of things)</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div>
+        <Label className={mode === "ai" ? "text-sky-700 text-xs" : "text-xs"}>Purpose</Label>
+        <Textarea
+          value={lifelineForm.purpose}
+          onChange={(e) => setLifelineForm(prev => ({ ...prev, purpose: e.target.value }))}
+          placeholder="What is this lifeline about?"
+          rows={2}
+          disabled={lifelineSaved}
+          className={`${mode === "ai" ? "border-sky-300 focus:border-sky-500" : ""} ${aiFilledFields.has("purpose") ? "bg-sky-50 border-sky-400" : ""}`}
+        />
+      </div>
+
+      {/* Save Lifeline Button */}
+      {!lifelineSaved && (
+        <Button
+          onClick={handleManualSaveLifeline}
+          disabled={savingLifeline || !lifelineForm.title}
+          className="w-full"
+        >
+          {savingLifeline ? (
+            <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Saving...</>
+          ) : (
+            <><Save className="h-4 w-4 mr-2" /> Save Lifeline</>
+          )}
+        </Button>
+      )}
+    </>
+  );
+
+  // Render entries list with score circles
+  const renderEntriesList = () => (
+    <div className="space-y-2">
+      {savedEntries.length === 0 ? (
+        <div className="text-center py-8 text-muted-foreground">
+          <div className="text-3xl mb-2 opacity-50">📝</div>
+          <p className="text-sm">No entries yet. Start telling your story!</p>
+        </div>
+      ) : (
+        savedEntries.map((entry) => (
+          <div
+            key={entry.id}
+            className="flex items-center gap-3 p-3 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-lg cursor-pointer transition-colors group"
+            onClick={() => handleEditEntry(entry)}
           >
-            {savingEntry ? (
-              <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Saving...</>
-            ) : (
-              <><Save className="h-4 w-4 mr-2" /> Add Entry</>
-            )}
-          </Button>
-        )}
+            {/* Score Circle */}
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-semibold flex-shrink-0 ${getScoreColorClass(entry.score)}`}>
+              {formatScore(entry.score)}
+            </div>
 
-        {/* Saved entries preview */}
-        {savedEntries.length > 0 && (
-          <div className="border-t pt-4 mt-4">
-            <h3 className="font-semibold mb-2">Saved Entries ({savedEntries.length})</h3>
-            <div className="space-y-2">
-              {savedEntries.map((entry, i) => (
-                <div key={entry.id || i} className="bg-green-50 border border-green-100 p-2 rounded text-sm">
-                  <div className="flex items-center gap-2">
-                    <Check className="h-3 w-3 text-green-600 flex-shrink-0" />
-                    <strong className="truncate">{entry.title}</strong>
-                    {entry.year && <span className="text-muted-foreground text-xs">({entry.year})</span>}
-                    <span className="ml-auto text-xs whitespace-nowrap">Score: {entry.score}</span>
-                  </div>
-                </div>
-              ))}
+            {/* Entry Details */}
+            <div className="flex-1 min-w-0">
+              <div className="font-medium text-sm truncate">{entry.title}</div>
+              <div className="text-xs text-muted-foreground">
+                {entry.year ? formatDateForDisplay(parseDateInput(entry.year)) || entry.year : "No date"}
+              </div>
+            </div>
+
+            {/* Edit/Delete Buttons */}
+            <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 w-8 p-0"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleEditEntry(entry);
+                }}
+              >
+                <Pencil className="h-4 w-4 text-gray-500" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 w-8 p-0"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (entry.id) handleDeleteEntry(entry.id);
+                }}
+              >
+                <Trash2 className="h-4 w-4 text-gray-500 hover:text-red-500" />
+              </Button>
             </div>
           </div>
-        )}
-      </>
-    );
-  };
+        ))
+      )}
+    </div>
+  );
 
   // Render chat panel
   const renderChatPanel = () => (
-    <Card className="h-[calc(100vh-200px)] lg:h-[calc(100vh-140px)] flex flex-col">
-      <CardHeader className="pb-3">
-        <CardTitle className="text-lg">Chat with AI</CardTitle>
+    <Card className="h-full flex flex-col">
+      <CardHeader className="pb-3 flex-shrink-0">
+        <CardTitle className="text-lg flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-green-500"></span>
+          Chat with AI
+        </CardTitle>
       </CardHeader>
-      <CardContent className="flex-1 flex flex-col">
+      <CardContent className="flex-1 flex flex-col min-h-0">
         {/* Messages */}
         <div className="flex-1 overflow-y-auto space-y-3 mb-4 pr-2">
           {messages.map((msg, i) => (
             <div
               key={i}
               className={`p-3 rounded-lg ${
-                msg.role === "user" 
-                  ? "bg-blue-50 border border-blue-100 ml-8" 
+                msg.role === "user"
+                  ? "bg-blue-50 border border-blue-100 ml-8"
                   : "bg-white border mr-8"
               }`}
             >
@@ -627,9 +743,9 @@ export default function Build() {
           )}
           <div ref={messagesEndRef} />
         </div>
-        
+
         {/* Input */}
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-shrink-0">
           <Input
             value={input}
             onChange={(e) => setInput(e.target.value)}
@@ -643,25 +759,181 @@ export default function Build() {
           </Button>
         </div>
         <p className="text-xs text-muted-foreground mt-2 hidden lg:block">
-          Tip: You can also edit the form directly and use the Save buttons.
+          Tip: You can also edit the form directly. Collapse it for more chat space.
         </p>
       </CardContent>
     </Card>
   );
 
-  // Render form panel
-  const renderFormPanel = () => (
-    <Card className="h-[calc(100vh-200px)] lg:h-[calc(100vh-140px)] overflow-y-auto">
-      <CardHeader className="pb-3">
-        <CardTitle className="text-lg">
-          {contentType === "lifelines" ? "Lifeline Details" : `${contentTypeConfig[contentType].label} (Coming Soon)`}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {renderFormContent()}
-      </CardContent>
-    </Card>
+  // Render AI form section (collapsible, blue-tinted)
+  const renderAiFormSection = () => (
+    <div className={`rounded-lg border transition-all ${mode === "ai" ? "bg-sky-50 border-sky-200" : "bg-white border-gray-200"} ${formCollapsed ? "bg-gray-50 border-gray-200" : ""}`}>
+      {/* Collapsible Header */}
+      <div
+        className={`px-4 py-3 flex items-center gap-2 cursor-pointer rounded-t-lg transition-colors ${mode === "ai" && !formCollapsed ? "bg-sky-100 hover:bg-sky-200" : "bg-gray-100 hover:bg-gray-200"} ${formCollapsed ? "rounded-lg" : ""}`}
+        onClick={() => setFormCollapsed(!formCollapsed)}
+      >
+        {/* AI Icon */}
+        <span className={`text-base ${isAiFilling ? "animate-pulse" : ""}`}>✨</span>
+
+        {/* Label */}
+        <span className={`text-xs font-semibold uppercase tracking-wide ${mode === "ai" ? "text-sky-700" : "text-gray-600"}`}>
+          AI Assisting
+        </span>
+
+        {/* Context */}
+        <span className={`text-sm font-medium ${mode === "ai" ? "text-sky-900" : "text-gray-700"}`}>
+          {aiContext}
+        </span>
+
+        {/* Filling Indicator */}
+        {isAiFilling && (
+          <div className="ml-auto flex items-center gap-1.5 bg-sky-200 text-sky-700 text-xs px-2 py-1 rounded-full">
+            <span className="w-1.5 h-1.5 rounded-full bg-sky-600 animate-ping"></span>
+            Filling...
+          </div>
+        )}
+
+        {/* Collapse Toggle */}
+        <Button variant="ghost" size="sm" className="ml-auto h-6 w-6 p-0">
+          {formCollapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
+        </Button>
+      </div>
+
+      {/* Form Content (collapsible) */}
+      {!formCollapsed && (
+        <div className="p-4 space-y-3">
+          {/* Hint text */}
+          {mode === "ai" && (
+            <div className="text-xs text-sky-700 bg-sky-100 px-3 py-2 rounded-md">
+              AI is filling this form from your conversation. You can also type directly in any field.
+            </div>
+          )}
+
+          {/* Show lifeline fields if not saved yet, otherwise entry fields */}
+          {!lifelineSaved ? (
+            renderLifelineFormFields()
+          ) : (
+            <>
+              {renderEntryFormFields()}
+
+              {/* Save/Clear buttons */}
+              <div className="flex gap-2 pt-1">
+                <Button
+                  onClick={handleManualSaveEntry}
+                  disabled={savingEntry || !entryForm.title}
+                  className={`flex-1 ${mode === "ai" ? "bg-sky-600 hover:bg-sky-700" : ""}`}
+                >
+                  {savingEntry ? (
+                    <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Saving...</>
+                  ) : (
+                    <><Check className="h-4 w-4 mr-2" /> {editingEntryId ? "Update Entry" : "Add Entry"}</>
+                  )}
+                </Button>
+                {(entryForm.title || entryForm.description || editingEntryId) && (
+                  <Button variant="outline" onClick={handleClearForm}>
+                    Clear
+                  </Button>
+                )}
+              </div>
+            </>
+          )}
+        </div>
+      )}
+    </div>
   );
+
+  // Render entries section
+  const renderEntriesSection = () => (
+    <div className="flex-1 bg-white border border-gray-200 rounded-lg min-h-0 flex flex-col">
+      {/* Header */}
+      <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between flex-shrink-0">
+        <span className="font-semibold text-sm">Your Entries</span>
+        <span className="bg-green-500 text-white text-xs font-semibold px-2.5 py-0.5 rounded-full">
+          {savedEntries.length}
+        </span>
+      </div>
+
+      {/* Entries List */}
+      <div className="flex-1 overflow-y-auto p-4">
+        {renderEntriesList()}
+      </div>
+    </div>
+  );
+
+  // Render form content for Direct Edit mode (non-collapsible)
+  const renderDirectEditFormContent = () => {
+    if (contentType !== "lifelines") {
+      return (
+        <div className="flex flex-col items-center justify-center py-12 text-center">
+          <span className="text-4xl mb-4">{contentTypeConfig[contentType].icon}</span>
+          <h3 className="font-semibold text-lg mb-2">{contentTypeConfig[contentType].label}</h3>
+          <p className="text-muted-foreground text-sm">
+            This content type is coming soon. For now, you can create lifelines.
+          </p>
+          <Button
+            variant="outline"
+            className="mt-4"
+            onClick={() => setContentType("lifelines")}
+          >
+            Switch to Lifelines
+          </Button>
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-4">
+        {/* Lifeline fields */}
+        {renderLifelineFormFields()}
+
+        {lifelineSaved && (
+          <>
+            {/* Divider */}
+            <div className="border-t pt-4 mt-4">
+              <h3 className="font-semibold mb-3">
+                {editingEntryId ? "Edit Entry" : "Add an Entry"}
+              </h3>
+            </div>
+
+            {renderEntryFormFields()}
+
+            {/* Save Entry Button */}
+            <div className="flex gap-2">
+              <Button
+                onClick={handleManualSaveEntry}
+                disabled={savingEntry || !entryForm.title}
+                className="flex-1"
+                variant="secondary"
+              >
+                {savingEntry ? (
+                  <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Saving...</>
+                ) : (
+                  <><Save className="h-4 w-4 mr-2" /> {editingEntryId ? "Update Entry" : "Add Entry"}</>
+                )}
+              </Button>
+              {(entryForm.title || entryForm.description || editingEntryId) && (
+                <Button variant="outline" onClick={handleClearForm}>
+                  Clear
+                </Button>
+              )}
+            </div>
+
+            {/* Entries list */}
+            <div className="border-t pt-4 mt-4">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-semibold">Saved Entries</h3>
+                <span className="bg-green-500 text-white text-xs font-semibold px-2 py-0.5 rounded-full">
+                  {savedEntries.length}
+                </span>
+              </div>
+              {renderEntriesList()}
+            </div>
+          </>
+        )}
+      </div>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -677,18 +949,18 @@ export default function Build() {
                 <ArrowLeft className="h-4 w-4 lg:mr-2" />
                 <span className="hidden lg:inline">Back to Profile</span>
               </Button>
-              
+
               {/* Title - shown in top row on mobile */}
               <div className="lg:hidden flex-1">
                 <h1 className="font-semibold text-sm truncate">{collection?.title || "Building Your Collection"}</h1>
                 <p className="text-xs text-muted-foreground">Building your story</p>
               </div>
             </div>
-            
+
             {/* Controls row (mobile) / continues inline (desktop) */}
             <div className="flex items-center gap-2 lg:gap-3">
               <Separator orientation="vertical" className="h-6 hidden lg:block" />
-              
+
               {/* Content type dropdown */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -723,9 +995,9 @@ export default function Build() {
                   ))}
                 </DropdownMenuContent>
               </DropdownMenu>
-              
-              {/* Mode toggle - short labels on mobile, full on desktop */}
-              <div className="flex bg-muted rounded-md p-0.5">
+
+              {/* Mode toggle - with entry count badge */}
+              <div className="flex bg-muted rounded-md p-0.5 relative">
                 <Button
                   variant={mode === "ai" ? "secondary" : "ghost"}
                   size="sm"
@@ -738,21 +1010,26 @@ export default function Build() {
                 <Button
                   variant={mode === "direct" ? "secondary" : "ghost"}
                   size="sm"
-                  className="text-xs px-2 lg:px-3"
+                  className="text-xs px-2 lg:px-3 relative"
                   onClick={() => setMode("direct")}
                 >
                   <span className="lg:hidden">Edit</span>
                   <span className="hidden lg:inline">Direct Edit</span>
+                  {savedEntries.length > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-green-500 text-white text-[10px] font-semibold w-4 h-4 rounded-full flex items-center justify-center">
+                      {savedEntries.length}
+                    </span>
+                  )}
                 </Button>
               </div>
             </div>
-            
+
             {/* Title - pushed right (desktop only) */}
             <div className="hidden lg:block ml-auto text-right">
               <h1 className="font-semibold">{collection?.title || "Building Your Collection"}</h1>
               <p className="text-sm text-muted-foreground">Building your story</p>
             </div>
-            
+
             {/* Status */}
             {lifelineSaved && (
               <div className="hidden lg:flex items-center gap-1 text-sm text-green-600">
@@ -764,45 +1041,91 @@ export default function Build() {
         </div>
       </div>
 
-      {/* Panel Tabs - Mobile only, AI mode only */}
-      {mode === "ai" && (
-        <div className="lg:hidden bg-white border-b flex">
-          <button
-            className={`flex-1 py-3 text-sm font-medium border-b-2 transition-colors ${
-              mobilePanel === "chat" 
-                ? "text-foreground border-foreground" 
-                : "text-muted-foreground border-transparent"
-            }`}
-            onClick={() => setMobilePanel("chat")}
-          >
-            Chat
-          </button>
-          <button
-            className={`flex-1 py-3 text-sm font-medium border-b-2 transition-colors ${
-              mobilePanel === "form" 
-                ? "text-foreground border-foreground" 
-                : "text-muted-foreground border-transparent"
-            }`}
-            onClick={() => setMobilePanel("form")}
-          >
-            Form
-          </button>
-        </div>
-      )}
-
       {/* Main Content */}
       {mode === "ai" ? (
-        // AI Assist Mode: Two-panel on desktop, tabs on mobile
+        // AI Assist Mode: Two-panel on desktop, scrollable on mobile
         <div className="max-w-6xl mx-auto p-4">
           {/* Desktop: Side by side */}
-          <div className="hidden lg:grid lg:grid-cols-2 gap-4">
+          <div className="hidden lg:grid lg:grid-cols-2 gap-4 h-[calc(100vh-140px)]">
+            {/* Left: Chat */}
             {renderChatPanel()}
-            {renderFormPanel()}
+
+            {/* Right: Form + Entries stacked */}
+            <div className="flex flex-col gap-3 h-full">
+              {renderAiFormSection()}
+              {renderEntriesSection()}
+            </div>
           </div>
-          
-          {/* Mobile: One panel at a time based on tab */}
-          <div className="lg:hidden">
-            {mobilePanel === "chat" ? renderChatPanel() : renderFormPanel()}
+
+          {/* Mobile: Scrollable single column */}
+          <div className="lg:hidden space-y-4">
+            {/* Chat Section */}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-green-500"></span>
+                  Chat with AI
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {/* Messages */}
+                <div className="space-y-3 mb-4 max-h-[250px] overflow-y-auto pr-2">
+                  {messages.map((msg, i) => (
+                    <div
+                      key={i}
+                      className={`p-3 rounded-lg ${
+                        msg.role === "user"
+                          ? "bg-blue-50 border border-blue-100 ml-4"
+                          : "bg-white border mr-4"
+                      }`}
+                    >
+                      <p className="text-xs font-medium text-muted-foreground mb-1">
+                        {msg.role === "user" ? "You" : "AI"}
+                      </p>
+                      <p className="whitespace-pre-wrap text-sm">{msg.content}</p>
+                    </div>
+                  ))}
+                  {loading && (
+                    <div className="bg-white border mr-4 p-3 rounded-lg flex items-center gap-2">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <span className="text-sm text-muted-foreground">Thinking...</span>
+                    </div>
+                  )}
+                  <div ref={messagesEndRef} />
+                </div>
+
+                {/* Input */}
+                <div className="flex gap-2">
+                  <Input
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    placeholder="Type a message..."
+                    disabled={loading}
+                    className="flex-1"
+                  />
+                  <Button onClick={sendMessage} disabled={loading || !input.trim()}>
+                    <Send className="h-4 w-4" />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* AI Form Section */}
+            {renderAiFormSection()}
+
+            {/* Entries Section */}
+            <div className="bg-white border border-gray-200 rounded-lg">
+              <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+                <span className="font-semibold text-sm">Your Entries</span>
+                <span className="bg-green-500 text-white text-xs font-semibold px-2.5 py-0.5 rounded-full">
+                  {savedEntries.length}
+                </span>
+              </div>
+              <div className="p-4">
+                {renderEntriesList()}
+              </div>
+            </div>
           </div>
         </div>
       ) : (
@@ -811,7 +1134,7 @@ export default function Build() {
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-lg">
-                {contentType === "lifelines" ? "New Lifeline" : `${contentTypeConfig[contentType].label} (Coming Soon)`}
+                {contentType === "lifelines" ? (editingEntryId ? "Edit Entry" : "New Lifeline") : `${contentTypeConfig[contentType].label} (Coming Soon)`}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -821,8 +1144,8 @@ export default function Build() {
                 <p className="text-sm text-blue-800 flex-1">
                   Want help filling this out? AI can guide you through the process.
                 </p>
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   size="sm"
                   className="text-blue-600 border-blue-200 hover:bg-blue-100 w-full sm:w-auto"
                   onClick={() => setMode("ai")}
@@ -831,7 +1154,7 @@ export default function Build() {
                 </Button>
               </div>
 
-              {renderFormContent()}
+              {renderDirectEditFormContent()}
             </CardContent>
           </Card>
         </div>
