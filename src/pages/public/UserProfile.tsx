@@ -113,6 +113,7 @@ export default function UserProfile() {
       
       const slug = `social-${user.id.slice(0, 8)}-${Date.now()}`;
       
+      // Create the collection
       const { data, error } = await supabase
         .from("collections")
         .insert({
@@ -128,6 +129,22 @@ export default function UserProfile() {
         .single();
       
       if (error) throw error;
+      
+      // Assign user as collection owner
+      const { error: roleError } = await supabase
+        .from("collection_roles")
+        .insert({
+          collection_id: data.id,
+          user_id: user.id,
+          role: 'owner'
+        });
+      
+      if (roleError) {
+        // If we can't assign ownership, delete the collection and fail
+        await supabase.from("collections").delete().eq("id", data.id);
+        throw new Error("Failed to set up collection permissions");
+      }
+      
       return data;
     },
     onSuccess: (data) => {
