@@ -1,57 +1,64 @@
 
-## Fix Entry Save - Remove Non-Existent `slug` Column
+## Change Home Page Hero from 4:1 to 6:1 Aspect Ratio
 
-### Root Cause
-The `Build.tsx` code tries to insert a `slug` field into the `entries` table, but **the `entries` table has no `slug` column**. This causes the insert to fail with a database error.
+### Overview
+The home page currently uses a 4:1 aspect ratio for its hero banner, which takes up more vertical space than needed for text-only content. This change will make it 6:1 (narrower), reducing wasted space while keeping collection pages at 4:1.
 
-### Evidence
-- Database schema query confirms `entries` table columns: `lifeline_id`, `title`, `summary`, `score`, `occurred_on`, `order_index` (no `slug`)
-- The error toast "Failed to save entry" appears because line 295 catches the database error
+### What Will Change
 
-### The Fix
-Remove the `slug` field from the entries insert operation in `Build.tsx`.
+**Home Page (Public)** - `src/pages/public/Home.tsx`
+- Hero container: `aspect-[4/1]` becomes `aspect-[6/1]`
+- Loading skeleton: `aspect-[4/1]` becomes `aspect-[6/1]`
 
-### Code Change
+**Home Manager (Admin)** - `src/pages/HomeManager.tsx`
+- Label text: "Hero Image (4:1)" becomes "Hero Image (6:1)"
+- Guidance text: "3840×960 or similar 4:1 ratio" becomes "3840×640 or similar 6:1 ratio"
+- Preview container: `aspect-[4/1]` becomes `aspect-[6/1]`
+- CropBoxPicker aspectRatio prop: `4` becomes `6`
 
-**File:** `src/pages/social/Build.tsx`
+### What Will NOT Change
+- Collection pages (`PublicCollectionDetail.tsx`) - stays 4:1
+- Collection editor (`CollectionEdit.tsx`) - stays 4:1
+- `DirectImageUpload` component "banner" type - stays 4:1 (only used by collection editor now)
 
-**Current code (lines 281-292):**
-```typescript
-const { data, error } = await supabase
-  .from("entries")
-  .insert({
-    lifeline_id: lifelineId,
-    title: entryForm.title,
-    slug: slug,
-    summary: entryForm.description,
-    score: entryForm.score,
-    occurred_on: occurredOn,
-    order_index: orderIndex
-  })
+### Visual Comparison
+```text
+Current 4:1 ratio (example at 1200px width):
+┌─────────────────────────────────────────────────────────┐
+│                                                         │
+│                    Hero Content                         │
+│                                                         │
+└─────────────────────────────────────────────────────────┘
+Height: 300px
+
+New 6:1 ratio (example at 1200px width):
+┌─────────────────────────────────────────────────────────┐
+│                    Hero Content                         │
+└─────────────────────────────────────────────────────────┘
+Height: 200px
 ```
 
-**Fixed code:**
-```typescript
-const { data, error } = await supabase
-  .from("entries")
-  .insert({
-    lifeline_id: lifelineId,
-    title: entryForm.title,
-    summary: entryForm.description,
-    score: entryForm.score,
-    occurred_on: occurredOn,
-    order_index: orderIndex
-  })
-```
+The 6:1 ratio reduces vertical space by 33% while maintaining the same full-width appearance.
 
-Also remove the unused `slug` variable generation on line 275:
-```typescript
-// Remove this line:
-const slug = generateSlug(entryForm.title);
-```
+### Technical Details
 
-### What This Fixes
-After this change, clicking "Add Entry" will successfully save entries to the database for collection owners.
+**Files to modify:**
 
-### Note for Claude Code
-This was **not an RLS issue** - the "Creators can claim ownership" policy was correctly applied. The problem was a schema mismatch: the code tried to write to a column (`slug`) that doesn't exist in the `entries` table.
+1. `src/pages/public/Home.tsx`
+   - Line 124: Skeleton `aspect-[4/1]` -> `aspect-[6/1]`
+   - Line 218: Hero container `aspect-[4/1]` -> `aspect-[6/1]`
+
+2. `src/pages/HomeManager.tsx`
+   - Line 118: Label "Hero Image (4:1)" -> "Hero Image (6:1)"
+   - Line 120: Guidance "3840×960 or similar 4:1" -> "3840×640 or similar 6:1"
+   - Line 125: Preview container `aspect-[4/1]` -> `aspect-[6/1]`
+   - Line 214: CropBoxPicker `aspectRatio={4}` -> `aspectRatio={6}`
+
+**No database changes required** - the hero image URL and position are stored the same way; only the display ratio changes.
+
+### Mobile Considerations
+On mobile (e.g., 375px width):
+- 4:1 = ~94px tall
+- 6:1 = ~63px tall
+
+The 6:1 ratio remains readable on mobile for text content but will be quite narrow. This is acceptable since you mentioned it's "just words" - the reduced height is the goal.
