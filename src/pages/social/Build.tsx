@@ -3,12 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Slider } from "@/components/ui/slider";
-import { Separator } from "@/components/ui/separator";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,8 +11,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, Send, Loader2, Check, Save, ChevronDown, Lightbulb, Pencil, Trash2, ChevronUp } from "lucide-react";
+import { ArrowLeft, Send, Loader2, Check, ChevronDown, Pencil, Trash2, Plus, Star } from "lucide-react";
 import { toast } from "sonner";
+
+// New card-style components
+import { WaitingForIntent } from "@/components/social/WaitingForIntent";
+import { LifelineCardForm } from "@/components/social/LifelineCardForm";
+import { EntryCardForm } from "@/components/social/EntryCardForm";
+import { LifelineInfoCard } from "@/components/social/LifelineInfoCard";
 
 interface Message {
   role: "user" | "assistant";
@@ -52,7 +53,7 @@ interface SavedEntry {
 
 type ContentType = "lifelines" | "quotes" | "awards" | "media" | "books";
 type Mode = "ai" | "direct";
-type AiContext = "New Entry" | "New Lifeline" | "Edit Entry" | "Lifeline Details";
+type AiIntent = "lifeline" | "entry" | null;
 
 const contentTypeConfig: Record<ContentType, { label: string; icon: string }> = {
   lifelines: { label: "Lifelines", icon: "📈" },
@@ -114,15 +115,19 @@ export default function Build() {
   const [mode, setMode] = useState<Mode>("ai");
   const [contentType, setContentType] = useState<ContentType>("lifelines");
 
-  // NEW: AI Form UI State
-  const [formCollapsed, setFormCollapsed] = useState(false);
+  // NEW: AI Intent State - null means waiting for intent
+  const [aiIntent, setAiIntent] = useState<AiIntent>(null);
+
+  // AI Form UI State
   const [isAiFilling, setIsAiFilling] = useState(false);
-  const [aiContext, setAiContext] = useState<AiContext>("New Entry");
   const [editingEntryId, setEditingEntryId] = useState<string | null>(null);
   const [aiFilledFields, setAiFilledFields] = useState<Set<string>>(new Set());
 
+  // Direct Edit: editing lifeline mode
+  const [isEditingLifeline, setIsEditingLifeline] = useState(false);
+
   const [messages, setMessages] = useState<Message[]>([
-    { role: "assistant", content: "Hey! Let's build your collection. I'll help you create lifelines - visual timelines of meaningful moments.\n\nWant to start with your personal lifeline? Just tell me what kind of journey you'd like to document - your career, relationships, hobbies, or anything else that matters to you." }
+    { role: "assistant", content: "Hey! Let's build your collection. I'll help you create lifelines - visual timelines of meaningful moments.\n\nWhat would you like to create today? I can help with:\n• Lifelines - timelines of your journey\n• Entries - moments within a lifeline\n\nJust tell me what's on your mind!" }
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -197,8 +202,8 @@ export default function Build() {
           lifeline_type: data.lifeline_type || "",
           purpose: data.intro || ""
         });
-        // Update AI context since lifeline exists
-        setAiContext("New Entry");
+        // If lifeline exists, AI should know about entries
+        setAiIntent("entry");
 
         // Also load existing entries
         const { data: entries } = await supabase
@@ -216,10 +221,8 @@ export default function Build() {
             year: e.occurred_on ? e.occurred_on.substring(0, 4) : ""
           })));
         }
-      } else {
-        // No lifeline yet, context is New Lifeline
-        setAiContext("New Lifeline");
       }
+      // If no lifeline, aiIntent stays null (waiting for intent)
     };
 
     checkExistingLifeline();
@@ -266,7 +269,7 @@ export default function Build() {
 
       setLifelineId(data.id);
       setLifelineSaved(true);
-      setAiContext("New Entry"); // After saving lifeline, context becomes entry
+      setAiIntent("entry"); // After saving lifeline, intent becomes entry
       toast.success("Lifeline created!");
       return data.id;
     } catch (err) {
@@ -316,7 +319,6 @@ export default function Build() {
         ));
 
         setEditingEntryId(null);
-        setAiContext("New Entry");
         toast.success("Entry updated!");
       } else {
         // CREATE new entry
@@ -372,8 +374,7 @@ export default function Build() {
       year: entry.year
     });
     setEditingEntryId(entry.id);
-    setAiContext("Edit Entry");
-    setFormCollapsed(false); // Expand form when editing
+    setAiIntent("entry"); // Ensure we're in entry mode
   };
 
   // Handle deleting an entry
@@ -392,7 +393,6 @@ export default function Build() {
       if (editingEntryId === entryId) {
         setEntryForm({ title: "", description: "", score: 0, year: "" });
         setEditingEntryId(null);
-        setAiContext("New Entry");
       }
 
       toast.success("Entry deleted");
@@ -406,24 +406,33 @@ export default function Build() {
   const handleClearForm = () => {
     setEntryForm({ title: "", description: "", score: 0, year: "" });
     setEditingEntryId(null);
-    setAiContext(lifelineSaved ? "New Entry" : "New Lifeline");
     setAiFilledFields(new Set());
   };
 
   const processToolCalls = async (toolCalls: ToolCall[]) => {
     for (const call of toolCalls) {
-      if (call.name === "update_form_field") {
+      // NEW: Handle set_intent tool call
+      if (call.name === "set_intent") {
+        const { intent } = call.input as { intent: "lifeline" | "entry" };
+        setAiIntent(intent);
+      } else if (call.name === "update_form_field") {
         const { field, value } = call.input as { field: string; value: string };
 
         // Track which fields AI has filled
         setAiFilledFields(prev => new Set(prev).add(field));
 
-        // Lifeline fields
+        // Lifeline fields - also set intent to lifeline
         if (["title", "lifeline_type", "purpose"].includes(field)) {
+          if (aiIntent !== "lifeline" && !lifelineSaved) {
+            setAiIntent("lifeline");
+          }
           setLifelineForm(prev => ({ ...prev, [field]: value }));
         }
-        // Entry fields
+        // Entry fields - also set intent to entry
         else if (field === "entry_title") {
+          if (aiIntent !== "entry" && lifelineSaved) {
+            setAiIntent("entry");
+          }
           setEntryForm(prev => ({ ...prev, title: value }));
         } else if (field === "entry_description") {
           setEntryForm(prev => ({ ...prev, description: value }));
@@ -451,7 +460,7 @@ export default function Build() {
     setInput("");
     setMessages(prev => [...prev, { role: "user", content: userMessage }]);
     setLoading(true);
-    setIsAiFilling(true); // Start filling indicator
+    setIsAiFilling(true);
 
     try {
       const { data, error } = await supabase.functions.invoke("ai-wizard", {
@@ -487,7 +496,7 @@ export default function Build() {
       }]);
     } finally {
       setLoading(false);
-      setIsAiFilling(false); // Stop filling indicator
+      setIsAiFilling(false);
     }
   };
 
@@ -498,15 +507,9 @@ export default function Build() {
     }
   };
 
-  // Manual save handlers
-  const handleManualSaveLifeline = async () => {
-    if (!lifelineSaved) {
-      await saveLifelineToDb();
-    }
-  };
-
-  const handleManualSaveEntry = async () => {
-    await saveEntryToDb();
+  // Handle example chip click in WaitingForIntent
+  const handleExampleClick = (example: string) => {
+    setInput(example);
   };
 
   // Content counts (placeholder for now - only lifelines is real)
@@ -520,9 +523,9 @@ export default function Build() {
 
   // Get score color class
   const getScoreColorClass = (score: number): string => {
-    if (score > 0) return "bg-green-500";
-    if (score < 0) return "bg-red-500";
-    return "bg-gray-400";
+    if (score > 0) return "bg-gradient-to-br from-green-500 to-green-600";
+    if (score < 0) return "bg-gradient-to-br from-red-500 to-red-600";
+    return "bg-gradient-to-br from-gray-400 to-gray-500";
   };
 
   // Format score for display
@@ -530,124 +533,6 @@ export default function Build() {
     if (score > 0) return `+${score}`;
     return String(score);
   };
-
-  // Render the entry form fields (shared between lifeline and entry sections)
-  const renderEntryFormFields = () => (
-    <>
-      <div className="grid grid-cols-1 sm:grid-cols-[1fr_120px] gap-3">
-        <div>
-          <Label className={mode === "ai" ? "text-sky-700 text-xs" : "text-xs"}>What happened?</Label>
-          <Input
-            value={entryForm.title}
-            onChange={(e) => setEntryForm(prev => ({ ...prev, title: e.target.value }))}
-            placeholder="Entry title"
-            disabled={!lifelineSaved}
-            className={`${mode === "ai" ? "border-sky-300 focus:border-sky-500" : ""} ${aiFilledFields.has("entry_title") ? "bg-sky-50 border-sky-400" : ""}`}
-          />
-        </div>
-        <div>
-          <Label className={mode === "ai" ? "text-sky-700 text-xs" : "text-xs"}>When?</Label>
-          <Input
-            value={entryForm.year}
-            onChange={(e) => setEntryForm(prev => ({ ...prev, year: e.target.value }))}
-            placeholder="Date or year"
-            disabled={!lifelineSaved}
-            className={`${mode === "ai" ? "border-sky-300 focus:border-sky-500" : ""} ${aiFilledFields.has("entry_year") ? "bg-sky-50 border-sky-400" : ""}`}
-          />
-        </div>
-      </div>
-
-      <div>
-        <Label className={mode === "ai" ? "text-sky-700 text-xs" : "text-xs"}>Tell the story</Label>
-        <Textarea
-          value={entryForm.description}
-          onChange={(e) => setEntryForm(prev => ({ ...prev, description: e.target.value }))}
-          placeholder="What made this moment meaningful?"
-          rows={3}
-          disabled={!lifelineSaved}
-          className={`${mode === "ai" ? "border-sky-300 focus:border-sky-500" : ""} ${aiFilledFields.has("entry_description") ? "bg-sky-50 border-sky-400" : ""}`}
-        />
-      </div>
-
-      <div>
-        <div className="flex items-center gap-3">
-          <Label className={`${mode === "ai" ? "text-sky-700" : ""} text-xs whitespace-nowrap`}>How did it feel?</Label>
-          <Slider
-            value={[entryForm.score]}
-            onValueChange={([v]) => setEntryForm(prev => ({ ...prev, score: v }))}
-            min={-10}
-            max={10}
-            step={1}
-            className="flex-1"
-            disabled={!lifelineSaved}
-          />
-          <span className={`text-sm font-semibold min-w-[36px] text-right ${entryForm.score > 0 ? "text-green-600" : entryForm.score < 0 ? "text-red-600" : "text-gray-500"}`}>
-            {formatScore(entryForm.score)}
-          </span>
-        </div>
-      </div>
-    </>
-  );
-
-  // Render the lifeline form fields
-  const renderLifelineFormFields = () => (
-    <>
-      <div>
-        <Label className={mode === "ai" ? "text-sky-700 text-xs" : "text-xs"}>Title</Label>
-        <Input
-          value={lifelineForm.title}
-          onChange={(e) => setLifelineForm(prev => ({ ...prev, title: e.target.value }))}
-          placeholder="e.g., My Career Journey"
-          disabled={lifelineSaved}
-          className={`${mode === "ai" ? "border-sky-300 focus:border-sky-500" : ""} ${aiFilledFields.has("title") ? "bg-sky-50 border-sky-400" : ""}`}
-        />
-      </div>
-
-      <div>
-        <Label className={mode === "ai" ? "text-sky-700 text-xs" : "text-xs"}>Type</Label>
-        <Select
-          value={lifelineForm.lifeline_type}
-          onValueChange={(v) => setLifelineForm(prev => ({ ...prev, lifeline_type: v }))}
-          disabled={lifelineSaved}
-        >
-          <SelectTrigger className={mode === "ai" ? "border-sky-300" : ""}>
-            <SelectValue placeholder="Select type" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="person">Person (about me)</SelectItem>
-            <SelectItem value="list">List (collection of things)</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div>
-        <Label className={mode === "ai" ? "text-sky-700 text-xs" : "text-xs"}>Purpose</Label>
-        <Textarea
-          value={lifelineForm.purpose}
-          onChange={(e) => setLifelineForm(prev => ({ ...prev, purpose: e.target.value }))}
-          placeholder="What is this lifeline about?"
-          rows={2}
-          disabled={lifelineSaved}
-          className={`${mode === "ai" ? "border-sky-300 focus:border-sky-500" : ""} ${aiFilledFields.has("purpose") ? "bg-sky-50 border-sky-400" : ""}`}
-        />
-      </div>
-
-      {/* Save Lifeline Button */}
-      {!lifelineSaved && (
-        <Button
-          onClick={handleManualSaveLifeline}
-          disabled={savingLifeline || !lifelineForm.title}
-          className="w-full"
-        >
-          {savingLifeline ? (
-            <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Saving...</>
-          ) : (
-            <><Save className="h-4 w-4 mr-2" /> Save Lifeline</>
-          )}
-        </Button>
-      )}
-    </>
-  );
 
   // Render entries list with score circles
   const renderEntriesList = () => (
@@ -661,11 +546,11 @@ export default function Build() {
         savedEntries.map((entry) => (
           <div
             key={entry.id}
-            className="flex items-center gap-3 p-3 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-lg cursor-pointer transition-colors group"
+            className="flex items-center gap-3 p-3 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-xl cursor-pointer transition-colors group"
             onClick={() => handleEditEntry(entry)}
           >
             {/* Score Circle */}
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-semibold flex-shrink-0 ${getScoreColorClass(entry.score)}`}>
+            <div className={`w-11 h-11 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0 ${getScoreColorClass(entry.score)}`}>
               {formatScore(entry.score)}
             </div>
 
@@ -677,8 +562,8 @@ export default function Build() {
               </div>
             </div>
 
-            {/* Edit/Delete Buttons */}
-            <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            {/* Edit/Delete Buttons - visible on hover (desktop) or always (mobile) */}
+            <div className="flex gap-1 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
               <Button
                 variant="ghost"
                 size="sm"
@@ -758,94 +643,101 @@ export default function Build() {
             <Send className="h-4 w-4" />
           </Button>
         </div>
-        <p className="text-xs text-muted-foreground mt-2 hidden lg:block">
-          Tip: You can also edit the form directly. Collapse it for more chat space.
-        </p>
       </CardContent>
     </Card>
   );
 
-  // Render AI form section (collapsible, blue-tinted)
-  const renderAiFormSection = () => (
-    <div className={`rounded-lg border transition-all ${mode === "ai" ? "bg-sky-50 border-sky-200" : "bg-white border-gray-200"} ${formCollapsed ? "bg-gray-50 border-gray-200" : ""}`}>
-      {/* Collapsible Header */}
-      <div
-        className={`px-4 py-3 flex items-center gap-2 cursor-pointer rounded-t-lg transition-colors ${mode === "ai" && !formCollapsed ? "bg-sky-100 hover:bg-sky-200" : "bg-gray-100 hover:bg-gray-200"} ${formCollapsed ? "rounded-lg" : ""}`}
-        onClick={() => setFormCollapsed(!formCollapsed)}
-      >
-        {/* AI Icon */}
-        <span className={`text-base ${isAiFilling ? "animate-pulse" : ""}`}>✨</span>
-
-        {/* Label */}
-        <span className={`text-xs font-semibold uppercase tracking-wide ${mode === "ai" ? "text-sky-700" : "text-gray-600"}`}>
-          AI Assisting
-        </span>
-
-        {/* Context */}
-        <span className={`text-sm font-medium ${mode === "ai" ? "text-sky-900" : "text-gray-700"}`}>
-          {aiContext}
-        </span>
-
-        {/* Filling Indicator */}
-        {isAiFilling && (
-          <div className="ml-auto flex items-center gap-1.5 bg-sky-200 text-sky-700 text-xs px-2 py-1 rounded-full">
-            <span className="w-1.5 h-1.5 rounded-full bg-sky-600 animate-ping"></span>
-            Filling...
-          </div>
-        )}
-
-        {/* Collapse Toggle */}
-        <Button variant="ghost" size="sm" className="ml-auto h-6 w-6 p-0">
-          {formCollapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
-        </Button>
-      </div>
-
-      {/* Form Content (collapsible) */}
-      {!formCollapsed && (
-        <div className="p-4 space-y-3">
-          {/* Hint text */}
-          {mode === "ai" && (
-            <div className="text-xs text-sky-700 bg-sky-100 px-3 py-2 rounded-md">
-              AI is filling this form from your conversation. You can also type directly in any field.
-            </div>
-          )}
-
-          {/* Show lifeline fields if not saved yet, otherwise entry fields */}
-          {!lifelineSaved ? (
-            renderLifelineFormFields()
-          ) : (
-            <>
-              {renderEntryFormFields()}
-
-              {/* Save/Clear buttons */}
-              <div className="flex gap-2 pt-1">
-                <Button
-                  onClick={handleManualSaveEntry}
-                  disabled={savingEntry || !entryForm.title}
-                  className={`flex-1 ${mode === "ai" ? "bg-sky-600 hover:bg-sky-700" : ""}`}
-                >
-                  {savingEntry ? (
-                    <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Saving...</>
-                  ) : (
-                    <><Check className="h-4 w-4 mr-2" /> {editingEntryId ? "Update Entry" : "Add Entry"}</>
-                  )}
-                </Button>
-                {(entryForm.title || entryForm.description || editingEntryId) && (
-                  <Button variant="outline" onClick={handleClearForm}>
-                    Clear
-                  </Button>
-                )}
-              </div>
-            </>
-          )}
+  // Render AI Form Section (card-style, intent-aware)
+  const renderAiFormSection = () => {
+    // No intent yet - show waiting state
+    if (aiIntent === null) {
+      return (
+        <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+          <WaitingForIntent onExampleClick={handleExampleClick} />
         </div>
-      )}
-    </div>
-  );
+      );
+    }
+
+    // Show lifeline form if creating new lifeline
+    if (aiIntent === "lifeline" && !lifelineSaved) {
+      return (
+        <div className="space-y-3">
+          {/* AI Assisting Header */}
+          <div className="flex items-center gap-2 px-1">
+            <Star className={`w-4 h-4 text-sky-600 ${isAiFilling ? "animate-pulse" : ""}`} />
+            <span className="text-xs font-semibold text-sky-700 uppercase tracking-wide">
+              AI Assisting
+            </span>
+            <span className="text-sm font-medium text-sky-900">New Lifeline</span>
+            {isAiFilling && (
+              <div className="ml-auto flex items-center gap-1.5 bg-sky-100 text-sky-700 text-xs px-2 py-1 rounded-full">
+                <span className="w-1.5 h-1.5 rounded-full bg-sky-600 animate-ping"></span>
+                Filling...
+              </div>
+            )}
+          </div>
+
+          <LifelineCardForm
+            form={lifelineForm}
+            onChange={setLifelineForm}
+            onSave={saveLifelineToDb}
+            saving={savingLifeline}
+            saved={lifelineSaved}
+            aiFilledFields={aiFilledFields}
+            isAiMode={true}
+          />
+        </div>
+      );
+    }
+
+    // Show entry form if lifeline exists
+    if (aiIntent === "entry" && lifelineSaved) {
+      return (
+        <div className="space-y-3">
+          {/* AI Assisting Header */}
+          <div className="flex items-center gap-2 px-1">
+            <Star className={`w-4 h-4 text-sky-600 ${isAiFilling ? "animate-pulse" : ""}`} />
+            <span className="text-xs font-semibold text-sky-700 uppercase tracking-wide">
+              AI Assisting
+            </span>
+            <span className="text-sm font-medium text-sky-900">
+              {editingEntryId ? "Edit Entry" : "New Entry"}
+            </span>
+            {isAiFilling && (
+              <div className="ml-auto flex items-center gap-1.5 bg-sky-100 text-sky-700 text-xs px-2 py-1 rounded-full">
+                <span className="w-1.5 h-1.5 rounded-full bg-sky-600 animate-ping"></span>
+                Filling...
+              </div>
+            )}
+          </div>
+
+          <EntryCardForm
+            form={entryForm}
+            onChange={setEntryForm}
+            onSave={saveEntryToDb}
+            onClear={handleClearForm}
+            saving={savingEntry}
+            disabled={false}
+            isEditing={!!editingEntryId}
+            aiFilledFields={aiFilledFields}
+            isAiMode={true}
+            lifelineTitle={lifelineForm.title}
+          />
+        </div>
+      );
+    }
+
+    // Fallback: show waiting state
+    return (
+      <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+        <WaitingForIntent onExampleClick={handleExampleClick} />
+      </div>
+    );
+  };
 
   // Render entries section
   const renderEntriesSection = () => (
-    <div className="flex-1 bg-white border border-gray-200 rounded-lg min-h-0 flex flex-col">
+    <div className="flex-1 bg-white border border-gray-200 rounded-xl min-h-0 flex flex-col">
       {/* Header */}
       <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between flex-shrink-0">
         <span className="font-semibold text-sm">Your Entries</span>
@@ -861,8 +753,8 @@ export default function Build() {
     </div>
   );
 
-  // Render form content for Direct Edit mode (non-collapsible)
-  const renderDirectEditFormContent = () => {
+  // Render Direct Edit Mode - Two Column Layout
+  const renderDirectEditMode = () => {
     if (contentType !== "lifelines") {
       return (
         <div className="flex flex-col items-center justify-center py-12 text-center">
@@ -883,54 +775,112 @@ export default function Build() {
     }
 
     return (
-      <div className="space-y-4">
-        {/* Lifeline fields */}
-        {renderLifelineFormFields()}
+      <div className="max-w-6xl mx-auto p-4">
+        {/* Desktop: Two columns | Mobile: Single column */}
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-6">
+          {/* LEFT COLUMN: Lifeline Card + Entry Form */}
+          <div className="space-y-6">
+            {/* Lifeline Info Card (or Form if editing/creating) */}
+            {lifelineSaved && !isEditingLifeline ? (
+              <LifelineInfoCard
+                title={lifelineForm.title}
+                description={lifelineForm.purpose}
+                lifelineType={lifelineForm.lifeline_type}
+                entryCount={savedEntries.length}
+                onEditClick={() => setIsEditingLifeline(true)}
+              />
+            ) : (
+              <LifelineCardForm
+                form={lifelineForm}
+                onChange={setLifelineForm}
+                onSave={async () => {
+                  await saveLifelineToDb();
+                  setIsEditingLifeline(false);
+                }}
+                saving={savingLifeline}
+                saved={false}
+                isAiMode={false}
+              />
+            )}
 
-        {lifelineSaved && (
-          <>
-            {/* Divider */}
-            <div className="border-t pt-4 mt-4">
-              <h3 className="font-semibold mb-3">
-                {editingEntryId ? "Edit Entry" : "Add an Entry"}
-              </h3>
-            </div>
+            {/* Section Divider */}
+            {lifelineSaved && (
+              <>
+                <div className="flex items-center gap-3 text-xs font-semibold text-gray-400 uppercase tracking-wide">
+                  <div className="flex-1 h-px bg-gray-200" />
+                  <span>Add New Entry</span>
+                  <div className="flex-1 h-px bg-gray-200" />
+                </div>
 
-            {renderEntryFormFields()}
+                {/* Entry Form Card */}
+                <div className="bg-white rounded-2xl shadow-md overflow-hidden">
+                  {/* Header */}
+                  <div className="px-5 py-4 bg-gray-50 border-b border-gray-100 flex items-center justify-between">
+                    <span className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                      <Plus className="w-4 h-4 text-gray-500" />
+                      {editingEntryId ? "Edit Entry" : "New Entry"}
+                    </span>
+                    {(entryForm.title || entryForm.description || editingEntryId) && (
+                      <Button variant="ghost" size="sm" onClick={handleClearForm}>
+                        Clear
+                      </Button>
+                    )}
+                  </div>
 
-            {/* Save Entry Button */}
-            <div className="flex gap-2">
-              <Button
-                onClick={handleManualSaveEntry}
-                disabled={savingEntry || !entryForm.title}
-                className="flex-1"
-                variant="secondary"
-              >
-                {savingEntry ? (
-                  <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Saving...</>
-                ) : (
-                  <><Save className="h-4 w-4 mr-2" /> {editingEntryId ? "Update Entry" : "Add Entry"}</>
-                )}
-              </Button>
-              {(entryForm.title || entryForm.description || editingEntryId) && (
-                <Button variant="outline" onClick={handleClearForm}>
-                  Clear
-                </Button>
-              )}
-            </div>
+                  {/* Form Content */}
+                  <div className="p-5">
+                    <EntryCardForm
+                      form={entryForm}
+                      onChange={setEntryForm}
+                      onSave={saveEntryToDb}
+                      onClear={handleClearForm}
+                      saving={savingEntry}
+                      disabled={false}
+                      isEditing={!!editingEntryId}
+                      isAiMode={false}
+                    />
+                  </div>
 
-            {/* Entries list */}
-            <div className="border-t pt-4 mt-4">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="font-semibold">Saved Entries</h3>
-                <span className="bg-green-500 text-white text-xs font-semibold px-2 py-0.5 rounded-full">
+                  {/* AI Hint */}
+                  <div className="px-5 pb-5">
+                    <div className="flex items-center justify-between gap-4 p-3 bg-sky-50 border border-sky-100 rounded-lg">
+                      <span className="text-sm text-sky-700 flex items-center gap-2">
+                        <Star className="w-4 h-4" />
+                        Want help filling this out?
+                      </span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="text-sky-700 border-sky-200 hover:bg-sky-100"
+                        onClick={() => setMode("ai")}
+                      >
+                        AI Assist
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* RIGHT COLUMN: Entries List */}
+          {lifelineSaved && (
+            <div className="bg-white rounded-xl shadow-md overflow-hidden h-fit lg:sticky lg:top-4">
+              {/* Header */}
+              <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+                <span className="font-semibold">Your Entries</span>
+                <span className="bg-green-500 text-white text-xs font-semibold px-3 py-1 rounded-full">
                   {savedEntries.length}
                 </span>
               </div>
-              {renderEntriesList()}
+
+              {/* Entries */}
+              <div className="p-4 max-h-[600px] overflow-y-auto">
+                {renderEntriesList()}
+              </div>
             </div>
-          </>
-        )}
+          )}
+        </div>
       </div>
     );
   };
@@ -938,7 +888,7 @@ export default function Build() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-white border-b px-4 py-3">
+      <div className="bg-white border-b px-4 py-3 sticky top-0 z-50">
         <div className="max-w-6xl mx-auto">
           {/* Desktop: Single row | Mobile: Stacked rows */}
           <div className="flex flex-col lg:flex-row lg:items-center gap-3">
@@ -959,42 +909,42 @@ export default function Build() {
 
             {/* Controls row (mobile) / continues inline (desktop) */}
             <div className="flex items-center gap-2 lg:gap-3">
-              <Separator orientation="vertical" className="h-6 hidden lg:block" />
-
-              {/* Content type dropdown */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="flex-1 lg:flex-none lg:min-w-[160px] justify-between">
-                    <span className="flex items-center gap-2">
-                      <span>{contentTypeConfig[contentType].icon}</span>
-                      <span>{contentTypeConfig[contentType].label}</span>
-                    </span>
-                    <span className="flex items-center gap-2">
-                      <span className="text-xs bg-muted px-1.5 py-0.5 rounded">
-                        {contentCounts[contentType]}
-                      </span>
-                      <ChevronDown className="h-4 w-4" />
-                    </span>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-[200px]">
-                  {(Object.keys(contentTypeConfig) as ContentType[]).map((type) => (
-                    <DropdownMenuItem
-                      key={type}
-                      onClick={() => setContentType(type)}
-                      className="flex items-center justify-between"
-                    >
+              {/* Content type dropdown - ONLY IN DIRECT EDIT MODE */}
+              {mode === "direct" && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" className="flex-1 lg:flex-none lg:min-w-[160px] justify-between">
                       <span className="flex items-center gap-2">
-                        <span>{contentTypeConfig[type].icon}</span>
-                        <span>{contentTypeConfig[type].label}</span>
+                        <span>{contentTypeConfig[contentType].icon}</span>
+                        <span>{contentTypeConfig[contentType].label}</span>
                       </span>
-                      <span className={`text-xs ${contentCounts[type] > 0 ? "text-green-600 font-medium" : "text-muted-foreground"}`}>
-                        {contentCounts[type]}
+                      <span className="flex items-center gap-2">
+                        <span className="text-xs bg-muted px-1.5 py-0.5 rounded">
+                          {contentCounts[contentType]}
+                        </span>
+                        <ChevronDown className="h-4 w-4" />
                       </span>
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="w-[200px]">
+                    {(Object.keys(contentTypeConfig) as ContentType[]).map((type) => (
+                      <DropdownMenuItem
+                        key={type}
+                        onClick={() => setContentType(type)}
+                        className="flex items-center justify-between"
+                      >
+                        <span className="flex items-center gap-2">
+                          <span>{contentTypeConfig[type].icon}</span>
+                          <span>{contentTypeConfig[type].label}</span>
+                        </span>
+                        <span className={`text-xs ${contentCounts[type] > 0 ? "text-green-600 font-medium" : "text-muted-foreground"}`}>
+                          {contentCounts[type]}
+                        </span>
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
 
               {/* Mode toggle - with entry count badge */}
               <div className="flex bg-muted rounded-md p-0.5 relative">
@@ -1043,7 +993,7 @@ export default function Build() {
 
       {/* Main Content */}
       {mode === "ai" ? (
-        // AI Assist Mode: Two-panel on desktop, scrollable on mobile
+        // AI Assist Mode: Chat + Card-style forms
         <div className="max-w-6xl mx-auto p-4">
           {/* Desktop: Side by side */}
           <div className="hidden lg:grid lg:grid-cols-2 gap-4 h-[calc(100vh-140px)]">
@@ -1051,15 +1001,15 @@ export default function Build() {
             {renderChatPanel()}
 
             {/* Right: Form + Entries stacked */}
-            <div className="flex flex-col gap-3 h-full">
+            <div className="flex flex-col gap-4 h-full overflow-y-auto">
               {renderAiFormSection()}
-              {renderEntriesSection()}
+              {lifelineSaved && renderEntriesSection()}
             </div>
           </div>
 
           {/* Mobile: Scrollable single column */}
           <div className="lg:hidden space-y-4">
-            {/* Chat Section */}
+            {/* Chat Section (collapsible on mobile when form is showing) */}
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-lg flex items-center gap-2">
@@ -1115,49 +1065,24 @@ export default function Build() {
             {renderAiFormSection()}
 
             {/* Entries Section */}
-            <div className="bg-white border border-gray-200 rounded-lg">
-              <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
-                <span className="font-semibold text-sm">Your Entries</span>
-                <span className="bg-green-500 text-white text-xs font-semibold px-2.5 py-0.5 rounded-full">
-                  {savedEntries.length}
-                </span>
+            {lifelineSaved && (
+              <div className="bg-white border border-gray-200 rounded-xl">
+                <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+                  <span className="font-semibold text-sm">Your Entries</span>
+                  <span className="bg-green-500 text-white text-xs font-semibold px-2.5 py-0.5 rounded-full">
+                    {savedEntries.length}
+                  </span>
+                </div>
+                <div className="p-4">
+                  {renderEntriesList()}
+                </div>
               </div>
-              <div className="p-4">
-                {renderEntriesList()}
-              </div>
-            </div>
+            )}
           </div>
         </div>
       ) : (
-        // Direct Edit Mode: Single-column layout (720px max-width matching mockup)
-        <div className="mx-auto p-4" style={{ maxWidth: '720px' }}>
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg">
-                {contentType === "lifelines" ? (editingEntryId ? "Edit Entry" : "New Lifeline") : `${contentTypeConfig[contentType].label} (Coming Soon)`}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {/* AI Hint Banner */}
-              <div className="bg-blue-50 border border-blue-100 rounded-lg p-3 lg:p-4 flex flex-col sm:flex-row items-start sm:items-center gap-3">
-                <Lightbulb className="h-5 w-5 text-blue-600 flex-shrink-0" />
-                <p className="text-sm text-blue-800 flex-1">
-                  Want help filling this out? AI can guide you through the process.
-                </p>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="text-blue-600 border-blue-200 hover:bg-blue-100 w-full sm:w-auto"
-                  onClick={() => setMode("ai")}
-                >
-                  Switch to AI Assist
-                </Button>
-              </div>
-
-              {renderDirectEditFormContent()}
-            </CardContent>
-          </Card>
-        </div>
+        // Direct Edit Mode: Two-column layout
+        renderDirectEditMode()
       )}
     </div>
   );
