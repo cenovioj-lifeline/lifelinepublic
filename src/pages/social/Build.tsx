@@ -4,21 +4,20 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, Send, Loader2, Check, ChevronDown, Pencil, Trash2, Plus, Star } from "lucide-react";
+import { ArrowLeft, Send, Loader2, Check, ChevronRight, Pencil, Trash2, Plus, Star, FileText } from "lucide-react";
 import { toast } from "sonner";
 
-// New card-style components
+// Card-style components
 import { WaitingForIntent } from "@/components/social/WaitingForIntent";
 import { LifelineCardForm } from "@/components/social/LifelineCardForm";
 import { EntryCardForm } from "@/components/social/EntryCardForm";
 import { LifelineInfoCard } from "@/components/social/LifelineInfoCard";
+
+// Cascading dropdown components
+import { TypeSelectorDropdown } from "@/components/social/TypeSelectorDropdown";
+import { LifelineSelectorDropdown } from "@/components/social/LifelineSelectorDropdown";
+import { LifelineSelectorSheet } from "@/components/social/LifelineSelectorSheet";
 
 interface Message {
   role: "user" | "assistant";
@@ -51,17 +50,9 @@ interface SavedEntry {
   year: string;
 }
 
-type ContentType = "lifelines" | "quotes" | "awards" | "media" | "books";
+type ContentType = "lifelines" | "entries";
 type Mode = "ai" | "direct";
 type AiIntent = "lifeline" | "entry" | null;
-
-const contentTypeConfig: Record<ContentType, { label: string; icon: string }> = {
-  lifelines: { label: "Lifelines", icon: "📈" },
-  quotes: { label: "Quotes", icon: "💬" },
-  awards: { label: "Awards", icon: "🏆" },
-  media: { label: "Media", icon: "🖼️" },
-  books: { label: "Books", icon: "📚" },
-};
 
 // Parse various date input formats into YYYY-MM-DD for database
 const parseDateInput = (input: string): string | null => {
@@ -115,7 +106,11 @@ export default function Build() {
   const [mode, setMode] = useState<Mode>("ai");
   const [contentType, setContentType] = useState<ContentType>("lifelines");
 
-  // NEW: AI Intent State - null means waiting for intent
+  // NEW: Selected lifeline state for Direct Edit mode
+  const [selectedLifelineId, setSelectedLifelineId] = useState<string | null>(null);
+  const [lifelineSelectorSheetOpen, setLifelineSelectorSheetOpen] = useState(false);
+
+  // AI Intent State - null means waiting for intent
   const [aiIntent, setAiIntent] = useState<AiIntent>(null);
 
   // AI Form UI State
@@ -168,24 +163,91 @@ export default function Build() {
     enabled: !!collectionId
   });
 
-  // Fetch lifeline count for this collection
-  const { data: lifelineCount } = useQuery({
-    queryKey: ["lifelineCount", collectionId],
+  // Fetch ALL lifelines for this collection (for the selector dropdown)
+  const { data: allLifelines, isLoading: lifelinesLoading } = useQuery({
+    queryKey: ["allLifelines", collectionId],
     queryFn: async () => {
-      const { count, error } = await supabase
+      const { data, error } = await supabase
         .from("lifelines")
-        .select("*", { count: "exact", head: true })
-        .eq("collection_id", collectionId);
+        .select("id, title, lifeline_type, intro, cover_image_url")
+        .eq("collection_id", collectionId)
+        .order("created_at", { ascending: false });
       if (error) throw error;
-      return count || 0;
+      return data || [];
     },
     enabled: !!collectionId
   });
 
-  // Check for existing lifeline in this collection
+  // Derived counts
+  const lifelineCount = allLifelines?.length || 0;
+  const totalEntryCount = savedEntries.length; // Current lifeline's entries
+
+  // Load selected lifeline data when selection changes
+  useEffect(() => {
+    const loadSelectedLifeline = async () => {
+      if (!selectedLifelineId) {
+        // Clear form when no lifeline selected
+        if (mode === "direct") {
+          setLifelineId(null);
+          setLifelineSaved(false);
+          setLifelineForm({ title: "", lifeline_type: "", purpose: "" });
+          setSavedEntries([]);
+          setIsEditingLifeline(false);
+        }
+        return;
+      }
+
+      const { data } = await supabase
+        .from("lifelines")
+        .select("id, title, lifeline_type, intro")
+        .eq("id", selectedLifelineId)
+        .single();
+
+      if (data) {
+        setLifelineId(data.id);
+        setLifelineSaved(true);
+        setLifelineForm({
+          title: data.title || "",
+          lifeline_type: data.lifeline_type || "",
+          purpose: data.intro || ""
+        });
+        setIsEditingLifeline(false);
+
+        // Load entries for this lifeline
+        const { data: entries } = await supabase
+          .from("entries")
+          .select("id, title, summary, score, occurred_on")
+          .eq("lifeline_id", data.id)
+          .order("occurred_on", { ascending: true });
+
+        if (entries) {
+          setSavedEntries(entries.map(e => ({
+            id: e.id,
+            title: e.title || "",
+            description: e.summary || "",
+            score: e.score || 0,
+            year: e.occurred_on ? e.occurred_on.substring(0, 4) : ""
+          })));
+        } else {
+          setSavedEntries([]);
+        }
+      }
+    };
+
+    loadSelectedLifeline();
+  }, [selectedLifelineId, mode]);
+
+  // Auto-select first lifeline when entering Direct Edit mode (if only one exists)
+  useEffect(() => {
+    if (mode === "direct" && allLifelines && allLifelines.length === 1 && !selectedLifelineId) {
+      setSelectedLifelineId(allLifelines[0].id);
+    }
+  }, [mode, allLifelines, selectedLifelineId]);
+
+  // Check for existing lifeline in this collection (for AI mode initial state)
   useEffect(() => {
     const checkExistingLifeline = async () => {
-      if (!collectionId) return;
+      if (!collectionId || mode !== "ai") return;
 
       const { data, error } = await supabase
         .from("lifelines")
@@ -226,7 +288,7 @@ export default function Build() {
     };
 
     checkExistingLifeline();
-  }, [collectionId]);
+  }, [collectionId, mode]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -269,6 +331,7 @@ export default function Build() {
 
       setLifelineId(data.id);
       setLifelineSaved(true);
+      setSelectedLifelineId(data.id); // Auto-select the new lifeline
       setAiIntent("entry"); // After saving lifeline, intent becomes entry
       toast.success("Lifeline created!");
       return data.id;
@@ -409,9 +472,19 @@ export default function Build() {
     setAiFilledFields(new Set());
   };
 
+  // Handle creating new lifeline (resets state)
+  const handleCreateNewLifeline = () => {
+    setSelectedLifelineId(null);
+    setLifelineId(null);
+    setLifelineSaved(false);
+    setLifelineForm({ title: "", lifeline_type: "", purpose: "" });
+    setSavedEntries([]);
+    setIsEditingLifeline(true); // Go into edit mode for the new lifeline
+  };
+
   const processToolCalls = async (toolCalls: ToolCall[]) => {
     for (const call of toolCalls) {
-      // NEW: Handle set_intent tool call
+      // Handle set_intent tool call
       if (call.name === "set_intent") {
         const { intent } = call.input as { intent: "lifeline" | "entry" };
         setAiIntent(intent);
@@ -510,15 +583,6 @@ export default function Build() {
   // Handle example chip click in WaitingForIntent
   const handleExampleClick = (example: string) => {
     setInput(example);
-  };
-
-  // Content counts (placeholder for now - only lifelines is real)
-  const contentCounts: Record<ContentType, number> = {
-    lifelines: lifelineCount || 0,
-    quotes: 0,
-    awards: 0,
-    media: 0,
-    books: 0,
   };
 
   // Get score color class
@@ -753,25 +817,37 @@ export default function Build() {
     </div>
   );
 
+  // Render "No Lifeline Selected" state for Direct Edit
+  const renderNoLifelineSelected = () => (
+    <div className="max-w-md mx-auto p-8 text-center">
+      <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+        <FileText className="w-8 h-8 text-gray-400" />
+      </div>
+      <h3 className="font-semibold text-lg mb-2">Select a Lifeline</h3>
+      <p className="text-gray-500 mb-6">
+        Choose a lifeline from the dropdown above to start editing, or create a new one.
+      </p>
+      <div className="flex flex-col sm:flex-row gap-3 justify-center">
+        <Button
+          variant="outline"
+          onClick={() => setLifelineSelectorSheetOpen(true)}
+          className="lg:hidden"
+        >
+          Browse Lifelines
+        </Button>
+        <Button onClick={handleCreateNewLifeline}>
+          <Plus className="w-4 h-4 mr-2" />
+          Create New Lifeline
+        </Button>
+      </div>
+    </div>
+  );
+
   // Render Direct Edit Mode - Two Column Layout
   const renderDirectEditMode = () => {
-    if (contentType !== "lifelines") {
-      return (
-        <div className="flex flex-col items-center justify-center py-12 text-center">
-          <span className="text-4xl mb-4">{contentTypeConfig[contentType].icon}</span>
-          <h3 className="font-semibold text-lg mb-2">{contentTypeConfig[contentType].label}</h3>
-          <p className="text-muted-foreground text-sm">
-            This content type is coming soon. For now, you can create lifelines.
-          </p>
-          <Button
-            variant="outline"
-            className="mt-4"
-            onClick={() => setContentType("lifelines")}
-          >
-            Switch to Lifelines
-          </Button>
-        </div>
-      );
+    // If no lifeline selected and we have lifelines, show selection prompt
+    if (!selectedLifelineId && contentType === "lifelines" && !isEditingLifeline) {
+      return renderNoLifelineSelected();
     }
 
     return (
@@ -885,6 +961,9 @@ export default function Build() {
     );
   };
 
+  // Get selected lifeline title for mobile display
+  const selectedLifelineTitle = allLifelines?.find(l => l.id === selectedLifelineId)?.title || "Select...";
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -908,46 +987,9 @@ export default function Build() {
             </div>
 
             {/* Controls row (mobile) / continues inline (desktop) */}
-            <div className="flex items-center gap-2 lg:gap-3">
-              {/* Content type dropdown - ONLY IN DIRECT EDIT MODE */}
-              {mode === "direct" && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" className="flex-1 lg:flex-none lg:min-w-[160px] justify-between">
-                      <span className="flex items-center gap-2">
-                        <span>{contentTypeConfig[contentType].icon}</span>
-                        <span>{contentTypeConfig[contentType].label}</span>
-                      </span>
-                      <span className="flex items-center gap-2">
-                        <span className="text-xs bg-muted px-1.5 py-0.5 rounded">
-                          {contentCounts[contentType]}
-                        </span>
-                        <ChevronDown className="h-4 w-4" />
-                      </span>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start" className="w-[200px]">
-                    {(Object.keys(contentTypeConfig) as ContentType[]).map((type) => (
-                      <DropdownMenuItem
-                        key={type}
-                        onClick={() => setContentType(type)}
-                        className="flex items-center justify-between"
-                      >
-                        <span className="flex items-center gap-2">
-                          <span>{contentTypeConfig[type].icon}</span>
-                          <span>{contentTypeConfig[type].label}</span>
-                        </span>
-                        <span className={`text-xs ${contentCounts[type] > 0 ? "text-green-600 font-medium" : "text-muted-foreground"}`}>
-                          {contentCounts[type]}
-                        </span>
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
-
-              {/* Mode toggle - with entry count badge */}
-              <div className="flex bg-muted rounded-md p-0.5 relative">
+            <div className="flex items-center gap-2 lg:gap-3 overflow-x-auto">
+              {/* Mode toggle */}
+              <div className="flex bg-muted rounded-md p-0.5 flex-shrink-0">
                 <Button
                   variant={mode === "ai" ? "secondary" : "ghost"}
                   size="sm"
@@ -963,7 +1005,7 @@ export default function Build() {
                   className="text-xs px-2 lg:px-3 relative"
                   onClick={() => setMode("direct")}
                 >
-                  <span className="lg:hidden">Edit</span>
+                  <span className="lg:hidden">Direct</span>
                   <span className="hidden lg:inline">Direct Edit</span>
                   {savedEntries.length > 0 && (
                     <span className="absolute -top-1 -right-1 bg-green-500 text-white text-[10px] font-semibold w-4 h-4 rounded-full flex items-center justify-center">
@@ -972,6 +1014,57 @@ export default function Build() {
                   )}
                 </Button>
               </div>
+
+              {/* CASCADING DROPDOWNS - Only in Direct Edit mode */}
+              {mode === "direct" && (
+                <>
+                  {/* Desktop: Inline dropdowns */}
+                  <div className="hidden lg:flex items-center gap-2">
+                    <TypeSelectorDropdown
+                      value={contentType}
+                      onChange={setContentType}
+                      lifelineCount={lifelineCount}
+                      entryCount={totalEntryCount}
+                    />
+
+                    <ChevronRight className="w-4 h-4 text-gray-300" />
+
+                    {contentType === "lifelines" && (
+                      <LifelineSelectorDropdown
+                        lifelines={allLifelines || []}
+                        selectedId={selectedLifelineId}
+                        onSelect={setSelectedLifelineId}
+                        onCreateNew={handleCreateNewLifeline}
+                        loading={lifelinesLoading}
+                      />
+                    )}
+                  </div>
+
+                  {/* Mobile: Compact chips that open sheets */}
+                  <div className="flex lg:hidden items-center gap-1.5 flex-shrink-0">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="gap-1 px-2 h-8"
+                      onClick={() => {/* Type selector - could add sheet for this too */}}
+                    >
+                      <span>📈</span>
+                      <span className="text-xs">Lifelines</span>
+                    </Button>
+
+                    <ChevronRight className="w-3 h-3 text-gray-300" />
+
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="gap-1 px-2 h-8 max-w-[120px]"
+                      onClick={() => setLifelineSelectorSheetOpen(true)}
+                    >
+                      <span className="text-xs truncate">{selectedLifelineTitle}</span>
+                    </Button>
+                  </div>
+                </>
+              )}
             </div>
 
             {/* Title - pushed right (desktop only) */}
@@ -990,6 +1083,16 @@ export default function Build() {
           </div>
         </div>
       </div>
+
+      {/* Mobile Lifeline Selector Sheet */}
+      <LifelineSelectorSheet
+        open={lifelineSelectorSheetOpen}
+        onOpenChange={setLifelineSelectorSheetOpen}
+        lifelines={allLifelines || []}
+        selectedId={selectedLifelineId}
+        onSelect={setSelectedLifelineId}
+        onCreateNew={handleCreateNewLifeline}
+      />
 
       {/* Main Content */}
       {mode === "ai" ? (
