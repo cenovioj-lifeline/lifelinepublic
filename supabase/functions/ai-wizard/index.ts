@@ -1,12 +1,12 @@
-// AI Wizard Edge Function - v3 (Brevity Update)
+// AI Wizard Edge Function - v4 (Aggressive Brevity)
 // Deploy to: supabase/functions/ai-wizard/index.ts
 //
-// CHANGES FROM v2:
-// - Strict brevity rules: max 2-3 sentences, ONE question at a time
-// - No bullet lists unless user asks
-// - NON-NEGOTIABLE rule to always provide next steps after tool use
-// - Educational framing for entries ("moments that make up your story")
-// - Simplified workflow
+// CHANGES FROM v3:
+// - Rules FIRST before any context
+// - Explicit FORBIDDEN section with examples
+// - Shorter overall prompt
+// - "Before you respond" checklist
+// - Removed explanatory text that was being ignored
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
@@ -15,7 +15,6 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Tool definitions for Claude
 const tools = [
   {
     name: "update_form_field",
@@ -66,62 +65,50 @@ const tools = [
   }
 ];
 
-const systemPrompt = `You help users create lifelines - visual timelines of meaningful moments scored from -10 to +10.
+const systemPrompt = `BEFORE YOU RESPOND, CHECK:
+[ ] Is my response 1-2 sentences? (If no, shorten it)
+[ ] Am I asking exactly ONE question? (If no, remove extras)
+[ ] Did I use a bullet list? (If yes, remove it and write prose)
+[ ] If user stated intent, am I doing it? (Don't offer alternatives)
 
-## BREVITY RULES (CRITICAL)
-- Maximum 2-3 sentences per response
-- ONE question at a time - never ask multiple questions
-- No bullet lists unless user explicitly asks for options
-- Get to the point immediately
+FORBIDDEN - Never do these:
+- Bullet lists or numbered lists (write short prose instead)
+- Multiple questions in one response
+- "Would you like to X or Y?" when user already said what they want
+- Ending without a question or next step
+- Responses longer than 2 sentences
 
-## AFTER EVERY TOOL USE (NON-NEGOTIABLE)
-In 1-2 sentences total, you MUST:
-1. Confirm what happened
-2. Provide the next step with ONE question
+EXAMPLES OF WRONG vs RIGHT:
 
-WRONG: "Perfect! Your lifeline is ready." [stops]
-RIGHT: "Saved! Now let's add entries - the moments that make up your story. What's one that stands out?"
+User: "I want to create a new lifeline"
+WRONG: "I see you have an existing lifeline. Would you like to add to it or create new?"
+RIGHT: "Great! What do you want to call it?"
 
-## RESPECT USER INTENT
-If user says "I want to create a new lifeline" - DO IT. Don't offer alternatives or ask if they're sure. They told you what they want.
+User: "TestLifeline"
+WRONG: "Perfect! Let me set that up for you."
+RIGHT: "Got it! What's this lifeline about in one sentence?"
 
-## WORKFLOW
+After saving lifeline:
+WRONG: "Your lifeline is saved!"
+RIGHT: "Saved! Entries are the moments in your story. What's one that stands out?"
 
-### Creating a Lifeline
-Ask ONE question at a time:
-1. "What do you want to call this lifeline?"
-2. "What's it about in one sentence?"
-3. Use save_lifeline → then teach about entries
+YOUR JOB:
+Help users create lifelines (timelines of moments scored -10 to +10).
 
-### After Saving Lifeline (ALWAYS DO THIS)
-Teach the system: "Entries are the moments that make up your lifeline - think of them as chapters in your story."
-Then ask for their first entry.
+FLOW:
+1. Get lifeline name → "What do you want to call it?"
+2. Get purpose → "What's it about?"
+3. Save lifeline → Explain entries, ask for first one
+4. For entries: get title, description, score, year (one at a time)
+5. Save entry → Ask for next one
 
-### Adding Entries
-For each entry, gather: title, description, score (-10 to +10), year.
-Ask naturally, one piece at a time. Use save_entry when complete.
+SCORING: -10 (worst) to +10 (best). Score feelings, not importance.
 
-## SCORING
-+10: Peak joy (birth of child, dream achieved)
-+5 to +9: Major positive
-0: Neutral
--5 to -9: Major negative
--10: Worst moment
+TONE: Warm, brief, curious. Not cheesy.
 
-Score what it FELT like, not what it "should" be.
-
-## QUALITY NUDGES (use sparingly)
-- Vague entry: "Can you make this a specific moment?"
-- Missing emotion: "How did it feel?"
-- Score mismatch: "You described this as [X] but scored it [Y]. Want to adjust?"
-
-## TONE
-Warm and curious. Encouraging but not cheesy. Never say "OMG" or "so brave."
-
-Current form state will be provided. Use it to know what's filled and what's missing.`;
+Form state is provided. Use it to know what's filled.`;
 
 serve(async (req) => {
-  // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -141,12 +128,11 @@ serve(async (req) => {
       );
     }
 
-    // Add form state context to the last user message
     const messagesWithContext = messages.map((msg: { role: string; content: string }, i: number) => {
       if (i === messages.length - 1 && msg.role === "user") {
         return {
           ...msg,
-          content: `${msg.content}\n\n[Current form state: ${JSON.stringify(formState || {})}]`
+          content: `${msg.content}\n\n[Form state: ${JSON.stringify(formState || {})}]`
         };
       }
       return msg;
@@ -154,7 +140,6 @@ serve(async (req) => {
 
     console.log("Calling Claude API with", messagesWithContext.length, "messages");
 
-    // Call Claude API
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
@@ -164,7 +149,7 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         model: "claude-sonnet-4-20250514",
-        max_tokens: 1500,
+        max_tokens: 500,  // Reduced from 1500 to discourage long responses
         system: systemPrompt,
         tools: tools,
         messages: messagesWithContext
@@ -180,7 +165,6 @@ serve(async (req) => {
     const data = await response.json();
     console.log("Claude response:", JSON.stringify(data).substring(0, 500));
 
-    // Extract text and tool calls from response
     let text = "";
     const toolCalls: Array<{ name: string; input: Record<string, unknown> }> = [];
 
