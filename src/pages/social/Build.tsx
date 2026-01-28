@@ -305,8 +305,12 @@ export default function Build() {
     checkExistingLifeline();
   }, [collectionId, mode]);
 
+  // Auto-scroll to bottom when messages change (with slight delay for render)
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    const timer = setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, 100);
+    return () => clearTimeout(timer);
   }, [messages]);
 
   // Generate a slug from title
@@ -512,6 +516,15 @@ export default function Build() {
 
         // Lifeline fields - also set intent to lifeline
         if (["title", "lifeline_type", "purpose"].includes(field)) {
+          // CRITICAL: If AI is setting title and we have an existing lifeline loaded,
+          // we're starting a NEW lifeline - clear the old state
+          if (field === "title" && lifelineId) {
+            setLifelineId(null);
+            setLifelineSaved(false);
+            setSavedEntries([]);
+            setLifelineForm({ title: "", lifeline_type: "", purpose: "" });
+          }
+          
           if (aiIntent !== "lifeline" && !lifelineSaved) {
             setAiIntent("lifeline");
           }
