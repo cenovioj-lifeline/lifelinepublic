@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, Send, Loader2, Check, ChevronRight, Pencil, Trash2, Plus, Star, FileText } from "lucide-react";
@@ -98,6 +98,12 @@ const formatDateForDisplay = (dateStr: string | null): string => {
   return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
 };
 
+// Auto-resize textarea handler
+const handleTextareaResize = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+  e.target.style.height = 'auto';
+  e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px';
+};
+
 export default function Build() {
   const { collectionId } = useParams();
   const navigate = useNavigate();
@@ -147,6 +153,7 @@ export default function Build() {
   const [savingEntry, setSavingEntry] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Fetch collection info
   const { data: collection } = useQuery({
@@ -340,6 +347,7 @@ export default function Build() {
       setLifelineId(data.id);
       setLifelineSaved(true);
       setSelectedLifelineId(data.id); // Auto-select the new lifeline
+      setSavedEntries([]); // Clear entries from any previous lifeline
       setAiIntent("entry"); // After saving lifeline, intent becomes entry
       toast.success("Lifeline created!");
       return data.id;
@@ -539,6 +547,10 @@ export default function Build() {
 
     const userMessage = input.trim();
     setInput("");
+    // Reset textarea height
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+    }
     setMessages(prev => [...prev, { role: "user", content: userMessage }]);
     setLoading(true);
     setIsAiFilling(true);
@@ -702,16 +714,21 @@ export default function Build() {
         </div>
 
         {/* Input */}
-        <div className="flex gap-2 flex-shrink-0">
-          <Input
+        <div className="flex gap-2 flex-shrink-0 items-end">
+          <Textarea
+            ref={textareaRef}
             value={input}
-            onChange={(e) => setInput(e.target.value)}
+            onChange={(e) => {
+              setInput(e.target.value);
+              handleTextareaResize(e);
+            }}
             onKeyDown={handleKeyDown}
-            placeholder="Type a message..."
+            placeholder="Type a message... (Shift+Enter for new line)"
             disabled={loading}
-            className="flex-1"
+            className="flex-1 min-h-[40px] max-h-[120px] resize-none"
+            rows={1}
           />
-          <Button onClick={sendMessage} disabled={loading || !input.trim()}>
+          <Button onClick={sendMessage} disabled={loading || !input.trim()} className="h-10">
             <Send className="h-4 w-4" />
           </Button>
         </div>
@@ -1157,16 +1174,20 @@ export default function Build() {
                 </div>
 
                 {/* Input */}
-                <div className="flex gap-2">
-                  <Input
+                <div className="flex gap-2 items-end">
+                  <Textarea
                     value={input}
-                    onChange={(e) => setInput(e.target.value)}
+                    onChange={(e) => {
+                      setInput(e.target.value);
+                      handleTextareaResize(e);
+                    }}
                     onKeyDown={handleKeyDown}
-                    placeholder="Type a message..."
+                    placeholder="Type a message... (Shift+Enter for new line)"
                     disabled={loading}
-                    className="flex-1"
+                    className="flex-1 min-h-[40px] max-h-[120px] resize-none"
+                    rows={1}
                   />
-                  <Button onClick={sendMessage} disabled={loading || !input.trim()}>
+                  <Button onClick={sendMessage} disabled={loading || !input.trim()} className="h-10">
                     <Send className="h-4 w-4" />
                   </Button>
                 </div>
