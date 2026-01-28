@@ -182,6 +182,14 @@ export default function Build() {
   const lifelineCount = allLifelines?.length || 0;
   const totalEntryCount = savedEntries.length; // Current lifeline's entries
 
+  // IMPORTANT: Clear transient state when switching modes
+  // This prevents entry form data from bleeding between AI Assist and Direct Edit
+  useEffect(() => {
+    setEntryForm({ title: "", description: "", score: 0, year: "" });
+    setEditingEntryId(null);
+    setAiFilledFields(new Set());
+  }, [mode]);
+
   // Load selected lifeline data when selection changes
   useEffect(() => {
     const loadSelectedLifeline = async () => {
@@ -987,9 +995,10 @@ export default function Build() {
             </div>
 
             {/* Controls row (mobile) / continues inline (desktop) */}
-            <div className="flex items-center gap-2 lg:gap-3 overflow-x-auto">
-              {/* Mode toggle */}
-              <div className="flex bg-muted rounded-md p-0.5 flex-shrink-0">
+            {/* Removed overflow-x-auto to prevent ugly scrollbar */}
+            <div className="flex items-center gap-2 lg:gap-3">
+              {/* Mode toggle - added mr-1 to prevent badge clipping */}
+              <div className="flex bg-muted rounded-md p-0.5 flex-shrink-0 mr-1">
                 <Button
                   variant={mode === "ai" ? "secondary" : "ghost"}
                   size="sm"
