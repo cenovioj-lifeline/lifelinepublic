@@ -1,3 +1,13 @@
+// AI Wizard Edge Function - v3 (Brevity Update)
+// Deploy to: supabase/functions/ai-wizard/index.ts
+//
+// CHANGES FROM v2:
+// - Strict brevity rules: max 2-3 sentences, ONE question at a time
+// - No bullet lists unless user asks
+// - NON-NEGOTIABLE rule to always provide next steps after tool use
+// - Educational framing for entries ("moments that make up your story")
+// - Simplified workflow
+
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const corsHeaders = {
@@ -71,6 +81,9 @@ In 1-2 sentences total, you MUST:
 
 WRONG: "Perfect! Your lifeline is ready." [stops]
 RIGHT: "Saved! Now let's add entries - the moments that make up your story. What's one that stands out?"
+
+## RESPECT USER INTENT
+If user says "I want to create a new lifeline" - DO IT. Don't offer alternatives or ask if they're sure. They told you what they want.
 
 ## WORKFLOW
 
