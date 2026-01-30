@@ -19,6 +19,15 @@ import { TypeSelectorDropdown } from "@/components/social/TypeSelectorDropdown";
 import { LifelineSelectorDropdown } from "@/components/social/LifelineSelectorDropdown";
 import { LifelineSelectorSheet } from "@/components/social/LifelineSelectorSheet";
 
+// State machine for AI chat
+import {
+  ChatState,
+  getNextState,
+  buildStateContext,
+  validateResponse,
+  fixResponse
+} from "@/lib/chatStateContext";
+
 interface Message {
   role: "user" | "assistant";
   content: string;
@@ -119,6 +128,11 @@ export default function Build() {
   // AI Intent State - null means waiting for intent
   const [aiIntent, setAiIntent] = useState<AiIntent>(null);
 
+  // Chat State Machine
+  const [chatState, setChatState] = useState<ChatState>('idle');
+  const [justSavedLifeline, setJustSavedLifeline] = useState(false);
+  const [justSavedEntry, setJustSavedEntry] = useState(false);
+
   // AI Form UI State
   const [isAiFilling, setIsAiFilling] = useState(false);
   const [editingEntryId, setEditingEntryId] = useState<string | null>(null);
@@ -127,8 +141,9 @@ export default function Build() {
   // Direct Edit: editing lifeline mode
   const [isEditingLifeline, setIsEditingLifeline] = useState(false);
 
+  // Simpler initial message - let state machine guide the conversation
   const [messages, setMessages] = useState<Message[]>([
-    { role: "assistant", content: "Hey! Let's build your collection. I'll help you create lifelines - visual timelines of meaningful moments.\n\nWhat would you like to create today? I can help with:\n• Lifelines - timelines of your journey\n• Entries - moments within a lifeline\n\nJust tell me what's on your mind!" }
+    { role: "assistant", content: "Hey! I'll help you create a lifeline - a visual timeline of meaningful moments. What would you like to create?" }
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -151,6 +166,9 @@ export default function Build() {
   const [lifelineSaved, setLifelineSaved] = useState(false);
   const [savingLifeline, setSavingLifeline] = useState(false);
   const [savingEntry, setSavingEntry] = useState(false);
+
+  // Store existing lifeline title for context injection
+  const [existingLifelineTitle, setExistingLifelineTitle] = useState<string | undefined>(undefined);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -188,6 +206,24 @@ export default function Build() {
   // Derived counts
   const lifelineCount = allLifelines?.length || 0;
   const totalEntryCount = savedEntries.length; // Current lifeline's entries
+
+  // Update chat state when forms change
+  useEffect(() => {
+    const newState = getNextState(
+      chatState,
+      lifelineForm,
+      entryForm,
+      lifelineSaved,
+      justSavedLifeline,
+      justSavedEntry
+    );
+    if (newState !== chatState) {
+      setChatState(newState);
+    }
+    // Clear the "just saved" flags after state update
+    if (justSavedLifeline) setJustSavedLifeline(false);
+    if (justSavedEntry) setJustSavedEntry(false);
+  }, [lifelineForm, entryForm, lifelineSaved, justSavedLifeline, justSavedEntry, chatState]);
 
   // IMPORTANT: Clear transient state when switching modes
   // This prevents entry form data from bleeding between AI Assist and Direct Edit
@@ -274,6 +310,7 @@ export default function Build() {
       if (data && !error) {
         setLifelineId(data.id);
         setLifelineSaved(true);
+        setExistingLifelineTitle(data.title || undefined);
         setLifelineForm({
           title: data.title || "",
           lifeline_type: data.lifeline_type || "",
@@ -281,6 +318,7 @@ export default function Build() {
         });
         // If lifeline exists, AI should know about entries
         setAiIntent("entry");
+        setChatState('prompting_entries');
 
         // Also load existing entries
         const { data: entries } = await supabase
@@ -353,6 +391,7 @@ export default function Build() {
       setSelectedLifelineId(data.id); // Auto-select the new lifeline
       setSavedEntries([]); // Clear entries from any previous lifeline
       setAiIntent("entry"); // After saving lifeline, intent becomes entry
+      setJustSavedLifeline(true); // Trigger state transition to prompting_entries
       toast.success("Lifeline created!");
       return data.id;
     } catch (err) {
@@ -436,6 +475,7 @@ export default function Build() {
       // Clear form and AI filled state
       setEntryForm({ title: "", description: "", score: 0, year: "" });
       setAiFilledFields(new Set());
+      setJustSavedEntry(true); // Trigger state transition to entry_saved
       return true;
     } catch (err) {
       console.error("Failed to save entry:", err);
@@ -500,6 +540,7 @@ export default function Build() {
     setLifelineForm({ title: "", lifeline_type: "", purpose: "" });
     setSavedEntries([]);
     setIsEditingLifeline(true); // Go into edit mode for the new lifeline
+    setChatState('idle'); // Reset chat state
   };
 
   const processToolCalls = async (toolCalls: ToolCall[]) => {
@@ -523,6 +564,7 @@ export default function Build() {
             setLifelineSaved(false);
             setSavedEntries([]);
             setLifelineForm({ title: "", lifeline_type: "", purpose: "" });
+            setChatState('gathering_lifeline');
           }
           
           if (aiIntent !== "lifeline" && !lifelineSaved) {
@@ -569,15 +611,37 @@ export default function Build() {
     setIsAiFilling(true);
 
     try {
+      // Compute current state for context injection
+      const currentState = getNextState(
+        chatState,
+        lifelineForm,
+        entryForm,
+        lifelineSaved,
+        false,
+        false
+      );
+
+      // Build state context to append to user message
+      const stateContext = buildStateContext(
+        currentState,
+        lifelineForm,
+        entryForm,
+        existingLifelineTitle
+      );
+
+      // Append state context to user message for AI
+      const messageWithContext = userMessage + stateContext;
+
       const { data, error } = await supabase.functions.invoke("ai-wizard", {
         body: {
-          messages: [...messages, { role: "user", content: userMessage }],
+          messages: [...messages, { role: "user", content: messageWithContext }],
           formState: {
             lifeline: lifelineForm,
             lifelineSaved: lifelineSaved,
             lifelineId: lifelineId,
             entry: entryForm,
-            savedEntriesCount: savedEntries.length
+            savedEntriesCount: savedEntries.length,
+            chatState: currentState // Also pass state explicitly
           }
         }
       });
@@ -589,9 +653,28 @@ export default function Build() {
         await processToolCalls(data.toolCalls);
       }
 
-      // Add assistant message
+      // Add assistant message with validation/fixing
       if (data.text) {
-        setMessages(prev => [...prev, { role: "assistant", content: data.text }]);
+        let responseText = data.text;
+
+        // Validate the response
+        const validation = validateResponse(responseText);
+
+        // Fix if needed (remove bullets, add missing question, etc.)
+        if (validation.hasBulletList || validation.offersAlternatives || !validation.hasQuestion) {
+          // Get the state AFTER tool calls may have changed things
+          const postToolState = getNextState(
+            chatState,
+            lifelineForm,
+            entryForm,
+            lifelineSaved,
+            justSavedLifeline,
+            justSavedEntry
+          );
+          responseText = fixResponse(responseText, postToolState, validation);
+        }
+
+        setMessages(prev => [...prev, { role: "assistant", content: responseText }]);
       }
 
     } catch (err) {
@@ -697,6 +780,12 @@ export default function Build() {
         <CardTitle className="text-lg flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-green-500"></span>
           Chat with AI
+          {/* Debug: show current state */}
+          {process.env.NODE_ENV === 'development' && (
+            <span className="ml-auto text-xs font-normal text-gray-400">
+              [{chatState}]
+            </span>
+          )}
         </CardTitle>
       </CardHeader>
       <CardContent className="flex-1 flex flex-col min-h-0">
