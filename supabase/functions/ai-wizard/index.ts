@@ -1,12 +1,11 @@
-// AI Wizard Edge Function - v4 (Aggressive Brevity)
+// AI Wizard Edge Function - v5 (State Machine Integration)
 // Deploy to: supabase/functions/ai-wizard/index.ts
 //
-// CHANGES FROM v3:
-// - Rules FIRST before any context
-// - Explicit FORBIDDEN section with examples
-// - Shorter overall prompt
-// - "Before you respond" checklist
-// - Removed explanatory text that was being ignored
+// CHANGES FROM v4:
+// - MUCH simpler prompt - state machine in frontend handles complexity
+// - AI just follows the STATE instruction injected into each message
+// - Frontend validates and fixes responses, so rules here are backup
+// - Reduced from 50 lines of rules to ~15 lines
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
@@ -18,7 +17,7 @@ const corsHeaders = {
 const tools = [
   {
     name: "update_form_field",
-    description: "Update a field in the lifeline creation form. Use this when the user provides information that should be captured in the form.",
+    description: "Update a field in the form. Use this when the user provides information.",
     input_schema: {
       type: "object",
       properties: {
@@ -37,13 +36,13 @@ const tools = [
   },
   {
     name: "save_lifeline",
-    description: "Save the lifeline to the database. Use this once the user has confirmed the lifeline title, type, and purpose. This creates the lifeline so entries can be added to it.",
+    description: "Save the lifeline. Use when title and purpose are filled.",
     input_schema: {
       type: "object",
       properties: {
         confirm: {
           type: "boolean",
-          description: "Confirm saving the lifeline"
+          description: "Confirm saving"
         }
       },
       required: ["confirm"]
@@ -51,13 +50,13 @@ const tools = [
   },
   {
     name: "save_entry",
-    description: "Save the current entry to the lifeline. Use this when the user has provided enough information for a complete entry (title, description, score, and year).",
+    description: "Save the entry. Use when title, description, score, and year are filled.",
     input_schema: {
       type: "object",
       properties: {
         confirm: {
           type: "boolean",
-          description: "Confirm saving the entry"
+          description: "Confirm saving"
         }
       },
       required: ["confirm"]
@@ -65,48 +64,28 @@ const tools = [
   }
 ];
 
-const systemPrompt = `BEFORE YOU RESPOND, CHECK:
-[ ] Is my response 1-2 sentences? (If no, shorten it)
-[ ] Am I asking exactly ONE question? (If no, remove extras)
-[ ] Did I use a bullet list? (If yes, remove it and write prose)
-[ ] If user stated intent, am I doing it? (Don't offer alternatives)
+// Simple prompt - state machine sends specific instructions with each message
+const systemPrompt = `You help users create lifelines (timelines of moments scored -10 to +10).
 
-FORBIDDEN - Never do these:
-- Bullet lists or numbered lists (write short prose instead)
-- Multiple questions in one response
-- "Would you like to X or Y?" when user already said what they want
-- Ending without a question or next step
-- Responses longer than 2 sentences
+CRITICAL RULES:
+1. Follow the STATE instruction in each message - it tells you exactly what to do
+2. Keep responses to 1-2 sentences
+3. Ask ONE question at a time
+4. NO bullet lists
+5. If user states clear intent, DO IT - don't offer alternatives
 
-EXAMPLES OF WRONG vs RIGHT:
+When user provides information, extract it and call update_form_field.
+When all required fields are filled (check MISSING_FIELDS), call save_lifeline or save_entry.
 
-User: "I want to create a new lifeline"
-WRONG: "I see you have an existing lifeline. Would you like to add to it or create new?"
-RIGHT: "Great! What do you want to call it?"
+SCORING GUIDE (for entries):
++10 = peak joy (birth of child, dream achieved)
++5 to +9 = major positive
+0 = neutral
+-5 to -9 = major negative
+-10 = worst moment
+Score how it FELT, not importance.
 
-User: "TestLifeline"
-WRONG: "Perfect! Let me set that up for you."
-RIGHT: "Got it! What's this lifeline about in one sentence?"
-
-After saving lifeline:
-WRONG: "Your lifeline is saved!"
-RIGHT: "Saved! Entries are the moments in your story. What's one that stands out?"
-
-YOUR JOB:
-Help users create lifelines (timelines of moments scored -10 to +10).
-
-FLOW:
-1. Get lifeline name → "What do you want to call it?"
-2. Get purpose → "What's it about?"
-3. Save lifeline → Explain entries, ask for first one
-4. For entries: get title, description, score, year (one at a time)
-5. Save entry → Ask for next one
-
-SCORING: -10 (worst) to +10 (best). Score feelings, not importance.
-
-TONE: Warm, brief, curious. Not cheesy.
-
-Form state is provided. Use it to know what's filled.`;
+Be warm and curious. Not cheesy.`;
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -128,17 +107,10 @@ serve(async (req) => {
       );
     }
 
-    const messagesWithContext = messages.map((msg: { role: string; content: string }, i: number) => {
-      if (i === messages.length - 1 && msg.role === "user") {
-        return {
-          ...msg,
-          content: `${msg.content}\n\n[Form state: ${JSON.stringify(formState || {})}]`
-        };
-      }
-      return msg;
-    });
-
-    console.log("Calling Claude API with", messagesWithContext.length, "messages");
+    // The last user message already has state context appended by frontend
+    // Just pass it through - no need to add more context here
+    console.log("Calling Claude API with", messages.length, "messages");
+    console.log("Form state:", JSON.stringify(formState));
 
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
@@ -149,10 +121,10 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         model: "claude-sonnet-4-20250514",
-        max_tokens: 500,  // Reduced from 1500 to discourage long responses
+        max_tokens: 300,  // Even shorter - state machine keeps things focused
         system: systemPrompt,
         tools: tools,
-        messages: messagesWithContext
+        messages: messages
       })
     });
 
