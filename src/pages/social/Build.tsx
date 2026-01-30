@@ -61,7 +61,6 @@ interface SavedEntry {
 
 type ContentType = "lifelines" | "entries";
 type Mode = "ai" | "direct";
-type AiIntent = "lifeline" | "entry" | null;
 
 // Parse various date input formats into YYYY-MM-DD for database
 const parseDateInput = (input: string): string | null => {
@@ -113,20 +112,25 @@ const handleTextareaResize = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
   e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px';
 };
 
+// Welcome message for AI Assist
+const WELCOME_MESSAGE = `Welcome to Lifeline Public! Lifelines are interesting and useful ways to tell your stories.
+
+Are you ready to create your first lifeline? If so, say yes below and I will guide you through the process step by step.
+
+If you have questions before we get started go ahead and ask me anything. I have lots of information I am happy to share.`;
+
 export default function Build() {
   const { collectionId } = useParams();
   const navigate = useNavigate();
 
   // UI State
   const [mode, setMode] = useState<Mode>("ai");
-  const [contentType, setContentType] = useState<ContentType>("lifelines");
+  const [contentType, setContentType] = useState<ContentType>("lifelines"); // For Direct Edit
+  const [aiContentType, setAiContentType] = useState<ContentType>("lifelines"); // For AI Assist
 
   // NEW: Selected lifeline state for Direct Edit mode
   const [selectedLifelineId, setSelectedLifelineId] = useState<string | null>(null);
   const [lifelineSelectorSheetOpen, setLifelineSelectorSheetOpen] = useState(false);
-
-  // AI Intent State - null means waiting for intent
-  const [aiIntent, setAiIntent] = useState<AiIntent>(null);
 
   // Chat State Machine
   const [chatState, setChatState] = useState<ChatState>('idle');
@@ -141,9 +145,9 @@ export default function Build() {
   // Direct Edit: editing lifeline mode
   const [isEditingLifeline, setIsEditingLifeline] = useState(false);
 
-  // Simpler initial message - let state machine guide the conversation
+  // New welcome message
   const [messages, setMessages] = useState<Message[]>([
-    { role: "assistant", content: "Hey! I'll help you create a lifeline - a visual timeline of meaningful moments. What would you like to create?" }
+    { role: "assistant", content: WELCOME_MESSAGE }
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -167,7 +171,10 @@ export default function Build() {
   const [savingLifeline, setSavingLifeline] = useState(false);
   const [savingEntry, setSavingEntry] = useState(false);
 
-  // Store existing lifeline title for context injection
+  // Track if user created a lifeline in THIS session (for showing entries)
+  const [createdLifelineInSession, setCreatedLifelineInSession] = useState(false);
+
+  // Store existing lifeline title for context injection (for Entries mode)
   const [existingLifelineTitle, setExistingLifelineTitle] = useState<string | undefined>(undefined);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -226,14 +233,50 @@ export default function Build() {
   }, [lifelineForm, entryForm, lifelineSaved, justSavedLifeline, justSavedEntry, chatState]);
 
   // IMPORTANT: Clear transient state when switching modes
-  // This prevents entry form data from bleeding between AI Assist and Direct Edit
   useEffect(() => {
     setEntryForm({ title: "", description: "", score: 0, year: "" });
     setEditingEntryId(null);
     setAiFilledFields(new Set());
+    
+    // When switching to AI mode, start fresh (don't carry over Direct Edit state)
+    if (mode === "ai") {
+      // Reset to fresh state for AI Assist
+      setLifelineId(null);
+      setLifelineSaved(false);
+      setLifelineForm({ title: "", lifeline_type: "", purpose: "" });
+      setSavedEntries([]);
+      setCreatedLifelineInSession(false);
+      setChatState('idle');
+    }
   }, [mode]);
 
-  // Load selected lifeline data when selection changes
+  // Reset state when AI content type changes
+  useEffect(() => {
+    if (mode === "ai") {
+      // Reset forms when switching between Lifelines/Entries in AI mode
+      setLifelineForm({ title: "", lifeline_type: "", purpose: "" });
+      setEntryForm({ title: "", description: "", score: 0, year: "" });
+      setAiFilledFields(new Set());
+      setSavedEntries([]);
+      setLifelineId(null);
+      setLifelineSaved(false);
+      setCreatedLifelineInSession(false);
+      setChatState('idle');
+      
+      // Reset messages with appropriate welcome
+      if (aiContentType === "lifelines") {
+        setMessages([{ role: "assistant", content: WELCOME_MESSAGE }]);
+      } else {
+        // Entries mode - different welcome
+        setMessages([{ 
+          role: "assistant", 
+          content: "I'll help you add entries to your lifelines. Which lifeline would you like to add an entry to?" 
+        }]);
+      }
+    }
+  }, [aiContentType, mode]);
+
+  // Load selected lifeline data when selection changes (Direct Edit only)
   useEffect(() => {
     const loadSelectedLifeline = async () => {
       if (!selectedLifelineId) {
@@ -247,6 +290,9 @@ export default function Build() {
         }
         return;
       }
+
+      // Only load for Direct Edit mode
+      if (mode !== "direct") return;
 
       const { data } = await supabase
         .from("lifelines")
@@ -295,53 +341,8 @@ export default function Build() {
     }
   }, [mode, allLifelines, selectedLifelineId]);
 
-  // Check for existing lifeline in this collection (for AI mode initial state)
-  useEffect(() => {
-    const checkExistingLifeline = async () => {
-      if (!collectionId || mode !== "ai") return;
-
-      const { data, error } = await supabase
-        .from("lifelines")
-        .select("id, title, lifeline_type, intro")
-        .eq("collection_id", collectionId)
-        .limit(1)
-        .maybeSingle();
-
-      if (data && !error) {
-        setLifelineId(data.id);
-        setLifelineSaved(true);
-        setExistingLifelineTitle(data.title || undefined);
-        setLifelineForm({
-          title: data.title || "",
-          lifeline_type: data.lifeline_type || "",
-          purpose: data.intro || ""
-        });
-        // If lifeline exists, AI should know about entries
-        setAiIntent("entry");
-        setChatState('prompting_entries');
-
-        // Also load existing entries
-        const { data: entries } = await supabase
-          .from("entries")
-          .select("id, title, summary, score, occurred_on")
-          .eq("lifeline_id", data.id)
-          .order("occurred_on", { ascending: true });
-
-        if (entries) {
-          setSavedEntries(entries.map(e => ({
-            id: e.id,
-            title: e.title || "",
-            description: e.summary || "",
-            score: e.score || 0,
-            year: e.occurred_on ? e.occurred_on.substring(0, 4) : ""
-          })));
-        }
-      }
-      // If no lifeline, aiIntent stays null (waiting for intent)
-    };
-
-    checkExistingLifeline();
-  }, [collectionId, mode]);
+  // NO auto-loading of existing lifeline in AI mode - start fresh!
+  // The old checkExistingLifeline useEffect has been removed
 
   // Auto-scroll to bottom when messages change (with slight delay for render)
   useEffect(() => {
@@ -389,8 +390,8 @@ export default function Build() {
       setLifelineId(data.id);
       setLifelineSaved(true);
       setSelectedLifelineId(data.id); // Auto-select the new lifeline
-      setSavedEntries([]); // Clear entries from any previous lifeline
-      setAiIntent("entry"); // After saving lifeline, intent becomes entry
+      setSavedEntries([]); // Clear entries
+      setCreatedLifelineInSession(true); // Mark that we created a lifeline
       setJustSavedLifeline(true); // Trigger state transition to prompting_entries
       toast.success("Lifeline created!");
       return data.id;
@@ -497,7 +498,6 @@ export default function Build() {
       year: entry.year
     });
     setEditingEntryId(entry.id);
-    setAiIntent("entry"); // Ensure we're in entry mode
   };
 
   // Handle deleting an entry
@@ -545,20 +545,15 @@ export default function Build() {
 
   const processToolCalls = async (toolCalls: ToolCall[]) => {
     for (const call of toolCalls) {
-      // Handle set_intent tool call
-      if (call.name === "set_intent") {
-        const { intent } = call.input as { intent: "lifeline" | "entry" };
-        setAiIntent(intent);
-      } else if (call.name === "update_form_field") {
+      if (call.name === "update_form_field") {
         const { field, value } = call.input as { field: string; value: string };
 
         // Track which fields AI has filled
         setAiFilledFields(prev => new Set(prev).add(field));
 
-        // Lifeline fields - also set intent to lifeline
+        // Lifeline fields
         if (["title", "lifeline_type", "purpose"].includes(field)) {
-          // CRITICAL: If AI is setting title and we have an existing lifeline loaded,
-          // we're starting a NEW lifeline - clear the old state
+          // If setting title and we have an existing lifeline, clear for new
           if (field === "title" && lifelineId) {
             setLifelineId(null);
             setLifelineSaved(false);
@@ -567,16 +562,10 @@ export default function Build() {
             setChatState('gathering_lifeline');
           }
           
-          if (aiIntent !== "lifeline" && !lifelineSaved) {
-            setAiIntent("lifeline");
-          }
           setLifelineForm(prev => ({ ...prev, [field]: value }));
         }
-        // Entry fields - also set intent to entry
+        // Entry fields
         else if (field === "entry_title") {
-          if (aiIntent !== "entry" && lifelineSaved) {
-            setAiIntent("entry");
-          }
           setEntryForm(prev => ({ ...prev, title: value }));
         } else if (field === "entry_description") {
           setEntryForm(prev => ({ ...prev, description: value }));
@@ -641,7 +630,8 @@ export default function Build() {
             lifelineId: lifelineId,
             entry: entryForm,
             savedEntriesCount: savedEntries.length,
-            chatState: currentState // Also pass state explicitly
+            chatState: currentState,
+            aiContentType: aiContentType
           }
         }
       });
@@ -694,11 +684,6 @@ export default function Build() {
       e.preventDefault();
       sendMessage();
     }
-  };
-
-  // Handle example chip click in WaitingForIntent
-  const handleExampleClick = (example: string) => {
-    setInput(example);
   };
 
   // Get score color class
@@ -773,84 +758,82 @@ export default function Build() {
     </div>
   );
 
-  // Render chat panel
+  // Render chat panel with new title
   const renderChatPanel = () => (
-    <Card className="h-full flex flex-col">
-      <CardHeader className="pb-3 flex-shrink-0">
-        <CardTitle className="text-lg flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-green-500"></span>
-          Chat with AI
-          {/* Debug: show current state */}
-          {process.env.NODE_ENV === 'development' && (
-            <span className="ml-auto text-xs font-normal text-gray-400">
-              [{chatState}]
-            </span>
-          )}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="flex-1 flex flex-col min-h-0">
-        {/* Messages */}
-        <div className="flex-1 overflow-y-auto space-y-3 mb-4 pr-2">
-          {messages.map((msg, i) => (
-            <div
-              key={i}
-              className={`p-3 rounded-lg ${
-                msg.role === "user"
-                  ? "bg-blue-50 border border-blue-100 ml-8"
-                  : "bg-white border mr-8"
-              }`}
-            >
-              <p className="text-xs font-medium text-muted-foreground mb-1">
-                {msg.role === "user" ? "You" : "AI Assistant"}
-              </p>
-              <p className="whitespace-pre-wrap text-sm">{msg.content}</p>
-            </div>
-          ))}
-          {loading && (
-            <div className="bg-white border mr-8 p-3 rounded-lg flex items-center gap-2">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              <span className="text-sm text-muted-foreground">Thinking...</span>
-            </div>
-          )}
-          <div ref={messagesEndRef} />
-        </div>
+    <div className="h-full flex flex-col">
+      {/* Title above chat */}
+      <div className="text-center py-3 px-4">
+        <p className="text-sm font-medium text-gray-600">AI can help you enter all your data.</p>
+      </div>
+      
+      <Card className="flex-1 flex flex-col">
+        <CardHeader className="pb-3 flex-shrink-0">
+          <CardTitle className="text-lg flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-green-500"></span>
+            Chat with AI
+            {/* Debug: show current state */}
+            {process.env.NODE_ENV === 'development' && (
+              <span className="ml-auto text-xs font-normal text-gray-400">
+                [{chatState}]
+              </span>
+            )}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="flex-1 flex flex-col min-h-0">
+          {/* Messages */}
+          <div className="flex-1 overflow-y-auto space-y-3 mb-4 pr-2">
+            {messages.map((msg, i) => (
+              <div
+                key={i}
+                className={`p-3 rounded-lg ${
+                  msg.role === "user"
+                    ? "bg-blue-50 border border-blue-100 ml-8"
+                    : "bg-white border mr-8"
+                }`}
+              >
+                <p className="text-xs font-medium text-muted-foreground mb-1">
+                  {msg.role === "user" ? "You" : "AI Assistant"}
+                </p>
+                <p className="whitespace-pre-wrap text-sm">{msg.content}</p>
+              </div>
+            ))}
+            {loading && (
+              <div className="bg-white border mr-8 p-3 rounded-lg flex items-center gap-2">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span className="text-sm text-muted-foreground">Thinking...</span>
+              </div>
+            )}
+            <div ref={messagesEndRef} />
+          </div>
 
-        {/* Input */}
-        <div className="flex gap-2 flex-shrink-0 items-end">
-          <Textarea
-            ref={textareaRef}
-            value={input}
-            onChange={(e) => {
-              setInput(e.target.value);
-              handleTextareaResize(e);
-            }}
-            onKeyDown={handleKeyDown}
-            placeholder="Type a message... (Shift+Enter for new line)"
-            disabled={loading}
-            className="flex-1 min-h-[40px] max-h-[120px] resize-none"
-            rows={1}
-          />
-          <Button onClick={sendMessage} disabled={loading || !input.trim()} className="h-10">
-            <Send className="h-4 w-4" />
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
+          {/* Input */}
+          <div className="flex gap-2 flex-shrink-0 items-end">
+            <Textarea
+              ref={textareaRef}
+              value={input}
+              onChange={(e) => {
+                setInput(e.target.value);
+                handleTextareaResize(e);
+              }}
+              onKeyDown={handleKeyDown}
+              placeholder="Type a message... (Shift+Enter for new line)"
+              disabled={loading}
+              className="flex-1 min-h-[40px] max-h-[120px] resize-none"
+              rows={1}
+            />
+            <Button onClick={sendMessage} disabled={loading || !input.trim()} className="h-10">
+              <Send className="h-4 w-4" />
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 
-  // Render AI Form Section (card-style, intent-aware)
+  // Render AI Form Section - shows Lifeline form by default for Lifelines mode
   const renderAiFormSection = () => {
-    // No intent yet - show waiting state
-    if (aiIntent === null) {
-      return (
-        <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-          <WaitingForIntent onExampleClick={handleExampleClick} />
-        </div>
-      );
-    }
-
-    // Show lifeline form if creating new lifeline
-    if (aiIntent === "lifeline" && !lifelineSaved) {
+    // Lifelines mode - always show Lifeline form
+    if (aiContentType === "lifelines") {
       return (
         <div className="space-y-3">
           {/* AI Assisting Header */}
@@ -859,7 +842,9 @@ export default function Build() {
             <span className="text-xs font-semibold text-sky-700 uppercase tracking-wide">
               AI Assisting
             </span>
-            <span className="text-sm font-medium text-sky-900">New Lifeline</span>
+            <span className="text-sm font-medium text-sky-900">
+              {lifelineSaved ? lifelineForm.title : "New Lifeline"}
+            </span>
             {isAiFilling && (
               <div className="ml-auto flex items-center gap-1.5 bg-sky-100 text-sky-700 text-xs px-2 py-1 rounded-full">
                 <span className="w-1.5 h-1.5 rounded-full bg-sky-600 animate-ping"></span>
@@ -881,52 +866,43 @@ export default function Build() {
       );
     }
 
-    // Show entry form if lifeline exists
-    if (aiIntent === "entry" && lifelineSaved) {
-      return (
-        <div className="space-y-3">
-          {/* AI Assisting Header */}
-          <div className="flex items-center gap-2 px-1">
-            <Star className={`w-4 h-4 text-sky-600 ${isAiFilling ? "animate-pulse" : ""}`} />
-            <span className="text-xs font-semibold text-sky-700 uppercase tracking-wide">
-              AI Assisting
-            </span>
-            <span className="text-sm font-medium text-sky-900">
-              {editingEntryId ? "Edit Entry" : "New Entry"}
-            </span>
-            {isAiFilling && (
-              <div className="ml-auto flex items-center gap-1.5 bg-sky-100 text-sky-700 text-xs px-2 py-1 rounded-full">
-                <span className="w-1.5 h-1.5 rounded-full bg-sky-600 animate-ping"></span>
-                Filling...
-              </div>
-            )}
-          </div>
-
-          <EntryCardForm
-            form={entryForm}
-            onChange={setEntryForm}
-            onSave={saveEntryToDb}
-            onClear={handleClearForm}
-            saving={savingEntry}
-            disabled={false}
-            isEditing={!!editingEntryId}
-            aiFilledFields={aiFilledFields}
-            isAiMode={true}
-            lifelineTitle={lifelineForm.title}
-          />
-        </div>
-      );
-    }
-
-    // Fallback: show waiting state
+    // Entries mode - show Entry form
     return (
-      <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-        <WaitingForIntent onExampleClick={handleExampleClick} />
+      <div className="space-y-3">
+        {/* AI Assisting Header */}
+        <div className="flex items-center gap-2 px-1">
+          <Star className={`w-4 h-4 text-sky-600 ${isAiFilling ? "animate-pulse" : ""}`} />
+          <span className="text-xs font-semibold text-sky-700 uppercase tracking-wide">
+            AI Assisting
+          </span>
+          <span className="text-sm font-medium text-sky-900">
+            {editingEntryId ? "Edit Entry" : "New Entry"}
+          </span>
+          {isAiFilling && (
+            <div className="ml-auto flex items-center gap-1.5 bg-sky-100 text-sky-700 text-xs px-2 py-1 rounded-full">
+              <span className="w-1.5 h-1.5 rounded-full bg-sky-600 animate-ping"></span>
+              Filling...
+            </div>
+          )}
+        </div>
+
+        <EntryCardForm
+          form={entryForm}
+          onChange={setEntryForm}
+          onSave={saveEntryToDb}
+          onClear={handleClearForm}
+          saving={savingEntry}
+          disabled={false}
+          isEditing={!!editingEntryId}
+          aiFilledFields={aiFilledFields}
+          isAiMode={true}
+          lifelineTitle={lifelineForm.title}
+        />
       </div>
     );
   };
 
-  // Render entries section
+  // Render entries section - only when lifeline created in this session
   const renderEntriesSection = () => (
     <div className="flex-1 bg-white border border-gray-200 rounded-xl min-h-0 flex flex-col">
       {/* Header */}
@@ -1114,9 +1090,8 @@ export default function Build() {
             </div>
 
             {/* Controls row (mobile) / continues inline (desktop) */}
-            {/* Removed overflow-x-auto to prevent ugly scrollbar */}
             <div className="flex items-center gap-2 lg:gap-3">
-              {/* Mode toggle - added mr-1 to prevent badge clipping */}
+              {/* Mode toggle */}
               <div className="flex bg-muted rounded-md p-0.5 flex-shrink-0 mr-1">
                 <Button
                   variant={mode === "ai" ? "secondary" : "ghost"}
@@ -1135,7 +1110,7 @@ export default function Build() {
                 >
                   <span className="lg:hidden">Direct</span>
                   <span className="hidden lg:inline">Direct Edit</span>
-                  {savedEntries.length > 0 && (
+                  {mode === "direct" && savedEntries.length > 0 && (
                     <span className="absolute -top-1 -right-1 bg-green-500 text-white text-[10px] font-semibold w-4 h-4 rounded-full flex items-center justify-center">
                       {savedEntries.length}
                     </span>
@@ -1143,45 +1118,45 @@ export default function Build() {
                 </Button>
               </div>
 
-              {/* CASCADING DROPDOWNS - Only in Direct Edit mode */}
-              {mode === "direct" && (
-                <>
-                  {/* Desktop: Inline dropdowns */}
-                  <div className="hidden lg:flex items-center gap-2">
-                    <TypeSelectorDropdown
-                      value={contentType}
-                      onChange={setContentType}
-                      lifelineCount={lifelineCount}
-                      entryCount={totalEntryCount}
-                    />
+              {/* CONTENT TYPE DROPDOWN - Now in BOTH modes */}
+              <div className="hidden lg:flex items-center gap-2">
+                <TypeSelectorDropdown
+                  value={mode === "ai" ? aiContentType : contentType}
+                  onChange={mode === "ai" ? setAiContentType : setContentType}
+                  lifelineCount={lifelineCount}
+                  entryCount={totalEntryCount}
+                />
 
+                {/* Show lifeline selector only in Direct Edit + Lifelines mode */}
+                {mode === "direct" && contentType === "lifelines" && (
+                  <>
                     <ChevronRight className="w-4 h-4 text-gray-300" />
+                    <LifelineSelectorDropdown
+                      lifelines={allLifelines || []}
+                      selectedId={selectedLifelineId}
+                      onSelect={setSelectedLifelineId}
+                      onCreateNew={handleCreateNewLifeline}
+                      loading={lifelinesLoading}
+                    />
+                  </>
+                )}
+              </div>
 
-                    {contentType === "lifelines" && (
-                      <LifelineSelectorDropdown
-                        lifelines={allLifelines || []}
-                        selectedId={selectedLifelineId}
-                        onSelect={setSelectedLifelineId}
-                        onCreateNew={handleCreateNewLifeline}
-                        loading={lifelinesLoading}
-                      />
-                    )}
-                  </div>
+              {/* Mobile: Compact chips */}
+              <div className="flex lg:hidden items-center gap-1.5 flex-shrink-0">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-1 px-2 h-8"
+                  onClick={() => {/* Could add sheet for type selector */}}
+                >
+                  <span>📈</span>
+                  <span className="text-xs">{mode === "ai" ? aiContentType : contentType}</span>
+                </Button>
 
-                  {/* Mobile: Compact chips that open sheets */}
-                  <div className="flex lg:hidden items-center gap-1.5 flex-shrink-0">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="gap-1 px-2 h-8"
-                      onClick={() => {/* Type selector - could add sheet for this too */}}
-                    >
-                      <span>📈</span>
-                      <span className="text-xs">Lifelines</span>
-                    </Button>
-
+                {mode === "direct" && contentType === "lifelines" && (
+                  <>
                     <ChevronRight className="w-3 h-3 text-gray-300" />
-
                     <Button
                       variant="outline"
                       size="sm"
@@ -1190,9 +1165,9 @@ export default function Build() {
                     >
                       <span className="text-xs truncate">{selectedLifelineTitle}</span>
                     </Button>
-                  </div>
-                </>
-              )}
+                  </>
+                )}
+              </div>
             </div>
 
             {/* Title - pushed right (desktop only) */}
@@ -1201,8 +1176,8 @@ export default function Build() {
               <p className="text-sm text-muted-foreground">Building your story</p>
             </div>
 
-            {/* Status */}
-            {lifelineSaved && (
+            {/* Status - only show in Direct Edit when lifeline is saved */}
+            {mode === "direct" && lifelineSaved && (
               <div className="hidden lg:flex items-center gap-1 text-sm text-green-600">
                 <Check className="h-4 w-4" />
                 Lifeline saved
@@ -1231,16 +1206,21 @@ export default function Build() {
             {/* Left: Chat */}
             {renderChatPanel()}
 
-            {/* Right: Form + Entries stacked */}
+            {/* Right: Form + Entries (only if created in session) */}
             <div className="flex flex-col gap-4 h-full overflow-y-auto">
               {renderAiFormSection()}
-              {lifelineSaved && renderEntriesSection()}
+              {createdLifelineInSession && lifelineSaved && renderEntriesSection()}
             </div>
           </div>
 
           {/* Mobile: Scrollable single column */}
           <div className="lg:hidden space-y-4">
-            {/* Chat Section (collapsible on mobile when form is showing) */}
+            {/* Title above chat */}
+            <div className="text-center py-2">
+              <p className="text-sm font-medium text-gray-600">AI can help you enter all your data.</p>
+            </div>
+
+            {/* Chat Section */}
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-lg flex items-center gap-2">
@@ -1299,8 +1279,8 @@ export default function Build() {
             {/* AI Form Section */}
             {renderAiFormSection()}
 
-            {/* Entries Section */}
-            {lifelineSaved && (
+            {/* Entries Section - only if created in session */}
+            {createdLifelineInSession && lifelineSaved && (
               <div className="bg-white border border-gray-200 rounded-xl">
                 <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
                   <span className="font-semibold text-sm">Your Entries</span>
