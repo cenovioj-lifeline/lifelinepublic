@@ -1,0 +1,1 @@
+ALTER TABLE color_schemes ADD COLUMN IF NOT EXISTS base_palette JSONB;
