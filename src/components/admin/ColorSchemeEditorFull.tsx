@@ -2,6 +2,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
+import { AlertTriangle, Check } from "lucide-react";
+import { checkContrast } from "@/lib/color-utils";
 
 // Type for the full color scheme
 export type ColorScheme = {
@@ -158,6 +160,23 @@ export function ColorSchemeEditorFull({ colors, onChange }: ColorSchemeEditorFul
       {description && <p className="text-xs text-muted-foreground">{description}</p>}
     </div>
   );
+
+  const ContrastBadge = ({ fg, bg, label }: { fg: string; bg: string; label?: string }) => {
+    const result = checkContrast(fg, bg);
+    const badgeClass = result.level === "fail"
+      ? "bg-red-100 text-red-700 border-red-200"
+      : result.level === "AA-large"
+        ? "bg-yellow-100 text-yellow-700 border-yellow-200"
+        : "bg-green-100 text-green-700 border-green-200";
+    const icon = result.level === "fail"
+      ? <AlertTriangle className="h-3 w-3" />
+      : <Check className="h-3 w-3" />;
+    return (
+      <span className={`inline-flex items-center gap-1 text-xs font-mono px-1.5 py-0.5 rounded border ${badgeClass}`}>
+        {icon} {result.ratio}:1 {label && <span className="text-[10px] opacity-70">{label}</span>}
+      </span>
+    );
+  };
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -354,6 +373,10 @@ export function ColorSchemeEditorFull({ colors, onChange }: ColorSchemeEditorFul
               field="nav_button_color"
               description="Active/highlighted buttons in nav"
             />
+            <div className="flex gap-2 flex-wrap pt-2">
+              <ContrastBadge fg={colors.nav_text_color} bg={colors.nav_bg_color} label="nav text" />
+              <ContrastBadge fg={colors.light_text_color} bg={colors.nav_button_color} label="btn text" />
+            </div>
           </CardContent>
         </Card>
 
@@ -382,6 +405,7 @@ export function ColorSchemeEditorFull({ colors, onChange }: ColorSchemeEditorFul
               field="cards_text"
               description="Text within cards"
             />
+            <ContrastBadge fg={colors.cards_text} bg={colors.cards_bg} label="card text" />
             <Separator className="my-4" />
             <ColorInput
               label="Action Buttons Background"
@@ -426,6 +450,7 @@ export function ColorSchemeEditorFull({ colors, onChange }: ColorSchemeEditorFul
               field="ll_display_title_text"
               description="Main lifeline title text"
             />
+            <ContrastBadge fg={colors.ll_display_title_text} bg={colors.ll_display_bg} label="title on timeline bg" />
             <ColorInput
               label="Entry Title Text"
               field="ll_entry_title_text"
@@ -490,6 +515,11 @@ export function ColorSchemeEditorFull({ colors, onChange }: ColorSchemeEditorFul
               field="award_text"
               description="Text color for award titles, winners, and descriptions"
             />
+            <div className="flex gap-2 flex-wrap pt-2">
+              <ContrastBadge fg={colors.award_text} bg={colors.award_bg} label="on header" />
+              <ContrastBadge fg={colors.award_text} bg={colors.award_category_bg} label="on category" />
+              <ContrastBadge fg={colors.award_text} bg={colors.award_item_bg} label="on item" />
+            </div>
             <Separator className="my-4" />
             <ColorInput
               label="Page Title Text"
