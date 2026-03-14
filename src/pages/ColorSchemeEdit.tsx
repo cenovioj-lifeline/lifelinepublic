@@ -36,6 +36,7 @@ export default function ColorSchemeEdit() {
   const [showSaveComplete, setShowSaveComplete] = useState(false);
   const [hasInitialized, setHasInitialized] = useState(false);
   const [editorMode, setEditorMode] = useState<"smart" | "advanced">("smart");
+  const [basePalette, setBasePalette] = useState<Record<string, string> | null>(null);
 
   const { data: colorScheme, isLoading } = useQuery({
     queryKey: ["color-scheme", id],
@@ -64,6 +65,14 @@ export default function ColorSchemeEdit() {
         ...DEFAULT_COLORS,
         ...extractColorFields(colorScheme as unknown as Record<string, unknown>),
       });
+      // Load saved base palette if it exists
+      if (colorScheme.base_palette) {
+        setBasePalette(
+          typeof colorScheme.base_palette === 'string'
+            ? JSON.parse(colorScheme.base_palette)
+            : colorScheme.base_palette
+        );
+      }
       setHasInitialized(true);
       return;
     }
@@ -81,12 +90,16 @@ export default function ColorSchemeEdit() {
       name: string;
       description: string;
       colors: ColorScheme;
+      basePalette?: Record<string, string> | null;
     }) => {
-      const data = {
+      const data: Record<string, unknown> = {
         name: vars.name,
         description: vars.description,
         ...vars.colors,
       };
+      if (vars.basePalette) {
+        data.base_palette = vars.basePalette;
+      }
 
       if (isNew) {
         const { data: inserted, error } = await supabase
@@ -141,7 +154,7 @@ export default function ColorSchemeEdit() {
       return;
     }
 
-    saveMutation.mutate({ name, description, colors });
+    saveMutation.mutate({ name, description, colors, basePalette });
   };
 
   return (
@@ -227,7 +240,12 @@ export default function ColorSchemeEdit() {
             </CardContent>
           </Card>
         ) : editorMode === "smart" ? (
-          <SmartPaletteEditor colors={colors} onChange={setColors} />
+          <SmartPaletteEditor
+            colors={colors}
+            onChange={setColors}
+            savedBasePalette={basePalette as any}
+            onBasePaletteChange={setBasePalette as any}
+          />
         ) : (
           <ColorSchemeEditorFull colors={colors} onChange={setColors} />
         )}

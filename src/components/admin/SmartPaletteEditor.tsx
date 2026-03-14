@@ -12,6 +12,8 @@ import { derivePalette, validateContrast, reverseEngineerPalette, type FullColor
 interface SmartPaletteEditorProps {
   colors: ColorScheme;
   onChange: (colors: ColorScheme) => void;
+  savedBasePalette?: BasePalette | null;
+  onBasePaletteChange?: (palette: BasePalette) => void;
 }
 
 // The 4 required + 2 optional base color inputs
@@ -89,9 +91,12 @@ function ContrastBadge({ fg, bg }: { fg: string; bg: string }) {
   );
 }
 
-export function SmartPaletteEditor({ colors, onChange }: SmartPaletteEditorProps) {
-  // Extract base palette from current colors (for editing existing schemes)
-  const initialBase = useMemo(() => reverseEngineerPalette(colors as unknown as FullColorScheme), []);
+export function SmartPaletteEditor({ colors, onChange, savedBasePalette, onBasePaletteChange }: SmartPaletteEditorProps) {
+  // Use saved base palette if available, otherwise reverse-engineer from current colors
+  const initialBase = useMemo(
+    () => savedBasePalette || reverseEngineerPalette(colors as unknown as FullColorScheme),
+    []
+  );
 
   const [basePalette, setBasePalette] = useState<BasePalette>(initialBase);
   const [overridesOpen, setOverridesOpen] = useState(false);
@@ -121,6 +126,8 @@ export function SmartPaletteEditor({ colors, onChange }: SmartPaletteEditorProps
     // Apply overrides on top of derived values
     const merged = { ...derived, ...overrides } as unknown as ColorScheme;
     onChange(merged);
+    // Save the base palette so it persists to DB
+    onBasePaletteChange?.(basePalette);
     setHasGenerated(true);
   };
 
