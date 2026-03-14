@@ -1044,6 +1044,7 @@ export type Database = {
           award_category_bg: string | null
           award_item_bg: string | null
           award_text: string | null
+          base_palette: Json | null
           cards_bg: string | null
           cards_border: string | null
           cards_text: string | null
@@ -1083,6 +1084,7 @@ export type Database = {
           award_category_bg?: string | null
           award_item_bg?: string | null
           award_text?: string | null
+          base_palette?: Json | null
           cards_bg?: string | null
           cards_border?: string | null
           cards_text?: string | null
@@ -1122,6 +1124,7 @@ export type Database = {
           award_category_bg?: string | null
           award_item_bg?: string | null
           award_text?: string | null
+          base_palette?: Json | null
           cards_bg?: string | null
           cards_border?: string | null
           cards_text?: string | null
