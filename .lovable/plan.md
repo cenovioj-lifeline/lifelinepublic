@@ -1,64 +1,32 @@
 
-## Change Home Page Hero from 4:1 to 6:1 Aspect Ratio
 
-### Overview
-The home page currently uses a 4:1 aspect ratio for its hero banner, which takes up more vertical space than needed for text-only content. This change will make it 6:1 (narrower), reducing wasted space while keeping collection pages at 4:1.
+## Plan: Run `base_palette` Migration on `color_schemes` Table
 
-### What Will Change
+### What this does
 
-**Home Page (Public)** - `src/pages/public/Home.tsx`
-- Hero container: `aspect-[4/1]` becomes `aspect-[6/1]`
-- Loading skeleton: `aspect-[4/1]` becomes `aspect-[6/1]`
+The uploaded SQL file performs two operations:
 
-**Home Manager (Admin)** - `src/pages/HomeManager.tsx`
-- Label text: "Hero Image (4:1)" becomes "Hero Image (6:1)"
-- Guidance text: "3840×960 or similar 4:1 ratio" becomes "3840×640 or similar 6:1 ratio"
-- Preview container: `aspect-[4/1]` becomes `aspect-[6/1]`
-- CropBoxPicker aspectRatio prop: `4` becomes `6`
+1. **Schema change** — Adds a new `base_palette` JSONB column to the existing `color_schemes` table.
+2. **Data backfill** — Updates 11 existing color schemes with reverse-engineered base palette values (matched by `name`).
 
-### What Will NOT Change
-- Collection pages (`PublicCollectionDetail.tsx`) - stays 4:1
-- Collection editor (`CollectionEdit.tsx`) - stays 4:1
-- `DirectImageUpload` component "banner" type - stays 4:1 (only used by collection editor now)
+### Execution steps
 
-### Visual Comparison
-```text
-Current 4:1 ratio (example at 1200px width):
-┌─────────────────────────────────────────────────────────┐
-│                                                         │
-│                    Hero Content                         │
-│                                                         │
-└─────────────────────────────────────────────────────────┘
-Height: 300px
+1. **Run the schema migration** using the database migration tool:
+   ```sql
+   ALTER TABLE color_schemes ADD COLUMN IF NOT EXISTS base_palette JSONB;
+   ```
 
-New 6:1 ratio (example at 1200px width):
-┌─────────────────────────────────────────────────────────┐
-│                    Hero Content                         │
-└─────────────────────────────────────────────────────────┘
-Height: 200px
-```
+2. **Run the data backfill** using the insert tool (since these are UPDATE statements on existing rows). Each of the 11 `UPDATE` statements will set `base_palette` for a specific named scheme (Default Theme, Mad Men, Stranger Things, etc.).
 
-The 6:1 ratio reduces vertical space by 33% while maintaining the same full-width appearance.
+### Notes
 
-### Technical Details
+- No code changes are needed — the `SmartPaletteEditor` and `ColorSchemeEditorFull` components likely already reference `base_palette` or will in a future step.
+- The `IF NOT EXISTS` guard makes the ALTER safe to re-run.
+- The backfill matches by `name`, so it will only update rows with those exact names.
 
-**Files to modify:**
+### Build errors
 
-1. `src/pages/public/Home.tsx`
-   - Line 124: Skeleton `aspect-[4/1]` -> `aspect-[6/1]`
-   - Line 218: Hero container `aspect-[4/1]` -> `aspect-[6/1]`
+There are 3 pre-existing build errors (`NodeJS` namespace and `process` references) unrelated to this migration. I can fix those separately if you'd like.
 
-2. `src/pages/HomeManager.tsx`
-   - Line 118: Label "Hero Image (4:1)" -> "Hero Image (6:1)"
-   - Line 120: Guidance "3840×960 or similar 4:1" -> "3840×640 or similar 6:1"
-   - Line 125: Preview container `aspect-[4/1]` -> `aspect-[6/1]`
-   - Line 214: CropBoxPicker `aspectRatio={4}` -> `aspectRatio={6}`
+No questions — ready to execute when you approve.
 
-**No database changes required** - the hero image URL and position are stored the same way; only the display ratio changes.
-
-### Mobile Considerations
-On mobile (e.g., 375px width):
-- 4:1 = ~94px tall
-- 6:1 = ~63px tall
-
-The 6:1 ratio remains readable on mobile for text content but will be quite narrow. This is acceptable since you mentioned it's "just words" - the reduced height is the goal.
