@@ -21,6 +21,7 @@ import {
   DEFAULT_COLORS,
   extractColorFields,
 } from "@/components/admin/ColorSchemeEditorFull";
+import { SmartPaletteEditor } from "@/components/admin/SmartPaletteEditor";
 
 export default function ColorSchemeEdit() {
   const { id } = useParams();
@@ -34,6 +35,7 @@ export default function ColorSchemeEdit() {
   const [colors, setColors] = useState<ColorScheme>(DEFAULT_COLORS);
   const [showSaveComplete, setShowSaveComplete] = useState(false);
   const [hasInitialized, setHasInitialized] = useState(false);
+  const [editorMode, setEditorMode] = useState<"smart" | "advanced">("smart");
 
   const { data: colorScheme, isLoading } = useQuery({
     queryKey: ["color-scheme", id],
@@ -198,6 +200,24 @@ export default function ColorSchemeEdit() {
           </CardContent>
         </Card>
 
+        {/* Mode Toggle */}
+        <div className="flex items-center gap-2">
+          <Button
+            variant={editorMode === "smart" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setEditorMode("smart")}
+          >
+            Smart Palette
+          </Button>
+          <Button
+            variant={editorMode === "advanced" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setEditorMode("advanced")}
+          >
+            Advanced (30 fields)
+          </Button>
+        </div>
+
         {isLoading ? (
           <Card>
             <CardContent className="p-6">
@@ -206,6 +226,8 @@ export default function ColorSchemeEdit() {
               </div>
             </CardContent>
           </Card>
+        ) : editorMode === "smart" ? (
+          <SmartPaletteEditor colors={colors} onChange={setColors} />
         ) : (
           <ColorSchemeEditorFull colors={colors} onChange={setColors} />
         )}
