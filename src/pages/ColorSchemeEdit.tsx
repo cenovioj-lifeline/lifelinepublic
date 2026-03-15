@@ -104,7 +104,7 @@ export default function ColorSchemeEdit() {
       if (isNew) {
         const { data: inserted, error } = await supabase
           .from("color_schemes")
-          .insert(data)
+          .insert(data as any)
           .select("*")
           .single();
         if (error) throw error;
@@ -113,7 +113,7 @@ export default function ColorSchemeEdit() {
 
       const { data: updated, error } = await supabase
         .from("color_schemes")
-        .update(data)
+        .update(data as any)
         .eq("id", id)
         .select("*")
         .single();
