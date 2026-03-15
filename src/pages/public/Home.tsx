@@ -165,7 +165,7 @@ export default function Home() {
           to={content.link || `/public/lifelines/${content.slug}`}
           className="group relative h-full"
         >
-          <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full flex flex-col bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
+          <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full flex flex-col bg-[hsl(var(--scheme-cards-bg))] border-[hsl(var(--scheme-cards-border))]">
             <div className="aspect-video relative overflow-hidden bg-white">
               {content.image_url ? (
                 <img
@@ -180,12 +180,12 @@ export default function Home() {
               )}
             </div>
             <ContentTypeBanner type="lifeline" />
-            <CardHeader className="bg-[hsl(var(--scheme-card-bg))] flex-1">
-              <CardTitle className="text-lg transition-colors text-[hsl(var(--scheme-card-text))]">
+            <CardHeader className="bg-[hsl(var(--scheme-cards-bg))] flex-1">
+              <CardTitle className="text-lg transition-colors text-[hsl(var(--scheme-cards-text))]">
                 {content.title}
               </CardTitle>
             </CardHeader>
-            <CardContent className="bg-[hsl(var(--scheme-card-bg))]">
+            <CardContent className="bg-[hsl(var(--scheme-cards-bg))]">
               <p className="text-sm line-clamp-3 text-[hsl(var(--scheme-cards-text))] min-h-[3.75rem]">
                 {content.subtitle || '\u00A0'}
               </p>
@@ -248,12 +248,12 @@ export default function Home() {
           {actionCards.map((card) => (
             <Card 
               key={card.id}
-              className="hover:shadow-md transition-shadow cursor-pointer bg-[hsl(var(--scheme-actions-bg))] border-[hsl(var(--scheme-actions-border))] self-start"
+              className="hover:shadow-md transition-shadow cursor-pointer bg-[hsl(var(--scheme-ch-actions-bg))] border-[hsl(var(--scheme-ch-actions-border))] self-start"
               onClick={() => handleActionCardClick(card)}
             >
               <CardContent className="flex flex-col items-center justify-center p-2 md:p-6 gap-1 md:gap-2">
-                {renderActionCardIcon(card, "h-5 w-5 md:h-8 md:w-8 text-[hsl(var(--scheme-actions-icon))]")}
-                <span className="text-[10px] md:text-sm font-medium text-[hsl(var(--scheme-actions-text))]">
+                {renderActionCardIcon(card, "h-5 w-5 md:h-8 md:w-8 text-[hsl(var(--scheme-ch-actions-icon))]")}
+                <span className="text-[10px] md:text-sm font-medium text-[hsl(var(--scheme-ch-actions-text))]">
                   {card.label_override || card.name}
                 </span>
               </CardContent>

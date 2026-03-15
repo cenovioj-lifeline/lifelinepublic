@@ -113,7 +113,7 @@ export function MediaCoverCard({
 
       {/* Info Below Cover */}
       <div className="space-y-0.5">
-        <h3 className="font-semibold text-sm line-clamp-2 group-hover:text-primary transition-colors text-[hsl(var(--scheme-card-text))]">
+        <h3 className="font-semibold text-sm line-clamp-2 group-hover:text-primary transition-colors text-[hsl(var(--scheme-cards-text))]">
           {title}
         </h3>
         {description && (

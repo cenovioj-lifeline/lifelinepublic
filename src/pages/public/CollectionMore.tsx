@@ -109,14 +109,14 @@ export default function CollectionMore() {
           {features.map((feature) => (
             <Card
               key={feature.id}
-              className="cursor-pointer hover:shadow-lg transition-shadow bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]"
+              className="cursor-pointer hover:shadow-lg transition-shadow bg-[hsl(var(--scheme-cards-bg))] border-[hsl(var(--scheme-cards-border))]"
               onClick={() => navigate(feature.path)}
             >
               <CardContent className="pt-6 text-center">
                 <feature.icon
                   className="h-8 w-8 mx-auto mb-2 text-[hsl(var(--scheme-cards-text))]"
                 />
-                <div className="text-sm font-medium mb-1 text-[hsl(var(--scheme-card-text))]">{feature.label}</div>
+                <div className="text-sm font-medium mb-1 text-[hsl(var(--scheme-cards-text))]">{feature.label}</div>
                 <div className="text-xs text-[hsl(var(--scheme-cards-text))]">
                   {feature.description}
                 </div>

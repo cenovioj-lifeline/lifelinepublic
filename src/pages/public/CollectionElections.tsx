@@ -79,10 +79,10 @@ export default function CollectionElections() {
                   <Link
                     key={election.id}
                     to={`/public/collections/${slug}/elections/${election.slug}`}
-                  className="flex items-center justify-between p-4 hover:bg-[hsl(var(--scheme-actions-bg)/.2)] transition-colors group"
+                  className="flex items-center justify-between p-4 hover:bg-[hsl(var(--scheme-ch-actions-bg)/.2)] transition-colors group"
                 >
                     <div className="flex-1">
-                      <div className="font-medium" style={{ color: 'hsl(var(--scheme-card-text))' }}>{election.title}</div>
+                      <div className="font-medium" style={{ color: 'hsl(var(--scheme-cards-text))' }}>{election.title}</div>
                       {election.description && (
                         <div className="text-sm line-clamp-1" style={{ color: 'hsl(var(--scheme-cards-text))' }}>
                           {election.description}
@@ -91,7 +91,7 @@ export default function CollectionElections() {
                     </div>
                     <div className="flex items-center gap-2">
                       <FavoriteButton itemId={election.id} itemType="election" />
-                      <ArrowRight className="h-4 w-4" style={{ color: 'hsl(var(--scheme-actions-icon))' }} />
+                      <ArrowRight className="h-4 w-4" style={{ color: 'hsl(var(--scheme-ch-actions-icon))' }} />
                     </div>
                   </Link>
                 ))}
@@ -99,7 +99,7 @@ export default function CollectionElections() {
             </CardContent>
           </Card>
         ) : (
-          <Card style={{ backgroundColor: 'hsl(var(--scheme-card-bg))', borderColor: 'hsl(var(--scheme-card-border))' }}>
+          <Card style={{ backgroundColor: 'hsl(var(--scheme-cards-bg))', borderColor: 'hsl(var(--scheme-cards-border))' }}>
             <CardContent className="py-12 text-center">
               <p style={{ color: 'hsl(var(--scheme-cards-text))' }}>
                 No mock elections found in this collection.

@@ -168,7 +168,7 @@ export function SuperFanImageUpload({ entryId, onUploadComplete }: SuperFanImage
               ? 'hsl(var(--scheme-nav-bg))' 
               : undefined,
             backgroundColor: isDragging 
-              ? 'hsl(var(--scheme-card-bg))' 
+              ? 'hsl(var(--scheme-cards-bg))' 
               : 'transparent'
           }}
         >

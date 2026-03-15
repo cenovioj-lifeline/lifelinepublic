@@ -92,7 +92,7 @@ export default function CollectionProfiles() {
                 to={`/public/collections/${slug}/profiles/${profile.slug}`}
                 className="group"
               >
-                <Card className="hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
+                <Card className="hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-cards-bg))] border-[hsl(var(--scheme-cards-border))]">
                   <CardHeader>
                     <div className="flex items-center gap-4">
                       <Avatar className="h-16 w-16">
@@ -112,7 +112,7 @@ export default function CollectionProfiles() {
                         </AvatarFallback>
                       </Avatar>
                       <div>
-                        <CardTitle className="text-lg transition-colors text-[hsl(var(--scheme-card-text))]">
+                        <CardTitle className="text-lg transition-colors text-[hsl(var(--scheme-cards-text))]">
                           {profile.name}
                         </CardTitle>
                         <p className="text-sm text-[hsl(var(--scheme-cards-text))]">
@@ -134,7 +134,7 @@ export default function CollectionProfiles() {
             ))}
           </div>
         ) : (
-          <Card className="bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
+          <Card className="bg-[hsl(var(--scheme-cards-bg))] border-[hsl(var(--scheme-cards-border))]">
             <CardContent className="py-12 text-center">
               <p className="text-[hsl(var(--scheme-cards-text))]">
                 No profiles found in this collection.

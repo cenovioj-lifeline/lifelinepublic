@@ -258,15 +258,15 @@ export function ContributeEventDialog({
                 <Label htmlFor="event-select" style={{ color: "#333333" }}>Select Event *</Label>
                 <Select value={selectedEntryId} onValueChange={setSelectedEntryId}>
                   <SelectTrigger id="event-select" style={{ 
-                    backgroundColor: "hsl(var(--scheme-card-bg))", 
+                    backgroundColor: "hsl(var(--scheme-cards-bg))", 
                     color: "hsl(var(--scheme-cards-text))",
-                    borderColor: "hsl(var(--scheme-card-border))"
+                    borderColor: "hsl(var(--scheme-cards-border))"
                   }}>
                     <SelectValue placeholder="Choose an event..." />
                   </SelectTrigger>
                   <SelectContent style={{ 
-                    backgroundColor: "hsl(var(--scheme-card-bg))", 
-                    borderColor: "hsl(var(--scheme-card-border))",
+                    backgroundColor: "hsl(var(--scheme-cards-bg))", 
+                    borderColor: "hsl(var(--scheme-cards-border))",
                     zIndex: 9999 
                   }}>
                     {entries?.map((entry) => (
@@ -330,15 +330,15 @@ export function ContributeEventDialog({
                 <Label htmlFor="score" style={{ color: "#333333" }}>Rating (optional)</Label>
                 <Select value={score} onValueChange={setScore}>
                   <SelectTrigger id="score" style={{ 
-                    backgroundColor: "hsl(var(--scheme-card-bg))", 
+                    backgroundColor: "hsl(var(--scheme-cards-bg))", 
                     color: "hsl(var(--scheme-cards-text))",
-                    borderColor: "hsl(var(--scheme-card-border))"
+                    borderColor: "hsl(var(--scheme-cards-border))"
                   }}>
                     <SelectValue placeholder="Select a rating" />
                   </SelectTrigger>
                   <SelectContent style={{ 
-                    backgroundColor: "hsl(var(--scheme-card-bg))", 
-                    borderColor: "hsl(var(--scheme-card-border))",
+                    backgroundColor: "hsl(var(--scheme-cards-bg))", 
+                    borderColor: "hsl(var(--scheme-cards-border))",
                     zIndex: 9999 
                   }}>
                     {Array.from({ length: 21 }, (_, i) => i - 10).map((value) => (

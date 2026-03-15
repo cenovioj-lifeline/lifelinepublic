@@ -549,7 +549,7 @@ export default function PublicCollectionDetail() {
           to={lifelinePath}
           className="group"
         >
-          <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
+          <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-cards-bg))] border-[hsl(var(--scheme-cards-border))]">
             <div className="aspect-video relative bg-white overflow-hidden">
               <div className="absolute top-2 right-2 z-10">
                 <FavoriteButton itemId={item.item_id} itemType="lifeline" />
@@ -567,12 +567,12 @@ export default function PublicCollectionDetail() {
               )}
             </div>
             <ContentTypeBanner type="lifeline" />
-            <CardHeader className="bg-[hsl(var(--scheme-card-bg))]">
-              <CardTitle className="text-lg transition-colors text-[hsl(var(--scheme-card-text))]">
+            <CardHeader className="bg-[hsl(var(--scheme-cards-bg))]">
+              <CardTitle className="text-lg transition-colors text-[hsl(var(--scheme-cards-text))]">
                 {content.title}
               </CardTitle>
             </CardHeader>
-            <CardContent className="bg-[hsl(var(--scheme-card-bg))]">
+            <CardContent className="bg-[hsl(var(--scheme-cards-bg))]">
               <p className="text-sm line-clamp-2 text-[hsl(var(--scheme-cards-text))]">
                 {content.subtitle || "Explore this lifeline"}
               </p>
@@ -590,7 +590,7 @@ export default function PublicCollectionDetail() {
           to={`/public/collections/${collection.slug}/profiles/${content.slug}`}
           className="group"
         >
-          <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
+          <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-cards-bg))] border-[hsl(var(--scheme-cards-border))]">
             <div className="aspect-video relative bg-white overflow-hidden">
               {content.image_url ? (
                 <img
@@ -605,12 +605,12 @@ export default function PublicCollectionDetail() {
               )}
             </div>
             <ContentTypeBanner type="profile" />
-            <CardHeader className="bg-[hsl(var(--scheme-card-bg))]">
-              <CardTitle className="text-lg transition-colors text-[hsl(var(--scheme-card-text))]">
+            <CardHeader className="bg-[hsl(var(--scheme-cards-bg))]">
+              <CardTitle className="text-lg transition-colors text-[hsl(var(--scheme-cards-text))]">
                 {content.title}
               </CardTitle>
             </CardHeader>
-            <CardContent className="bg-[hsl(var(--scheme-card-bg))]">
+            <CardContent className="bg-[hsl(var(--scheme-cards-bg))]">
               <p className="text-sm line-clamp-2 text-[hsl(var(--scheme-cards-text))]">
                 {content.subtitle || "View this profile"}
               </p>
@@ -628,7 +628,7 @@ export default function PublicCollectionDetail() {
           to={`/public/collections/${collection.slug}/elections/${content.slug}`}
           className="group"
         >
-          <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
+          <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-cards-bg))] border-[hsl(var(--scheme-cards-border))]">
             <div className="aspect-video relative bg-white overflow-hidden">
               {content.image_url ? (
                 <img
@@ -643,12 +643,12 @@ export default function PublicCollectionDetail() {
               )}
             </div>
             <ContentTypeBanner type="election" />
-            <CardHeader className="bg-[hsl(var(--scheme-card-bg))]">
-              <CardTitle className="text-lg transition-colors text-[hsl(var(--scheme-card-text))]">
+            <CardHeader className="bg-[hsl(var(--scheme-cards-bg))]">
+              <CardTitle className="text-lg transition-colors text-[hsl(var(--scheme-cards-text))]">
                 {content.title}
               </CardTitle>
             </CardHeader>
-            <CardContent className="bg-[hsl(var(--scheme-card-bg))]">
+            <CardContent className="bg-[hsl(var(--scheme-cards-bg))]">
               <p className="text-sm line-clamp-2 text-[hsl(var(--scheme-cards-text))]">
                 {content.subtitle || "View the awards"}
               </p>
@@ -666,7 +666,7 @@ export default function PublicCollectionDetail() {
           to={`/public/collections/${collection.slug}/books/${content.slug}`}
           className="group"
         >
-          <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
+          <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-cards-bg))] border-[hsl(var(--scheme-cards-border))]">
             <div className="aspect-video relative bg-white overflow-hidden">
               {content.image_url ? (
                 <img
@@ -684,12 +684,12 @@ export default function PublicCollectionDetail() {
               )}
             </div>
             <ContentTypeBanner type="book" />
-            <CardHeader className="bg-[hsl(var(--scheme-card-bg))]">
-              <CardTitle className="text-lg transition-colors text-[hsl(var(--scheme-card-text))]">
+            <CardHeader className="bg-[hsl(var(--scheme-cards-bg))]">
+              <CardTitle className="text-lg transition-colors text-[hsl(var(--scheme-cards-text))]">
                 {content.title}
               </CardTitle>
             </CardHeader>
-            <CardContent className="bg-[hsl(var(--scheme-card-bg))]">
+            <CardContent className="bg-[hsl(var(--scheme-cards-bg))]">
               <p className="text-sm line-clamp-2 text-[hsl(var(--scheme-cards-text))]">
                 {content.subtitle}
               </p>
@@ -712,7 +712,7 @@ export default function PublicCollectionDetail() {
       const posY = content.image_position_y ?? 50;
       
       const cardElement = (
-        <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
+        <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-cards-bg))] border-[hsl(var(--scheme-cards-border))]">
           <div className="aspect-video relative bg-white overflow-hidden">
             {content.image_url ? (
               <img
@@ -731,12 +731,12 @@ export default function PublicCollectionDetail() {
             )}
           </div>
           <ContentTypeBanner type="link" />
-          <CardHeader className="bg-[hsl(var(--scheme-card-bg))]">
-            <CardTitle className="text-lg transition-colors text-[hsl(var(--scheme-card-text))]">
+          <CardHeader className="bg-[hsl(var(--scheme-cards-bg))]">
+            <CardTitle className="text-lg transition-colors text-[hsl(var(--scheme-cards-text))]">
               {content.title}
             </CardTitle>
           </CardHeader>
-          <CardContent className="bg-[hsl(var(--scheme-card-bg))]">
+          <CardContent className="bg-[hsl(var(--scheme-cards-bg))]">
             <p className="text-sm line-clamp-2 text-[hsl(var(--scheme-cards-text))]">
               {content.subtitle || "View more"}
             </p>
@@ -782,7 +782,7 @@ export default function PublicCollectionDetail() {
           to={lifelinePath}
           className="group"
         >
-          <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
+          <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-cards-bg))] border-[hsl(var(--scheme-cards-border))]">
             <div className="aspect-video relative bg-white overflow-hidden">
               <div className="absolute top-2 right-2 z-10">
                 <FavoriteButton itemId={item.id} itemType="lifeline" />
@@ -803,12 +803,12 @@ export default function PublicCollectionDetail() {
               )}
             </div>
             <ContentTypeBanner type="lifeline" />
-            <CardHeader className="bg-[hsl(var(--scheme-card-bg))]">
-              <CardTitle className="text-lg transition-colors text-[hsl(var(--scheme-card-text))]">
+            <CardHeader className="bg-[hsl(var(--scheme-cards-bg))]">
+              <CardTitle className="text-lg transition-colors text-[hsl(var(--scheme-cards-text))]">
                 {item.title}
               </CardTitle>
             </CardHeader>
-            <CardContent className="bg-[hsl(var(--scheme-card-bg))]">
+            <CardContent className="bg-[hsl(var(--scheme-cards-bg))]">
               <p className="text-sm line-clamp-2 text-[hsl(var(--scheme-cards-text))]">
                 {item.subtitle || item.intro || "Explore this lifeline"}
               </p>
@@ -823,7 +823,7 @@ export default function PublicCollectionDetail() {
           to={`/public/collections/${collectionSlug}/elections/${item.slug}`}
           className="group"
         >
-          <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
+          <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-cards-bg))] border-[hsl(var(--scheme-cards-border))]">
             <div className="aspect-video relative bg-white overflow-hidden">
               {item.hero_image_url ? (
                 <>
@@ -856,12 +856,12 @@ export default function PublicCollectionDetail() {
               )}
             </div>
             <ContentTypeBanner type="election" />
-            <CardHeader className="bg-[hsl(var(--scheme-card-bg))]">
-              <CardTitle className="text-lg transition-colors text-[hsl(var(--scheme-card-text))]">
+            <CardHeader className="bg-[hsl(var(--scheme-cards-bg))]">
+              <CardTitle className="text-lg transition-colors text-[hsl(var(--scheme-cards-text))]">
                 {item.title}
               </CardTitle>
             </CardHeader>
-            <CardContent className="bg-[hsl(var(--scheme-card-bg))]">
+            <CardContent className="bg-[hsl(var(--scheme-cards-bg))]">
               <p className="text-sm line-clamp-2 text-[hsl(var(--scheme-cards-text))]">
                 {item.description || "View the awards"}
               </p>
@@ -881,7 +881,7 @@ export default function PublicCollectionDetail() {
           to={`/public/collections/${collectionSlug}/profiles/${item.slug}`}
           className="group"
         >
-          <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
+          <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-cards-bg))] border-[hsl(var(--scheme-cards-border))]">
             <div className="aspect-video relative bg-white overflow-hidden">
               {imageUrl ? (
                 <img
@@ -901,12 +901,12 @@ export default function PublicCollectionDetail() {
               )}
             </div>
             <ContentTypeBanner type="profile" />
-            <CardHeader className="bg-[hsl(var(--scheme-card-bg))]">
-              <CardTitle className="text-lg transition-colors text-[hsl(var(--scheme-card-text))]">
+            <CardHeader className="bg-[hsl(var(--scheme-cards-bg))]">
+              <CardTitle className="text-lg transition-colors text-[hsl(var(--scheme-cards-text))]">
                 {item.name}
               </CardTitle>
             </CardHeader>
-            <CardContent className="bg-[hsl(var(--scheme-card-bg))]">
+            <CardContent className="bg-[hsl(var(--scheme-cards-bg))]">
               <p className="text-sm line-clamp-2 text-[hsl(var(--scheme-cards-text))]">
                 {item.short_description || "View this profile"}
               </p>
@@ -921,7 +921,7 @@ export default function PublicCollectionDetail() {
           to={`/public/collections/${collectionSlug}/books/${item.slug}`}
           className="group"
         >
-          <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
+          <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-cards-bg))] border-[hsl(var(--scheme-cards-border))]">
             <div className="aspect-video relative bg-white overflow-hidden">
               {item.cover_image_url ? (
                 <img
@@ -939,12 +939,12 @@ export default function PublicCollectionDetail() {
               )}
             </div>
             <ContentTypeBanner type="book" />
-            <CardHeader className="bg-[hsl(var(--scheme-card-bg))]">
-              <CardTitle className="text-lg transition-colors text-[hsl(var(--scheme-card-text))]">
+            <CardHeader className="bg-[hsl(var(--scheme-cards-bg))]">
+              <CardTitle className="text-lg transition-colors text-[hsl(var(--scheme-cards-text))]">
                 {item.title}
               </CardTitle>
             </CardHeader>
-            <CardContent className="bg-[hsl(var(--scheme-card-bg))]">
+            <CardContent className="bg-[hsl(var(--scheme-cards-bg))]">
               <p className="text-sm line-clamp-2 text-[hsl(var(--scheme-cards-text))]">
                 by {item.author_name}
               </p>
@@ -1011,19 +1011,19 @@ export default function PublicCollectionDetail() {
                 key={card.id}
                 className="cursor-pointer hover:shadow-lg transition-shadow self-start"
                 style={{
-                  backgroundColor: index === 0 ? 'hsl(var(--scheme-actions-bg))' : 'hsl(var(--scheme-ch-actions-bg))',
-                  borderColor: index === 0 ? 'hsl(var(--scheme-actions-border))' : 'hsl(var(--scheme-ch-actions-border))'
+                  backgroundColor: 'hsl(var(--scheme-ch-actions-bg))',
+                  borderColor: 'hsl(var(--scheme-ch-actions-border))'
                 }}
                 onClick={() => handleActionCardClick(card)}
               >
                 <CardContent className="flex flex-col items-center justify-center p-2 md:p-6 gap-1 md:gap-2">
                             {renderActionCardIcon(
                               card,
-                              `h-5 w-5 md:h-8 md:w-8 text-[hsl(var(--scheme-actions-icon))]`
+                              `h-5 w-5 md:h-8 md:w-8 text-[hsl(var(--scheme-ch-actions-icon))]`
                             )}
                   <span
                     className="text-[10px] md:text-sm font-medium"
-                    style={{ color: index === 0 ? 'hsl(var(--scheme-actions-text))' : 'hsl(var(--scheme-ch-actions-text))' }}
+                    style={{ color: 'hsl(var(--scheme-ch-actions-text))' }}
                   >
                     {getActionCardLabel(card)}
                   </span>
@@ -1188,7 +1188,7 @@ export default function PublicCollectionDetail() {
                             to={lifelinePath}
                             className="group"
                           >
-                            <Card className="overflow-hidden hover:shadow-lg transition-shadow bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
+                            <Card className="overflow-hidden hover:shadow-lg transition-shadow bg-[hsl(var(--scheme-cards-bg))] border-[hsl(var(--scheme-cards-border))]">
                               <div className="aspect-video relative bg-white overflow-hidden">
                                 <div className="absolute top-2 right-2 z-10">
                                   <FavoriteButton itemId={lifeline.id} itemType="lifeline" />
@@ -1209,12 +1209,12 @@ export default function PublicCollectionDetail() {
                                 )}
                               </div>
                               <ContentTypeBanner type="lifeline" />
-                              <CardHeader className="bg-[hsl(var(--scheme-card-bg))]">
-                                <CardTitle className="text-lg transition-colors text-[hsl(var(--scheme-card-text))]">
+                              <CardHeader className="bg-[hsl(var(--scheme-cards-bg))]">
+                                <CardTitle className="text-lg transition-colors text-[hsl(var(--scheme-cards-text))]">
                                   {lifeline.title}
                                 </CardTitle>
                               </CardHeader>
-                              <CardContent className="bg-[hsl(var(--scheme-card-bg))]">
+                              <CardContent className="bg-[hsl(var(--scheme-cards-bg))]">
                                 <p className="text-sm line-clamp-2 text-[hsl(var(--scheme-cards-text))]">
                                   {lifeline.subtitle || "Explore this lifeline"}
                                 </p>
@@ -1251,7 +1251,7 @@ export default function PublicCollectionDetail() {
                             to={`/public/collections/${collection.slug}/profiles/${profile.slug}`}
                             className="group"
                           >
-                            <Card className="overflow-hidden hover:shadow-lg transition-shadow bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
+                            <Card className="overflow-hidden hover:shadow-lg transition-shadow bg-[hsl(var(--scheme-cards-bg))] border-[hsl(var(--scheme-cards-border))]">
                               <div className="aspect-video relative bg-white overflow-hidden">
                                 {imageUrl ? (
                                   <img
@@ -1271,12 +1271,12 @@ export default function PublicCollectionDetail() {
                                 )}
                               </div>
                               <ContentTypeBanner type="profile" />
-                              <CardHeader className="bg-[hsl(var(--scheme-card-bg))]">
-                                <CardTitle className="text-lg transition-colors text-[hsl(var(--scheme-card-text))]">
+                              <CardHeader className="bg-[hsl(var(--scheme-cards-bg))]">
+                                <CardTitle className="text-lg transition-colors text-[hsl(var(--scheme-cards-text))]">
                                   {profile.name}
                                 </CardTitle>
                               </CardHeader>
-                              <CardContent className="bg-[hsl(var(--scheme-card-bg))]">
+                              <CardContent className="bg-[hsl(var(--scheme-cards-bg))]">
                                 <p className="text-sm line-clamp-2 text-[hsl(var(--scheme-cards-text))]">
                                   {profile.short_description || "View this profile"}
                                 </p>

@@ -700,7 +700,7 @@ function ExpandedCard({ card, index, topicTitle, totalCards }: ExpandedCardProps
     <div
       className="rounded-lg p-6"
       style={{
-        backgroundColor: 'hsl(var(--scheme-card-bg))',
+        backgroundColor: 'hsl(var(--scheme-cards-bg))',
         borderLeft: `4px solid #e5e5e5`
       }}
     >
@@ -748,7 +748,7 @@ function MobileCard({ card, index, onClick }: MobileCardProps) {
       onClick={onClick}
       className="min-w-[280px] w-[280px] rounded-lg p-4 cursor-pointer transition-all hover:shadow-lg"
       style={{
-        backgroundColor: 'hsl(var(--scheme-card-bg))',
+        backgroundColor: 'hsl(var(--scheme-cards-bg))',
         borderLeft: `4px solid #e5e5e5`
       }}
     >

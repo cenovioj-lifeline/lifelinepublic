@@ -194,8 +194,8 @@ export default function CollectionMembers() {
                   key={member.id}
                   className="transition-colors"
                   style={{
-                    borderColor: "hsl(var(--scheme-card-border))",
-                    backgroundColor: "hsl(var(--scheme-card-bg))",
+                    borderColor: "hsl(var(--scheme-cards-border))",
+                    backgroundColor: "hsl(var(--scheme-cards-bg))",
                   }}
                 >
                   <CardContent className="flex items-center gap-4 pt-6">

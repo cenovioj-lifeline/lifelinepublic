@@ -110,12 +110,12 @@ export default function HomePrototype() {
           return (
             <Card 
               key={action.label}
-              className="hover:shadow-md transition-shadow cursor-pointer h-full bg-[hsl(var(--scheme-actions-bg))] border-[hsl(var(--scheme-actions-border))]"
+              className="hover:shadow-md transition-shadow cursor-pointer h-full bg-[hsl(var(--scheme-ch-actions-bg))] border-[hsl(var(--scheme-ch-actions-border))]"
               onClick={action.onClick}
             >
               <CardContent className="flex flex-col items-center justify-center p-3 md:p-6 gap-1 md:gap-2">
-                <Icon className="h-5 w-5 md:h-8 md:w-8 text-[hsl(var(--scheme-actions-icon))]" />
-                <span className="text-[10px] md:text-sm font-medium text-[hsl(var(--scheme-actions-text))]">{action.label}</span>
+                <Icon className="h-5 w-5 md:h-8 md:w-8 text-[hsl(var(--scheme-ch-actions-icon))]" />
+                <span className="text-[10px] md:text-sm font-medium text-[hsl(var(--scheme-ch-actions-text))]">{action.label}</span>
               </CardContent>
             </Card>
           );
@@ -157,7 +157,7 @@ export default function HomePrototype() {
       <section>
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-2xl font-semibold" style={{ color: 'hsl(var(--scheme-title-text))' }}>Featured</h2>
-          <Link to="/public/collections" className="hover:underline text-sm" style={{ color: 'hsl(var(--scheme-actions-icon))' }}>
+          <Link to="/public/collections" className="hover:underline text-sm" style={{ color: 'hsl(var(--scheme-ch-actions-icon))' }}>
             View All
           </Link>
         </div>
@@ -169,7 +169,7 @@ export default function HomePrototype() {
                 to={`/public/lifelines/${item.slug}`}
                 className="group relative"
               >
-                <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
+                <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-cards-bg))] border-[hsl(var(--scheme-cards-border))]">
                   <div className="aspect-video relative overflow-hidden bg-white">
                     {item.cover_image?.url || item.cover_image_url ? (
                       <img
@@ -186,12 +186,12 @@ export default function HomePrototype() {
                       </div>
                     )}
                   </div>
-                  <CardHeader className="bg-[hsl(var(--scheme-card-bg))]">
-                    <CardTitle className="text-lg transition-colors text-[hsl(var(--scheme-card-text))]">
+                  <CardHeader className="bg-[hsl(var(--scheme-cards-bg))]">
+                    <CardTitle className="text-lg transition-colors text-[hsl(var(--scheme-cards-text))]">
                       {item.title}
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="bg-[hsl(var(--scheme-card-bg))]">
+                  <CardContent className="bg-[hsl(var(--scheme-cards-bg))]">
                     <p className="text-sm line-clamp-2 text-[hsl(var(--scheme-cards-text))]">
                       {item.intro || "Explore this lifeline"}
                     </p>
@@ -229,7 +229,7 @@ export default function HomePrototype() {
       <section>
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-2xl font-semibold" style={{ color: 'hsl(var(--scheme-title-text))' }}>New Content</h2>
-          <Link to="/public/lifelines" className="hover:underline text-sm" style={{ color: 'hsl(var(--scheme-actions-icon))' }}>
+          <Link to="/public/lifelines" className="hover:underline text-sm" style={{ color: 'hsl(var(--scheme-ch-actions-icon))' }}>
             View All
           </Link>
         </div>
@@ -241,7 +241,7 @@ export default function HomePrototype() {
                 to={`/public/lifelines/${item.slug}`}
                 className="group relative"
               >
-                <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
+                <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-cards-bg))] border-[hsl(var(--scheme-cards-border))]">
                   <div className="aspect-video relative overflow-hidden bg-white">
                     {item.cover_image?.url || item.cover_image_url ? (
                       <img
@@ -258,12 +258,12 @@ export default function HomePrototype() {
                       </div>
                     )}
                   </div>
-                  <CardHeader className="bg-[hsl(var(--scheme-card-bg))]">
-                    <CardTitle className="text-lg transition-colors text-[hsl(var(--scheme-card-text))]">
+                  <CardHeader className="bg-[hsl(var(--scheme-cards-bg))]">
+                    <CardTitle className="text-lg transition-colors text-[hsl(var(--scheme-cards-text))]">
                       {item.title}
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="bg-[hsl(var(--scheme-card-bg))]">
+                  <CardContent className="bg-[hsl(var(--scheme-cards-bg))]">
                     <p className="text-sm line-clamp-2 text-[hsl(var(--scheme-cards-text))]">
                       {item.intro || "Explore this lifeline"}
                     </p>

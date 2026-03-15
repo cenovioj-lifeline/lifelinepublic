@@ -37,14 +37,14 @@ export function ClaimCollectionTile({ collectionSlug, collectionId }: ClaimColle
 
   return (
     <Card
-      className="cursor-pointer hover:shadow-lg transition-shadow bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]"
+      className="cursor-pointer hover:shadow-lg transition-shadow bg-[hsl(var(--scheme-cards-bg))] border-[hsl(var(--scheme-cards-border))]"
       onClick={() => navigate(`/public/collections/${collectionSlug}/claim`)}
     >
       <CardContent className="pt-6 text-center">
         <UserCheck
           className="h-8 w-8 mx-auto mb-2 text-[hsl(var(--scheme-cards-text))]"
         />
-        <div className="text-sm font-medium mb-1 text-[hsl(var(--scheme-card-text))]">Claim Collection</div>
+        <div className="text-sm font-medium mb-1 text-[hsl(var(--scheme-cards-text))]">Claim Collection</div>
         <div className="text-xs text-[hsl(var(--scheme-cards-text))]">
           Request ownership
         </div>

@@ -173,8 +173,8 @@ export default function CollectionQuotes() {
                 <Card
                   key={quote.id}
                   style={{
-                    borderColor: "hsl(var(--scheme-card-border))",
-                    backgroundColor: "hsl(var(--scheme-card-bg))",
+                    borderColor: "hsl(var(--scheme-cards-border))",
+                    backgroundColor: "hsl(var(--scheme-cards-bg))",
                   }}
                   className="hover:shadow-lg transition-shadow"
                 >
@@ -249,8 +249,8 @@ export default function CollectionQuotes() {
         ) : (
           <Card
             style={{
-              borderColor: "hsl(var(--scheme-card-border))",
-              backgroundColor: "hsl(var(--scheme-card-bg))",
+              borderColor: "hsl(var(--scheme-cards-border))",
+              backgroundColor: "hsl(var(--scheme-cards-bg))",
             }}
           >
             <CardContent className="pt-6 text-center py-12">

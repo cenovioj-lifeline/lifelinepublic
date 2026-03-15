@@ -409,7 +409,7 @@ export default function PublicLifelinesGrid() {
                 to={`/public/lifelines/${lifeline.slug}`}
                 className="group relative"
               >
-                <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
+                <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-cards-bg))] border-[hsl(var(--scheme-cards-border))]">
                   <div className="absolute top-2 right-2 z-10 flex gap-2">
                     {isAdmin && lifeline.cover_image_url && (
                       <Button
@@ -456,12 +456,12 @@ export default function PublicLifelinesGrid() {
                       </div>
                     )}
                   </div>
-                  <CardHeader className="bg-[hsl(var(--scheme-card-bg))]">
-                    <CardTitle className="text-lg transition-colors text-[hsl(var(--scheme-card-text))]">
+                  <CardHeader className="bg-[hsl(var(--scheme-cards-bg))]">
+                    <CardTitle className="text-lg transition-colors text-[hsl(var(--scheme-cards-text))]">
                       {lifeline.title}
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="bg-[hsl(var(--scheme-card-bg))]">
+                  <CardContent className="bg-[hsl(var(--scheme-cards-bg))]">
                     <p className="text-sm line-clamp-2 text-[hsl(var(--scheme-cards-text))]">
                       {lifeline.subtitle || lifeline.intro || "Explore this lifeline"}
                     </p>

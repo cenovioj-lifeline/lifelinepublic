@@ -39,7 +39,7 @@ export function CollectionQuotePopup({
         isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
       }`}
     >
-      <Card className="shadow-lg border-2 rounded-lg bg-white border-[hsl(var(--scheme-card-border))]">
+      <Card className="shadow-lg border-2 rounded-lg bg-white border-[hsl(var(--scheme-cards-border))]">
         <CardContent className="pt-6 pb-4 relative rounded-lg bg-white">
           <Button
             variant="ghost"

@@ -13,20 +13,20 @@
 export const COLOR_RULES = {
   // ===== CONTAINERS & BACKGROUNDS =====
   pageBackground: '--scheme-collection-bg',
-  cardBackground: '--scheme-card-bg',
-  modalBackground: '--scheme-card-bg',
+  cardBackground: '--scheme-cards-bg',
+  modalBackground: '--scheme-cards-bg',
   sectionBackground: '--scheme-collection-card-bg',
-  panelBackground: '--scheme-card-bg',
+  panelBackground: '--scheme-cards-bg',
   awardBackground: '--scheme-award-bg',
   lifelineBackground: '--scheme-lifeline-bg',
   navigationBackground: '--scheme-nav-bg',
 
   // ===== BORDERS & DIVIDERS =====
-  subtleBorder: '--scheme-card-border',
-  cardBorder: '--scheme-card-border',
+  subtleBorder: '--scheme-cards-border',
+  cardBorder: '--scheme-cards-border',
   emphasisBorder: '--scheme-lifeline-border',
   awardBorder: '--scheme-award-border',
-  divider: '--scheme-card-border',
+  divider: '--scheme-cards-border',
 
   // ===== INTERACTIVE ELEMENTS =====
   primaryButtonBg: '--scheme-nav-active-link',
@@ -39,7 +39,7 @@ export const COLOR_RULES = {
 
   // ===== INFORMATIONAL (Badges, Tags, Labels) =====
   defaultBadgeBackground: '--scheme-collection-card-bg',
-  defaultBadgeBorder: '--scheme-card-border',
+  defaultBadgeBorder: '--scheme-cards-border',
   defaultBadgeText: '--scheme-collection-card-text',
 
   accentBadgeBackground: '--scheme-award-bg',
@@ -47,12 +47,12 @@ export const COLOR_RULES = {
   accentBadgeText: '--scheme-award-text',
 
   tagBackground: '--scheme-collection-card-bg',
-  tagBorder: '--scheme-card-border',
+  tagBorder: '--scheme-cards-border',
   tagText: '--scheme-collection-card-text',
 
   // ===== TEXT =====
   primaryText: '--scheme-collection-text',
-  secondaryText: '--scheme-card-text',
+  secondaryText: '--scheme-cards-text',
   mutedText: '--scheme-lifeline-entry-date',
   navigationText: '--scheme-nav-text',
   headingText: '--scheme-collection-text',

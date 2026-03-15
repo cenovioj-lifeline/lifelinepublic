@@ -69,7 +69,7 @@ export function CommunityContributionMenu({
         <div 
           className={cn(
             "relative rounded-lg p-4 shadow-lg transition-all duration-300",
-            "bg-[hsl(var(--scheme-actions-bg))] border-2 border-[hsl(var(--scheme-actions-border))]",
+            "bg-[hsl(var(--scheme-ch-actions-bg))] border-2 border-[hsl(var(--scheme-ch-actions-border))]",
             className
           )}
         >
@@ -79,14 +79,14 @@ export function CommunityContributionMenu({
             className="absolute top-2 right-2 p-1 rounded-full hover:bg-black/5 transition-colors"
             aria-label="Close menu"
           >
-            <X className="h-4 w-4" style={{ color: 'hsl(var(--scheme-actions-icon))' }} />
+            <X className="h-4 w-4" style={{ color: 'hsl(var(--scheme-ch-actions-icon))' }} />
           </button>
 
           {/* Title */}
           <div className="mb-4 pr-6">
             <h3 
               className="text-lg font-semibold"
-              style={{ color: 'hsl(var(--scheme-actions-text))' }}
+              style={{ color: 'hsl(var(--scheme-ch-actions-text))' }}
             >
               Community Contribution Menu
             </h3>
@@ -97,10 +97,10 @@ export function CommunityContributionMenu({
             <Button
               onClick={handlePictureClick}
               variant="outline"
-              className="h-auto flex-col gap-2 p-4 border-[hsl(var(--scheme-actions-border))] hover:bg-[hsl(var(--scheme-actions-bg))]/80"
+              className="h-auto flex-col gap-2 p-4 border-[hsl(var(--scheme-ch-actions-border))] hover:bg-[hsl(var(--scheme-ch-actions-bg))]/80"
             >
-              <Image className="h-6 w-6" style={{ color: 'hsl(var(--scheme-actions-icon))' }} />
-              <span className="text-sm font-semibold" style={{ color: 'hsl(var(--scheme-actions-text))' }}>
+              <Image className="h-6 w-6" style={{ color: 'hsl(var(--scheme-ch-actions-icon))' }} />
+              <span className="text-sm font-semibold" style={{ color: 'hsl(var(--scheme-ch-actions-text))' }}>
                 Pictures
               </span>
             </Button>
@@ -108,10 +108,10 @@ export function CommunityContributionMenu({
             <Button
               onClick={handleEventClick}
               variant="outline"
-              className="h-auto flex-col gap-2 p-4 border-[hsl(var(--scheme-actions-border))] hover:bg-[hsl(var(--scheme-actions-bg))]/80"
+              className="h-auto flex-col gap-2 p-4 border-[hsl(var(--scheme-ch-actions-border))] hover:bg-[hsl(var(--scheme-ch-actions-bg))]/80"
             >
-              <FileText className="h-6 w-6" style={{ color: 'hsl(var(--scheme-actions-icon))' }} />
-              <span className="text-sm font-semibold" style={{ color: 'hsl(var(--scheme-actions-text))' }}>
+              <FileText className="h-6 w-6" style={{ color: 'hsl(var(--scheme-ch-actions-icon))' }} />
+              <span className="text-sm font-semibold" style={{ color: 'hsl(var(--scheme-ch-actions-text))' }}>
                 Events
               </span>
             </Button>
@@ -119,10 +119,10 @@ export function CommunityContributionMenu({
             <Button
               onClick={handleUnderConstruction}
               variant="outline"
-              className="h-auto flex-col gap-2 p-4 border-[hsl(var(--scheme-actions-border))] hover:bg-[hsl(var(--scheme-actions-bg))]/80"
+              className="h-auto flex-col gap-2 p-4 border-[hsl(var(--scheme-ch-actions-border))] hover:bg-[hsl(var(--scheme-ch-actions-bg))]/80"
             >
-              <Pencil className="h-6 w-6" style={{ color: 'hsl(var(--scheme-actions-icon))' }} />
-              <span className="text-sm font-semibold" style={{ color: 'hsl(var(--scheme-actions-text))' }}>
+              <Pencil className="h-6 w-6" style={{ color: 'hsl(var(--scheme-ch-actions-icon))' }} />
+              <span className="text-sm font-semibold" style={{ color: 'hsl(var(--scheme-ch-actions-text))' }}>
                 Corrections/Edits
               </span>
             </Button>
@@ -130,10 +130,10 @@ export function CommunityContributionMenu({
             <Button
               onClick={handleUnderConstruction}
               variant="outline"
-              className="h-auto flex-col gap-2 p-4 border-[hsl(var(--scheme-actions-border))] hover:bg-[hsl(var(--scheme-actions-bg))]/80"
+              className="h-auto flex-col gap-2 p-4 border-[hsl(var(--scheme-ch-actions-border))] hover:bg-[hsl(var(--scheme-ch-actions-bg))]/80"
             >
-              <ArrowUpDown className="h-6 w-6" style={{ color: 'hsl(var(--scheme-actions-icon))' }} />
-              <span className="text-sm font-semibold" style={{ color: 'hsl(var(--scheme-actions-text))' }}>
+              <ArrowUpDown className="h-6 w-6" style={{ color: 'hsl(var(--scheme-ch-actions-icon))' }} />
+              <span className="text-sm font-semibold" style={{ color: 'hsl(var(--scheme-ch-actions-text))' }}>
                 Score/Order
               </span>
             </Button>

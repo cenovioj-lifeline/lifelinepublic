@@ -452,7 +452,7 @@ export default function CollectionLifelines() {
                 to={`/public/collections/${slug}/lifelines/${lifeline.slug}`}
                 className="group relative"
               >
-                <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
+                <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-cards-bg))] border-[hsl(var(--scheme-cards-border))]">
                   <div className="absolute top-2 right-2 z-10 flex gap-2">
                     {isAdmin && lifeline.cover_image_url && (
                       <Button
@@ -515,7 +515,7 @@ export default function CollectionLifelines() {
                       </div>
                     )}
                   </div>
-                  <CardHeader className="bg-[hsl(var(--scheme-card-bg))]">
+                  <CardHeader className="bg-[hsl(var(--scheme-cards-bg))]">
                     {(() => {
                       const parsed = parseLifelineTitle(lifeline.title, lifeline.lifeline_type);
                       if (parsed.isPersonType) {
@@ -524,20 +524,20 @@ export default function CollectionLifelines() {
                             <span className="text-xs font-bold uppercase tracking-wider text-[hsl(var(--scheme-person-name-accent))] block">
                               {parsed.personName}
                             </span>
-                            <span className="text-lg font-semibold transition-colors text-[hsl(var(--scheme-card-text))] block line-clamp-2">
+                            <span className="text-lg font-semibold transition-colors text-[hsl(var(--scheme-cards-text))] block line-clamp-2">
                               {parsed.contextTitle}
                             </span>
                           </div>
                         );
                       }
                       return (
-                        <span className="text-lg font-semibold transition-colors text-[hsl(var(--scheme-card-text))] line-clamp-2">
+                        <span className="text-lg font-semibold transition-colors text-[hsl(var(--scheme-cards-text))] line-clamp-2">
                           {lifeline.title}
                         </span>
                       );
                     })()}
                   </CardHeader>
-                  <CardContent className="bg-[hsl(var(--scheme-card-bg))]">
+                  <CardContent className="bg-[hsl(var(--scheme-cards-bg))]">
                     <p className="text-sm line-clamp-2 text-[hsl(var(--scheme-cards-text))]">
                       {lifeline.subtitle || lifeline.intro || "Explore this lifeline"}
                     </p>
@@ -581,7 +581,7 @@ export default function CollectionLifelines() {
           )}
         </>
         ) : (
-          <Card style={{ backgroundColor: 'hsl(var(--scheme-card-bg))', borderColor: 'hsl(var(--scheme-card-border))' }}>
+          <Card style={{ backgroundColor: 'hsl(var(--scheme-cards-bg))', borderColor: 'hsl(var(--scheme-cards-border))' }}>
             <CardContent className="py-12 text-center">
               <p style={{ color: 'hsl(var(--scheme-cards-text))' }}>
                 {showFavoritesOnly

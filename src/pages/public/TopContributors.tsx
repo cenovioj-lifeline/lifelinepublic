@@ -165,7 +165,7 @@ export default function TopContributors() {
               className="cursor-pointer transition-colors"
               onClick={() => setSelectedContributor(contributor)}
               style={{
-                borderColor: "hsl(var(--scheme-card-border))",
+                borderColor: "hsl(var(--scheme-cards-border))",
                 backgroundColor: "#FFFFFF",
               }}
             >
@@ -198,7 +198,7 @@ export default function TopContributors() {
                   variant="secondary"
                   className="text-lg px-4 py-2"
                   style={{
-                    backgroundColor: "hsl(var(--scheme-card-bg))",
+                    backgroundColor: "hsl(var(--scheme-cards-bg))",
                     color: "hsl(var(--scheme-cards-text))",
                   }}
                 >
@@ -230,8 +230,8 @@ export default function TopContributors() {
               <Card 
                 key={contribution.id}
                 style={{
-                  borderColor: "hsl(var(--scheme-card-border))",
-                  backgroundColor: "hsl(var(--scheme-card-bg))",
+                  borderColor: "hsl(var(--scheme-cards-border))",
+                  backgroundColor: "hsl(var(--scheme-cards-bg))",
                 }}
               >
                 <CardHeader>

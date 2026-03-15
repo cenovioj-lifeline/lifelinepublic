@@ -137,7 +137,7 @@ export default function PublicCollectionsGrid() {
                   to={`/public/collections/${collection.slug}`}
                   className="group relative"
                 >
-                  <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
+                  <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-cards-bg))] border-[hsl(var(--scheme-cards-border))]">
                     <div className="absolute top-2 right-2 z-10">
                       <FavoriteButton itemId={collection.id} itemType="collection" />
                     </div>
@@ -154,13 +154,13 @@ export default function PublicCollectionsGrid() {
                         </div>
                       )}
                     </div>
-                    <CardHeader className="bg-[hsl(var(--scheme-card-bg))]">
-                      <CardTitle className="text-lg transition-colors text-[hsl(var(--scheme-card-text))]">
+                    <CardHeader className="bg-[hsl(var(--scheme-cards-bg))]">
+                      <CardTitle className="text-lg transition-colors text-[hsl(var(--scheme-cards-text))]">
                         {collection.title}
                       </CardTitle>
                     </CardHeader>
                     {collection.description && (
-                      <CardContent className="bg-[hsl(var(--scheme-card-bg))]">
+                      <CardContent className="bg-[hsl(var(--scheme-cards-bg))]">
                         <p className="text-sm line-clamp-2 text-[hsl(var(--scheme-cards-text))]">
                           {collection.description}
                         </p>

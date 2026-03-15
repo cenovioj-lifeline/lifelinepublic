@@ -22,7 +22,7 @@ export function CollectionCard({ collection, showFeaturedBadge = false }: Collec
       to={`/public/collections/${collection.slug}`}
       className="group relative block h-full"
     >
-      <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-card-bg))] border-[hsl(var(--scheme-card-border))]">
+      <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-cards-bg))] border-[hsl(var(--scheme-cards-border))]">
         <div className="absolute top-2 right-2 z-10">
           <FavoriteButton itemId={collection.id} itemType="collection" />
         </div>
@@ -39,9 +39,9 @@ export function CollectionCard({ collection, showFeaturedBadge = false }: Collec
             </div>
           )}
         </div>
-        <CardHeader className="bg-[hsl(var(--scheme-card-bg))]">
+        <CardHeader className="bg-[hsl(var(--scheme-cards-bg))]">
           <div className="flex items-start justify-between gap-2">
-            <CardTitle className="text-xl transition-colors text-[hsl(var(--scheme-card-text))]">
+            <CardTitle className="text-xl transition-colors text-[hsl(var(--scheme-cards-text))]">
               {collection.title}
             </CardTitle>
             {showFeaturedBadge && collection.is_featured && (
@@ -49,7 +49,7 @@ export function CollectionCard({ collection, showFeaturedBadge = false }: Collec
             )}
           </div>
         </CardHeader>
-        <CardContent className="bg-[hsl(var(--scheme-card-bg))]">
+        <CardContent className="bg-[hsl(var(--scheme-cards-bg))]">
           <p className="text-[hsl(var(--scheme-cards-text))] line-clamp-3">
             {collection.description || "Explore this collection"}
           </p>
