@@ -156,7 +156,7 @@ export default function HomePrototype() {
       {/* Featured Section */}
       <section>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-2xl font-semibold" style={{ color: 'hsl(var(--scheme-title-text))' }}>VERCEL TEST</h2>
+          <h2 className="text-2xl font-semibold" style={{ color: 'hsl(var(--scheme-title-text))' }}>Featured</h2>
           <Link to="/public/collections" className="hover:underline text-sm" style={{ color: 'hsl(var(--scheme-ch-actions-icon))' }}>
             View All
           </Link>
