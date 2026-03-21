@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
@@ -6,7 +6,7 @@ import { CropBoxPicker, CropData } from "@/components/admin/CropBoxPicker";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Pencil, Trash2, Square, RectangleHorizontal } from "lucide-react";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -23,6 +23,10 @@ interface ProfileImageEditorProps {
       card_position_x?: number;
       card_position_y?: number;
       card_scale?: number;
+      extended_data?: {
+        widened_url?: string;
+        [key: string]: unknown;
+      };
     };
     primary_image_url?: string;
     primary_image_path?: string;
@@ -43,23 +47,9 @@ export function ProfileImageEditor({ profile, onImageUpdate }: ProfileImageEdito
     profile.avatar_image?.id
   );
 
-  // Track image aspect ratio for correct display
-  const [imageAspectRatio, setImageAspectRatio] = useState<number>(1);
-
   const imageUrl = profile.avatar_image?.url || profile.primary_image_url;
+  const widenedUrl = profile.avatar_image?.extended_data?.widened_url;
   const isLegacyImage = profile.primary_image_url && !profile.avatar_image?.id;
-
-  // Load image and measure its aspect ratio
-  useEffect(() => {
-    if (imageUrl) {
-      const img = new Image();
-      img.onload = () => {
-        const ratio = img.naturalWidth / img.naturalHeight;
-        setImageAspectRatio(ratio);
-      };
-      img.src = imageUrl;
-    }
-  }, [imageUrl]);
 
   // Helper to invalidate all relevant caches after image updates
   const invalidateProfileCaches = () => {
@@ -240,49 +230,25 @@ export function ProfileImageEditor({ profile, onImageUpdate }: ProfileImageEdito
     scale: profile.avatar_image?.card_scale ?? 1
   };
 
-  // Calculate correct display styles accounting for aspect ratio
-  // For 1:1 avatar crop from non-square images, we need different scales for width vs height
-  const getAvatarImageStyle = (): React.CSSProperties => {
-    // For landscape images: ratio > 1, so scaleY < scale (less zoom on height)
-    // For portrait images: ratio < 1, so scaleY > scale (more zoom on height)
-    // For square images: ratio = 1, so scaleY = scale (unchanged)
-    const scaleY = avatarPosition.scale / imageAspectRatio;
+  // Avatar preview: object-cover + objectPosition + scale (matches CollectionProfiles.tsx)
+  const getAvatarImageStyle = (): React.CSSProperties => ({
+    objectFit: 'cover' as const,
+    objectPosition: `${avatarPosition.x}% ${avatarPosition.y}%`,
+    transform: `scale(${avatarPosition.scale})`,
+    transformOrigin: `${avatarPosition.x}% ${avatarPosition.y}%`,
+    width: '100%',
+    height: '100%',
+  });
 
-    return {
-      position: 'absolute',
-      top: 0,
-      left: 0,
-      width: `${avatarPosition.scale * 100}%`,
-      height: `${scaleY * 100}%`,
-      marginLeft: `${-avatarPosition.x * avatarPosition.scale + 50}%`,
-      marginTop: `${-avatarPosition.y * scaleY + 50}%`,
-      objectFit: 'none',
-    };
-  };
-
-  // Calculate correct display styles for 16:9 card crop
-  // Note: 16:9 crop from non-square images has similar aspect ratio mismatch issues
-  const getCardImageStyle = (): React.CSSProperties => {
-    // For 16:9 crop, the target aspect ratio is 16/9 ≈ 1.78
-    // We need to compare this to the image's natural aspect ratio
-    const targetRatio = 16 / 9;
-
-    // The scale was calculated from width%, so for height we need to adjust
-    // crop.height% = crop.width% * (imageWidth/imageHeight) / (targetWidth/targetHeight)
-    // scaleY = scale * imageAspectRatio / targetRatio
-    const scaleY = cardPosition.scale * imageAspectRatio / targetRatio;
-
-    return {
-      position: 'absolute',
-      top: 0,
-      left: 0,
-      width: `${cardPosition.scale * 100}%`,
-      height: `${scaleY * 100}%`,
-      marginLeft: `${-cardPosition.x * cardPosition.scale + 50}%`,
-      marginTop: `${-cardPosition.y * scaleY + 50}%`,
-      objectFit: 'none',
-    };
-  };
+  // Card preview: same approach for 16:9 container
+  const getCardImageStyle = (): React.CSSProperties => ({
+    objectFit: 'cover' as const,
+    objectPosition: `${cardPosition.x}% ${cardPosition.y}%`,
+    transform: `scale(${cardPosition.scale})`,
+    transformOrigin: `${cardPosition.x}% ${cardPosition.y}%`,
+    width: '100%',
+    height: '100%',
+  });
 
   return (
     <>
@@ -315,17 +281,19 @@ export function ProfileImageEditor({ profile, onImageUpdate }: ProfileImageEdito
 
             <TabsContent value="avatar" className="space-y-4">
               <div className="flex flex-col items-center gap-4 py-4">
-                <Avatar className="h-32 w-32">
-                  <AvatarImage
-                    src={imageUrl}
-                    alt={profile.name}
-                    disableDefaults
-                    style={getAvatarImageStyle()}
-                  />
-                  <AvatarFallback className="text-4xl">
-                    {getInitials(profile.name)}
-                  </AvatarFallback>
-                </Avatar>
+                <div className="h-32 w-32 rounded-full overflow-hidden bg-muted">
+                  {imageUrl ? (
+                    <img
+                      src={imageUrl}
+                      alt={profile.name}
+                      style={getAvatarImageStyle()}
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-4xl text-muted-foreground">
+                      {getInitials(profile.name)}
+                    </div>
+                  )}
+                </div>
 
                 <div className="text-sm text-muted-foreground text-center">
                   <p>Position: {avatarPosition.x}%, {avatarPosition.y}%</p>
@@ -346,7 +314,24 @@ export function ProfileImageEditor({ profile, onImageUpdate }: ProfileImageEdito
 
             <TabsContent value="card" className="space-y-4">
               <div className="flex flex-col items-center gap-4 py-4">
-                {/* 16:9 preview */}
+                {/* Widened image preview (if available) */}
+                {widenedUrl && (
+                  <>
+                    <p className="text-xs font-medium text-muted-foreground">AI-Widened Version</p>
+                    <div className="w-full aspect-video bg-muted rounded-lg overflow-hidden">
+                      <img
+                        src={widenedUrl}
+                        alt={`${profile.name} (widened)`}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  </>
+                )}
+
+                {/* Original image with card crop */}
+                <p className="text-xs font-medium text-muted-foreground">
+                  {widenedUrl ? 'Original (Card Crop)' : 'Card Preview'}
+                </p>
                 <div className="w-full aspect-video bg-muted rounded-lg overflow-hidden relative">
                   {imageUrl ? (
                     <img
@@ -364,6 +349,7 @@ export function ProfileImageEditor({ profile, onImageUpdate }: ProfileImageEdito
                 <div className="text-sm text-muted-foreground text-center">
                   <p>Position: {cardPosition.x}%, {cardPosition.y}%</p>
                   <p>Scale: {cardPosition.scale.toFixed(1)}x</p>
+                  {widenedUrl && <p className="text-green-500">Widened image active on cards</p>}
                 </div>
 
                 <Button

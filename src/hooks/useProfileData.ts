@@ -28,7 +28,8 @@ export function useProfileData(slug: string | undefined, options?: UseProfileDat
             scale,
             card_position_x,
             card_position_y,
-            card_scale
+            card_scale,
+            extended_data
           )
         `)
         .eq("slug", slug)
