@@ -100,7 +100,7 @@ export default function LifelineEdit() {
         .from("lifelines")
         .select(`
           *,
-          profile:profiles(id, name),
+          profile:profiles!lifelines_profile_id_fkey(id, name),
           collection:collections(id, title),
           profile_lifelines!profile_lifelines_lifeline_id_fkey(profile_id)
         `)

@@ -125,7 +125,7 @@ export const useFeedData = (userId: string | undefined) => {
               slug
             ),
             profile_id,
-            profiles (
+            profiles!lifelines_profile_id_fkey (
               id,
               name,
               avatar_image_id,

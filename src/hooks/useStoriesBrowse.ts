@@ -71,7 +71,7 @@ export function useStoriesBrowse() {
           slug,
           card_image_url,
           updated_at,
-          profiles:profiles(
+          profiles:profiles!lifelines_profile_id_fkey(
             id,
             name,
             slug,

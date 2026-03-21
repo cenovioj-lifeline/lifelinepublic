@@ -127,7 +127,7 @@ export function LifelineViewer({
     queryFn: async () => {
       const { data, error} = await supabase
         .from("lifelines")
-        .select("*, profiles(name)")
+        .select("*, profiles!lifelines_profile_id_fkey(name)")
         .eq("id", lifelineId)
         .single();
 
