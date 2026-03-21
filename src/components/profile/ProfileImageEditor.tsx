@@ -5,9 +5,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { CropBoxPicker, CropData } from "@/components/admin/CropBoxPicker";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Pencil, Trash2, Square, RectangleHorizontal } from "lucide-react";
-
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Pencil, Trash2, Sparkles } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 
 interface ProfileImageEditorProps {
@@ -51,12 +49,9 @@ export function ProfileImageEditor({ profile, onImageUpdate }: ProfileImageEdito
   const widenedUrl = profile.avatar_image?.extended_data?.widened_url;
   const isLegacyImage = profile.primary_image_url && !profile.avatar_image?.id;
 
-  // Helper to invalidate all relevant caches after image updates
   const invalidateProfileCaches = () => {
-    // Admin/editor pages
     queryClient.invalidateQueries({ queryKey: ["profile"] });
     queryClient.invalidateQueries({ queryKey: ["profiles"] });
-    // Public collection pages - these are the actual query keys used
     queryClient.invalidateQueries({ queryKey: ["collection-featured-items"] });
     queryClient.invalidateQueries({ queryKey: ["collection-custom-section-items"] });
     queryClient.invalidateQueries({ queryKey: ["collection-recent-profiles"] });
@@ -69,26 +64,21 @@ export function ProfileImageEditor({ profile, onImageUpdate }: ProfileImageEdito
   const handleDelete = async () => {
     setIsProcessing(true);
     try {
-      // Delete media_asset if it exists
       if (profile.avatar_image?.id) {
         const { error: mediaError } = await supabase
           .from("media_assets")
           .delete()
           .eq("id", profile.avatar_image.id);
-
         if (mediaError) throw mediaError;
       }
 
-      // Delete from storage if path exists
       if (profile.primary_image_path) {
         const { error: storageError } = await supabase.storage
           .from("media-uploads")
           .remove([profile.primary_image_path]);
-
         if (storageError) console.warn("Storage deletion failed:", storageError);
       }
 
-      // Clear all profile image fields
       const { error: profileError } = await supabase
         .from("profiles")
         .update({
@@ -97,7 +87,6 @@ export function ProfileImageEditor({ profile, onImageUpdate }: ProfileImageEdito
           primary_image_path: null
         })
         .eq("id", profile.id);
-
       if (profileError) throw profileError;
 
       toast.success("Image deleted successfully");
@@ -117,7 +106,6 @@ export function ProfileImageEditor({ profile, onImageUpdate }: ProfileImageEdito
     setCropMode(mode);
 
     if (isLegacyImage) {
-      // Create media_assets record for legacy image
       setIsProcessing(true);
       try {
         const filename = profile.primary_image_path ||
@@ -140,15 +128,12 @@ export function ProfileImageEditor({ profile, onImageUpdate }: ProfileImageEdito
           })
           .select()
           .single();
-
         if (insertError) throw insertError;
 
-        // Link to profile
         const { error: updateError } = await supabase
           .from("profiles")
           .update({ avatar_image_id: mediaAsset.id })
           .eq("id", profile.id);
-
         if (updateError) throw updateError;
 
         setCurrentMediaAssetId(mediaAsset.id);
@@ -161,22 +146,18 @@ export function ProfileImageEditor({ profile, onImageUpdate }: ProfileImageEdito
         setIsProcessing(false);
       }
     } else {
-      // Already has media_assets, just open picker
       setShowCropPicker(true);
     }
   };
 
-  // Convert crop box data to position/scale format for storage
   const handleCropComplete = async (crop: CropData) => {
     if (!currentMediaAssetId) return;
 
     try {
-      // Convert crop box to center + scale format
       const centerX = crop.x + crop.width / 2;
       const centerY = crop.y + crop.height / 2;
       const scale = 100 / crop.width;
 
-      // Save to the appropriate columns based on crop mode
       const updateData = cropMode === 'avatar'
         ? {
             position_x: Math.round(centerX),
@@ -193,7 +174,6 @@ export function ProfileImageEditor({ profile, onImageUpdate }: ProfileImageEdito
         .from("media_assets")
         .update(updateData)
         .eq("id", currentMediaAssetId);
-
       if (error) throw error;
 
       toast.success(`${cropMode === 'avatar' ? 'Avatar' : 'Card'} position updated`);
@@ -207,48 +187,34 @@ export function ProfileImageEditor({ profile, onImageUpdate }: ProfileImageEdito
     }
   };
 
-  const getInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map(word => word[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
-  };
-
-  // Get positioning for avatar (1:1)
   const avatarPosition = {
     x: profile.avatar_image?.position_x ?? 50,
     y: profile.avatar_image?.position_y ?? 50,
     scale: profile.avatar_image?.scale ?? 1
   };
 
-  // Get positioning for card (16:9)
   const cardPosition = {
     x: profile.avatar_image?.card_position_x ?? 50,
     y: profile.avatar_image?.card_position_y ?? 50,
     scale: profile.avatar_image?.card_scale ?? 1
   };
 
-  // Avatar preview: object-cover + objectPosition + scale (matches CollectionProfiles.tsx)
-  const getAvatarImageStyle = (): React.CSSProperties => ({
+  const getImageStyle = (pos: { x: number; y: number; scale: number }): React.CSSProperties => ({
     objectFit: 'cover' as const,
-    objectPosition: `${avatarPosition.x}% ${avatarPosition.y}%`,
-    transform: `scale(${avatarPosition.scale})`,
-    transformOrigin: `${avatarPosition.x}% ${avatarPosition.y}%`,
+    objectPosition: `${pos.x}% ${pos.y}%`,
+    transform: `scale(${pos.scale})`,
+    transformOrigin: `${pos.x}% ${pos.y}%`,
     width: '100%',
     height: '100%',
   });
 
-  // Card preview: same approach for 16:9 container
-  const getCardImageStyle = (): React.CSSProperties => ({
-    objectFit: 'cover' as const,
-    objectPosition: `${cardPosition.x}% ${cardPosition.y}%`,
-    transform: `scale(${cardPosition.scale})`,
-    transformOrigin: `${cardPosition.x}% ${cardPosition.y}%`,
-    width: '100%',
-    height: '100%',
-  });
+  if (!imageUrl) {
+    return (
+      <Button variant="outline" size="sm" className="text-xs" disabled>
+        No Image
+      </Button>
+    );
+  }
 
   return (
     <>
@@ -262,117 +228,105 @@ export function ProfileImageEditor({ profile, onImageUpdate }: ProfileImageEdito
       </Button>
 
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
-        <DialogContent className="sm:max-w-lg">
+        <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>Edit Profile Image</DialogTitle>
           </DialogHeader>
 
-          <Tabs defaultValue="avatar" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="avatar" className="flex items-center gap-2">
-                <Square className="h-4 w-4" />
-                Avatar (1:1)
-              </TabsTrigger>
-              <TabsTrigger value="card" className="flex items-center gap-2">
-                <RectangleHorizontal className="h-4 w-4" />
-                Card (16:9)
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="avatar" className="space-y-4">
-              <div className="flex flex-col items-center gap-4 py-4">
-                <div className="h-32 w-32 rounded-full overflow-hidden bg-muted">
-                  {imageUrl ? (
-                    <img
-                      src={imageUrl}
-                      alt={profile.name}
-                      style={getAvatarImageStyle()}
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-4xl text-muted-foreground">
-                      {getInitials(profile.name)}
-                    </div>
-                  )}
-                </div>
-
-                <div className="text-sm text-muted-foreground text-center">
-                  <p>Position: {avatarPosition.x}%, {avatarPosition.y}%</p>
-                  <p>Scale: {avatarPosition.scale.toFixed(1)}x</p>
-                </div>
-
-                <Button
-                  onClick={() => handleRepositionClick('avatar')}
-                  disabled={isProcessing || !imageUrl}
-                  className="w-full"
-                  variant="default"
-                >
-                  <Pencil className="mr-2 h-4 w-4" />
-                  Edit Avatar Position
-                </Button>
+          {/* Side-by-side previews */}
+          <div className="grid grid-cols-2 gap-6">
+            {/* Avatar (1:1) */}
+            <div className="flex flex-col items-center gap-3">
+              <p className="text-sm font-medium">Avatar (1:1)</p>
+              <div className="w-40 h-40 rounded-full overflow-hidden bg-muted border-2 border-muted">
+                <img
+                  src={imageUrl}
+                  alt={profile.name}
+                  style={getImageStyle(avatarPosition)}
+                />
               </div>
-            </TabsContent>
+              <p className="text-xs text-muted-foreground">
+                Position: {avatarPosition.x}%, {avatarPosition.y}% · Scale: {avatarPosition.scale.toFixed(1)}x
+              </p>
+              <Button
+                onClick={() => handleRepositionClick('avatar')}
+                disabled={isProcessing}
+                size="sm"
+                className="w-full"
+              >
+                <Pencil className="mr-2 h-3 w-3" />
+                Edit Avatar
+              </Button>
+            </div>
 
-            <TabsContent value="card" className="space-y-4">
-              <div className="flex flex-col items-center gap-4 py-4">
-                {/* Widened image preview (if available) */}
+            {/* Card (16:9) */}
+            <div className="flex flex-col items-center gap-3">
+              <div className="flex items-center gap-2">
+                <p className="text-sm font-medium">Card (16:9)</p>
                 {widenedUrl && (
-                  <>
-                    <p className="text-xs font-medium text-muted-foreground">AI-Widened Version</p>
-                    <div className="w-full aspect-video bg-muted rounded-lg overflow-hidden">
-                      <img
-                        src={widenedUrl}
-                        alt={`${profile.name} (widened)`}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                  </>
+                  <span className="inline-flex items-center gap-1 text-xs text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">
+                    <Sparkles className="h-3 w-3" />
+                    AI Widened
+                  </span>
                 )}
+              </div>
 
-                {/* Original image with card crop */}
-                <p className="text-xs font-medium text-muted-foreground">
-                  {widenedUrl ? 'Original (Card Crop)' : 'Card Preview'}
-                </p>
-                <div className="w-full aspect-video bg-muted rounded-lg overflow-hidden relative">
-                  {imageUrl ? (
+              {/* Show widened version if available, otherwise show card crop */}
+              <div className="w-full aspect-video rounded-lg overflow-hidden bg-muted border-2 border-muted">
+                {widenedUrl ? (
+                  <img
+                    src={widenedUrl}
+                    alt={`${profile.name} (card)`}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <img
+                    src={imageUrl}
+                    alt={`${profile.name} (card)`}
+                    style={getImageStyle(cardPosition)}
+                  />
+                )}
+              </div>
+
+              {/* If widened exists, also show the original card crop smaller for reference */}
+              {widenedUrl && (
+                <div className="w-full">
+                  <p className="text-xs text-muted-foreground mb-1">Original crop (fallback):</p>
+                  <div className="w-2/3 mx-auto aspect-video rounded overflow-hidden bg-muted border border-muted">
                     <img
                       src={imageUrl}
-                      alt={profile.name}
-                      style={getCardImageStyle()}
+                      alt={`${profile.name} (original crop)`}
+                      style={getImageStyle(cardPosition)}
                     />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-                      No image
-                    </div>
-                  )}
+                  </div>
                 </div>
+              )}
 
-                <div className="text-sm text-muted-foreground text-center">
-                  <p>Position: {cardPosition.x}%, {cardPosition.y}%</p>
-                  <p>Scale: {cardPosition.scale.toFixed(1)}x</p>
-                  {widenedUrl && <p className="text-green-500">Widened image active on cards</p>}
-                </div>
+              <p className="text-xs text-muted-foreground">
+                Position: {cardPosition.x}%, {cardPosition.y}% · Scale: {cardPosition.scale.toFixed(1)}x
+              </p>
+              <Button
+                onClick={() => handleRepositionClick('card')}
+                disabled={isProcessing}
+                size="sm"
+                className="w-full"
+              >
+                <Pencil className="mr-2 h-3 w-3" />
+                Edit Card Crop
+              </Button>
+            </div>
+          </div>
 
-                <Button
-                  onClick={() => handleRepositionClick('card')}
-                  disabled={isProcessing || !imageUrl}
-                  className="w-full"
-                  variant="default"
-                >
-                  <Pencil className="mr-2 h-4 w-4" />
-                  Edit Card Position
-                </Button>
-              </div>
-            </TabsContent>
-          </Tabs>
-
-          <div className="border-t pt-4">
+          {/* Delete */}
+          <div className="border-t pt-4 mt-2">
             <Button
               onClick={() => setShowDeleteConfirm(true)}
-              disabled={isProcessing || !imageUrl}
+              disabled={isProcessing}
               variant="destructive"
+              size="sm"
               className="w-full"
             >
-              <Trash2 className="mr-2 h-4 w-4" />
+              <Trash2 className="mr-2 h-3 w-3" />
               Delete Image
             </Button>
           </div>
