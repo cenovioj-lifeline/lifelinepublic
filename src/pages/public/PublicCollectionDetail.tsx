@@ -244,7 +244,7 @@ export default function PublicCollectionDetail() {
               .from("profiles")
               .select(`
                 id, slug, name, short_description, primary_image_url, primary_image_path, status,
-                avatar_image:media_assets!avatar_image_id(url, card_position_x, card_position_y, card_scale)
+                avatar_image:media_assets!avatar_image_id(url, card_position_x, card_position_y, card_scale, extended_data)
               `)
               .eq("id", item.item_id)
               .eq("status", "published")
@@ -307,7 +307,7 @@ export default function PublicCollectionDetail() {
               .from("profiles")
               .select(`
                 id, slug, name, short_description, primary_image_url, primary_image_path, status,
-                avatar_image:media_assets!avatar_image_id(url, card_position_x, card_position_y, card_scale)
+                avatar_image:media_assets!avatar_image_id(url, card_position_x, card_position_y, card_scale, extended_data)
               `)
               .eq("id", item.item_id)
               .eq("status", "published")
@@ -377,7 +377,7 @@ export default function PublicCollectionDetail() {
           avatar_image_id,
           primary_image_url,
           created_at,
-          avatar_image:media_assets!avatar_image_id(url, card_position_x, card_position_y, card_scale),
+          avatar_image:media_assets!avatar_image_id(url, card_position_x, card_position_y, card_scale, extended_data),
           profile_collections!inner(is_featured, collection_id)
         `)
         .eq("profile_collections.collection_id", collection!.id)
@@ -873,8 +873,10 @@ export default function PublicCollectionDetail() {
       const cardPosX = item.avatar_image?.card_position_x ?? 50;
       const cardPosY = item.avatar_image?.card_position_y ?? 50;
       const cardScale = item.avatar_image?.card_scale ?? 1;
-      // Prefer avatar_image.url (media asset) as it has the crop data
-      const imageUrl = item.avatar_image?.url ?? item.primary_image_url;
+      // Use widened image for cards if available (AI outpainted for narrow portraits)
+      const extData = item.avatar_image?.extended_data as Record<string, unknown> | null;
+      const widenedUrl = extData?.widened_url as string | undefined;
+      const imageUrl = widenedUrl || item.avatar_image?.url || item.primary_image_url;
       return (
         <Link
           key={item.id}
@@ -889,7 +891,7 @@ export default function PublicCollectionDetail() {
                   alt={item.name}
                   className="w-full h-full object-cover"
                   style={{
-                    objectPosition: `${cardPosX}% ${cardPosY}%`,
+                    objectPosition: widenedUrl ? '50% 50%' : `${cardPosX}% ${cardPosY}%`,
                     transform: `scale(${cardScale})`,
                     transformOrigin: `${cardPosX}% ${cardPosY}%`
                   }}
@@ -1243,7 +1245,9 @@ export default function PublicCollectionDetail() {
                         const cardPosX = profile.avatar_image?.card_position_x ?? 50;
                         const cardPosY = profile.avatar_image?.card_position_y ?? 50;
                         const cardScale = profile.avatar_image?.card_scale ?? 1;
-                        const imageUrl = profile.avatar_image?.url ?? profile.primary_image_url;
+                        const extData2 = profile.avatar_image?.extended_data as Record<string, unknown> | null;
+                        const widenedUrl2 = extData2?.widened_url as string | undefined;
+                        const imageUrl = widenedUrl2 || profile.avatar_image?.url || profile.primary_image_url;
 
                         return (
                           <Link
@@ -1259,7 +1263,7 @@ export default function PublicCollectionDetail() {
                                     alt={profile.name}
                                     className="w-full h-full object-cover"
                                     style={{
-                                      objectPosition: `${cardPosX}% ${cardPosY}%`,
+                                      objectPosition: widenedUrl2 ? '50% 50%' : `${cardPosX}% ${cardPosY}%`,
                                       transform: `scale(${cardScale})`,
                                       transformOrigin: `${cardPosX}% ${cardPosY}%`
                                     }}
