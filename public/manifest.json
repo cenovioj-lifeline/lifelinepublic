@@ -1,0 +1,17 @@
+{
+  "name": "Lifeline Public — Interactive Timelines and Collections",
+  "short_name": "Lifeline Public",
+  "description": "Explore curated collections of interactive timelines — people, events, and stories brought to life through rich multimedia lifelines.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f0f23",
+  "theme_color": "#1a1a2e",
+  "categories": ["education", "entertainment", "reference"],
+  "icons": [
+    {
+      "src": "/favicon.png",
+      "sizes": "64x64",
+      "type": "image/png"
+    }
+  ]
+}

@@ -1,3 +1,11 @@
+# Lifeline Public — Interactive Timelines and Collections
+# https://lifelinepublic.com
+
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+
 User-agent: Googlebot
 Allow: /
 
@@ -10,5 +18,4 @@ Allow: /
 User-agent: facebookexternalhit
 Allow: /
 
-User-agent: *
-Allow: /
+Sitemap: https://lifelinepublic.com/sitemap.xml

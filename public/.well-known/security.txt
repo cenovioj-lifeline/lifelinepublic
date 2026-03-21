@@ -1,0 +1,7 @@
+# Lifeline Public — Security Contact
+# https://lifelinepublic.com
+
+Contact: mailto:cjaimes@nhaschools.com
+Preferred-Languages: en
+Canonical: https://lifelinepublic.com/.well-known/security.txt
+Expires: 2027-03-21T00:00:00.000Z
