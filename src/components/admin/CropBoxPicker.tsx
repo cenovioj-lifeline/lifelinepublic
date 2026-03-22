@@ -44,6 +44,7 @@ export interface CropData {
   y: number;      // Top edge of crop box
   width: number;  // Width of crop box
   height: number; // Height of crop box
+  imageAspectRatio: number; // Natural width / height of source image
 }
 
 // ========================================
@@ -399,7 +400,8 @@ export const CropBoxPicker = ({
       x: (cropBox.x / displayDimensions.width) * 100,
       y: (cropBox.y / displayDimensions.height) * 100,
       width: (cropBox.width / displayDimensions.width) * 100,
-      height: (cropBox.height / displayDimensions.height) * 100
+      height: (cropBox.height / displayDimensions.height) * 100,
+      imageAspectRatio: imageDimensions.width / imageDimensions.height
     };
 
     onCropComplete(crop);

@@ -106,7 +106,12 @@ export function SuperFanImageUpload({ entryId, onUploadComplete }: SuperFanImage
     // Convert crop box to position/scale
     const centerX = crop.x + crop.width / 2;
     const centerY = crop.y + crop.height / 2;
-    const scale = 100 / crop.width;
+    // Scale relative to object-cover baseline (16:9 entry container)
+    const containerRatio = 16 / 9;
+    const imgRatio = crop.imageAspectRatio;
+    const coverFraction = imgRatio > containerRatio
+      ? containerRatio / imgRatio : imgRatio / containerRatio;
+    const scale = (coverFraction * 100) / crop.width;
 
     setUploading(true);
     try {

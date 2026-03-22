@@ -164,7 +164,12 @@ export function BookCoverUpload({ book, onImageUpdate }: BookCoverUploadProps) {
     // Convert crop box to position/scale
     const centerX = crop.x + crop.width / 2;
     const centerY = crop.y + crop.height / 2;
-    const newScale = 100 / crop.width;
+    // Scale relative to object-cover baseline (2:3 book cover container)
+    const containerRatio = 2 / 3;
+    const imgRatio = crop.imageAspectRatio;
+    const coverFraction = imgRatio > containerRatio
+      ? containerRatio / imgRatio : imgRatio / containerRatio;
+    const newScale = (coverFraction * 100) / crop.width;
 
     try {
       // Update media_asset with new position

@@ -264,7 +264,10 @@ export const ProfileSerpApiSearchModal = ({
       // Convert crop box to position/scale
       const centerX = crop.x + crop.width / 2;
       const centerY = crop.y + crop.height / 2;
-      const scale = 100 / crop.width;
+      // Scale relative to object-cover baseline (1:1 avatar container)
+      const imgRatio = crop.imageAspectRatio;
+      const coverFraction = imgRatio > 1 ? 1 / imgRatio : imgRatio;
+      const scale = (coverFraction * 100) / crop.width;
       updatePositionMutation.mutate({ mediaId: mediaAssetId, position: { x: centerX, y: centerY, scale } });
     }
   };

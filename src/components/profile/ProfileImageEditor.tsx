@@ -156,7 +156,26 @@ export function ProfileImageEditor({ profile, onImageUpdate }: ProfileImageEdito
     try {
       const centerX = crop.x + crop.width / 2;
       const centerY = crop.y + crop.height / 2;
-      const scale = 100 / crop.width;
+
+      // Scale must account for what object-cover already does.
+      // object-cover fills the container by the constraining dimension,
+      // so it already crops the image. Scale is RELATIVE to that baseline.
+      const containerRatio = cropMode === 'avatar' ? 1 : 16 / 9;
+      const imgRatio = crop.imageAspectRatio;
+
+      let coverFraction: number;
+      if (imgRatio > containerRatio) {
+        // Image wider than container: height fills, width is clipped
+        // object-cover naturally shows containerRatio/imgRatio of width
+        coverFraction = containerRatio / imgRatio;
+      } else {
+        // Image narrower: width fills, height is clipped
+        // object-cover naturally shows imgRatio/containerRatio of height
+        coverFraction = imgRatio / containerRatio;
+      }
+
+      // Scale = (what object-cover shows as %) / (what crop selected as %)
+      const scale = (coverFraction * 100) / crop.width;
 
       const updateData = cropMode === 'avatar'
         ? {

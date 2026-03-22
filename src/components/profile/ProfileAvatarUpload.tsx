@@ -150,7 +150,10 @@ export function ProfileAvatarUpload({ profile, onImageUpdate }: ProfileAvatarUpl
       // Convert crop box to center + scale format
       const centerX = crop.x + crop.width / 2;
       const centerY = crop.y + crop.height / 2;
-      const scale = 100 / crop.width;
+      // Scale relative to object-cover baseline (1:1 avatar container)
+      const imgRatio = crop.imageAspectRatio;
+      const coverFraction = imgRatio > 1 ? 1 / imgRatio : imgRatio;
+      const scale = (coverFraction * 100) / crop.width;
 
       // Update media_asset with new position
       const { error: mediaError } = await supabase

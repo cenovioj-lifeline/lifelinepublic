@@ -30,8 +30,12 @@ export function EntryImageRepositioner({
       // Convert crop box to center position
       const centerX = crop.x + crop.width / 2;
       const centerY = crop.y + crop.height / 2;
-      // Calculate scale from crop width (100% width = scale 1)
-      const scale = 100 / crop.width;
+      // Scale relative to object-cover baseline (16:9 container)
+      const containerRatio = 16 / 9;
+      const imgRatio = crop.imageAspectRatio;
+      const coverFraction = imgRatio > containerRatio
+        ? containerRatio / imgRatio : imgRatio / containerRatio;
+      const scale = (coverFraction * 100) / crop.width;
 
       const { error } = await supabase
         .from("media_assets")

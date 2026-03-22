@@ -226,9 +226,12 @@ export const AiImageEditModal = ({
       const centerX = crop.x + crop.width / 2;
       const centerY = crop.y + crop.height / 2;
       
-      // Scale is inverse of crop width (smaller box = higher effective zoom)
-      // If crop covers 100% width, scale = 1. If 50%, scale = 2, etc.
-      const scale = 100 / crop.width;
+      // Scale relative to object-cover baseline (16:9 container for entries)
+      const containerRatio = 16 / 9;
+      const imgRatio = crop.imageAspectRatio;
+      const coverFraction = imgRatio > containerRatio
+        ? containerRatio / imgRatio : imgRatio / containerRatio;
+      const scale = (coverFraction * 100) / crop.width;
 
       const { data: mediaAsset, error: mediaError } = await supabase
         .from('media_assets')
