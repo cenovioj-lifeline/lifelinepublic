@@ -36,6 +36,12 @@ interface CropBoxPickerProps {
   onCropComplete: (crop: CropData) => void;
   title?: string;
   aspectRatio?: number; // default 16/9
+  initialPosition?: {
+    // Saved position/scale values from media_assets
+    position_x: number; // center X as % (0-100)
+    position_y: number; // center Y as % (0-100)
+    scale: number;      // zoom factor (1 = object-cover baseline)
+  };
 }
 
 export interface CropData {
@@ -98,7 +104,8 @@ export const CropBoxPicker = ({
   onOpenChange,
   onCropComplete,
   title = "Crop Image",
-  aspectRatio = 16 / 9
+  aspectRatio = 16 / 9,
+  initialPosition
 }: CropBoxPickerProps) => {
   // Container, image, and canvas refs
   const containerRef = useRef<HTMLDivElement>(null);
@@ -203,19 +210,51 @@ export const CropBoxPicker = ({
 
     setDisplayDimensions({ width: displayWidth, height: displayHeight });
 
-    // Initialize crop box to center, covering 60% of the image width
-    const initialWidth = displayWidth * 0.6;
-    const initialHeight = initialWidth / aspectRatio;
-    const initialX = (displayWidth - initialWidth) / 2;
-    const initialY = (displayHeight - initialHeight) / 2;
+    if (initialPosition && initialPosition.scale > 0) {
+      // Reverse the position/scale → crop box conversion
+      // The save formula: scale = coverFraction * 100 / crop.width
+      // So: crop.width = coverFraction * 100 / scale
+      const imgRatio = naturalWidth / naturalHeight;
+      const containerRatio = aspectRatio;
+      let coverFraction: number;
+      if (imgRatio > containerRatio) {
+        coverFraction = containerRatio / imgRatio;
+      } else {
+        coverFraction = imgRatio / containerRatio;
+      }
 
-    setCropBox({
-      x: initialX,
-      y: initialY,
-      width: initialWidth,
-      height: initialHeight
-    });
-  }, [aspectRatio]);
+      const cropWidthPct = (coverFraction * 100) / initialPosition.scale;
+      const cropHeightPct = cropWidthPct * imgRatio / aspectRatio;
+      const cropXPct = initialPosition.position_x - cropWidthPct / 2;
+      const cropYPct = initialPosition.position_y - cropHeightPct / 2;
+
+      // Convert percentages to display pixels
+      const cropW = (cropWidthPct / 100) * displayWidth;
+      const cropH = (cropHeightPct / 100) * displayHeight;
+      const cropX = Math.max(0, (cropXPct / 100) * displayWidth);
+      const cropY = Math.max(0, (cropYPct / 100) * displayHeight);
+
+      setCropBox({
+        x: cropX,
+        y: cropY,
+        width: Math.min(cropW, displayWidth - cropX),
+        height: Math.min(cropH, displayHeight - cropY)
+      });
+    } else {
+      // Default: center, covering 60% of the image width
+      const initialWidth = displayWidth * 0.6;
+      const initialHeight = initialWidth / aspectRatio;
+      const initialX = (displayWidth - initialWidth) / 2;
+      const initialY = (displayHeight - initialHeight) / 2;
+
+      setCropBox({
+        x: initialX,
+        y: initialY,
+        width: initialWidth,
+        height: initialHeight
+      });
+    }
+  }, [aspectRatio, initialPosition]);
 
   // Reset when modal opens
   useEffect(() => {

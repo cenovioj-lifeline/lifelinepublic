@@ -381,6 +381,10 @@ export function ProfileImageEditor({ profile, onImageUpdate }: ProfileImageEdito
           onCropComplete={handleCropComplete}
           aspectRatio={cropMode === 'avatar' ? 1 : 16/9}
           title={cropMode === 'avatar' ? "Reposition Avatar (1:1)" : "Reposition Card Image (16:9)"}
+          initialPosition={cropMode === 'avatar'
+            ? { position_x: avatarPosition.x, position_y: avatarPosition.y, scale: avatarPosition.scale }
+            : { position_x: cardPosition.x, position_y: cardPosition.y, scale: cardPosition.scale }
+          }
         />
       )}
     </>
