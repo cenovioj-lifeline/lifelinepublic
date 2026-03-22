@@ -187,8 +187,9 @@ export const CropBoxPicker = ({
     const naturalHeight = img.naturalHeight;
     setImageDimensions({ width: naturalWidth, height: naturalHeight });
 
-    // Calculate displayed dimensions (fit within container)
-    const containerWidth = container.clientWidth;
+    // Calculate displayed dimensions (fit within available space)
+    // Use parent's width since container width tracks the image
+    const containerWidth = container.parentElement?.clientWidth || container.clientWidth;
     const maxHeight = 500; // Max height for the editing area
 
     let displayWidth = containerWidth;
@@ -447,12 +448,12 @@ export const CropBoxPicker = ({
 
           <div className="flex gap-6">
             {/* Main editing area */}
-            <div className="flex-1">
+            <div className="flex-1 flex justify-center">
               <div
                 ref={containerRef}
                 className="relative bg-gray-900 rounded-lg overflow-hidden"
                 style={{
-                  width: '100%',
+                  width: displayDimensions.width || '100%',
                   height: displayDimensions.height || 'auto'
                 }}
               >
