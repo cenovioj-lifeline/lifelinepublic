@@ -409,24 +409,25 @@ export const CropBoxPicker = ({
   const previewWidth = isAvatar ? 200 : 280;
   const previewHeight = previewWidth / aspectRatio;
 
-  // Preview uses the same object-cover + objectPosition + scale approach
-  // as the actual page display — no margin math, no dimension dependencies
+  // Preview: scale the full image so the crop box fills the preview,
+  // then offset with negative margins. Uses actual rendered image
+  // dimensions from the DOM to avoid CSS constraint mismatches.
   const getPreviewStyle = (): React.CSSProperties => {
-    if (cropBox.width === 0 || displayDimensions.width === 0) return {};
+    if (cropBox.width === 0 || !imageRef.current) return {};
 
-    // Convert pixel crop box to the same position/scale format the DB stores
-    const pctW = (cropBox.width / displayDimensions.width) * 100;
-    const posX = ((cropBox.x + cropBox.width / 2) / displayDimensions.width) * 100;
-    const posY = ((cropBox.y + cropBox.height / 2) / displayDimensions.height) * 100;
-    const scale = 100 / pctW;
+    // Read ACTUAL rendered dimensions from DOM, not stored values
+    const actualWidth = imageRef.current.clientWidth;
+    const actualHeight = imageRef.current.clientHeight;
+    if (actualWidth === 0 || actualHeight === 0) return {};
+
+    const scaleX = previewWidth / cropBox.width;
+    const scaleY = previewHeight / cropBox.height;
 
     return {
-      objectFit: 'cover' as const,
-      objectPosition: `${posX}% ${posY}%`,
-      transform: `scale(${scale})`,
-      transformOrigin: `${posX}% ${posY}%`,
-      width: '100%',
-      height: '100%',
+      width: actualWidth * scaleX,
+      height: actualHeight * scaleY,
+      marginLeft: -cropBox.x * scaleX,
+      marginTop: -cropBox.y * scaleY,
     };
   };
 
@@ -633,7 +634,7 @@ export const CropBoxPicker = ({
 
             {/* Preview */}
             <div className="w-72 flex-shrink-0">
-              <p className="text-sm font-medium mb-2">Preview ({aspectLabel}) <span className="text-xs text-muted-foreground">v4</span></p>
+              <p className="text-sm font-medium mb-2">Preview ({aspectLabel}) <span className="text-xs text-muted-foreground">v5</span></p>
               <div
                 className={`bg-gray-100 overflow-hidden ${isAvatar ? 'rounded-full' : 'rounded-lg'}`}
                 style={{
