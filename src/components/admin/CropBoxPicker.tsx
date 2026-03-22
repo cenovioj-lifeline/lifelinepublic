@@ -99,9 +99,10 @@ export const CropBoxPicker = ({
   title = "Crop Image",
   aspectRatio = 16 / 9
 }: CropBoxPickerProps) => {
-  // Container and image refs
+  // Container, image, and canvas refs
   const containerRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   // Image dimensions (natural size)
   const [imageDimensions, setImageDimensions] = useState({ width: 0, height: 0 });
@@ -409,27 +410,34 @@ export const CropBoxPicker = ({
   const previewWidth = isAvatar ? 200 : 280;
   const previewHeight = previewWidth / aspectRatio;
 
-  // Preview: scale the full image so the crop box fills the preview,
-  // then offset with negative margins. Uses actual rendered image
-  // dimensions from the DOM to avoid CSS constraint mismatches.
-  const getPreviewStyle = (): React.CSSProperties => {
-    if (cropBox.width === 0 || !imageRef.current) return {};
+  // Canvas-based preview: draws the cropped region directly from image pixels.
+  // No CSS dimension dependencies — reads natural image data and draws exactly
+  // what's inside the crop box.
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const img = imageRef.current;
+    if (!canvas || !img || !img.complete || cropBox.width === 0 || displayDimensions.width === 0) return;
 
-    // Read ACTUAL rendered dimensions from DOM, not stored values
-    const actualWidth = imageRef.current.clientWidth;
-    const actualHeight = imageRef.current.clientHeight;
-    if (actualWidth === 0 || actualHeight === 0) return {};
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
 
-    const scaleX = previewWidth / cropBox.width;
-    const scaleY = previewHeight / cropBox.height;
+    // Set canvas to preview size
+    canvas.width = previewWidth;
+    canvas.height = previewHeight;
 
-    return {
-      width: actualWidth * scaleX,
-      height: actualHeight * scaleY,
-      marginLeft: -cropBox.x * scaleX,
-      marginTop: -cropBox.y * scaleY,
-    };
-  };
+    // Convert crop box (display-space pixels) to natural image pixels
+    const scaleX = img.naturalWidth / displayDimensions.width;
+    const scaleY = img.naturalHeight / displayDimensions.height;
+
+    const srcX = cropBox.x * scaleX;
+    const srcY = cropBox.y * scaleY;
+    const srcW = cropBox.width * scaleX;
+    const srcH = cropBox.height * scaleY;
+
+    // Draw exactly the crop region, scaled to fill the preview canvas
+    ctx.clearRect(0, 0, previewWidth, previewHeight);
+    ctx.drawImage(img, srcX, srcY, srcW, srcH, 0, 0, previewWidth, previewHeight);
+  }, [cropBox, previewWidth, previewHeight, displayDimensions]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -634,23 +642,15 @@ export const CropBoxPicker = ({
 
             {/* Preview */}
             <div className="w-72 flex-shrink-0">
-              <p className="text-sm font-medium mb-2">Preview ({aspectLabel}) <span className="text-xs text-muted-foreground">v5</span></p>
-              <div
-                className={`bg-gray-100 overflow-hidden ${isAvatar ? 'rounded-full' : 'rounded-lg'}`}
+              <p className="text-sm font-medium mb-2">Preview ({aspectLabel}) <span className="text-xs text-muted-foreground">v6</span></p>
+              <canvas
+                ref={canvasRef}
+                className={`bg-gray-100 ${isAvatar ? 'rounded-full' : 'rounded-lg'}`}
                 style={{
                   width: previewWidth,
                   height: previewHeight,
                 }}
-              >
-                {cropBox.width > 0 && (
-                  <img
-                    src={imageUrl}
-                    alt="Preview"
-                    style={getPreviewStyle()}
-                    draggable={false}
-                  />
-                )}
-              </div>
+              />
               <p className="text-xs text-muted-foreground mt-2">
                 This is how the image will appear as {viewTypeDesc}.
               </p>
