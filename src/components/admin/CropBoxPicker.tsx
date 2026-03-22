@@ -453,7 +453,8 @@ export const CropBoxPicker = ({
                 ref={containerRef}
                 className="relative bg-gray-900 rounded-lg overflow-hidden"
                 style={{
-                  width: displayDimensions.width || '100%',
+                  width: displayDimensions.width > 0 ? displayDimensions.width : '100%',
+                  maxWidth: '100%',
                   height: displayDimensions.height || 'auto'
                 }}
               >
@@ -629,7 +630,7 @@ export const CropBoxPicker = ({
 
             {/* Preview */}
             <div className="w-72 flex-shrink-0">
-              <p className="text-sm font-medium mb-2">Preview ({aspectLabel})</p>
+              <p className="text-sm font-medium mb-2">Preview ({aspectLabel}) <span className="text-xs text-muted-foreground">v3</span></p>
               <div
                 className={`bg-gray-100 overflow-hidden ${isAvatar ? 'rounded-full' : 'rounded-lg'}`}
                 style={{
