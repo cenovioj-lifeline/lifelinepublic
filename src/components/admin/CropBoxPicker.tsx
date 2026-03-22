@@ -187,9 +187,8 @@ export const CropBoxPicker = ({
     const naturalHeight = img.naturalHeight;
     setImageDimensions({ width: naturalWidth, height: naturalHeight });
 
-    // Calculate displayed dimensions (fit within available space)
-    // Use parent's width since container width tracks the image
-    const containerWidth = container.parentElement?.clientWidth || container.clientWidth;
+    // Calculate displayed dimensions (fit within container)
+    const containerWidth = container.clientWidth;
     const maxHeight = 500; // Max height for the editing area
 
     let displayWidth = containerWidth;
@@ -410,19 +409,24 @@ export const CropBoxPicker = ({
   const previewWidth = isAvatar ? 200 : 280;
   const previewHeight = previewWidth / aspectRatio;
 
-  // Calculate preview crop style
-  const getPreviewStyle = () => {
-    if (cropBox.width === 0) return {};
+  // Preview uses the same object-cover + objectPosition + scale approach
+  // as the actual page display — no margin math, no dimension dependencies
+  const getPreviewStyle = (): React.CSSProperties => {
+    if (cropBox.width === 0 || displayDimensions.width === 0) return {};
 
-    // For preview, we show what the cropped image will look like
-    const scaleX = previewWidth / cropBox.width;
-    const scaleY = previewHeight / cropBox.height;
+    // Convert pixel crop box to the same position/scale format the DB stores
+    const pctW = (cropBox.width / displayDimensions.width) * 100;
+    const posX = ((cropBox.x + cropBox.width / 2) / displayDimensions.width) * 100;
+    const posY = ((cropBox.y + cropBox.height / 2) / displayDimensions.height) * 100;
+    const scale = 100 / pctW;
 
     return {
-      width: displayDimensions.width * scaleX,
-      height: displayDimensions.height * scaleY,
-      marginLeft: -cropBox.x * scaleX,
-      marginTop: -cropBox.y * scaleY,
+      objectFit: 'cover' as const,
+      objectPosition: `${posX}% ${posY}%`,
+      transform: `scale(${scale})`,
+      transformOrigin: `${posX}% ${posY}%`,
+      width: '100%',
+      height: '100%',
     };
   };
 
@@ -448,13 +452,12 @@ export const CropBoxPicker = ({
 
           <div className="flex gap-6">
             {/* Main editing area */}
-            <div className="flex-1 flex justify-center">
+            <div className="flex-1">
               <div
                 ref={containerRef}
                 className="relative bg-gray-900 rounded-lg overflow-hidden"
                 style={{
-                  width: displayDimensions.width > 0 ? displayDimensions.width : '100%',
-                  maxWidth: '100%',
+                  width: '100%',
                   height: displayDimensions.height || 'auto'
                 }}
               >
@@ -630,7 +633,7 @@ export const CropBoxPicker = ({
 
             {/* Preview */}
             <div className="w-72 flex-shrink-0">
-              <p className="text-sm font-medium mb-2">Preview ({aspectLabel}) <span className="text-xs text-muted-foreground">v3</span></p>
+              <p className="text-sm font-medium mb-2">Preview ({aspectLabel}) <span className="text-xs text-muted-foreground">v4</span></p>
               <div
                 className={`bg-gray-100 overflow-hidden ${isAvatar ? 'rounded-full' : 'rounded-lg'}`}
                 style={{
