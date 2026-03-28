@@ -52,7 +52,7 @@ export const MobileLifelineViewer = ({ lifelineId }: MobileLifelineViewerProps) 
     collection?.quote_frequency || 3
   );
 
-  const { data: lifeline } = useQuery({
+  const { data: lifeline, isError: lifelineError } = useQuery({
     queryKey: ['lifeline', lifelineId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -69,7 +69,7 @@ export const MobileLifelineViewer = ({ lifelineId }: MobileLifelineViewerProps) 
     ? parseLifelineTitle(lifeline.title, lifeline.lifeline_type || 'list')
     : null;
 
-  const { data: rawEntries, isLoading } = useQuery({
+  const { data: rawEntries, isLoading, isError: entriesError } = useQuery({
     queryKey: ['lifeline-entries-mobile', lifelineId, user?.id],
     queryFn: async () => {
       let query = supabase
@@ -167,6 +167,17 @@ export const MobileLifelineViewer = ({ lifelineId }: MobileLifelineViewerProps) 
   };
 
   const currentEntry = selectedIndex !== null ? entries[selectedIndex] : null;
+
+  if (lifelineError || entriesError) {
+    return (
+      <div className="h-screen bg-background flex items-center justify-center">
+        <div className="text-center space-y-3">
+          <p className="text-muted-foreground text-lg">Unable to load this lifeline.</p>
+          <button className="px-4 py-2 border rounded-md text-sm" onClick={() => window.location.reload()}>Try Again</button>
+        </div>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (

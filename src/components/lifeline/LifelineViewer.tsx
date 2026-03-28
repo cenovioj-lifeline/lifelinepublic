@@ -122,7 +122,7 @@ export function LifelineViewer({
     };
   }, [lifelineId]); // Re-run when lifeline changes (new collection = new color scheme)
 
-  const { data: lifeline } = useQuery({
+  const { data: lifeline, isError: lifelineError } = useQuery({
     queryKey: ["lifeline", lifelineId],
     queryFn: async () => {
       const { data, error} = await supabase
@@ -136,7 +136,7 @@ export function LifelineViewer({
     },
   });
 
-  const { data: rawEntries } = useQuery({
+  const { data: rawEntries, isError: entriesError } = useQuery({
     queryKey: ["entries", lifelineId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -407,6 +407,15 @@ export function LifelineViewer({
   // Mobile view - render after all hooks are called
   if (isMobile) {
     return <MobileLifelineViewer lifelineId={lifelineId} />;
+  }
+
+  if (lifelineError || entriesError) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64 gap-3 text-[hsl(var(--scheme-muted-text))]">
+        <p className="text-lg">Unable to load this lifeline.</p>
+        <Button variant="outline" onClick={() => window.location.reload()}>Try Again</Button>
+      </div>
+    );
   }
 
   if (!lifeline || !entries) {

@@ -150,7 +150,7 @@ export default function CollectionMedia() {
     enabled: !!collection?.id,
   });
 
-  // Fetch videos for this collection
+  // Fetch videos for this collection (table may not exist yet — return empty on error)
   const { data: videos, isLoading: videosLoading } = useQuery({
     queryKey: ["collection-media-videos", collection?.id],
     queryFn: async () => {
@@ -163,13 +163,13 @@ export default function CollectionMedia() {
         .eq("status", "published")
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
+      if (error) return [];
       return (data || []) as Video[];
     },
     enabled: !!collection?.id,
   });
 
-  // Fetch podcasts for this collection
+  // Fetch podcasts for this collection (table may not exist yet — return empty on error)
   const { data: podcasts, isLoading: podcastsLoading } = useQuery({
     queryKey: ["collection-media-podcasts", collection?.id],
     queryFn: async () => {
@@ -182,13 +182,13 @@ export default function CollectionMedia() {
         .eq("status", "published")
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
+      if (error) return [];
       return (data || []) as Podcast[];
     },
     enabled: !!collection?.id,
   });
 
-  // Fetch apps for this collection
+  // Fetch apps for this collection (table may not exist yet — return empty on error)
   const { data: apps, isLoading: appsLoading } = useQuery({
     queryKey: ["collection-media-apps", collection?.id],
     queryFn: async () => {
@@ -201,7 +201,7 @@ export default function CollectionMedia() {
         .eq("status", "published")
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
+      if (error) return [];
       return (data || []) as App[];
     },
     enabled: !!collection?.id,

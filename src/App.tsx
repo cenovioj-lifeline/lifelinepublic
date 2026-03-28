@@ -127,8 +127,8 @@ function AppContent() {
             <Route path="/feed/setup" element={<PublicLayout><FeedSetup /></PublicLayout>} />
           <Route path="/auth" element={<AdminAuth />} />
           
-          {/* Spike - AI Wizard Test Page */}
-          <Route path="/spike" element={<Spike />} />
+          {/* Spike - AI Wizard Test Page (admin only) */}
+          <Route path="/spike" element={<ProtectedRoute><Spike /></ProtectedRoute>} />
           
           {/* Social Collection Builder */}
           <Route path="/social/:collectionId/build" element={<Build />} />
