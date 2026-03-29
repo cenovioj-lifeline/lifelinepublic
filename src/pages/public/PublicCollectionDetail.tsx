@@ -18,6 +18,7 @@ import { PublicAuthModal } from "@/components/PublicAuthModal";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { MobileSectionCarousel } from "@/components/MobileSectionCarousel";
 import { FavoriteButton } from "@/components/FavoriteButton";
+import { CollectionFeedButton } from "@/components/CollectionFeedButton";
 import { lifelineLink } from "@/lib/navigationLinks";
 import { fetchColorScheme } from "@/hooks/useColorScheme";
 import { ContentCardImageUpload } from "@/components/ContentCardImageUpload";
@@ -974,7 +975,8 @@ export default function PublicCollectionDetail() {
                 alt={collection.title}
                 className="w-full h-full object-cover"
               />
-              <div className="absolute top-4 right-4 z-10">
+              <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
+                <CollectionFeedButton collectionId={collection.id} className="bg-white/80 hover:bg-white" />
                 <FavoriteButton itemId={collection.id} itemType="collection" className="bg-white/80 hover:bg-white" />
               </div>
               <div className="hidden absolute bottom-0 left-0 right-0 p-6 md:p-8" style={{ color: 'hsl(var(--scheme-ch-banner-text))' }}>

@@ -1,14 +1,13 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/lib/auth';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { useFeedData, useFeedSubscriptions } from '@/hooks/useFeedData';
+import { useFeedData, useCollectionSubscriptions } from '@/hooks/useFeedData';
 import { useSeenEntries, useMarkSeen, useUnmarkSeen } from '@/hooks/useFeedSeen';
 import { FeedViewer } from '@/components/feed/FeedViewer';
 import { MobileFeedViewer } from '@/components/feed/MobileFeedViewer';
 import { PublicLayout } from '@/components/PublicLayout';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
 
 export default function Feed() {
@@ -17,28 +16,17 @@ export default function Feed() {
   const isMobile = useIsMobile();
   const [seenFilter, setSeenFilter] = useState<'unseen' | 'seen' | 'all'>('unseen');
 
-  // Check if user has subscriptions (only relevant for authenticated users)
-  const { data: subscriptions = [], isLoading: subsLoading } = useFeedSubscriptions(user?.id);
+  const { data: subscribedCollections = [], isLoading: subsLoading } = useCollectionSubscriptions(user?.id);
 
-  // On desktop, redirect authenticated users with no subscriptions to setup
-  useEffect(() => {
-    if (!isMobile && !subsLoading && user && subscriptions.length === 0) {
-      navigate('/feed/setup');
-    }
-  }, [subscriptions, subsLoading, user, navigate, isMobile]);
-
-  // Fetch feed data - works for both authenticated and anonymous users
   const feedQuery = useFeedData(user?.id);
-
   const allEntries = feedQuery.data?.pages?.flatMap(page => page.entries) || [];
 
-  // Seen entries management (only for authenticated users)
   const { data: seenIds = new Set<string>() } = useSeenEntries(user?.id);
   const markSeen = useMarkSeen(user?.id);
   const unmarkSeen = useUnmarkSeen(user?.id);
 
   const handleToggleSeen = (entryId: string) => {
-    if (!user) return; // Can't toggle seen for anonymous users
+    if (!user) return;
     if (seenIds.has(entryId)) {
       unmarkSeen.mutate(entryId);
     } else {
@@ -46,7 +34,6 @@ export default function Feed() {
     }
   };
 
-  // Show loading state
   const isLoading = (user && subsLoading) || feedQuery.isLoading;
   if (isLoading) {
     return (
@@ -56,12 +43,6 @@ export default function Feed() {
     );
   }
 
-  // On desktop with authenticated user with no subscriptions, will redirect (handled in useEffect)
-  if (!isMobile && user && subscriptions.length === 0) {
-    return null;
-  }
-
-  // Mobile view - show feed with settings sheet option
   if (isMobile) {
     return (
       <MobileFeedViewer
@@ -73,43 +54,20 @@ export default function Feed() {
         seenIds={seenIds}
         seenFilter={seenFilter}
         onToggleSeen={handleToggleSeen}
-        existingSubscriptions={subscriptions}
-        showSettingsOnMount={user ? subscriptions.length === 0 : false}
+        existingSubscriptions={subscribedCollections}
+        showSettingsOnMount={user ? subscribedCollections.length === 0 : false}
       />
     );
   }
 
-  if (allEntries.length === 0) {
-    return (
-      <PublicLayout>
-        <Card className="p-12 text-center max-w-2xl mx-auto">
-          <h2 className="text-2xl font-bold mb-4">Your Feed is Empty</h2>
-          <p className="text-muted-foreground mb-6">
-            {user 
-              ? "The lifelines you selected don't have any dated events yet. Try adding more lifelines to your feed."
-              : "Sign in to customize your feed with your favorite lifelines."
-            }
-          </p>
-          {user ? (
-            <Button onClick={() => navigate('/feed/setup')}>
-              Adjust Feed Settings
-            </Button>
-          ) : (
-            <Button onClick={() => navigate('/auth')}>
-              Sign In
-            </Button>
-          )}
-        </Card>
-      </PublicLayout>
-    );
-  }
-
-  // Determine subtitle based on auth state
   const getSubtitle = () => {
-    if (user && subscriptions.length > 0) {
-      return `Events from ${subscriptions.length} lifeline${subscriptions.length !== 1 ? 's' : ''}`;
+    if (user && subscribedCollections.length > 0) {
+      return `Events from ${subscribedCollections.length} collection${subscribedCollections.length !== 1 ? 's' : ''}`;
     }
-    return 'News and recent collections';
+    if (user) {
+      return 'Subscribe to collections to see their events here';
+    }
+    return 'Discover collections';
   };
 
   return (
@@ -129,25 +87,39 @@ export default function Feed() {
           </Button>
         )}
       </div>
-      
-      {/* Filter Bar - only show for authenticated users */}
-      {user && (
+
+      {user && subscribedCollections.length === 0 && allEntries.length > 0 && (
+        <div className="mb-6 p-4 border rounded-lg bg-muted/50">
+          <p className="text-sm text-muted-foreground">
+            Subscribe to collections to see their events in your feed.{' '}
+            <button
+              onClick={() => navigate('/feed/setup')}
+              className="text-primary underline hover:no-underline"
+            >
+              Set up your feed
+            </button>
+          </p>
+        </div>
+      )}
+
+      {/* Filter Bar - only for authenticated users with subscriptions */}
+      {user && subscribedCollections.length > 0 && (
         <div className="flex gap-2 mb-4">
-          <Button 
+          <Button
             variant={seenFilter === 'unseen' ? 'default' : 'outline'}
             onClick={() => setSeenFilter('unseen')}
             size="sm"
           >
             Unseen
           </Button>
-          <Button 
+          <Button
             variant={seenFilter === 'all' ? 'default' : 'outline'}
             onClick={() => setSeenFilter('all')}
             size="sm"
           >
             All
           </Button>
-          <Button 
+          <Button
             variant={seenFilter === 'seen' ? 'default' : 'outline'}
             onClick={() => setSeenFilter('seen')}
             size="sm"
@@ -156,7 +128,7 @@ export default function Feed() {
           </Button>
         </div>
       )}
-      
+
       <FeedViewer
         entries={allEntries}
         isLoading={feedQuery.isLoading}
