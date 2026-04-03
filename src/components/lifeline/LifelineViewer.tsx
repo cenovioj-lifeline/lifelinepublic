@@ -3,6 +3,7 @@ import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useSuperFan } from "@/hooks/useSuperFan";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CroppedImage } from "@/components/ui/CroppedImage";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -419,7 +420,11 @@ export function LifelineViewer({
   }
 
   if (!lifeline || !entries) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex items-center justify-center h-64 text-muted-foreground">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-current" />
+      </div>
+    );
   }
 
   return (
@@ -734,20 +739,17 @@ export function LifelineViewer({
                                    )}
                                  </>
                                )}
-                               <img
+                               <CroppedImage
                                  src={media.url}
                                  alt={media.alt_text || selected.title}
-                                 className="w-full aspect-video object-cover rounded-lg"
-                                 style={{
-                                   objectPosition: `${media.position_x ?? 50}% ${media.position_y ?? 50}%`,
-                                   transform: `scale(${media.scale ?? 1})`,
-                                   transformOrigin: `${media.position_x ?? 50}% ${media.position_y ?? 50}%`
-                                 }}
-                                onError={(e) => {
-                                  e.currentTarget.src = '/placeholder.svg';
-                                  e.currentTarget.alt = 'Image failed to load';
-                                }}
-                              />
+                                 centerX={media.position_x ?? 50}
+                                 centerY={media.position_y ?? 50}
+                                 scale={media.scale ?? 1}
+                                 className="w-full aspect-video rounded-lg"
+                                 fallback={
+                                   <img src="/placeholder.svg" alt="Image failed to load" className="w-8 h-8 opacity-50" />
+                                 }
+                               />
                             </div>
                           </CarouselItem>
                         ))}
