@@ -650,7 +650,6 @@ export const FeedViewer = ({
                   
                   <div className="flex flex-wrap items-center gap-2 mb-2">
                     <Badge className="bg-green-600 text-white">New Collection</Badge>
-                    <Badge variant="outline">+10</Badge>
                   </div>
                   <h2 className="text-2xl font-bold mb-2 text-[hsl(var(--scheme-ll-entry-title))]">
                     {selectedEntry.collectionTitle}

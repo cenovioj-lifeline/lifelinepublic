@@ -108,11 +108,6 @@ export const MobileFeedDetailSheet = ({
                     alt={entry.collectionTitle || 'Collection'}
                     className="w-full h-full object-cover"
                   />
-                  <div className="absolute bottom-4 right-4">
-                    <div className="rounded-md px-3 py-1.5 border-2 shadow-lg bg-blue-500 border-blue-600">
-                      <span className="text-sm font-bold text-white">+10</span>
-                    </div>
-                  </div>
                 </div>
               )}
               
