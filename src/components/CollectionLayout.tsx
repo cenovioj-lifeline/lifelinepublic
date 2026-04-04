@@ -154,7 +154,7 @@ export function CollectionLayout({
   ];
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: "hsl(var(--scheme-collection-bg))" }}>
+    <div className="min-h-screen" style={{ backgroundColor: "hsl(var(--scheme-page-bg))" }}>
       <header
         className="border-b sticky top-0 z-50 shadow-sm bg-[hsl(var(--scheme-nav-bg))] border-[hsl(var(--scheme-nav-bg)/.8)]"
       >

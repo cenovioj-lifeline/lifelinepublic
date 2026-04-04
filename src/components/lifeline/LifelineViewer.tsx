@@ -412,7 +412,7 @@ export function LifelineViewer({
 
   if (lifelineError || entriesError) {
     return (
-      <div className="flex flex-col items-center justify-center h-64 gap-3 text-[hsl(var(--scheme-muted-text))]">
+      <div className="flex flex-col items-center justify-center h-64 gap-3 text-[hsl(var(--scheme-cards-text))]">
         <p className="text-lg">Unable to load this lifeline.</p>
         <Button variant="outline" onClick={() => window.location.reload()}>Try Again</Button>
       </div>
@@ -441,7 +441,7 @@ export function LifelineViewer({
                       {parsed.personName}
                     </span>
                     <span className="text-[hsl(var(--scheme-person-name-accent))] opacity-30 text-2xl">│</span>
-                    <span className="text-xl lg:text-xl md:text-lg sm:text-base text-[hsl(var(--scheme-muted-text))]">
+                    <span className="text-xl lg:text-xl md:text-lg sm:text-base text-[hsl(var(--scheme-cards-text))]">
                       {parsed.contextTitle}
                     </span>
                   </div>

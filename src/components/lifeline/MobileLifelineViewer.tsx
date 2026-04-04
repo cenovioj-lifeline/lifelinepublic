@@ -204,7 +204,7 @@ export const MobileLifelineViewer = ({ lifelineId }: MobileLifelineViewerProps) 
     <div className="h-screen bg-background flex flex-col overflow-hidden">
       {/* Lifeline title + Favorite row */}
       <div className="px-2 py-3 flex items-center justify-between bg-[hsl(var(--scheme-ll-graph-bg))]">
-        <h1 className="font-serif font-bold text-lg text-[hsl(var(--scheme-collection-text))] truncate flex-1 mr-2">
+        <h1 className="font-serif font-bold text-lg text-[hsl(var(--scheme-title-text))] truncate flex-1 mr-2">
           {parsedTitle?.fullTitle || lifeline?.title || 'Lifeline'}
         </h1>
         <FavoriteButton itemId={lifelineId} itemType="lifeline" />
