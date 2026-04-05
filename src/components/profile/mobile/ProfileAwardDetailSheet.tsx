@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { useSwipeable } from "react-swipeable";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { CroppedImage } from "@/components/ui/CroppedImage";
 import { ChevronLeft, ChevronRight, X, ExternalLink } from "lucide-react";
 import { ProfileAward } from "@/hooks/useProfileAwardNavigation";
 
@@ -92,21 +92,20 @@ export function ProfileAwardDetailSheet({
           <div className="flex-1 overflow-y-auto px-6 pb-24">
             <div className="flex flex-col items-center text-center space-y-4 pt-4">
               {/* Winner Avatar */}
-              <Avatar className="h-[200px] w-[200px] border-4 border-amber-200">
-                <AvatarImage 
-                  src={winnerAvatar?.url}
-                  alt={award.winner_name || "Winner"}
-                  className="object-cover"
-                  style={{
-                    objectPosition: `${winnerAvatar?.position_x ?? 50}% ${winnerAvatar?.position_y ?? 50}%`,
-                    transform: `scale(${winnerAvatar?.scale ?? 1})`,
-                    transformOrigin: `${winnerAvatar?.position_x ?? 50}% ${winnerAvatar?.position_y ?? 50}%`
-                  }}
-                />
-                <AvatarFallback className="text-6xl font-bold text-white bg-amber-500">
-                  {winnerInitials || award.winner_name?.slice(0, 2).toUpperCase() || "?"}
-                </AvatarFallback>
-              </Avatar>
+              <CroppedImage
+                src={winnerAvatar?.url}
+                alt={award.winner_name || "Winner"}
+                centerX={winnerAvatar?.position_x ?? 50}
+                centerY={winnerAvatar?.position_y ?? 50}
+                scale={winnerAvatar?.scale ?? 1}
+                className="h-[200px] w-[200px] rounded-full border-4 border-amber-200"
+                fallback={
+                  <span className="text-6xl font-bold text-white">
+                    {winnerInitials || award.winner_name?.slice(0, 2).toUpperCase() || "?"}
+                  </span>
+                }
+                fallbackClassName="rounded-full bg-amber-500"
+              />
 
               {/* Category Title */}
               <h2 

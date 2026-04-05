@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { CroppedImage } from "@/components/ui/CroppedImage";
 import { QuoteSubmissionDialog } from "@/components/QuoteSubmissionDialog";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import { generateInitials, generateAvatarColor } from "@/lib/avatarUtils";
@@ -189,20 +189,22 @@ export default function CollectionQuotes() {
                     {(quote.author || quote.author_profile) && (
                       <div className="flex items-center gap-3">
                         {quote.author_profile && (
-                          <Avatar className="h-10 w-10">
-                            <AvatarImage 
-                              src={quote.author_profile.avatar_image?.url} 
-                              alt={quote.author_profile.avatar_image?.alt_text || quote.author_profile.name}
-                              style={{
-                                objectPosition: `${quote.author_profile.avatar_image?.position_x ?? 50}% ${quote.author_profile.avatar_image?.position_y ?? 50}%`,
-                                transform: `scale(${quote.author_profile.avatar_image?.scale ?? 1})`,
-                                transformOrigin: `${quote.author_profile.avatar_image?.position_x ?? 50}% ${quote.author_profile.avatar_image?.position_y ?? 50}%`
-                              }}
-                            />
-                            <AvatarFallback style={{ backgroundColor: generateAvatarColor(quote.author_profile.name) }}>
-                              {generateInitials(quote.author_profile.name)}
-                            </AvatarFallback>
-                          </Avatar>
+                          <CroppedImage
+                            src={quote.author_profile.avatar_image?.url}
+                            alt={quote.author_profile.avatar_image?.alt_text || quote.author_profile.name}
+                            centerX={quote.author_profile.avatar_image?.position_x ?? 50}
+                            centerY={quote.author_profile.avatar_image?.position_y ?? 50}
+                            scale={quote.author_profile.avatar_image?.scale ?? 1}
+                            className="h-10 w-10 rounded-full"
+                            fallback={
+                              <div className="w-full h-full rounded-full flex items-center justify-center"
+                                   style={{ backgroundColor: generateAvatarColor(quote.author_profile.name) }}>
+                                <span className="text-xs font-medium text-white">
+                                  {generateInitials(quote.author_profile.name)}
+                                </span>
+                              </div>
+                            }
+                          />
                         )}
                         <div className="flex-1">
                           <p

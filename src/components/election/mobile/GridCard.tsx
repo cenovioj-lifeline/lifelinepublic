@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 import { MobileSuperlative } from "@/utils/electionDataAdapter";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { CroppedImage } from "@/components/ui/CroppedImage";
 
 interface GridCardProps {
   superlative: MobileSuperlative;
@@ -18,24 +18,22 @@ export const GridCard = ({ superlative, onClick }: GridCardProps) => {
         "hover:shadow-md focus:outline-none focus:ring-2 focus:ring-primary/20"
       )}
     >
-      <Avatar className="h-[120px] w-[120px]">
-        <AvatarImage 
-          src={superlative.winner.photo_url || undefined} 
-          alt={superlative.winner.name}
-          className="object-cover"
-          style={{
-            objectPosition: `${superlative.winner.position_x ?? 50}% ${superlative.winner.position_y ?? 50}%`,
-            transform: `scale(${superlative.winner.scale ?? 1})`,
-            transformOrigin: `${superlative.winner.position_x ?? 50}% ${superlative.winner.position_y ?? 50}%`
-          }}
-        />
-        <AvatarFallback 
-          className="text-4xl font-bold text-white"
-          style={{ backgroundColor: superlative.winner.color }}
-        >
-          {superlative.winner.initials}
-        </AvatarFallback>
-      </Avatar>
+      <CroppedImage
+        src={superlative.winner.photo_url || undefined}
+        alt={superlative.winner.name}
+        centerX={superlative.winner.position_x ?? 50}
+        centerY={superlative.winner.position_y ?? 50}
+        scale={superlative.winner.scale ?? 1}
+        className="h-[120px] w-[120px] rounded-full"
+        fallback={
+          <div className="w-full h-full rounded-full flex items-center justify-center"
+               style={{ backgroundColor: superlative.winner.color }}>
+            <span className="text-4xl font-bold text-white">
+              {superlative.winner.initials}
+            </span>
+          </div>
+        }
+      />
 
       <h3 className="text-sm font-bold text-center line-clamp-2 text-foreground min-h-[2.5rem]">
         {superlative.title}

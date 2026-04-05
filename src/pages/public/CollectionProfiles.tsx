@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { CollectionLayout } from "@/components/CollectionLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { CroppedImage } from "@/components/ui/CroppedImage";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function CollectionProfiles() {
@@ -95,22 +95,20 @@ export default function CollectionProfiles() {
                 <Card className="hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-cards-bg))] border-[hsl(var(--scheme-cards-border))]">
                   <CardHeader>
                     <div className="flex items-center gap-4">
-                      <Avatar className="h-16 w-16">
-                        {profile.avatar_image?.url && (
-                          <AvatarImage
-                            src={profile.avatar_image.url}
-                            alt={profile.name}
-                            style={{
-                              objectPosition: `${profile.avatar_image.position_x ?? 50}% ${profile.avatar_image.position_y ?? 50}%`,
-                              transform: `scale(${profile.avatar_image.scale ?? 1})`,
-                              transformOrigin: `${profile.avatar_image.position_x ?? 50}% ${profile.avatar_image.position_y ?? 50}%`
-                            }}
-                          />
-                        )}
-                        <AvatarFallback>
-                          {getInitials(profile.name)}
-                        </AvatarFallback>
-                      </Avatar>
+                      <CroppedImage
+                        src={profile.avatar_image?.url}
+                        alt={profile.name}
+                        centerX={profile.avatar_image?.position_x ?? 50}
+                        centerY={profile.avatar_image?.position_y ?? 50}
+                        scale={profile.avatar_image?.scale ?? 1}
+                        className="h-16 w-16 rounded-full"
+                        fallback={
+                          <span className="text-sm font-medium text-muted-foreground">
+                            {getInitials(profile.name)}
+                          </span>
+                        }
+                        fallbackClassName="rounded-full bg-muted"
+                      />
                       <div>
                         <CardTitle className="text-lg transition-colors text-[hsl(var(--scheme-cards-text))]">
                           {profile.name}

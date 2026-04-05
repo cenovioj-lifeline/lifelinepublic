@@ -2,7 +2,7 @@ import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { useSwipeable } from "react-swipeable";
 import { cn } from "@/lib/utils";
 import { NavigationItem } from "@/utils/electionDataAdapter";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { CroppedImage } from "@/components/ui/CroppedImage";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -143,24 +143,22 @@ export const DetailSheet = ({
           {/* Content */}
           <div className="flex-1 overflow-y-auto px-6 pb-6">
             <div className="flex flex-col items-center gap-4 pt-4">
-              <Avatar className="h-[200px] w-[200px]">
-                <AvatarImage 
-                  src={superlative.winner.photo_url || undefined} 
-                  alt={superlative.winner.name}
-                  className="object-cover"
-                  style={{
-                    objectPosition: `${superlative.winner.position_x ?? 50}% ${superlative.winner.position_y ?? 50}%`,
-                    transform: `scale(${superlative.winner.scale ?? 1})`,
-                    transformOrigin: `${superlative.winner.position_x ?? 50}% ${superlative.winner.position_y ?? 50}%`
-                  }}
-                />
-                <AvatarFallback 
-                  className="text-6xl font-bold text-white"
-                  style={{ backgroundColor: superlative.winner.color }}
-                >
-                  {superlative.winner.initials}
-                </AvatarFallback>
-              </Avatar>
+              <CroppedImage
+                src={superlative.winner.photo_url || undefined}
+                alt={superlative.winner.name}
+                centerX={superlative.winner.position_x ?? 50}
+                centerY={superlative.winner.position_y ?? 50}
+                scale={superlative.winner.scale ?? 1}
+                className="h-[200px] w-[200px] rounded-full"
+                fallback={
+                  <div className="w-full h-full rounded-full flex items-center justify-center"
+                       style={{ backgroundColor: superlative.winner.color }}>
+                    <span className="text-6xl font-bold text-white">
+                      {superlative.winner.initials}
+                    </span>
+                  </div>
+                }
+              />
 
               <SheetHeader className="text-center">
                 <SheetTitle className="text-2xl font-bold">

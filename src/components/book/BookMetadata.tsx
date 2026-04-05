@@ -7,6 +7,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { CroppedImage } from "@/components/ui/CroppedImage";
 import { BookOpen, Calendar, FileText, Users } from "lucide-react";
 import type { Book } from "@/types/book";
 
@@ -24,18 +25,14 @@ export function BookMetadata({ book, hasContext = false }: BookMetadataProps) {
           <BookOpen className="h-4 w-4" /> About The Book
         </h3>
         {(book.cover_image?.url || book.coverImageUrl) ? (
-          <div className="aspect-[2/3] rounded-lg shadow-lg mb-4 overflow-hidden border border-border">
-            <img
-              src={book.cover_image?.url || book.coverImageUrl}
-              alt={`${book.title} cover`}
-              className="w-full h-full object-cover"
-              style={{
-                objectPosition: `${book.cover_image?.position_x ?? 50}% ${book.cover_image?.position_y ?? 50}%`,
-                transform: `scale(${book.cover_image?.scale ?? 1})`,
-                transformOrigin: `${book.cover_image?.position_x ?? 50}% ${book.cover_image?.position_y ?? 50}%`
-              }}
-            />
-          </div>
+          <CroppedImage
+            src={book.cover_image?.url || book.coverImageUrl}
+            alt={`${book.title} cover`}
+            centerX={book.cover_image?.position_x ?? 50}
+            centerY={book.cover_image?.position_y ?? 50}
+            scale={book.cover_image?.scale ?? 1}
+            className="aspect-[2/3] rounded-lg shadow-lg mb-4 border border-border"
+          />
         ) : (
           <div 
             className="aspect-[2/3] rounded-lg shadow-inner mb-4 flex items-center justify-center text-white border-2 border-white/20 p-4"

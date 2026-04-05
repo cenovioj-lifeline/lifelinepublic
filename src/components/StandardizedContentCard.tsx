@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { CroppedImage } from "@/components/ui/CroppedImage";
 import { parseLifelineTitle } from "@/lib/lifelineTitle";
 import { ContentTypeBanner } from "@/components/ContentTypeBanner";
 import { fetchColorScheme } from "@/hooks/useColorScheme";
@@ -62,24 +63,17 @@ export function StandardizedContentCard({
     <Link to={linkPath} className="group h-full" onMouseEnter={handleMouseEnter}>
       <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full flex flex-col bg-[hsl(var(--scheme-cards-bg))] border-[hsl(var(--scheme-cards-border))]">
         {/* Standardized 16:9 aspect ratio image */}
-        <div className="aspect-video relative overflow-hidden bg-white">
-          {imageUrl ? (
-            <img
-              src={imageUrl}
-              alt={imageAlt || title}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-              style={{
-                objectPosition: `${imagePositionX ?? 50}% ${imagePositionY ?? 50}%`,
-                transform: `scale(${imageScale ?? 1})`,
-                transformOrigin: `${imagePositionX ?? 50}% ${imagePositionY ?? 50}%`
-              }}
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center text-gray-400">
-              No image
-            </div>
-          )}
-        </div>
+        <CroppedImage
+          src={imageUrl}
+          alt={imageAlt || title}
+          centerX={imagePositionX ?? 50}
+          centerY={imagePositionY ?? 50}
+          scale={imageScale ?? 1}
+          className="aspect-video bg-white"
+          fallback={
+            <span className="text-gray-400">No image</span>
+          }
+        />
         
         {/* Banner - separate section below image */}
         <ContentTypeBanner type={badge || type} cardLabel={cardLabel} />

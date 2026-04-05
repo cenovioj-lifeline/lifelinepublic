@@ -17,6 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 import { PublicAuthModal } from "@/components/PublicAuthModal";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { MobileSectionCarousel } from "@/components/MobileSectionCarousel";
+import { CroppedImage } from "@/components/ui/CroppedImage";
 import { FavoriteButton } from "@/components/FavoriteButton";
 import { CollectionFeedButton } from "@/components/CollectionFeedButton";
 import { lifelineLink } from "@/lib/navigationLinks";
@@ -885,24 +886,17 @@ export default function PublicCollectionDetail() {
           className="group"
         >
           <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full bg-[hsl(var(--scheme-cards-bg))] border-[hsl(var(--scheme-cards-border))]">
-            <div className="aspect-video relative bg-white overflow-hidden">
-              {imageUrl ? (
-                <img
-                  src={imageUrl}
-                  alt={item.name}
-                  className="w-full h-full object-cover"
-                  style={{
-                    objectPosition: widenedUrl ? '50% 50%' : `${cardPosX}% ${cardPosY}%`,
-                    transform: `scale(${cardScale})`,
-                    transformOrigin: `${cardPosX}% ${cardPosY}%`
-                  }}
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-gray-400">
-                  No image
-                </div>
-              )}
-            </div>
+            <CroppedImage
+              src={imageUrl}
+              alt={item.name}
+              centerX={widenedUrl ? 50 : cardPosX}
+              centerY={widenedUrl ? 50 : cardPosY}
+              scale={cardScale}
+              className="aspect-video bg-white"
+              fallback={
+                <span className="text-gray-400">No image</span>
+              }
+            />
             <ContentTypeBanner type="profile" />
             <CardHeader className="bg-[hsl(var(--scheme-cards-bg))]">
               <CardTitle className="text-lg transition-colors text-[hsl(var(--scheme-cards-text))]">
@@ -1258,24 +1252,17 @@ export default function PublicCollectionDetail() {
                             className="group"
                           >
                             <Card className="overflow-hidden hover:shadow-lg transition-shadow bg-[hsl(var(--scheme-cards-bg))] border-[hsl(var(--scheme-cards-border))]">
-                              <div className="aspect-video relative bg-white overflow-hidden">
-                                {imageUrl ? (
-                                  <img
-                                    src={imageUrl}
-                                    alt={profile.name}
-                                    className="w-full h-full object-cover"
-                                    style={{
-                                      objectPosition: widenedUrl2 ? '50% 50%' : `${cardPosX}% ${cardPosY}%`,
-                                      transform: `scale(${cardScale})`,
-                                      transformOrigin: `${cardPosX}% ${cardPosY}%`
-                                    }}
-                                  />
-                                ) : (
-                                  <div className="w-full h-full flex items-center justify-center text-gray-400">
-                                    No image
-                                  </div>
-                                )}
-                              </div>
+                              <CroppedImage
+                                src={imageUrl}
+                                alt={profile.name}
+                                centerX={widenedUrl2 ? 50 : cardPosX}
+                                centerY={widenedUrl2 ? 50 : cardPosY}
+                                scale={cardScale}
+                                className="aspect-video bg-white"
+                                fallback={
+                                  <span className="text-gray-400">No image</span>
+                                }
+                              />
                               <ContentTypeBanner type="profile" />
                               <CardHeader className="bg-[hsl(var(--scheme-cards-bg))]">
                                 <CardTitle className="text-lg transition-colors text-[hsl(var(--scheme-cards-text))]">

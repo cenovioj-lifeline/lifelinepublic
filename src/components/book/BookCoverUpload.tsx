@@ -13,6 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { CropBoxPicker, CropData } from "@/components/admin/CropBoxPicker";
 import { Upload, BookOpen } from "lucide-react";
+import { CroppedImage } from "@/components/ui/CroppedImage";
 import { Button } from "@/components/ui/button";
 
 interface BookCoverUploadProps {
@@ -227,18 +228,14 @@ export function BookCoverUpload({ book, onImageUpdate }: BookCoverUploadProps) {
         {/* Current Cover Preview */}
         {hasImage && (
           <div className="flex flex-col items-center gap-4">
-            <div className="aspect-[2/3] w-48 overflow-hidden rounded-lg border shadow-md">
-              <img
-                src={currentImageUrl!}
-                alt={`Cover of ${book.title}`}
-                className="w-full h-full object-cover"
-                style={{
-                  objectPosition: `${positionX}% ${positionY}%`,
-                  transform: `scale(${scale})`,
-                  transformOrigin: `${positionX}% ${positionY}%`
-                }}
-              />
-            </div>
+            <CroppedImage
+              src={currentImageUrl!}
+              alt={`Cover of ${book.title}`}
+              centerX={positionX}
+              centerY={positionY}
+              scale={scale}
+              className="aspect-[2/3] w-48 rounded-lg border shadow-md"
+            />
             {coverImage?.id && (
               <Button variant="outline" size="sm" onClick={handleEditPosition}>
                 Adjust Position

@@ -1,6 +1,6 @@
 import { useState, DragEvent } from "react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Profile, getInitials } from "@/types/profile";
+import { CroppedImage } from "@/components/ui/CroppedImage";
 import { useAdminAccess } from "@/lib/useAdminAccess";
 import { uploadImage } from "@/lib/storage";
 import { supabase } from "@/integrations/supabase/client";
@@ -193,22 +193,22 @@ export function ProfileAvatarUpload({ profile, onImageUpdate }: ProfileAvatarUpl
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
       >
-        <Avatar className={`h-32 w-32 md:h-48 md:w-48 flex-shrink-0 transition-all ${
-          isDragging ? 'ring-4 ring-primary scale-105' : ''
-        } ${hasAccess && !hasImage ? 'ring-2 ring-dashed ring-muted-foreground/30' : ''}`}>
-          <AvatarImage
-            src={imageUrl || undefined}
-            alt={profile.avatar_image?.alt_text || profile.name}
-            style={{
-              objectPosition: `${positionX}% ${positionY}%`,
-              transform: `scale(${scale})`,
-              transformOrigin: `${positionX}% ${positionY}%`,
-            }}
-          />
-          <AvatarFallback className="text-2xl text-gray-700">
-            {getInitials(profile.name)}
-          </AvatarFallback>
-        </Avatar>
+        <CroppedImage
+          src={imageUrl || undefined}
+          alt={profile.avatar_image?.alt_text || profile.name}
+          centerX={positionX}
+          centerY={positionY}
+          scale={scale}
+          className={`h-32 w-32 md:h-48 md:w-48 flex-shrink-0 rounded-full transition-all ${
+            isDragging ? 'ring-4 ring-primary scale-105' : ''
+          } ${hasAccess && !hasImage ? 'ring-2 ring-dashed ring-muted-foreground/30' : ''}`}
+          fallback={
+            <span className="text-2xl text-gray-700">
+              {getInitials(profile.name)}
+            </span>
+          }
+          fallbackClassName="rounded-full bg-muted"
+        />
 
         {hasAccess && !hasImage && !isUploading && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">

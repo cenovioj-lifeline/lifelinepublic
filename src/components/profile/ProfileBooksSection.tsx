@@ -10,6 +10,7 @@ import { useProfileBooks } from "@/hooks/useBookData";
 import { useAdminAccess } from "@/lib/useAdminAccess";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BookOpen, Pencil } from "lucide-react";
+import { CroppedImage } from "@/components/ui/CroppedImage";
 import type { ProfileBook } from "@/types/book";
 
 interface ProfileBooksSectionProps {
@@ -130,15 +131,13 @@ function BookCoverCard({ book, onClick, onEditClick }: BookCoverCardProps) {
       {/* Book Cover */}
       <div className="relative aspect-[2/3] w-full overflow-hidden rounded-lg shadow-md transition-all duration-200 group-hover:shadow-xl group-hover:scale-[1.02]">
         {hasCoverImage ? (
-          <img
+          <CroppedImage
             src={coverImageUrl}
             alt={`Cover of ${book.title}`}
-            className="h-full w-full object-cover"
-            style={{
-              objectPosition: `${positionX}% ${positionY}%`,
-              transform: `scale(${scale})`,
-              transformOrigin: `${positionX}% ${positionY}%`
-            }}
+            centerX={positionX}
+            centerY={positionY}
+            scale={scale}
+            className="h-full w-full"
           />
         ) : (
           /* Placeholder cover with theme color */

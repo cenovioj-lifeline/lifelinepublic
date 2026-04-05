@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { FeedEntry } from '@/hooks/useFeedData';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { CroppedImage } from '@/components/ui/CroppedImage';
 import { Card, CardContent } from '@/components/ui/card';
 import {
   Carousel,
@@ -544,18 +545,14 @@ export const FeedViewer = ({
                         <CarouselContent>
                           {selectedEntry.entryImages.map((img) => (
                             <CarouselItem key={img.id}>
-                              <div className="relative overflow-hidden rounded-lg">
-                                <img
-                                  src={img.url}
-                                  alt={img.alt_text || selectedEntry.entryTitle}
-                                  className="w-full aspect-video object-cover rounded-lg"
-                                  style={{
-                                    objectPosition: `${img.position_x ?? 50}% ${img.position_y ?? 50}%`,
-                                    transform: `scale(${img.scale ?? 1})`,
-                                    transformOrigin: `${img.position_x ?? 50}% ${img.position_y ?? 50}%`
-                                  }}
-                                />
-                              </div>
+                              <CroppedImage
+                                src={img.url}
+                                alt={img.alt_text || selectedEntry.entryTitle}
+                                centerX={img.position_x ?? 50}
+                                centerY={img.position_y ?? 50}
+                                scale={img.scale ?? 1}
+                                className="w-full aspect-video rounded-lg"
+                              />
                             </CarouselItem>
                           ))}
                         </CarouselContent>

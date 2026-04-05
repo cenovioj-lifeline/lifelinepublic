@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { CropBoxPicker, CropData } from "@/components/admin/CropBoxPicker";
+import { CroppedImage } from "@/components/ui/CroppedImage";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Pencil, Trash2, Sparkles } from "lucide-react";
@@ -218,14 +219,7 @@ export function ProfileImageEditor({ profile, onImageUpdate }: ProfileImageEdito
     scale: profile.avatar_image?.card_scale ?? 1
   };
 
-  const getImageStyle = (pos: { x: number; y: number; scale: number }): React.CSSProperties => ({
-    objectFit: 'cover' as const,
-    objectPosition: `${pos.x}% ${pos.y}%`,
-    transform: `scale(${pos.scale})`,
-    transformOrigin: `${pos.x}% ${pos.y}%`,
-    width: '100%',
-    height: '100%',
-  });
+  // getImageStyle removed — CroppedImage component handles positioning correctly
 
   if (!imageUrl) {
     return (
@@ -257,13 +251,14 @@ export function ProfileImageEditor({ profile, onImageUpdate }: ProfileImageEdito
             {/* Avatar (1:1) */}
             <div className="flex flex-col items-center gap-3">
               <p className="text-sm font-medium">Avatar (1:1)</p>
-              <div className="w-40 h-40 rounded-full overflow-hidden bg-muted border-2 border-muted">
-                <img
-                  src={imageUrl}
-                  alt={profile.name}
-                  style={getImageStyle(avatarPosition)}
-                />
-              </div>
+              <CroppedImage
+                src={imageUrl}
+                alt={profile.name}
+                centerX={avatarPosition.x}
+                centerY={avatarPosition.y}
+                scale={avatarPosition.scale}
+                className="w-40 h-40 rounded-full bg-muted border-2 border-muted"
+              />
               <p className="text-xs text-muted-foreground">
                 Position: {avatarPosition.x}%, {avatarPosition.y}% · Scale: {avatarPosition.scale.toFixed(1)}x
               </p>
@@ -291,33 +286,37 @@ export function ProfileImageEditor({ profile, onImageUpdate }: ProfileImageEdito
               </div>
 
               {/* Show widened version if available, otherwise show card crop */}
-              <div className="w-full aspect-video rounded-lg overflow-hidden bg-muted border-2 border-muted">
-                {widenedUrl ? (
+              {widenedUrl ? (
+                <div className="w-full aspect-video rounded-lg overflow-hidden bg-muted border-2 border-muted">
                   <img
                     src={widenedUrl}
                     alt={`${profile.name} (card)`}
                     className="w-full h-full object-cover"
                   />
-                ) : (
-                  <img
-                    src={imageUrl}
-                    alt={`${profile.name} (card)`}
-                    style={getImageStyle(cardPosition)}
-                  />
-                )}
-              </div>
+                </div>
+              ) : (
+                <CroppedImage
+                  src={imageUrl}
+                  alt={`${profile.name} (card)`}
+                  centerX={cardPosition.x}
+                  centerY={cardPosition.y}
+                  scale={cardPosition.scale}
+                  className="w-full aspect-video rounded-lg bg-muted border-2 border-muted"
+                />
+              )}
 
               {/* If widened exists, also show the original card crop smaller for reference */}
               {widenedUrl && (
                 <div className="w-full">
                   <p className="text-xs text-muted-foreground mb-1">Original crop (fallback):</p>
-                  <div className="w-2/3 mx-auto aspect-video rounded overflow-hidden bg-muted border border-muted">
-                    <img
-                      src={imageUrl}
-                      alt={`${profile.name} (original crop)`}
-                      style={getImageStyle(cardPosition)}
-                    />
-                  </div>
+                  <CroppedImage
+                    src={imageUrl}
+                    alt={`${profile.name} (original crop)`}
+                    centerX={cardPosition.x}
+                    centerY={cardPosition.y}
+                    scale={cardPosition.scale}
+                    className="w-2/3 mx-auto aspect-video rounded bg-muted border border-muted"
+                  />
                 </div>
               )}
 
