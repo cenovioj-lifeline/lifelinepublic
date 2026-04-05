@@ -162,7 +162,7 @@ export function ProfileDetailView({
           lifeline.relationship_type !== 'subject' && lifeline.lifeline_type !== 'rating'
         );
 
-        const isOrganization = profile.subject_type === 'Organization';
+        const isOrganization = profile.subject_type?.toLowerCase() === 'organization';
 
         return (
           <>
