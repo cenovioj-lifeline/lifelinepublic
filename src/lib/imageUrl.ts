@@ -2,10 +2,15 @@
  * Rewrites Supabase Storage public URLs to the on-the-fly image render endpoint.
  *
  * Raw:       .../storage/v1/object/public/<bucket>/<path>
- * Rendered:  .../storage/v1/render/image/public/<bucket>/<path>?width=W&quality=Q
+ * Rendered:  .../storage/v1/render/image/public/<bucket>/<path>?width=W&quality=Q&resize=contain
  *
  * The render endpoint is a CDN-cached image transformer (Supabase Pro). It resizes,
  * re-encodes, and serves over the same CDN. Typical byte savings: 60-90%.
+ *
+ * IMPORTANT: resize=contain is required. Without it, Supabase only scales the width
+ * dimension and preserves the original height, producing a distorted aspect ratio.
+ * Example: a 1920×1080 image with ?width=900 returns 900×1080 (wrong) instead of
+ * 900×506 (correct). resize=contain forces proportional scaling.
  *
  * Non-Supabase URLs (e.g. external images) are returned unchanged.
  * Already-rendered URLs are returned unchanged (idempotent).
@@ -57,6 +62,9 @@ export function optimizeImageUrl(
   const params = new URLSearchParams(existingQs || "");
   params.set("width", String(width));
   params.set("quality", String(quality));
+  // Without resize=contain, Supabase scales only the width and preserves the
+  // original height, distorting the aspect ratio and breaking CroppedImage math.
+  params.set("resize", "contain");
 
   return `${base}${path}?${params.toString()}`;
 }
