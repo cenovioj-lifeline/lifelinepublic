@@ -1,5 +1,6 @@
-import { useRef, useState, useCallback } from 'react';
+import { useRef, useState, useCallback, useMemo } from 'react';
 import { cn } from '@/lib/utils';
+import { optimizeImageUrl, type ImagePreset } from '@/lib/imageUrl';
 
 interface CroppedImageProps {
   src?: string | null;
@@ -10,6 +11,12 @@ interface CroppedImageProps {
   className?: string;
   fallback?: React.ReactNode;
   fallbackClassName?: string;
+  /** Image transform preset (thumb/card/entry/hero). Defaults to 'entry'. */
+  preset?: ImagePreset;
+  /** Explicit render width in px. Overrides preset. */
+  width?: number;
+  /** If true, sets fetchpriority="high" and eager loading (for above-the-fold images). */
+  priority?: boolean;
 }
 
 /**
@@ -32,7 +39,14 @@ export function CroppedImage({
   className,
   fallback,
   fallbackClassName,
+  preset = 'entry',
+  width,
+  priority = false,
 }: CroppedImageProps) {
+  const optimizedSrc = useMemo(
+    () => optimizeImageUrl(src, { preset, width }),
+    [src, preset, width],
+  );
   const containerRef = useRef<HTMLDivElement>(null);
   const [ready, setReady] = useState(false);
   const [error, setError] = useState(false);
@@ -91,29 +105,40 @@ export function CroppedImage({
     setReady(true);
   }, [computeStyle]);
 
-  const showFallback = !src || error || !ready;
+  const showErrorFallback = (!src || error) && fallback;
+  const showSkeleton = !!src && !error && !ready;
 
   return (
     <div
       ref={containerRef}
-      className={cn('relative overflow-hidden', className)}
+      className={cn('relative overflow-hidden bg-muted/40', className)}
     >
-      {src && !error && (
+      {optimizedSrc && !error && (
         <img
-          src={src}
+          src={optimizedSrc}
           alt={alt}
           style={{
             ...imgStyle,
             // Hide until positioning is computed to prevent flash
             opacity: ready ? 1 : 0,
-            transition: 'opacity 0.1s',
+            transition: 'opacity 0.15s ease-out',
           }}
           onLoad={handleLoad}
           onError={() => setError(true)}
           draggable={false}
+          decoding="async"
+          loading={priority ? 'eager' : 'lazy'}
+          // @ts-expect-error - fetchpriority is valid HTML but not yet in React's DOM types
+          fetchpriority={priority ? 'high' : 'auto'}
         />
       )}
-      {showFallback && fallback && (
+      {showSkeleton && (
+        <div
+          className="absolute inset-0 animate-pulse bg-gradient-to-br from-muted/50 to-muted/20"
+          aria-hidden="true"
+        />
+      )}
+      {showErrorFallback && (
         <div className={cn(
           'absolute inset-0 flex items-center justify-center',
           fallbackClassName

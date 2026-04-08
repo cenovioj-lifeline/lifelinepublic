@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useSuperFan } from "@/hooks/useSuperFan";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CroppedImage } from "@/components/ui/CroppedImage";
+import { preloadImage } from "@/lib/imageUrl";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -236,10 +237,25 @@ export function LifelineViewer({
     }
   }, [entries, selectedId]);
 
-  const selected = useMemo(() => {
-    if (!selectedId || !entries) return null;
-    return entries.find((e) => e.id === selectedId) || null;
+  const selectedIndex = useMemo(() => {
+    if (!selectedId || !entries) return -1;
+    return entries.findIndex((e) => e.id === selectedId);
   }, [selectedId, entries]);
+
+  const selected = useMemo(() => {
+    if (selectedIndex < 0 || !entries) return null;
+    return entries[selectedIndex] || null;
+  }, [selectedIndex, entries]);
+
+  // Preload neighbor entry images so Prev/Next feels instant.
+  useEffect(() => {
+    if (!entries || selectedIndex < 0) return;
+    const neighbors = [entries[selectedIndex - 1], entries[selectedIndex + 1]];
+    for (const neighbor of neighbors) {
+      const url = neighbor?.media?.[0]?.url;
+      if (url) preloadImage(url, { preset: "entry" });
+    }
+  }, [entries, selectedIndex]);
 
   // Validation schema
   const titleSchema = z.string().trim().min(1, "Title cannot be empty").max(200, "Title must be less than 200 characters");
@@ -746,6 +762,8 @@ export function LifelineViewer({
                                  centerY={media.position_y ?? 50}
                                  scale={media.scale ?? 1}
                                  className="w-full aspect-video rounded-lg"
+                                 preset="entry"
+                                 priority
                                  fallback={
                                    <img src="/placeholder.svg" alt="Image failed to load" className="w-8 h-8 opacity-50" />
                                  }
