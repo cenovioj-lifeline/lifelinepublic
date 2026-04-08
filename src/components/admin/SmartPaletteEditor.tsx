@@ -254,7 +254,7 @@ export function SmartPaletteEditor({ colors, onChange, savedBasePalette, onBaseP
                             type="color"
                             value={colors[fieldKey] || "#000000"}
                             onChange={(e) => handleOverrideChange(fieldKey, e.target.value)}
-                            className="w-10 h-8 p-0.5 cursor-pointer flex-shrink-0"
+                            className="w-10 h-8 p-0.5 cursor-pointer shrink-0"
                           />
                           <Input
                             type="text"
@@ -262,14 +262,14 @@ export function SmartPaletteEditor({ colors, onChange, savedBasePalette, onBaseP
                             onChange={(e) => handleOverrideChange(fieldKey, e.target.value)}
                             className={`font-mono text-xs flex-1 ${isOverridden ? "border-amber-300 bg-amber-50" : ""}`}
                           />
-                          <span className="text-xs text-muted-foreground w-28 flex-shrink-0 truncate" title={FIELD_LABELS[field]}>
+                          <span className="text-xs text-muted-foreground w-28 shrink-0 truncate" title={FIELD_LABELS[field]}>
                             {FIELD_LABELS[field]}
                           </span>
                           {isOverridden && (
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-7 w-7 flex-shrink-0"
+                              className="h-7 w-7 shrink-0"
                               onClick={() => handleResetField(fieldKey)}
                               title="Reset to derived value"
                             >

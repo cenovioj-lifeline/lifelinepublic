@@ -173,7 +173,7 @@ export function ProfileAwardDetailSheet({
           </div>
 
           {/* Navigation Footer */}
-          <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-[hsl(var(--scheme-cards-bg,var(--card)))] via-[hsl(var(--scheme-cards-bg,var(--card)))] to-transparent pt-12">
+          <div className="absolute bottom-0 left-0 right-0 p-4 bg-linear-to-t from-[hsl(var(--scheme-cards-bg,var(--card)))] via-[hsl(var(--scheme-cards-bg,var(--card)))] to-transparent pt-12">
             <div className="flex items-center justify-between gap-4">
               <Button
                 variant="outline"

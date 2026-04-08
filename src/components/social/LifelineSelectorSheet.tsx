@@ -28,12 +28,12 @@ interface LifelineSelectorSheetProps {
 
 // Simple gradient based on index
 const gradients = [
-  "bg-gradient-to-br from-violet-500 to-purple-600",
-  "bg-gradient-to-br from-pink-500 to-rose-500",
-  "bg-gradient-to-br from-sky-500 to-blue-600",
-  "bg-gradient-to-br from-emerald-500 to-teal-600",
-  "bg-gradient-to-br from-amber-500 to-orange-500",
-  "bg-gradient-to-br from-cyan-500 to-blue-500",
+  "bg-linear-to-br from-violet-500 to-purple-600",
+  "bg-linear-to-br from-pink-500 to-rose-500",
+  "bg-linear-to-br from-sky-500 to-blue-600",
+  "bg-linear-to-br from-emerald-500 to-teal-600",
+  "bg-linear-to-br from-amber-500 to-orange-500",
+  "bg-linear-to-br from-cyan-500 to-blue-500",
 ];
 
 export function LifelineSelectorSheet({
@@ -110,7 +110,7 @@ export function LifelineSelectorSheet({
                   >
                     {/* Gradient square or cover image */}
                     <div
-                      className={`w-12 h-12 rounded-lg flex-shrink-0 ${
+                      className={`w-12 h-12 rounded-lg shrink-0 ${
                         lifeline.cover_image_url
                           ? ""
                           : getGradient(originalIndex)
@@ -136,7 +136,7 @@ export function LifelineSelectorSheet({
 
                     {/* Check if selected */}
                     {isSelected && (
-                      <Check className="h-5 w-5 text-sky-600 flex-shrink-0" />
+                      <Check className="h-5 w-5 text-sky-600 shrink-0" />
                     )}
                   </button>
                 );

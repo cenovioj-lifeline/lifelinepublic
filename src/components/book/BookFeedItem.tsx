@@ -30,7 +30,7 @@ export function BookFeedItem({ item, authorName, hasContext = false }: BookFeedI
   const config = CONTENT_TYPE_CONFIG[item.contentType];
 
   return (
-    <Card className="overflow-hidden border-none shadow-sm hover:shadow-md transition-shadow bg-background">
+    <Card className="overflow-hidden border-none shadow-xs hover:shadow-md transition-shadow bg-background">
       {/* Header */}
       <CardHeader className="flex flex-row items-center gap-4 pb-2">
         <Avatar className="h-10 w-10">
@@ -78,11 +78,11 @@ function renderContent(item: BookContent, Icon: typeof Lightbulb, hasContext: bo
 function InsightVisual({ item, Icon, hasContext }: { item: BookContent; Icon: typeof Lightbulb; hasContext: boolean }) {
   return (
     <div 
-      className="p-6 rounded-xl border-l-4 border-y border-r border-border shadow-sm bg-background"
+      className="p-6 rounded-xl border-l-4 border-y border-r border-border shadow-xs bg-background"
       style={{ borderLeftColor: hasContext ? "hsl(var(--scheme-nav-button))" : "hsl(220 9% 30%)" }}
     >
       <div className="flex gap-3 mb-4">
-        <Icon className="h-5 w-5 flex-shrink-0 mt-0.5 text-slate-700" />
+        <Icon className="h-5 w-5 shrink-0 mt-0.5 text-slate-700" />
         <h3 className="font-bold text-xl text-foreground">{item.title}</h3>
       </div>
       <p className="text-base leading-relaxed font-medium mb-4 text-slate-700">{item.content}</p>
@@ -103,7 +103,7 @@ function InsightVisual({ item, Icon, hasContext }: { item: BookContent; Icon: ty
 // Quote Visual - Centered with quote icon
 function QuoteVisual({ item, hasContext }: { item: BookContent; hasContext: boolean }) {
   return (
-    <div className="p-10 rounded-xl text-center flex flex-col items-center justify-center border border-border shadow-sm bg-background">
+    <div className="p-10 rounded-xl text-center flex flex-col items-center justify-center border border-border shadow-xs bg-background">
       <Quote 
         className="h-8 w-8 mb-4"
         style={{ color: hasContext ? "hsl(var(--scheme-nav-button))" : "hsl(220 9% 64%)" }}
@@ -120,11 +120,11 @@ function FrameworkVisual({ item, Icon, hasContext }: { item: BookContent; Icon: 
 
   return (
     <div 
-      className="p-6 rounded-xl border-l-4 border-y border-r border-border shadow-sm bg-background"
+      className="p-6 rounded-xl border-l-4 border-y border-r border-border shadow-xs bg-background"
       style={{ borderLeftColor: hasContext ? "hsl(var(--scheme-nav-button))" : "hsl(220 9% 30%)" }}
     >
       <div className="flex gap-3 mb-4">
-        <Icon className="h-5 w-5 flex-shrink-0 mt-0.5 text-slate-700" />
+        <Icon className="h-5 w-5 shrink-0 mt-0.5 text-slate-700" />
         <h3 className="font-bold text-xl text-foreground">{item.title}</h3>
       </div>
       <p className="font-medium mb-6 text-slate-700">{item.content}</p>
@@ -135,11 +135,11 @@ function FrameworkVisual({ item, Icon, hasContext }: { item: BookContent; Icon: 
           {items.map((sub, i) => (
             <div
               key={i}
-              className="flex items-start gap-4 p-4 rounded-lg border border-border shadow-sm transition-all hover:shadow-md"
+              className="flex items-start gap-4 p-4 rounded-lg border border-border shadow-xs transition-all hover:shadow-md"
               style={{ backgroundColor: "hsl(220 14% 96%)" }}
             >
               <div 
-                className="h-8 w-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0 shadow-sm"
+                className="h-8 w-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0 shadow-xs"
                 style={{ 
                   backgroundColor: hasContext ? "hsl(var(--scheme-nav-button))" : "hsl(220 9% 20%)",
                   color: hasContext ? "hsl(var(--scheme-nav-text))" : "white"
@@ -185,11 +185,11 @@ function StoryVisual({ item, Icon, hasContext }: { item: BookContent; Icon: type
 
   return (
     <div 
-      className="p-6 rounded-xl border-l-4 border-y border-r border-border shadow-sm bg-background"
+      className="p-6 rounded-xl border-l-4 border-y border-r border-border shadow-xs bg-background"
       style={{ borderLeftColor: hasContext ? "hsl(var(--scheme-nav-button))" : "hsl(220 9% 30%)" }}
     >
       <div className="flex gap-3 mb-4">
-        <Icon className="h-5 w-5 flex-shrink-0 mt-0.5 text-slate-700" />
+        <Icon className="h-5 w-5 shrink-0 mt-0.5 text-slate-700" />
         <h3 className="font-bold text-xl text-foreground">{item.title}</h3>
       </div>
       <div className="prose dark:prose-invert max-w-none">
@@ -213,11 +213,11 @@ function ApplicationVisual({ item, Icon, hasContext }: { item: BookContent; Icon
 
   return (
     <div 
-      className="p-6 rounded-xl border-l-4 border-y border-r border-border shadow-sm bg-background"
+      className="p-6 rounded-xl border-l-4 border-y border-r border-border shadow-xs bg-background"
       style={{ borderLeftColor: hasContext ? "hsl(var(--scheme-nav-button))" : "hsl(220 9% 30%)" }}
     >
       <div className="flex gap-3 mb-4">
-        <Icon className="h-5 w-5 flex-shrink-0 mt-0.5 text-slate-700" />
+        <Icon className="h-5 w-5 shrink-0 mt-0.5 text-slate-700" />
         <h3 className="font-bold text-xl text-foreground">{item.title}</h3>
       </div>
       <p className="text-base leading-relaxed font-medium text-slate-700">{item.content}</p>

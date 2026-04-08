@@ -21,7 +21,7 @@ export function AppCard({ title, description, appUrl, thumbnailUrl }: AppCardPro
       onClick={handleClick}
     >
       {/* Thumbnail */}
-      <div className="aspect-[2/3] w-full bg-muted relative overflow-hidden">
+      <div className="aspect-2/3 w-full bg-muted relative overflow-hidden">
         {thumbnailUrl ? (
           <img
             src={thumbnailUrl}
@@ -29,7 +29,7 @@ export function AppCard({ title, description, appUrl, thumbnailUrl }: AppCardPro
             className="w-full h-full object-cover"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-500/20 to-purple-500/20">
+          <div className="w-full h-full flex items-center justify-center bg-linear-to-br from-blue-500/20 to-purple-500/20">
             <Globe className="h-16 w-16 text-[hsl(var(--scheme-cards-text))] opacity-50" />
           </div>
         )}

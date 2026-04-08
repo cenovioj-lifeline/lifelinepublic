@@ -57,7 +57,7 @@ export const DetailSheet = ({
             {/* Close button */}
             <button
               onClick={onClose}
-              className="absolute top-4 right-4 z-50 p-2 rounded-full bg-background/80 backdrop-blur-sm hover:bg-muted"
+              className="absolute top-4 right-4 z-50 p-2 rounded-full bg-background/80 backdrop-blur-xs hover:bg-muted"
             >
               <X className="h-5 w-5" />
             </button>
@@ -135,7 +135,7 @@ export const DetailSheet = ({
           {/* Close button */}
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 z-50 p-2 rounded-full bg-background/80 backdrop-blur-sm hover:bg-muted"
+            className="absolute top-4 right-4 z-50 p-2 rounded-full bg-background/80 backdrop-blur-xs hover:bg-muted"
           >
             <X className="h-5 w-5" />
           </button>

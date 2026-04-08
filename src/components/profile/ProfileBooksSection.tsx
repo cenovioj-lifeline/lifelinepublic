@@ -38,7 +38,7 @@ export function ProfileBooksSection({ profileSlug, collectionSlug }: ProfileBook
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
           {[1, 2, 3, 4].map((i) => (
             <div key={i} className="space-y-2">
-              <Skeleton className="aspect-[2/3] w-full rounded-lg" />
+              <Skeleton className="aspect-2/3 w-full rounded-lg" />
               <Skeleton className="h-4 w-3/4" />
               <Skeleton className="h-3 w-full" />
             </div>
@@ -129,7 +129,7 @@ function BookCoverCard({ book, onClick, onEditClick }: BookCoverCardProps) {
       onClick={onClick}
     >
       {/* Book Cover */}
-      <div className="relative aspect-[2/3] w-full overflow-hidden rounded-lg shadow-md transition-all duration-200 group-hover:shadow-xl group-hover:scale-[1.02]">
+      <div className="relative aspect-2/3 w-full overflow-hidden rounded-lg shadow-md transition-all duration-200 group-hover:shadow-xl group-hover:scale-[1.02]">
         {hasCoverImage ? (
           <CroppedImage
             src={coverImageUrl}

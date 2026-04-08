@@ -473,7 +473,7 @@ export default function ActionCardEdit() {
                 {formData.behavior_type === "context_aware" && (
                   <div className="pt-4 border-t">
                     <div className="flex gap-2 p-3 bg-muted rounded-lg">
-                      <Info className="h-4 w-4 mt-0.5 text-muted-foreground flex-shrink-0" />
+                      <Info className="h-4 w-4 mt-0.5 text-muted-foreground shrink-0" />
                       <div className="text-sm text-muted-foreground">
                         This card uses built-in behavior that adapts to the current context.
                         Examples: Share (shares current page), Members (shows collection members).
@@ -485,7 +485,7 @@ export default function ActionCardEdit() {
                 {formData.behavior_type === "custom" && (
                   <div className="pt-4 border-t">
                     <div className="flex gap-2 p-3 bg-muted rounded-lg">
-                      <Info className="h-4 w-4 mt-0.5 text-muted-foreground flex-shrink-0" />
+                      <Info className="h-4 w-4 mt-0.5 text-muted-foreground shrink-0" />
                       <div className="text-sm text-muted-foreground">
                         This card requires custom code implementation. The slug "{formData.slug}" 
                         will be used to identify this card in code.

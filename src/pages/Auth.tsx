@@ -65,11 +65,11 @@ export default function Auth() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-background via-muted/30 to-background p-4">
+    <div className="flex min-h-screen items-center justify-center bg-linear-to-br from-background via-muted/30 to-background p-4">
       <Card className="w-full max-w-md shadow-lg border-2">
         <CardHeader className="space-y-1 text-center">
           <div className="flex justify-center mb-4">
-            <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
+            <div className="h-12 w-12 rounded-lg bg-linear-to-br from-primary to-secondary flex items-center justify-center">
               <Activity className="h-6 w-6 text-primary-foreground" />
             </div>
           </div>

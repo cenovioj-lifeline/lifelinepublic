@@ -74,7 +74,7 @@ export function BookMobileDashboard({
             <button
               key={type}
               onClick={() => onSelectTile(type)}
-              className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 text-left hover:shadow-md transition-shadow"
+              className="bg-white rounded-xl p-4 shadow-xs border border-gray-100 text-left hover:shadow-md transition-shadow"
             >
               <div 
                 className="w-10 h-10 rounded-lg flex items-center justify-center mb-3"
@@ -101,7 +101,7 @@ export function BookMobileDashboard({
       {/* Full-width bottom tile */}
       <button
         onClick={() => onSelectTile(bottomCategory)}
-        className="w-full bg-white rounded-xl p-4 shadow-sm border border-gray-100 text-left hover:shadow-md transition-shadow flex items-center gap-4"
+        className="w-full bg-white rounded-xl p-4 shadow-xs border border-gray-100 text-left hover:shadow-md transition-shadow flex items-center gap-4"
       >
         <div 
           className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0"

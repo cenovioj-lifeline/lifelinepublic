@@ -84,7 +84,7 @@ export function ProfileAwardsDesktop({
                     : 'bg-card'
                 }`}
               >
-                <Trophy className="h-5 w-5 text-amber-500 flex-shrink-0" />
+                <Trophy className="h-5 w-5 text-amber-500 shrink-0" />
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold truncate" style={labelStyle}>
                     {award.category}
@@ -93,7 +93,7 @@ export function ProfileAwardsDesktop({
                     {award.notes || award.election.title}
                   </p>
                 </div>
-                <ChevronRight className="h-4 w-4 flex-shrink-0" style={labelMutedStyle} />
+                <ChevronRight className="h-4 w-4 shrink-0" style={labelMutedStyle} />
               </button>
             ))}
           </div>

@@ -463,7 +463,7 @@ export function LifelineViewer({
       </CardHeader>
       <CardContent className="px-0 lg:px-6 pt-0 h-[calc(100%-100px)] lg:h-auto flex flex-col lg:block overflow-visible bg-[hsl(var(--scheme-ll-display-bg))]">
         {/* Mobile Horizontal Chart - Only visible on mobile */}
-        <div className="lg:hidden bg-[hsl(var(--scheme-ll-graph-bg))] rounded-lg mb-1 overflow-x-auto py-1 px-0 flex-shrink-0" style={{ minHeight: '80px' }}>
+        <div className="lg:hidden bg-[hsl(var(--scheme-ll-graph-bg))] rounded-lg mb-1 overflow-x-auto py-1 px-0 shrink-0" style={{ minHeight: '80px' }}>
           <div className="flex items-center justify-center relative" style={{ minWidth: 'fit-content', height: '80px' }}>
             {/* Centerline */}
             <div className="absolute top-0 bottom-0 left-0 right-0 w-full h-full flex items-center z-0">
@@ -543,7 +543,7 @@ export function LifelineViewer({
                           <div className="flex items-center justify-end" style={{ width: `${stemWidthPercent}%` }}>
                             {/* Score box at left end - square on right side */}
                             <div
-                              className="flex-shrink-0 w-[50px] h-[50px] rounded-l-lg flex items-center justify-center font-bold text-xl border-[3px] bg-white z-10 relative"
+                              className="shrink-0 w-[50px] h-[50px] rounded-l-lg flex items-center justify-center font-bold text-xl border-[3px] bg-white z-10 relative"
                               style={{
                                 borderColor: positiveColor,
                                 color: positiveColor
@@ -571,7 +571,7 @@ export function LifelineViewer({
                           >
                             {/* Triangle pointer */}
                             <div
-                              className="absolute left-[-10px] top-[30px] w-0 h-0 border-t-[15px] border-b-0 border-r-[15px] border-transparent"
+                              className="absolute left-[-10px] top-[30px] w-0 h-0 border-t-15 border-b-0 border-r-15 border-transparent"
                               style={{
                                 borderRightColor: 'white'
                               }}
@@ -603,7 +603,7 @@ export function LifelineViewer({
                           >
                             {/* Triangle pointer */}
                             <div
-                              className="absolute right-[-10px] top-[30px] w-0 h-0 border-t-[15px] border-b-0 border-l-[15px] border-transparent"
+                              className="absolute right-[-10px] top-[30px] w-0 h-0 border-t-15 border-b-0 border-l-15 border-transparent"
                               style={{
                                 borderLeftColor: 'white'
                               }}
@@ -631,7 +631,7 @@ export function LifelineViewer({
                             />
                             {/* Score box at right end - square on left side */}
                             <div
-                              className="flex-shrink-0 w-[50px] h-[50px] rounded-r-lg flex items-center justify-center font-bold text-xl border-[3px] bg-white z-10 relative"
+                              className="shrink-0 w-[50px] h-[50px] rounded-r-lg flex items-center justify-center font-bold text-xl border-[3px] bg-white z-10 relative"
                               style={{
                                 borderColor: negativeColor,
                                 color: negativeColor
@@ -653,7 +653,7 @@ export function LifelineViewer({
           {selected && (
             <Card className="shadow-lg flex flex-col h-full overflow-hidden lg:col-span-1 col-span-1 lg:mx-0 mx-0 bg-[hsl(var(--scheme-ll-graph-bg))] border-0">
               {/* Navigation Header */}
-              <div className="bg-[hsl(var(--scheme-nav-bg))] px-4 py-3 flex-shrink-0 border-0">
+              <div className="bg-[hsl(var(--scheme-nav-bg))] px-4 py-3 shrink-0 border-0">
                 <div className="grid grid-cols-3 items-center gap-2">
                   <div className="justify-self-start">
                     <Button
@@ -723,7 +723,7 @@ export function LifelineViewer({
                                         });
                                         setRepositionPickerOpen(true);
                                       }}
-                                      className="absolute top-[5.5rem] left-2 z-10"
+                                      className="absolute top-22 left-2 z-10"
                                       title="Reposition image"
                                     >
                                       <Move className="h-4 w-4" />
@@ -766,7 +766,7 @@ export function LifelineViewer({
                 <div className="flex items-start gap-4">
                   <div
                     className={cn(
-                      "flex-shrink-0 px-3 py-1 rounded-md font-bold text-white"
+                      "shrink-0 px-3 py-1 rounded-md font-bold text-white"
                     )}
                     style={{
                       backgroundColor: (selected.score || 0) >= 0 ? positiveColor : negativeColor
@@ -867,7 +867,7 @@ export function LifelineViewer({
                         size="sm"
                         variant="ghost"
                         onClick={handleStartEditDetails}
-                        className="p-1 h-auto flex-shrink-0"
+                        className="p-1 h-auto shrink-0"
                       >
                         <Pencil className="h-4 w-4 text-muted-foreground hover:text-foreground" />
                       </Button>

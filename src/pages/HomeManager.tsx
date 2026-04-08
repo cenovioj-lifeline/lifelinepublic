@@ -122,7 +122,7 @@ export default function HomeManager() {
             
             {heroImageUrl ? (
               <div className="space-y-2">
-                <div className="relative w-full rounded-lg overflow-hidden border aspect-[6/1]">
+                <div className="relative w-full rounded-lg overflow-hidden border aspect-6/1">
                   <img
                     src={heroImageUrl}
                     alt="Hero preview"

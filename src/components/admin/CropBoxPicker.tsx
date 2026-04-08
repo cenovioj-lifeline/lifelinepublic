@@ -495,7 +495,7 @@ export const CropBoxPicker = ({
           {/* Message explaining WHY it's at max */}
           {isAtMaxSize && (
             <div className="flex items-center gap-2 text-sm text-amber-600 bg-amber-50 border border-amber-200 rounded-md p-2">
-              <AlertCircle className="w-4 h-4 flex-shrink-0" />
+              <AlertCircle className="w-4 h-4 shrink-0" />
               <span>{getConstraintMessage(limitingDimension, isAvatar)}</span>
             </div>
           )}
@@ -682,7 +682,7 @@ export const CropBoxPicker = ({
             </div>
 
             {/* Preview */}
-            <div className="w-72 flex-shrink-0">
+            <div className="w-72 shrink-0">
               <p className="text-sm font-medium mb-2">Preview ({aspectLabel}) <span className="text-xs text-muted-foreground">v6</span></p>
               <canvas
                 ref={canvasRef}

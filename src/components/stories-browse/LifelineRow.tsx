@@ -38,7 +38,7 @@ export function LifelineRow({
       {/* Thumbnail */}
       <div
         className={cn(
-          "rounded flex-shrink-0 bg-gradient-to-br from-slate-200 to-slate-300",
+          "rounded shrink-0 bg-linear-to-br from-slate-200 to-slate-300",
           isCompact ? "w-8 h-8" : "w-12 h-12"
         )}
         style={
@@ -55,7 +55,7 @@ export function LifelineRow({
       {/* Type Icon */}
       <span
         className={cn(
-          "flex-shrink-0 rounded px-1.5 py-0.5 text-xs font-medium uppercase tracking-wide",
+          "shrink-0 rounded px-1.5 py-0.5 text-xs font-medium uppercase tracking-wide",
           lifelineType === "person"
             ? "bg-green-100 text-green-700"
             : "bg-orange-100 text-orange-700"
@@ -80,12 +80,12 @@ export function LifelineRow({
       </span>
 
       {/* Entry Count */}
-      <span className="text-xs text-muted-foreground flex-shrink-0">
+      <span className="text-xs text-muted-foreground shrink-0">
         {entryCount} {isCompact ? "" : "entries"}
       </span>
 
       {/* Hover hint (desktop only) */}
-      <span className="hidden md:block text-xs bg-slate-800 text-white px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+      <span className="hidden md:block text-xs bg-slate-800 text-white px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
         Open →
       </span>
     </Link>

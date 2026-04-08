@@ -216,14 +216,14 @@ export default function ColorSchemeEdit() {
         {/* Mode Toggle */}
         <div className="flex items-center gap-2">
           <Button
-            variant={editorMode === "smart" ? "default" : "outline"}
+            variant={editorMode === "smart" ? "default" : "outline-solid"}
             size="sm"
             onClick={() => setEditorMode("smart")}
           >
             Smart Palette
           </Button>
           <Button
-            variant={editorMode === "advanced" ? "default" : "outline"}
+            variant={editorMode === "advanced" ? "default" : "outline-solid"}
             size="sm"
             onClick={() => setEditorMode("advanced")}
           >

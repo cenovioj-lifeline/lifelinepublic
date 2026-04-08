@@ -293,7 +293,7 @@ export default function CollectionManageTeam() {
       case "editor":
         return "secondary";
       default:
-        return "outline";
+        return "outline-solid";
     }
   };
 

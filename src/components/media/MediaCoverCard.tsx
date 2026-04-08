@@ -68,7 +68,7 @@ export function MediaCoverCard({
       onClick={onClick}
     >
       {/* Cover with 2:3 aspect ratio */}
-      <div className="relative aspect-[2/3] w-full overflow-hidden rounded-lg shadow-md transition-all duration-200 group-hover:shadow-xl group-hover:scale-[1.02]">
+      <div className="relative aspect-2/3 w-full overflow-hidden rounded-lg shadow-md transition-all duration-200 group-hover:shadow-xl group-hover:scale-[1.02]">
         {hasImage ? (
           <>
             <img

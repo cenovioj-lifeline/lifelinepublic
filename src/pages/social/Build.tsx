@@ -688,9 +688,9 @@ export default function Build() {
 
   // Get score color class
   const getScoreColorClass = (score: number): string => {
-    if (score > 0) return "bg-gradient-to-br from-green-500 to-green-600";
-    if (score < 0) return "bg-gradient-to-br from-red-500 to-red-600";
-    return "bg-gradient-to-br from-gray-400 to-gray-500";
+    if (score > 0) return "bg-linear-to-br from-green-500 to-green-600";
+    if (score < 0) return "bg-linear-to-br from-red-500 to-red-600";
+    return "bg-linear-to-br from-gray-400 to-gray-500";
   };
 
   // Format score for display
@@ -715,7 +715,7 @@ export default function Build() {
             onClick={() => handleEditEntry(entry)}
           >
             {/* Score Circle */}
-            <div className={`w-11 h-11 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0 ${getScoreColorClass(entry.score)}`}>
+            <div className={`w-11 h-11 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0 ${getScoreColorClass(entry.score)}`}>
               {formatScore(entry.score)}
             </div>
 
@@ -767,7 +767,7 @@ export default function Build() {
       </div>
       
       <Card className="flex-1 flex flex-col">
-        <CardHeader className="pb-3 flex-shrink-0">
+        <CardHeader className="pb-3 shrink-0">
           <CardTitle className="text-lg flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-green-500"></span>
             Chat with AI
@@ -807,7 +807,7 @@ export default function Build() {
           </div>
 
           {/* Input */}
-          <div className="flex gap-2 flex-shrink-0 items-end">
+          <div className="flex gap-2 shrink-0 items-end">
             <Textarea
               ref={textareaRef}
               value={input}
@@ -906,7 +906,7 @@ export default function Build() {
   const renderEntriesSection = () => (
     <div className="flex-1 bg-white border border-gray-200 rounded-xl min-h-0 flex flex-col">
       {/* Header */}
-      <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between flex-shrink-0">
+      <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between shrink-0">
         <span className="font-semibold text-sm">Your Entries</span>
         <span className="bg-green-500 text-white text-xs font-semibold px-2.5 py-0.5 rounded-full">
           {savedEntries.length}
@@ -1092,7 +1092,7 @@ export default function Build() {
             {/* Controls row (mobile) / continues inline (desktop) */}
             <div className="flex items-center gap-2 lg:gap-3">
               {/* Mode toggle */}
-              <div className="flex bg-muted rounded-md p-0.5 flex-shrink-0 mr-1">
+              <div className="flex bg-muted rounded-md p-0.5 shrink-0 mr-1">
                 <Button
                   variant={mode === "ai" ? "secondary" : "ghost"}
                   size="sm"
@@ -1143,7 +1143,7 @@ export default function Build() {
               </div>
 
               {/* Mobile: Compact chips */}
-              <div className="flex lg:hidden items-center gap-1.5 flex-shrink-0">
+              <div className="flex lg:hidden items-center gap-1.5 shrink-0">
                 <Button
                   variant="outline"
                   size="sm"

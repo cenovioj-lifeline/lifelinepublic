@@ -310,7 +310,7 @@ export function ProfileDetailView({
                         : 'bg-amber-50/50 hover:bg-amber-100/50'
                     }`}
                   >
-                    <Trophy className="h-4 w-4 text-amber-500 flex-shrink-0" />
+                    <Trophy className="h-4 w-4 text-amber-500 shrink-0" />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium truncate" style={labelStyle}>
                         {award.category}
@@ -319,7 +319,7 @@ export function ProfileDetailView({
                         {award.notes || award.election.title}
                       </p>
                     </div>
-                    <ChevronRight className="h-4 w-4 flex-shrink-0" style={labelMutedStyle} />
+                    <ChevronRight className="h-4 w-4 shrink-0" style={labelMutedStyle} />
                   </button>
                 ))}
               </CollapsibleContent>

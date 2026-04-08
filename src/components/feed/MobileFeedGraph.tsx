@@ -171,7 +171,7 @@ export const MobileFeedGraph = forwardRef<MobileFeedGraphRef, MobileFeedGraphPro
                         // Hero image with vertical NEW ribbon
                         <div className="flex items-center justify-end" style={{ width: `${stemWidthPercent}%` }}>
                           <div 
-                            className="flex-shrink-0 bg-[#2563eb] flex items-center justify-center rounded-l-lg"
+                            className="shrink-0 bg-[#2563eb] flex items-center justify-center rounded-l-lg"
                             style={{ height: `${barHeight}px`, width: '24px' }}
                           >
                             <span 
@@ -193,7 +193,7 @@ export const MobileFeedGraph = forwardRef<MobileFeedGraphRef, MobileFeedGraphPro
                         // Score bar (default or fallback for collections without images)
                         <div className="flex items-center justify-end relative" style={{ width: `${stemWidthPercent}%` }}>
                           <div
-                            className="flex-shrink-0 w-[40px] rounded-l-lg flex items-center justify-center font-bold text-lg border-2 bg-white z-10"
+                            className="shrink-0 w-[40px] rounded-l-lg flex items-center justify-center font-bold text-lg border-2 bg-white z-10"
                             style={{ borderColor: barColor, color: barColor, height: `${barHeight}px` }}
                           >
                             {isNewCollection ? 'NC' : score}
@@ -221,7 +221,7 @@ export const MobileFeedGraph = forwardRef<MobileFeedGraphRef, MobileFeedGraphPro
                         )}
                         style={isSelected ? { borderColor: barColor } : {}}
                       >
-                        <div className="absolute left-[-8px] top-[20px] w-0 h-0 border-t-[10px] border-b-0 border-r-[10px] border-transparent" style={{ borderRightColor: 'white' }} />
+                        <div className="absolute left-[-8px] top-[20px] w-0 h-0 border-t-10 border-b-0 border-r-10 border-transparent" style={{ borderRightColor: 'white' }} />
                       <div className="font-bold text-xs mb-0.5 text-[hsl(var(--scheme-ll-entry-title))] line-clamp-2">
                         {isNewCollection ? entry.collectionTitle : (entry.lifelineTitle || 'Unknown')}
                       </div>
@@ -242,7 +242,7 @@ export const MobileFeedGraph = forwardRef<MobileFeedGraphRef, MobileFeedGraphPro
                         )}
                         style={isSelected ? { borderColor: barColor } : {}}
                       >
-                        <div className="absolute right-[-8px] top-[20px] w-0 h-0 border-t-[10px] border-b-0 border-l-[10px] border-transparent" style={{ borderLeftColor: 'white' }} />
+                        <div className="absolute right-[-8px] top-[20px] w-0 h-0 border-t-10 border-b-0 border-l-10 border-transparent" style={{ borderLeftColor: 'white' }} />
                       <div className="font-bold text-xs mb-0.5 text-[hsl(var(--scheme-ll-entry-title))] line-clamp-2">
                         {entry.lifelineTitle || 'Unknown'}
                       </div>
@@ -260,7 +260,7 @@ export const MobileFeedGraph = forwardRef<MobileFeedGraphRef, MobileFeedGraphPro
                           style={{ background: barColor, height: `${barHeight}px` }}
                         />
                         <div
-                          className="flex-shrink-0 w-[40px] rounded-r-lg flex items-center justify-center font-bold text-lg border-2 bg-white z-10"
+                          className="shrink-0 w-[40px] rounded-r-lg flex items-center justify-center font-bold text-lg border-2 bg-white z-10"
                           style={{ borderColor: barColor, color: barColor, height: `${barHeight}px` }}
                         >
                           {score}

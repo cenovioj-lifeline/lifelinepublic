@@ -70,7 +70,7 @@ export function CollectionTreeItem({
         disabled={isGrayedOut}
       >
         {/* Expand Icon */}
-        <span className="flex-shrink-0 text-muted-foreground">
+        <span className="shrink-0 text-muted-foreground">
           {isExpanded ? (
             <ChevronDown className="w-5 h-5" />
           ) : (
@@ -80,7 +80,7 @@ export function CollectionTreeItem({
 
         {/* Collection Image */}
         <div
-          className="w-12 h-12 rounded-lg flex-shrink-0 bg-gradient-to-br from-slate-700 to-slate-500"
+          className="w-12 h-12 rounded-lg shrink-0 bg-linear-to-br from-slate-700 to-slate-500"
           style={
             collection.card_image_url
               ? {
@@ -101,7 +101,7 @@ export function CollectionTreeItem({
         </div>
 
         {/* Badges */}
-        <div className="flex items-center gap-2 flex-shrink-0">
+        <div className="flex items-center gap-2 shrink-0">
           {hasMatch && (
             <Badge variant="secondary" className="bg-amber-100 text-amber-800">
               {matchCount} match{matchCount !== 1 ? "es" : ""}
@@ -214,7 +214,7 @@ export function CollectionTreeItem({
                 {(["all", "person", "list"] as LifelineType[]).map((type) => (
                   <Button
                     key={type}
-                    variant={filters.lifelineType === type ? "default" : "outline"}
+                    variant={filters.lifelineType === type ? "default" : "outline-solid"}
                     size="sm"
                     className={cn(
                       "h-7 text-xs",

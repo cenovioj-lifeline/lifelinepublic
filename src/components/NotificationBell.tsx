@@ -131,7 +131,7 @@ export function NotificationBell() {
                         </p>
                       </div>
                       {!notification.read && (
-                        <div className="h-2 w-2 rounded-full bg-primary flex-shrink-0 mt-1" />
+                        <div className="h-2 w-2 rounded-full bg-primary shrink-0 mt-1" />
                       )}
                     </div>
                   </div>

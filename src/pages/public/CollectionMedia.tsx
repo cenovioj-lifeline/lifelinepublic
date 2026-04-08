@@ -260,7 +260,7 @@ export default function CollectionMedia() {
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
             {[1, 2, 3, 4, 5, 6].map((i) => (
               <div key={i} className="space-y-2">
-                <Skeleton className="aspect-[2/3] w-full rounded-lg" />
+                <Skeleton className="aspect-2/3 w-full rounded-lg" />
                 <Skeleton className="h-4 w-3/4" />
               </div>
             ))}

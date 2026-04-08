@@ -40,7 +40,7 @@ export function LifelineCardForm({
     <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
       {/* Cover Image Upload Zone */}
       <div 
-        className="aspect-video bg-gradient-to-br from-sky-50 to-sky-100 border-2 border-dashed border-sky-300 flex flex-col items-center justify-center cursor-pointer hover:from-sky-100 hover:to-sky-200 hover:border-sky-400 transition-all relative"
+        className="aspect-video bg-linear-to-br from-sky-50 to-sky-100 border-2 border-dashed border-sky-300 flex flex-col items-center justify-center cursor-pointer hover:from-sky-100 hover:to-sky-200 hover:border-sky-400 transition-all relative"
       >
         {/* Badge */}
         <span className="absolute top-3 left-3 px-2.5 py-1 bg-white/90 rounded-md text-[10px] font-semibold text-gray-500 uppercase tracking-wide">

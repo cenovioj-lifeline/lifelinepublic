@@ -75,7 +75,7 @@ export function BookMobileList({
           <button
             key={item.id}
             onClick={() => onSelectItem(index)}
-            className="w-full bg-white rounded-xl p-4 shadow-sm border border-gray-100 text-left hover:shadow-md transition-shadow"
+            className="w-full bg-white rounded-xl p-4 shadow-xs border border-gray-100 text-left hover:shadow-md transition-shadow"
           >
             <h3 className="font-semibold text-gray-900 line-clamp-2 mb-1">
               {item.title || 'Untitled'}

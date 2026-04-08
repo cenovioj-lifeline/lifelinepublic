@@ -20,7 +20,7 @@ export const CategorySection = ({ category, defaultExpanded, onCardClick }: Cate
         className={cn(
           "w-full flex items-center justify-between px-4 py-3",
           "bg-muted/50 hover:bg-muted transition-colors",
-          "focus:outline-none focus:ring-2 focus:ring-primary/20"
+          "focus:outline-hidden focus:ring-2 focus:ring-primary/20"
         )}
       >
         <div className="flex items-center gap-2">

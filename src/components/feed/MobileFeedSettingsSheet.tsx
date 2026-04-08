@@ -161,7 +161,7 @@ export const MobileFeedSettingsSheet = ({
                       <img
                         src={imageUrl}
                         alt=""
-                        className="h-12 w-16 rounded object-cover flex-shrink-0"
+                        className="h-12 w-16 rounded object-cover shrink-0"
                       />
                     )}
                     <div className="flex-1 min-w-0">
@@ -171,9 +171,9 @@ export const MobileFeedSettingsSheet = ({
                       )}
                     </div>
                     {isSelected ? (
-                      <Check className="h-5 w-5 text-primary flex-shrink-0" />
+                      <Check className="h-5 w-5 text-primary shrink-0" />
                     ) : (
-                      <Rss className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                      <Rss className="h-4 w-4 text-muted-foreground shrink-0" />
                     )}
                   </div>
                 );

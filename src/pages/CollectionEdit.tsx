@@ -411,7 +411,7 @@ export default function CollectionEdit() {
                       className="h-4 w-4"
                     />
                   </FormControl>
-                  <FormLabel className="!mt-0">Featured Collection</FormLabel>
+                  <FormLabel className="mt-0!">Featured Collection</FormLabel>
                 </FormItem>
               )}
             />
@@ -429,8 +429,8 @@ export default function CollectionEdit() {
                       className="h-4 w-4"
                     />
                   </FormControl>
-                  <FormLabel className="!mt-0">Enable Media Section</FormLabel>
-                  <FormDescription className="!mt-0 ml-2">
+                  <FormLabel className="mt-0!">Enable Media Section</FormLabel>
+                  <FormDescription className="mt-0! ml-2">
                     Shows books from profiles in nav. Moves Awards to More.
                   </FormDescription>
                 </FormItem>

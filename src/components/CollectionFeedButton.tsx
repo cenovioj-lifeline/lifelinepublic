@@ -46,7 +46,7 @@ export const CollectionFeedButton = ({ collectionId, className }: CollectionFeed
   return (
     <>
       <Button
-        variant={isSubscribed ? 'default' : 'outline'}
+        variant={isSubscribed ? 'default' : 'outline-solid'}
         size="sm"
         onClick={handleClick}
         disabled={isPending}

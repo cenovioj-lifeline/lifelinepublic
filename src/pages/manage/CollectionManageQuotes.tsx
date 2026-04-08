@@ -241,7 +241,7 @@ export default function CollectionManageQuotes() {
                     <TableRow key={quote.id}>
                       <TableCell>
                         <div className="flex items-start gap-2">
-                          <Quote className="h-4 w-4 text-muted-foreground mt-1 flex-shrink-0" />
+                          <Quote className="h-4 w-4 text-muted-foreground mt-1 shrink-0" />
                           <span className="line-clamp-2">{quote.quote}</span>
                         </div>
                       </TableCell>

@@ -130,7 +130,7 @@ export function ContentCardImageUpload({
           title="Add image"
         >
           <div className="flex flex-col items-center gap-2 text-gray-500 group-hover/upload:text-primary transition-colors">
-            <div className="p-3 rounded-full bg-white/80 shadow-sm group-hover/upload:shadow-md transition-shadow">
+            <div className="p-3 rounded-full bg-white/80 shadow-xs group-hover/upload:shadow-md transition-shadow">
               <ImagePlus className="h-6 w-6" />
             </div>
             <span className="text-xs font-medium opacity-0 group-hover/upload:opacity-100 transition-opacity">

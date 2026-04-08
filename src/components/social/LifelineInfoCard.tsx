@@ -21,7 +21,7 @@ export function LifelineInfoCard({
   return (
     <div className="bg-white rounded-2xl shadow-md overflow-hidden">
       {/* Cover Image */}
-      <div className="aspect-[16/7] relative">
+      <div className="aspect-16/7 relative">
         {coverImageUrl ? (
           <img
             src={coverImageUrl}
@@ -29,7 +29,7 @@ export function LifelineInfoCard({
             className="w-full h-full object-cover"
           />
         ) : (
-          <div className="w-full h-full bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500" />
+          <div className="w-full h-full bg-linear-to-br from-indigo-500 via-purple-500 to-pink-500" />
         )}
 
         {/* Badge */}
@@ -41,7 +41,7 @@ export function LifelineInfoCard({
         <Button
           variant="secondary"
           size="sm"
-          className="absolute top-3 right-3 bg-white/95 hover:bg-white shadow-sm"
+          className="absolute top-3 right-3 bg-white/95 hover:bg-white shadow-xs"
           onClick={onEditClick}
         >
           <Pencil className="h-3.5 w-3.5 mr-1.5" />

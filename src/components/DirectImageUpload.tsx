@@ -50,7 +50,7 @@ export function DirectImageUpload({
   const getAspectClass = () => {
     switch (viewType) {
       case "banner":
-        return "aspect-[4/1]";
+        return "aspect-4/1";
       case "card":
         return "aspect-video";
       default:

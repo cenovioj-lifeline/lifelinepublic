@@ -26,12 +26,12 @@ interface LifelineSelectorDropdownProps {
 
 // Simple gradient based on index
 const gradients = [
-  "bg-gradient-to-br from-violet-500 to-purple-600",
-  "bg-gradient-to-br from-pink-500 to-rose-500",
-  "bg-gradient-to-br from-sky-500 to-blue-600",
-  "bg-gradient-to-br from-emerald-500 to-teal-600",
-  "bg-gradient-to-br from-amber-500 to-orange-500",
-  "bg-gradient-to-br from-cyan-500 to-blue-500",
+  "bg-linear-to-br from-violet-500 to-purple-600",
+  "bg-linear-to-br from-pink-500 to-rose-500",
+  "bg-linear-to-br from-sky-500 to-blue-600",
+  "bg-linear-to-br from-emerald-500 to-teal-600",
+  "bg-linear-to-br from-amber-500 to-orange-500",
+  "bg-linear-to-br from-cyan-500 to-blue-500",
 ];
 
 export function LifelineSelectorDropdown({
@@ -64,7 +64,7 @@ export function LifelineSelectorDropdown({
             {selectedLifeline ? (
               <>
                 <span
-                  className={`w-3 h-3 rounded flex-shrink-0 ${getGradient(
+                  className={`w-3 h-3 rounded shrink-0 ${getGradient(
                     lifelines.indexOf(selectedLifeline)
                   )}`}
                 />
@@ -76,7 +76,7 @@ export function LifelineSelectorDropdown({
               <span className="text-muted-foreground">Select lifeline...</span>
             )}
           </span>
-          <span className="flex items-center gap-1.5 flex-shrink-0">
+          <span className="flex items-center gap-1.5 shrink-0">
             <span className="text-xs bg-muted px-1.5 py-0.5 rounded">
               {lifelines.length}
             </span>
@@ -122,7 +122,7 @@ export function LifelineSelectorDropdown({
                 >
                   {/* Gradient square or cover image */}
                   <div
-                    className={`w-10 h-10 rounded-lg flex-shrink-0 ${
+                    className={`w-10 h-10 rounded-lg shrink-0 ${
                       lifeline.cover_image_url ? "" : getGradient(originalIndex)
                     }`}
                     style={
@@ -148,7 +148,7 @@ export function LifelineSelectorDropdown({
 
                   {/* Check if selected */}
                   {isSelected && (
-                    <Check className="h-4 w-4 text-sky-600 flex-shrink-0" />
+                    <Check className="h-4 w-4 text-sky-600 shrink-0" />
                   )}
                 </button>
               );

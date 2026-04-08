@@ -237,7 +237,7 @@ function CurrentLayout({ profile, lifelinesData, awards, quotes }: LayoutProps) 
                   className="group"
                 >
                   <Card className="overflow-hidden hover:shadow-lg transition-shadow">
-                    <div className="aspect-[2/3] bg-muted flex items-center justify-center">
+                    <div className="aspect-2/3 bg-muted flex items-center justify-center">
                       {pb.book?.cover_image_url ? (
                         <img 
                           src={pb.book.cover_image_url} 
@@ -377,7 +377,7 @@ function MagazineLayout({ profile, lifelinesData, awards, quotes }: LayoutProps)
     <div className="space-y-8 max-w-5xl mx-auto">
       {/* Hero Section - Magazine Style with larger image */}
       <div className="relative">
-        <div className="h-48 sm:h-64 bg-gradient-to-br from-primary/20 via-primary/10 to-transparent rounded-2xl overflow-hidden">
+        <div className="h-48 sm:h-64 bg-linear-to-br from-primary/20 via-primary/10 to-transparent rounded-2xl overflow-hidden">
           {avatarUrl && (
             <div className="absolute inset-0 opacity-10">
               <img 
@@ -532,7 +532,7 @@ function MagazineLayout({ profile, lifelinesData, awards, quotes }: LayoutProps)
                             className="w-full h-full object-cover"
                           />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5">
+                          <div className="w-full h-full flex items-center justify-center bg-linear-to-br from-primary/20 to-primary/5">
                             <Sparkles className="h-6 w-6 text-primary/50" />
                           </div>
                         )}
@@ -568,7 +568,7 @@ function MagazineLayout({ profile, lifelinesData, awards, quotes }: LayoutProps)
             <ScrollArea className="w-full">
               <div className="flex gap-4 p-6">
                 {awards.map((award: any) => (
-                  <Card key={award.id} className="min-w-[280px] bg-gradient-to-br from-amber-50 to-amber-100/50 dark:from-amber-900/20 dark:to-amber-800/10 border-amber-200/50 dark:border-amber-700/30">
+                  <Card key={award.id} className="min-w-[280px] bg-linear-to-br from-amber-50 to-amber-100/50 dark:from-amber-900/20 dark:to-amber-800/10 border-amber-200/50 dark:border-amber-700/30">
                     <CardContent className="p-5">
                       <div className="flex items-start gap-3">
                         <div className="h-10 w-10 rounded-full bg-amber-500/20 flex items-center justify-center">
@@ -597,7 +597,7 @@ function MagazineLayout({ profile, lifelinesData, awards, quotes }: LayoutProps)
 
       {/* Featured Quote - Large format */}
       {quotes && quotes.length > 0 && (
-        <Card className="border-0 shadow-lg bg-gradient-to-br from-primary/5 to-primary/10">
+        <Card className="border-0 shadow-lg bg-linear-to-br from-primary/5 to-primary/10">
           <CardContent className="p-8 sm:p-12">
             <Quote className="h-12 w-12 text-primary/30 mb-4" />
             <blockquote className="text-xl sm:text-2xl font-medium leading-relaxed">
@@ -760,7 +760,7 @@ function CompactLayout({ profile, lifelinesData, awards, quotes }: LayoutProps) 
                         className="group shrink-0"
                       >
                         <div className="w-24">
-                          <div className="aspect-[2/3] rounded-lg bg-muted overflow-hidden shadow-md group-hover:shadow-lg transition-shadow">
+                          <div className="aspect-2/3 rounded-lg bg-muted overflow-hidden shadow-md group-hover:shadow-lg transition-shadow">
                             {pb.book?.cover_image_url ? (
                               <img 
                                 src={pb.book.cover_image_url} 

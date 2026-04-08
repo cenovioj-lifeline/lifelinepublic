@@ -24,7 +24,7 @@ interface ContributionButtonProps {
   collectionTitle?: string;
   currentEntryId?: string;
   className?: string;
-  variant?: "default" | "outline" | "ghost";
+  variant?: "default" | "outline-solid" | "ghost";
   size?: "default" | "sm" | "lg" | "icon";
   floating?: boolean;
 }

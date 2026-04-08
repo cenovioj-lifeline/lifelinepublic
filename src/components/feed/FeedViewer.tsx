@@ -260,7 +260,7 @@ export const FeedViewer = ({
               : selectedEntry?.date?.getFullYear();
             return displayYear || visibleYear || entriesWithDateContext[0]?.year;
           })() && (
-            <div className="bg-gray-800 text-white font-bold py-2 px-4 text-center rounded-t-lg flex-shrink-0">
+            <div className="bg-gray-800 text-white font-bold py-2 px-4 text-center rounded-t-lg shrink-0">
               {(() => {
                 const highlightedEntry = entriesWithDateContext.find(e => e.id === highlightedEntryId);
                 const displayYear = isScrolling 
@@ -282,7 +282,7 @@ export const FeedViewer = ({
             <div className="relative min-h-full" style={{ paddingTop: '2px', paddingBottom: '2px' }}>
               {/* Continuous timeline line - absolute positioned at container level */}
               <div 
-                className="absolute w-[1px] bg-gray-300" 
+                className="absolute w-px bg-gray-300" 
                 style={{ 
                   left: '25px', // Center of 50px timeline column
                   top: 0,
@@ -357,7 +357,7 @@ export const FeedViewer = ({
                       {/* TIMELINE AXIS COLUMN */}
                       <div className="relative flex items-center justify-center">
                         {/* Date pill centered on line - using numeric format for narrow width */}
-                        <div className="relative z-10 px-2 py-0.5 bg-white border border-gray-300 rounded-full text-[9px] font-semibold text-gray-600 shadow-sm whitespace-nowrap">
+                        <div className="relative z-10 px-2 py-0.5 bg-white border border-gray-300 rounded-full text-[9px] font-semibold text-gray-600 shadow-xs whitespace-nowrap">
                           {entry.date.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric' })}
                         </div>
                       </div>
@@ -368,7 +368,7 @@ export const FeedViewer = ({
                               // Hero image with vertical NEW ribbon
                               <div className="flex items-center justify-end" style={{ width: `${stemWidthPercent}%` }}>
                                 <div 
-                                  className="flex-shrink-0 bg-[#2563eb] flex items-center justify-center rounded-l-lg"
+                                  className="shrink-0 bg-[#2563eb] flex items-center justify-center rounded-l-lg"
                                   style={{ height: '50px', width: '28px' }}
                                 >
                                   <span 
@@ -390,7 +390,7 @@ export const FeedViewer = ({
                               // Score bar (default or fallback for collections without images)
                               <div className="flex items-center justify-end relative" style={{ width: `${stemWidthPercent}%` }}>
                                 <div
-                                  className="flex-shrink-0 w-[50px] h-[50px] rounded-l-lg flex items-center justify-center font-bold text-xl border-[3px] bg-white z-10 relative"
+                                  className="shrink-0 w-[50px] h-[50px] rounded-l-lg flex items-center justify-center font-bold text-xl border-[3px] bg-white z-10 relative"
                                   style={{ borderColor: barColor, color: barColor }}
                                 >
                                   {isNewCollection ? 'NC' : score}
@@ -416,7 +416,7 @@ export const FeedViewer = ({
                               )}
                               style={isSelected ? { borderColor: barColor } : {}}
                             >
-                              <div className="absolute left-[-10px] top-[30px] w-0 h-0 border-t-[15px] border-b-0 border-r-[15px] border-transparent" style={{ borderRightColor: 'white' }} />
+                              <div className="absolute left-[-10px] top-[30px] w-0 h-0 border-t-15 border-b-0 border-r-15 border-transparent" style={{ borderRightColor: 'white' }} />
                               <div className="font-bold text-sm mb-1 text-[hsl(var(--scheme-ll-entry-title))] line-clamp-2">
                                 {isNewCollection ? `🎉 ${entry.collectionTitle}` : (entry.lifelineTitle || 'Unknown')}
                               </div>
@@ -436,7 +436,7 @@ export const FeedViewer = ({
                               )}
                               style={isSelected ? { borderColor: barColor } : {}}
                             >
-                              <div className="absolute right-[-10px] top-[30px] w-0 h-0 border-t-[15px] border-b-0 border-l-[15px] border-transparent" style={{ borderLeftColor: 'white' }} />
+                              <div className="absolute right-[-10px] top-[30px] w-0 h-0 border-t-15 border-b-0 border-l-15 border-transparent" style={{ borderLeftColor: 'white' }} />
                               <div className="font-bold text-sm mb-1 text-[hsl(var(--scheme-ll-entry-title))] line-clamp-2">
                                 {entry.lifelineTitle || 'Unknown'}
                               </div>
@@ -449,7 +449,7 @@ export const FeedViewer = ({
                             <div className="flex items-center justify-start relative" style={{ width: `${stemWidthPercent}%` }}>
                               <div className="flex-1 h-[50px]" style={{ background: barColor }} />
                               <div
-                                className="flex-shrink-0 w-[50px] h-[50px] rounded-r-lg flex items-center justify-center font-bold text-xl border-[3px] bg-white z-10 relative"
+                                className="shrink-0 w-[50px] h-[50px] rounded-r-lg flex items-center justify-center font-bold text-xl border-[3px] bg-white z-10 relative"
                                 style={{ borderColor: barColor, color: barColor }}
                               >
                                 {score}

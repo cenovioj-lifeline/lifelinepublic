@@ -260,7 +260,7 @@ export default function CollectionLifelines() {
                 setSearchTerm(e.target.value);
                 setCurrentPage(1);
               }}
-              className="pl-10 placeholder:[color:hsl(var(--scheme-filter-controls-text))]"
+              className="pl-10 placeholder:text-[hsl(var(--scheme-filter-controls-text))]"
               style={{ color: 'hsl(var(--scheme-filter-controls-text))' }}
             />
           </div>

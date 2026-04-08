@@ -48,7 +48,7 @@ export const MobileLifelineDetailSheet = ({
         className="h-[85vh] flex flex-col p-0 [&>button]:hidden"
         {...swipeHandlers}
       >
-        <SheetHeader className="flex-shrink-0 p-4 border-b border-border flex flex-row items-center justify-between">
+        <SheetHeader className="shrink-0 p-4 border-b border-border flex flex-row items-center justify-between">
           <Button
             variant="ghost"
             size="icon"

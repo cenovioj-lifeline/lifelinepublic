@@ -44,7 +44,7 @@ export default function HomePrototype() {
     return (
       <div className="space-y-8">
         {/* Hero skeleton */}
-        <Skeleton className="w-full aspect-[4/1] -mx-4 -mt-4 w-[calc(100%+2rem)]" />
+        <Skeleton className="w-full aspect-4/1 -mx-4 -mt-4 w-[calc(100%+2rem)]" />
         
         {/* Quick actions skeleton */}
         <div className="grid grid-cols-4 gap-2 md:gap-4">
@@ -79,7 +79,7 @@ export default function HomePrototype() {
   return (
     <div className="space-y-8">
       {/* Hero Section */}
-      <div className="relative overflow-hidden aspect-[4/1] -mx-4 -mt-8 w-[calc(100%+2rem)]">
+      <div className="relative overflow-hidden aspect-4/1 -mx-4 -mt-8 w-[calc(100%+2rem)]">
         {homeSettings?.hero_image?.url ? (
           <img
             src={homeSettings.hero_image.url}

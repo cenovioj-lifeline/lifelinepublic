@@ -25,7 +25,7 @@ export function VideoCard({
   return (
     <>
       <div
-        className="flex flex-col bg-card border border-border rounded-lg overflow-hidden cursor-pointer hover:shadow-lg transition-shadow aspect-[2/3]"
+        className="flex flex-col bg-card border border-border rounded-lg overflow-hidden cursor-pointer hover:shadow-lg transition-shadow aspect-2/3"
         onClick={() => setModalOpen(true)}
       >
         {/* Thumbnail Section - Top ~40% */}

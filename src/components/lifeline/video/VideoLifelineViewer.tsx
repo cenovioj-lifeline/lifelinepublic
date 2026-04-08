@@ -217,7 +217,7 @@ export function VideoLifelineViewer({
                             style={{ width: `${stemWidthPercent}%` }}
                           >
                             <div
-                              className="flex-shrink-0 w-[50px] h-[50px] rounded-l-lg flex items-center justify-center font-bold text-xl border-[3px] bg-white z-10 relative"
+                              className="shrink-0 w-[50px] h-[50px] rounded-l-lg flex items-center justify-center font-bold text-xl border-[3px] bg-white z-10 relative"
                               style={{ borderColor: barColor, color: barColor }}
                             >
                               {absScore}
@@ -238,7 +238,7 @@ export function VideoLifelineViewer({
                             style={isSelected ? { borderColor: barColor } : {}}
                           >
                             <div
-                              className="absolute left-[-10px] top-[30px] w-0 h-0 border-t-[15px] border-b-0 border-r-[15px] border-transparent"
+                              className="absolute left-[-10px] top-[30px] w-0 h-0 border-t-15 border-b-0 border-r-15 border-transparent"
                               style={{ borderRightColor: "white" }}
                             />
                             <div className="font-bold text-sm mb-1 text-[hsl(var(--scheme-ll-entry-title))]">
@@ -266,7 +266,7 @@ export function VideoLifelineViewer({
                             style={isSelected ? { borderColor: barColor } : {}}
                           >
                             <div
-                              className="absolute right-[-10px] top-[30px] w-0 h-0 border-t-[15px] border-b-0 border-l-[15px] border-transparent"
+                              className="absolute right-[-10px] top-[30px] w-0 h-0 border-t-15 border-b-0 border-l-15 border-transparent"
                               style={{ borderLeftColor: "white" }}
                             />
                             <div className="font-bold text-sm mb-1 text-[hsl(var(--scheme-ll-entry-title))]">
@@ -288,7 +288,7 @@ export function VideoLifelineViewer({
                               style={{ background: barColor }}
                             />
                             <div
-                              className="flex-shrink-0 w-[50px] h-[50px] rounded-r-lg flex items-center justify-center font-bold text-xl border-[3px] bg-white z-10 relative"
+                              className="shrink-0 w-[50px] h-[50px] rounded-r-lg flex items-center justify-center font-bold text-xl border-[3px] bg-white z-10 relative"
                               style={{ borderColor: barColor, color: barColor }}
                             >
                               {rawScore}
@@ -307,7 +307,7 @@ export function VideoLifelineViewer({
           {mode === "bars-plus-detail" && selected && (
             <Card className="shadow-lg flex flex-col overflow-hidden bg-[hsl(var(--scheme-ll-graph-bg))] border-0">
               {/* Nav header */}
-              <div className="bg-[hsl(var(--scheme-nav-bg))] px-4 py-3 flex-shrink-0">
+              <div className="bg-[hsl(var(--scheme-nav-bg))] px-4 py-3 shrink-0">
                 <div className="grid grid-cols-3 items-center gap-2">
                   <div className="justify-self-start">
                     <Button
@@ -355,7 +355,7 @@ export function VideoLifelineViewer({
 
                 <div className="flex items-start gap-4">
                   <div
-                    className="flex-shrink-0 px-3 py-1 rounded-md font-bold text-white"
+                    className="shrink-0 px-3 py-1 rounded-md font-bold text-white"
                     style={{
                       backgroundColor: (selected.score || 0) >= 0 ? positiveColor : negativeColor,
                     }}

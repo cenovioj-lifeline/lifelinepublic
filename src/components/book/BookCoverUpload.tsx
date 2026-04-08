@@ -234,7 +234,7 @@ export function BookCoverUpload({ book, onImageUpdate }: BookCoverUploadProps) {
               centerX={positionX}
               centerY={positionY}
               scale={scale}
-              className="aspect-[2/3] w-48 rounded-lg border shadow-md"
+              className="aspect-2/3 w-48 rounded-lg border shadow-md"
             />
             {coverImage?.id && (
               <Button variant="outline" size="sm" onClick={handleEditPosition}>

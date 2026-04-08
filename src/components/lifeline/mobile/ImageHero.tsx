@@ -22,7 +22,7 @@ export const ImageHero = ({ imageUrl, title, rating }: ImageHeroProps) => {
       {!imageLoaded && (
         <div className="absolute inset-0">
           <Skeleton className="w-full h-full" />
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent to-background/20" />
+          <div className="absolute inset-0 bg-linear-to-b from-transparent to-background/20" />
         </div>
       )}
       <img
@@ -30,7 +30,7 @@ export const ImageHero = ({ imageUrl, title, rating }: ImageHeroProps) => {
         alt={title}
         className={cn(
           "w-full h-full object-cover transition-all duration-300",
-          imageLoaded ? "opacity-100 blur-0" : "opacity-0 blur-sm"
+          imageLoaded ? "opacity-100 blur-0" : "opacity-0 blur-xs"
         )}
         onLoad={() => setImageLoaded(true)}
       />

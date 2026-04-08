@@ -53,7 +53,7 @@ export function ElectionDetailView({ election, groupedResults, collectionContext
     return (
         <div className="min-h-screen bg-background">
             {/* Header */}
-            <div className="sticky top-0 z-10 shadow-sm">
+            <div className="sticky top-0 z-10 shadow-xs">
                 {/* Top bar with title and back button - Themed Background */}
                 <div className="bg-[hsl(var(--scheme-award-bg))] border-b border-[hsl(var(--scheme-award-border))] px-4 py-4">
                     <div className="container mx-auto">

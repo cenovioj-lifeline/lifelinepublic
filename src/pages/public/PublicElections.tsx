@@ -93,7 +93,7 @@ export default function PublicElections() {
           {availableTags && availableTags.length > 0 && (
             <div className="flex flex-wrap gap-2 justify-center">
               <Button
-                variant={selectedTagId === "" ? "default" : "outline"}
+                variant={selectedTagId === "" ? "default" : "outline-solid"}
                 size="sm"
                 onClick={() => setSelectedTagId("")}
               >
@@ -102,7 +102,7 @@ export default function PublicElections() {
               {availableTags.map((tag: any) => (
                 <Button
                   key={tag.id}
-                  variant={selectedTagId === tag.id ? "default" : "outline"}
+                  variant={selectedTagId === tag.id ? "default" : "outline-solid"}
                   size="sm"
                   onClick={() => setSelectedTagId(tag.id)}
                 >

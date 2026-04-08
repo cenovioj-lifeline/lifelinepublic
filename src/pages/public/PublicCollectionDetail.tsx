@@ -677,7 +677,7 @@ export default function PublicCollectionDetail() {
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
+                <div className="w-full h-full flex items-center justify-center bg-linear-to-br from-gray-100 to-gray-200">
                   <div className="text-center px-4">
                     <div className="text-4xl mb-2">📚</div>
                     <div className="text-sm font-medium text-gray-600">{content.title}</div>
@@ -724,7 +724,7 @@ export default function PublicCollectionDetail() {
                 style={{ objectPosition: `${posX}% ${posY}%` }}
               />
             ) : (
-              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
+              <div className="w-full h-full flex items-center justify-center bg-linear-to-br from-gray-100 to-gray-200">
                 <div className="text-center px-4">
                   <div className="text-4xl mb-2">🔗</div>
                   <div className="text-sm font-medium text-gray-600">{content.title}</div>
@@ -927,7 +927,7 @@ export default function PublicCollectionDetail() {
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
+                <div className="w-full h-full flex items-center justify-center bg-linear-to-br from-gray-100 to-gray-200">
                   <div className="text-center px-4">
                     <div className="text-4xl mb-2">📚</div>
                     <div className="text-sm font-medium text-gray-600">{item.title}</div>
@@ -963,7 +963,7 @@ export default function PublicCollectionDetail() {
         {/* Hero Section */}
         <div className="relative rounded-lg overflow-hidden">
           {collection.hero_image_url ? (
-            <div className="aspect-[4/1] relative">
+            <div className="aspect-4/1 relative">
               <img
                 src={collection.hero_image_url}
                 alt={collection.title}
@@ -985,7 +985,7 @@ export default function PublicCollectionDetail() {
               </div>
             </div>
           ) : (
-            <div className="p-8 md:p-12 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-lg">
+            <div className="p-8 md:p-12 bg-linear-to-br from-primary/10 to-secondary/10 rounded-lg">
               <h1 className="text-3xl md:text-5xl font-bold mb-2">
                 {collection.title}
               </h1>

@@ -69,7 +69,7 @@ export function ProfileRow({
       )}
     >
       {/* Avatar */}
-      <Avatar className={cn(isCompact ? "w-9 h-9" : "w-11 h-11", "flex-shrink-0")}>
+      <Avatar className={cn(isCompact ? "w-9 h-9" : "w-11 h-11", "shrink-0")}>
         <AvatarImage src={avatarUrl || undefined} alt={name} />
         <AvatarFallback
           className={cn(
@@ -88,7 +88,7 @@ export function ProfileRow({
       {/* Type Badge */}
       <span
         className={cn(
-          "flex-shrink-0 rounded px-1.5 py-0.5 text-xs font-medium flex items-center gap-1",
+          "shrink-0 rounded px-1.5 py-0.5 text-xs font-medium flex items-center gap-1",
           badge.className
         )}
       >
@@ -101,7 +101,7 @@ export function ProfileRow({
         className={cn(
           "font-medium truncate",
           isCompact ? "text-sm" : "text-base",
-          isMobile ? "flex-1" : "flex-shrink-0 min-w-[120px]"
+          isMobile ? "flex-1" : "shrink-0 min-w-[120px]"
         )}
       >
         {name}
@@ -115,7 +115,7 @@ export function ProfileRow({
       )}
 
       {/* Hover hint (desktop only) */}
-      <span className="hidden md:block text-xs bg-purple-800 text-white px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+      <span className="hidden md:block text-xs bg-purple-800 text-white px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
         Open →
       </span>
     </Link>

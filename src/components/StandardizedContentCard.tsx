@@ -97,7 +97,7 @@ export function StandardizedContentCard({
           </div>
         </CardHeader>
         <CardContent className="bg-[hsl(var(--scheme-cards-bg))]">
-          <p className="text-sm line-clamp-3 text-[hsl(var(--scheme-cards-text))] min-h-[3.75rem]">
+          <p className="text-sm line-clamp-3 text-[hsl(var(--scheme-cards-text))] min-h-15">
             {description || '\u00A0'}
           </p>
         </CardContent>

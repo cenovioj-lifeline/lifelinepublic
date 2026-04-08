@@ -14,9 +14,9 @@ export const GraphBar = ({ rating, isActive, isPast, onClick }: GraphBarProps) =
     <button
       onClick={onClick}
       className={cn(
-        "relative transition-all duration-200 flex-shrink-0",
+        "relative transition-all duration-200 shrink-0",
         "hover:scale-105 active:scale-95",
-        "focus:outline-none focus:ring-2 focus:ring-primary/50",
+        "focus:outline-hidden focus:ring-2 focus:ring-primary/50",
         isActive ? "scale-125 z-10" : "scale-100"
       )}
       style={{

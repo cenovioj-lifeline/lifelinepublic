@@ -31,11 +31,11 @@ export function BookMetadata({ book, hasContext = false }: BookMetadataProps) {
             centerX={book.cover_image?.position_x ?? 50}
             centerY={book.cover_image?.position_y ?? 50}
             scale={book.cover_image?.scale ?? 1}
-            className="aspect-[2/3] rounded-lg shadow-lg mb-4 border border-border"
+            className="aspect-2/3 rounded-lg shadow-lg mb-4 border border-border"
           />
         ) : (
           <div 
-            className="aspect-[2/3] rounded-lg shadow-inner mb-4 flex items-center justify-center text-white border-2 border-white/20 p-4"
+            className="aspect-2/3 rounded-lg shadow-inner mb-4 flex items-center justify-center text-white border-2 border-white/20 p-4"
             style={{ 
               background: hasContext 
                 ? "linear-gradient(to bottom right, hsl(var(--scheme-nav-button)), hsl(var(--scheme-nav-button) / 0.8))"

@@ -139,7 +139,7 @@ export function StartButtonModal({ open, onOpenChange }: StartButtonModalProps) 
           {category.links.map((link, idx) => (
             <Button
               key={idx}
-              variant={idx === 0 ? "default" : "outline"}
+              variant={idx === 0 ? "default" : "outline-solid"}
               onClick={() => handleLinkClick(link)}
             >
               {link.label}
@@ -179,7 +179,7 @@ export function StartButtonModal({ open, onOpenChange }: StartButtonModalProps) 
             {/* Subtle close button */}
             <button
               onClick={() => onOpenChange(false)}
-              className="absolute right-4 top-1/2 -translate-y-1/2 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+              className="absolute right-4 top-1/2 -translate-y-1/2 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2"
               aria-label="Close"
             >
               <X className="h-5 w-5 text-muted-foreground" />
@@ -236,7 +236,7 @@ export function StartButtonModal({ open, onOpenChange }: StartButtonModalProps) 
                               <Button
                                 key={idx}
                                 size="sm"
-                                variant={idx === 0 ? "default" : "outline"}
+                                variant={idx === 0 ? "default" : "outline-solid"}
                                 onClick={() => handleLinkClick(link)}
                               >
                                 {link.label}

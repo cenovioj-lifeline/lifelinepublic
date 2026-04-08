@@ -217,9 +217,9 @@ export default function FeedSetup() {
                       </p>
                     </div>
                     {isSelected ? (
-                      <Check className="h-5 w-5 text-primary flex-shrink-0" />
+                      <Check className="h-5 w-5 text-primary shrink-0" />
                     ) : (
-                      <Rss className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                      <Rss className="h-5 w-5 text-muted-foreground shrink-0" />
                     )}
                   </div>
                 </div>

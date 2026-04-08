@@ -354,7 +354,7 @@ export default function CollectionManageLifelines() {
                 <div className="flex gap-2 mt-1">
                   <Button
                     type="button"
-                    variant={formType === "list" ? "default" : "outline"}
+                    variant={formType === "list" ? "default" : "outline-solid"}
                     onClick={() => setFormType("list")}
                     className="flex-1"
                   >
@@ -362,7 +362,7 @@ export default function CollectionManageLifelines() {
                   </Button>
                   <Button
                     type="button"
-                    variant={formType === "person" ? "default" : "outline"}
+                    variant={formType === "person" ? "default" : "outline-solid"}
                     onClick={() => setFormType("person")}
                     className="flex-1"
                   >

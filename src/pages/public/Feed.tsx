@@ -106,21 +106,21 @@ export default function Feed() {
       {user && subscribedCollections.length > 0 && (
         <div className="flex gap-2 mb-4">
           <Button
-            variant={seenFilter === 'unseen' ? 'default' : 'outline'}
+            variant={seenFilter === 'unseen' ? 'default' : 'outline-solid'}
             onClick={() => setSeenFilter('unseen')}
             size="sm"
           >
             Unseen
           </Button>
           <Button
-            variant={seenFilter === 'all' ? 'default' : 'outline'}
+            variant={seenFilter === 'all' ? 'default' : 'outline-solid'}
             onClick={() => setSeenFilter('all')}
             size="sm"
           >
             All
           </Button>
           <Button
-            variant={seenFilter === 'seen' ? 'default' : 'outline'}
+            variant={seenFilter === 'seen' ? 'default' : 'outline-solid'}
             onClick={() => setSeenFilter('seen')}
             size="sm"
           >

@@ -15,7 +15,7 @@ export const GridCard = ({ superlative, onClick }: GridCardProps) => {
         "flex flex-col items-center gap-2 p-3 rounded-lg",
         "bg-card border border-border",
         "transition-transform duration-200 active:scale-97",
-        "hover:shadow-md focus:outline-none focus:ring-2 focus:ring-primary/20"
+        "hover:shadow-md focus:outline-hidden focus:ring-2 focus:ring-primary/20"
       )}
     >
       <CroppedImage
@@ -35,7 +35,7 @@ export const GridCard = ({ superlative, onClick }: GridCardProps) => {
         }
       />
 
-      <h3 className="text-sm font-bold text-center line-clamp-2 text-foreground min-h-[2.5rem]">
+      <h3 className="text-sm font-bold text-center line-clamp-2 text-foreground min-h-10">
         {superlative.title}
       </h3>
 

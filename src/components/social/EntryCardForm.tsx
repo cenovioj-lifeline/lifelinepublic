@@ -55,9 +55,9 @@ export function EntryCardForm({
   };
 
   const getScoreCircleColor = (score: number): string => {
-    if (score > 0) return "bg-gradient-to-br from-green-500 to-green-600";
-    if (score < 0) return "bg-gradient-to-br from-red-500 to-red-600";
-    return "bg-gradient-to-br from-gray-400 to-gray-500";
+    if (score > 0) return "bg-linear-to-br from-green-500 to-green-600";
+    if (score < 0) return "bg-linear-to-br from-red-500 to-red-600";
+    return "bg-linear-to-br from-gray-400 to-gray-500";
   };
 
   return (
@@ -149,7 +149,7 @@ export function EntryCardForm({
             </span>
           </div>
           <div className="relative">
-            <div className="absolute inset-0 h-2 rounded-full bg-gradient-to-r from-red-500 via-yellow-500 to-green-500 top-1/2 -translate-y-1/2 pointer-events-none" style={{ zIndex: 0 }} />
+            <div className="absolute inset-0 h-2 rounded-full bg-linear-to-r from-red-500 via-yellow-500 to-green-500 top-1/2 -translate-y-1/2 pointer-events-none" style={{ zIndex: 0 }} />
             <Slider
               value={[form.score]}
               onValueChange={([v]) => onChange({ ...form, score: v })}

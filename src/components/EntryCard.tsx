@@ -47,11 +47,11 @@ export function EntryCard({ entry, onEdit, onDelete, lifelineType }: EntryCardPr
 
   const getSentimentBadge = (sentiment?: string) => {
     if (!sentiment) return null;
-    const variants: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
+    const variants: Record<string, "default" | "secondary" | "destructive" | "outline-solid"> = {
       positive: "default",
       neutral: "secondary",
       negative: "destructive",
-      mixed: "outline",
+      mixed: "outline-solid",
     };
     return (
       <Badge variant={variants[sentiment] || "secondary"} className="capitalize">
@@ -70,7 +70,7 @@ export function EntryCard({ entry, onEdit, onDelete, lifelineType }: EntryCardPr
       <CardContent className="p-4">
         <div className="flex gap-4">
           <div
-            className="flex items-center justify-center w-12 h-12 rounded-full flex-shrink-0"
+            className="flex items-center justify-center w-12 h-12 rounded-full shrink-0"
             style={getRatingStyle(entry.score)}
           >
             <span className="font-bold text-lg">{getRatingPrefix(entry.score)}</span>
