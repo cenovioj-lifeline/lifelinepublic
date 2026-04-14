@@ -17,7 +17,7 @@ import { useAuth } from "@/lib/auth";
 import { PublicAuthModal } from "@/components/PublicAuthModal";
 import { SuperFanImageUpload, SuperFanImageDelete } from "@/components/SuperFanImageUpload";
 import { ImageLockToggle } from "@/components/ImageLockToggle";
-import { CoverImagePicker } from "@/components/CoverImagePicker";
+import { LifelineCoverEditor } from "@/components/lifeline/LifelineCoverEditor";
 import { EntryImageRepositioner } from "@/components/EntryImageRepositioner";
 import { SerpApiSearchModal } from "@/components/admin/SerpApiSearchModal";
 import { AiImageEditModal } from "@/components/admin/AiImageEditModal";
@@ -65,8 +65,8 @@ export function LifelineViewer({
   const [contributeDialogOpen, setContributeDialogOpen] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [contributePictureMode, setContributePictureMode] = useState(false);
-  const [coverImagePickerOpen, setCoverImagePickerOpen] = useState(false);
-  const [coverImageUrl, setCoverImageUrl] = useState<string | undefined>(undefined);
+  const [coverEditorOpen, setCoverEditorOpen] = useState(false);
+  const [coverPendingUrl, setCoverPendingUrl] = useState<string | undefined>(undefined);
   const [editingTitle, setEditingTitle] = useState(false);
   const [editingDetails, setEditingDetails] = useState(false);
   const [editedTitle, setEditedTitle] = useState("");
@@ -719,8 +719,8 @@ export function LifelineViewer({
                                      variant="secondary"
                                      size="sm"
                                      onClick={() => {
-                                       setCoverImageUrl(media.url);
-                                       setCoverImagePickerOpen(true);
+                                       setCoverPendingUrl(media.url);
+                                       setCoverEditorOpen(true);
                                      }}
                                      className="absolute top-12 left-2 z-10"
                                      title="Use as cover image"
@@ -984,11 +984,14 @@ export function LifelineViewer({
       />
 
       {isSuperFan && (
-        <CoverImagePicker
+        <LifelineCoverEditor
           lifelineId={lifelineId}
-          currentImageUrl={coverImageUrl}
-          open={coverImagePickerOpen}
-          onOpenChange={setCoverImagePickerOpen}
+          pendingImageUrl={coverPendingUrl}
+          open={coverEditorOpen}
+          onOpenChange={(open) => {
+            setCoverEditorOpen(open);
+            if (!open) setCoverPendingUrl(undefined);
+          }}
           onSuccess={() => {
             queryClient.invalidateQueries({ queryKey: ["lifeline", lifelineId] });
           }}
