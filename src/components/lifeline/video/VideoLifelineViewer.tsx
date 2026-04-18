@@ -70,6 +70,13 @@ export interface VideoLifelineViewerProps {
   negativeColor?: string;
   /** Override `lifeline.lifeline_type` for sorting/title parsing. */
   lifelineType?: string;
+  /**
+   * Optional custom renderer for the selected entry's summary body. Used by
+   * video compositions that want word-level caption highlighting inside the
+   * detail card. When omitted, the summary is rendered as plain text inside
+   * the standard `<p>`.
+   */
+  renderSummary?: (summary: string, entryId: string) => React.ReactNode;
 }
 
 const DEFAULT_POSITIVE = "#16a34a";
@@ -87,6 +94,7 @@ export function VideoLifelineViewer({
   positiveColor = DEFAULT_POSITIVE,
   negativeColor = DEFAULT_NEGATIVE,
   lifelineType,
+  renderSummary,
 }: VideoLifelineViewerProps) {
   const effectiveType = lifelineType || lifeline.lifeline_type || "list";
 
@@ -382,7 +390,9 @@ export function VideoLifelineViewer({
                 </div>
 
                 <p className="leading-relaxed text-[hsl(var(--scheme-title-text))]">
-                  {selected.summary || selected.details}
+                  {renderSummary
+                    ? renderSummary(selected.summary || selected.details || "", selected.id)
+                    : (selected.summary || selected.details)}
                 </p>
               </CardContent>
             </Card>
